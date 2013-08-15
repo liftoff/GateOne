@@ -61,6 +61,8 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">.. _sso.py:</span>
+
 <span class="s">About The SSO Module</span>
 <span class="s">====================</span>
 <span class="s">sso.py is a Tornado Single Sign-On (SSO) authentication module that implements</span>
@@ -224,7 +226,7 @@
 <div class="viewcode-block" id="KerberosAuthMixin.auth_basic"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.auth_basic">[docs]</a>    <span class="k">def</span> <span class="nf">auth_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform Basic authentication using Kerberos against</span>
-<span class="sd">        self.settings[&#39;sso_realm&#39;].</span>
+<span class="sd">        `self.settings[&#39;sso_realm&#39;]`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
         <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -305,7 +307,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

@@ -56,7 +56,10 @@
 <span class="c"># For license information see LICENSE.txt</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s">Gate One utility functions and classes.</span>
+<span class="s">.. _utils.py:</span>
+
+<span class="s">Gate One Utility Functions and Classes</span>
+<span class="s">======================================</span>
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
@@ -98,14 +101,6 @@
 <span class="n">OPENBSD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;OpenBSD&#39;</span>
 <span class="n">CSS_END</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\.css.*?$&#39;</span><span class="p">)</span>
 <span class="n">JS_END</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\.js.*?$&#39;</span><span class="p">)</span>
-<span class="c"># This matches JUST the PIDs from the output of the pstree command</span>
-<span class="c">#RE_PSTREE = re.compile(r&#39;\(([0-9]*)\)&#39;)</span>
-<span class="c"># Matches Gate One&#39;s special optional escape sequence (ssh plugin only)</span>
-<span class="c">#RE_OPT_SSH_SEQ = re.compile(</span>
-    <span class="c">#r&#39;.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b\\)&#39;, re.MULTILINE|re.DOTALL)</span>
-<span class="c">## Matches an xterm title sequence</span>
-<span class="c">#RE_TITLE_SEQ = re.compile(</span>
-    <span class="c">#r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)&#39;, re.DOTALL|re.MULTILINE)</span>
 <span class="c"># This is used by the raw() function to show control characters</span>
 <span class="n">REPLACEMENT_DICT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="mi">0</span><span class="p">:</span> <span class="s">u&#39;^@&#39;</span><span class="p">,</span>
@@ -212,7 +207,10 @@
 <span class="sd">    A dict that will recursively update keys and values in a safe manner so that</span>
 <span class="sd">    sub-dicts will be merged without one clobbering the other.</span>
 
-<span class="sd">    .. note:: This class (mostly) taken from `here &lt;http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python&gt;`_</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This class (mostly) taken from `here</span>
+<span class="sd">        &lt;http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python&gt;`_</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RUDict</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
@@ -433,9 +431,9 @@
 <div class="viewcode-block" id="shell_command"><a class="viewcode-back" href="../Developer/utils.html#utils.shell_command">[docs]</a><span class="k">def</span> <span class="nf">shell_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">timeout_duration</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resets the SIGCHLD signal handler (if necessary), executes *cmd* via</span>
-<span class="sd">    :func:`commands.getstatusoutput`, then re-enables the SIGCHLD handler (if it</span>
-<span class="sd">    was set to something other than SIG_DFL).  Returns the result of</span>
-<span class="sd">    `getstatusoutput` which is a tuple in the form of::</span>
+<span class="sd">    :func:`~commands.getstatusoutput`, then re-enables the SIGCHLD handler (if</span>
+<span class="sd">    it was set to something other than SIG_DFL).  Returns the result of</span>
+<span class="sd">    :func:`~commands.getstatusoutput` which is a tuple in the form of::</span>
 
 <span class="sd">        (exitstatus, output)</span>
 
@@ -677,7 +675,8 @@
 <div class="viewcode-block" id="str2bool"><a class="viewcode-back" href="../Developer/utils.html#utils.str2bool">[docs]</a><span class="k">def</span> <span class="nf">str2bool</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts strings like, &#39;false&#39;, &#39;true&#39;, &#39;0&#39;, and &#39;1&#39; into their boolean</span>
-<span class="sd">    equivalents.  If no logical match is found, return False.  Examples::</span>
+<span class="sd">    equivalents (in Python).  If no logical match is found, return False.</span>
+<span class="sd">    Examples::</span>
 
 <span class="sd">        &gt;&gt;&gt; str2bool(&#39;false&#39;)</span>
 <span class="sd">        False</span>
@@ -755,7 +754,11 @@
 <span class="sd">        &gt;&gt;&gt; cmd_var_swap(cmd, foo=&quot;FOOYEAH,&quot;, bar=&quot;BAR NONE!&quot;)</span>
 <span class="sd">        &quot;echo &#39;FOOYEAH, BAR NONE!&#39;&quot;</span>
 
-<span class="sd">    .. note:: The variables passed into this function via *kwargs* are case insensitive.  `cmd_var_swap(cmd, session=var)` would produce the same output as `cmd_var_swap(cmd, SESSION=var)`.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The variables passed into this function via *kwargs* are case</span>
+<span class="sd">        insensitive.  `cmd_var_swap(cmd, session=var)` would produce the same</span>
+<span class="sd">        output as `cmd_var_swap(cmd, SESSION=var)`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="c"># Force to string in case of things like integers</span>
@@ -768,7 +771,10 @@
 <span class="sd">    Converts *to_shorten* into a really short hash depenendent on the length of</span>
 <span class="sd">    *to_shorten*.  The result will be safe for use as a file name.</span>
 
-<span class="sd">    .. note:: Collisions are possible but *highly* unlikely because of how this method is used.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Collisions are possible but *highly* unlikely because of how this method</span>
+<span class="sd">        is used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">base64</span>
     <span class="n">hashed</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">to_shorten</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
@@ -914,7 +920,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A BSD-specific version of `killall` since Macs don&#39;t have /proc.</span>
 
-<span class="sd">    .. note:: *pid_file* is not used by this function.  It is simply here to provide compatibility with `killall`.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        *pid_file* is not used by this function.  It is simply here to provide</span>
+<span class="sd">        compatibility with `killall`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: See if there&#39;s a better way to keep track of subprocesses so we</span>
     <span class="c"># don&#39;t have to enumerate the process table at all.</span>
@@ -1099,18 +1108,19 @@
 <span class="c"># See: http://code.activestate.com/recipes/577894-convert-strings-like-5d-and-60s-to-timedelta-objec/</span></div>
 <div class="viewcode-block" id="convert_to_timedelta"><a class="viewcode-back" href="../Developer/utils.html#utils.convert_to_timedelta">[docs]</a><span class="k">def</span> <span class="nf">convert_to_timedelta</span><span class="p">(</span><span class="n">time_val</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a *time_val* (string) such as &#39;5d&#39;, returns a `datetime.timedelta` object</span>
-<span class="sd">    representing the given value (e.g. timedelta(days=5)).  Accepts the</span>
+<span class="sd">    Given a *time_val* (string) such as &#39;5d&#39;, returns a `datetime.timedelta`</span>
+<span class="sd">    object representing the given value (e.g. `timedelta(days=5)`).  Accepts the</span>
 <span class="sd">    following &#39;&lt;num&gt;&lt;char&gt;&#39; formats:</span>
 
-<span class="sd">    =========   ======= ===================</span>
-<span class="sd">    Character   Meaning Example</span>
-<span class="sd">    =========   ======= ===================</span>
-<span class="sd">    s           Seconds &#39;60s&#39; -&gt; 60 Seconds</span>
-<span class="sd">    m           Minutes &#39;5m&#39;  -&gt; 5 Minutes</span>
-<span class="sd">    h           Hours   &#39;24h&#39; -&gt; 24 Hours</span>
-<span class="sd">    d           Days    &#39;7d&#39;  -&gt; 7 Days</span>
-<span class="sd">    =========   ======= ===================</span>
+<span class="sd">    =========   ============ =========================</span>
+<span class="sd">    Character   Meaning      Example</span>
+<span class="sd">    =========   ============ =========================</span>
+<span class="sd">    (none)      Milliseconds &#39;500&#39; -&gt; 500 Milliseconds</span>
+<span class="sd">    s           Seconds      &#39;60s&#39; -&gt; 60 Seconds</span>
+<span class="sd">    m           Minutes      &#39;5m&#39;  -&gt; 5 Minutes</span>
+<span class="sd">    h           Hours        &#39;24h&#39; -&gt; 24 Hours</span>
+<span class="sd">    d           Days         &#39;7d&#39;  -&gt; 7 Days</span>
+<span class="sd">    =========   ============ =========================</span>
 
 <span class="sd">    Examples::</span>
 
@@ -1123,6 +1133,11 @@
 <span class="sd">        &gt;&gt;&gt; convert_to_timedelta(&#39;120s&#39;)</span>
 <span class="sd">        datetime.timedelta(0, 120)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">milliseconds</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">time_val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
@@ -1138,9 +1153,9 @@
 <span class="sd">    Given a *size_val* (string) such as &#39;100M&#39;, returns an integer representing</span>
 <span class="sd">    an equivalent amount of bytes.  Accepts the following &#39;&lt;num&gt;&lt;char&gt;&#39; formats:</span>
 
-<span class="sd">    =========== ==========  ===================</span>
+<span class="sd">    =========== ==========  ==================================</span>
 <span class="sd">    Character   Meaning     Example</span>
-<span class="sd">    =========== ==========  ===================</span>
+<span class="sd">    =========== ==========  ==================================</span>
 <span class="sd">    B (or none) Bytes       &#39;100&#39; or &#39;100b&#39; -&gt; 100</span>
 <span class="sd">    K           Kilobytes   &#39;1k&#39; -&gt; 1024</span>
 <span class="sd">    M           Megabytes   &#39;1m&#39; -&gt; 1048576</span>
@@ -1150,11 +1165,16 @@
 <span class="sd">    E           Exabytes    &#39;1e&#39; -&gt; 1152921504606846976</span>
 <span class="sd">    Z           Zettabytes  &#39;1z&#39; -&gt; 1180591620717411303424L</span>
 <span class="sd">    Y           Yottabytes  &#39;7y&#39; -&gt; 1208925819614629174706176L</span>
-<span class="sd">    =========== ==========  ===================</span>
+<span class="sd">    =========== ==========  ==================================</span>
 
-<span class="sd">    .. note:: If no character is given the *size_val* will be assumed to be in bytes.</span>
+<span class="sd">    .. note::</span>
 
-<span class="sd">    .. tip:: All characters will be converted to upper case before conversion (case-insensitive).</span>
+<span class="sd">        If no character is given the *size_val* will be assumed to be in bytes.</span>
+
+<span class="sd">    .. tip::</span>
+
+<span class="sd">        All characters will be converted to upper case before conversion</span>
+<span class="sd">        (case-insensitive).</span>
 
 <span class="sd">    Examples::</span>
 
@@ -1179,9 +1199,9 @@
 </div>
 <div class="viewcode-block" id="process_opt_esc_sequence"><a class="viewcode-back" href="../Developer/utils.html#utils.process_opt_esc_sequence">[docs]</a><span class="k">def</span> <span class="nf">process_opt_esc_sequence</span><span class="p">(</span><span class="n">chars</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parse the *chars* passed from :class:`terminal.Terminal` by way of the special,</span>
-<span class="sd">    optional escape sequence handler (e.g. &#39;&lt;plugin&gt;|&lt;text&gt;&#39;) into a tuple of</span>
-<span class="sd">    (&lt;plugin name&gt;, &lt;text&gt;).  Here&#39;s an example::</span>
+<span class="sd">    Parse the *chars* passed from :class:`terminal.Terminal` by way of the</span>
+<span class="sd">    special, optional escape sequence handler (e.g. &#39;&lt;plugin&gt;|&lt;text&gt;&#39;) into a</span>
+<span class="sd">    tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here&#39;s an example::</span>
 
 <span class="sd">        &gt;&gt;&gt; process_opt_esc_sequence(&#39;ssh|user@host:22&#39;)</span>
 <span class="sd">        (&#39;ssh&#39;, &#39;user@host:22&#39;)</span>
@@ -1248,7 +1268,7 @@
 <div class="viewcode-block" id="human_readable_bytes"><a class="viewcode-back" href="../Developer/utils.html#utils.human_readable_bytes">[docs]</a><span class="k">def</span> <span class="nf">human_readable_bytes</span><span class="p">(</span><span class="n">nbytes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns *nbytes* as a human-readable string in a similar fashion to how it</span>
-<span class="sd">    would be displayed by &#39;ls -lh&#39; or &#39;df -h&#39;.</span>
+<span class="sd">    would be displayed by `ls -lh` or `df -h`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">K</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">40</span>
     <span class="k">if</span> <span class="n">nbytes</span> <span class="o">&gt;=</span> <span class="n">T</span><span class="p">:</span>
@@ -1266,7 +1286,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the full path of *binary* (string) just like the &#39;which&#39; command.</span>
 <span class="sd">    Optionally, a *path* (colon-delimited string) may be given to use instead of</span>
-<span class="sd">    `os.environ` [&#39;PATH&#39;].</span>
+<span class="sd">    `os.environ[&#39;PATH&#39;]`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
         <span class="n">paths</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
@@ -1396,7 +1416,7 @@
 </div>
 <div class="viewcode-block" id="check_write_permissions"><a class="viewcode-back" href="../Developer/utils.html#utils.check_write_permissions">[docs]</a><span class="k">def</span> <span class="nf">check_write_permissions</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns True if the given *user* has write permissions to *path*.  *user*</span>
+<span class="sd">    Returns `True` if the given *user* has write permissions to *path*.  *user*</span>
 <span class="sd">    can be a UID (int) or a username (string).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pwd</span><span class="o">,</span> <span class="nn">grp</span><span class="o">,</span> <span class="nn">stat</span>
@@ -1683,7 +1703,12 @@
 <span class="sd">         [&#39;&lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&#39;])</span>
 <span class="sd">        (u&#39;&lt;span&gt;Hello, exploit: \u2421&lt;/span&gt;&#39;, [&#39;&lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&#39;])</span>
 
-<span class="sd">    .. note:: This function should work to protect against all `the XSS examples at OWASP &lt;https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet&gt;`_.  Please `let us know &lt;https://github.com/liftoff/GateOne/issues&gt;`_ if you find something we missed.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This function should work to protect against all `the XSS examples at</span>
+<span class="sd">        OWASP &lt;https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet&gt;`_.</span>
+<span class="sd">        Please `let us know &lt;https://github.com/liftoff/GateOne/issues&gt;`_ if</span>
+<span class="sd">        you find something we missed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">re_html_tag</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span> <span class="c"># This matches HTML tags (if used correctly)</span>
       <span class="s">&quot;(?i)&lt;\/?\w+((\s+\w+(\s*=\s*(?:</span><span class="se">\&quot;</span><span class="s">.*?</span><span class="se">\&quot;</span><span class="s">|&#39;.*?&#39;|[^&#39;</span><span class="se">\&quot;</span><span class="s">&gt;\s]+))?)+\s*|\s*)\/?&gt;&quot;</span><span class="p">)</span>
@@ -1747,9 +1772,17 @@
 <span class="sd">    &#39;hmac_algo&#39; may be any HMAC algorithm present in the hashlib module.  If not</span>
 <span class="sd">    provided, `hashlib.sha1` will be used.  Example usage::</span>
 
-<span class="sd">        create_signature(&#39;secret&#39;, &#39;some-api-key&#39;, &#39;1234567890123&#39;, &#39;user@somehost&#39;, hmac_algo=hashlib.sha1)</span>
+<span class="sd">        create_signature(</span>
+<span class="sd">            &#39;secret&#39;,</span>
+<span class="sd">            &#39;some-api-key&#39;,</span>
+<span class="sd">            &#39;1234567890123&#39;,</span>
+<span class="sd">            &#39;user@somehost&#39;,</span>
+<span class="sd">            hmac_algo=hashlib.sha1)</span>
 
-<span class="sd">    .. note:: The API &#39;secret&#39; **must** be the first argument.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The API &#39;secret&#39; **must** be the first argument.  Also, the order</span>
+<span class="sd">        *does* matter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">secret</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">secret</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">secret</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="c"># encode() because hmac takes bytes</span>
@@ -2048,7 +2081,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

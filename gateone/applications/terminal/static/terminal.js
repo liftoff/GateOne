@@ -144,7 +144,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelMonitorActivityLabel = u.createElement('span'),
             infoPanelMonitorInactivity = u.createElement('input', {'id': 'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorInactivityLabel = u.createElement('span'),
-            infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
+            infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'type': 'number', 'step': 'any', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
             resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
@@ -237,6 +237,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelMonitorActivityLabel.innerHTML = "Monitor for Activity<br />";
         infoPanelMonitorInactivityLabel.innerHTML = "Monitor for ";
         infoPanelInactivityIntervalLabel.innerHTML = "Seconds of Inactivity";
+        infoPanelInactivityInterval.value = "10";
         infoPanelRow7.appendChild(infoPanelMonitorActivity);
         infoPanelRow7.appendChild(infoPanelMonitorActivityLabel);
         infoPanelRow7.appendChild(infoPanelMonitorInactivity);
@@ -259,8 +260,9 @@ go.Base.update(GateOne.Terminal, {
                     // Restart the timer
                     go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
                 }
-                go.Terminal.terminals[term]['inactivityTimeout'] = 10000; // Ten second default--might want to make user-modifiable
+                go.Terminal.terminals[term]['inactivityTimeout'] = parseInt(infoPanelInactivityInterval.value) * 1000 || 10000; // Ten second default
                 go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
+                go.Visual.displayMessage("Now monitoring terminal " + term + " for inactivity.");
                 if (go.Terminal.terminals[term]['activityNotify']) {
                     // Turn off monitoring for activity if we're now going to monitor for inactivity
                     go.Terminal.terminals[term]['activityNotify'] = false;
@@ -280,6 +282,7 @@ go.Base.update(GateOne.Terminal, {
                 termTitle = go.Terminal.terminals[term]['title'];
             if (monitorActivity.checked) {
                 go.Terminal.terminals[term]['activityNotify'] = true;
+                go.Visual.displayMessage("Now monitoring terminal " + term + " for activity.");
                 if (go.Terminal.terminals[term]['inactivityTimer']) {
                     // Turn off monitoring for activity if we're now going to monitor for inactivity
                     clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
@@ -937,6 +940,7 @@ go.Base.update(GateOne.Terminal, {
             }
         }
     },
+    // TODO: Investigate why the scollback buffer sometimes gets cut off.
     termUpdateFromWorker: function(e) {
         /**:GateOne.Terminal.termUpdateFromWorker(e)
 

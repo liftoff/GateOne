@@ -60,8 +60,13 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
-<span class="s">This authentication module is built on top of gopam.py which is included with</span>
-<span class="s">Gate One.</span>
+<span class="s">.. _authpam.py:</span>
+
+<span class="s">PAM Authentication Module for Gate One</span>
+<span class="s">======================================</span>
+
+<span class="s">This authentication module is built on top of :ref:`gopam.py` which is included</span>
+<span class="s">with Gate One.</span>
 
 <span class="s">It was originally written by Alan Schmitz.</span>
 
@@ -90,7 +95,8 @@
 
 <div class="viewcode-block" id="PAMAuthMixin"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin">[docs]</a><span class="k">class</span> <span class="nc">PAMAuthMixin</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This is used by PAMAuthHandler in auth.py to authenticate users via PAM.</span>
+<span class="sd">    This is used by `PAMAuthHandler` in :ref:`auth.py` to authenticate users via</span>
+<span class="sd">    PAM.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="PAMAuthMixin.initialize"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -102,7 +108,7 @@
 </div>
 <div class="viewcode-block" id="PAMAuthMixin.get_authenticated_user"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin.get_authenticated_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Processes the client&#39;s Authorization header and call self.auth_basic()</span>
+<span class="sd">        Processes the client&#39;s Authorization header and call `self.auth_basic()`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auth_header</span> <span class="ow">and</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Basic &#39;</span><span class="p">):</span>
@@ -110,7 +116,7 @@
 </div>
 <div class="viewcode-block" id="PAMAuthMixin.auth_basic"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin.auth_basic">[docs]</a>    <span class="k">def</span> <span class="nf">auth_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform Basic authentication using self.settings[&#39;pam_realm&#39;].</span>
+<span class="sd">        Perform Basic authentication using `self.settings[&#39;pam_realm&#39;]`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
         <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -190,7 +196,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

@@ -112,7 +112,7 @@
 </div>
 <div class="section" id="call-gateone-init">
 <h2>Call GateOne.init()<a class="headerlink" href="#call-gateone-init" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> function takes a number of optional arguments but for this example all we need is <tt class="xref py py-obj docutils literal"><span class="pre">url</span></tt>.</p>
+<p>The <tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt> function takes a number of optional arguments but for this example all we need is <tt class="xref py py-obj docutils literal"><span class="pre">url</span></tt>.</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">url</span><span class="o">:</span> <span class="s2">&quot;https://your-gateone-server/&quot;</span><span class="p">});</span>
 </pre></div>
 </div>
@@ -179,7 +179,7 @@ auth = &quot;api&quot;
 </div>
 <div class="section" id="generate-an-auth-object">
 <h3>Generate An Auth Object<a class="headerlink" href="#generate-an-auth-object" title="Permalink to this headline">¶</a></h3>
-<p>The next step is to generate a <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> object (auth) from your application and pass it to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>.  The 'auth' object must contain the following information:</p>
+<p>The next step is to generate a <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> object (auth) from your application and pass it to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt>.  The 'auth' object must contain the following information:</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>api_key</dt>
@@ -207,7 +207,7 @@ auth = &quot;api&quot;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This object would then be passed to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> like so:</p>
+<p>This object would then be passed to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt> like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">auth</span><span class="o">:</span> <span class="nx">authobj</span><span class="p">})</span>
 </pre></div>
 </div>
@@ -369,7 +369,7 @@ auth = &quot;api&quot;
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

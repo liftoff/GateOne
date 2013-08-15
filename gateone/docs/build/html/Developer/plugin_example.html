@@ -83,7 +83,7 @@
 <dl class="function">
 <dt id="GateOne.Example.toggleLoadGraph">
 <tt class="descclassname">GateOne.Example.</tt><tt class="descname">toggleLoadGraph</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Example.toggleLoadGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <a class="reference internal" href="js_gateone.html#GateOne.Visual.widget" title="GateOne.Visual.widget"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt></a>).</p>
+<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt>).</p>
 </dd></dl>
 
 <dl class="function">
@@ -135,18 +135,18 @@ advantage of all the available hooks and built-in functions.</p>
 <dd><p>This is how you add a URL handler to Gate One...  This example attaches
 itslef to <a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example in the 'Web' hook at the
 bottom of this file.  It works just like any Tornado
-<a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.  See:</p>
+<tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt>.  See:</p>
 <p><a class="reference external" href="http://www.tornadoweb.org/documentation/web.html">http://www.tornadoweb.org/documentation/web.html</a></p>
-<p>...for documentation on how to write a <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> for
+<p>...for documentation on how to write a <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt> for
 the Tornado framework.  Fairly boilerplate stuff.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The only reason we use <a class="reference internal" href="gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> is so we have access to Gate One's <a class="reference internal" href="gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
+<p class="last">The only reason we use <a class="reference internal" href="gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt> is so we have access to Gate One's <a class="reference internal" href="gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
 </div>
 <dl class="method">
 <dt id="example.ExampleHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/example.html#ExampleHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.ExampleHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handle an HTTP GET request to this <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.
+<dd><p>Handle an HTTP GET request to this <tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt>.
 Connect to:</p>
 <p><a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example</p>
 <p>...to try it out.</p>
@@ -170,8 +170,8 @@ hook at the bottom of this file.  The way it works is like this:</p>
 <p class="rubric">How The WebSocket Hook Works</p>
 <p>Whenever a message is received via the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
 Gate One will automatically
-decode it into a Python <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> (only JSON-encoded messages are accepted).
-Any and all keys in that <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> will be assumed to be 'actions' (just
+decode it into a Python <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt> (only JSON-encoded messages are accepted).
+Any and all keys in that <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt> will be assumed to be 'actions' (just
 like <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> but on the server) such as this one.  If
 the incoming key matches a registered action that action will be called
 like so:</p>
@@ -182,10 +182,10 @@ like so:</p>
 </div>
 <p>...where <em>key</em> is the action and <em>value</em> is what will be passed to said
 action as an argument.  Since Gate One will automatically decode the message
-as JSON the <em>value</em> will typically be passed to actions as a single <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a>.
+as JSON the <em>value</em> will typically be passed to actions as a single <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt>.
 You can provide different kinds of arguments of course but be aware that
 their ordering is unpredictable so always be sure to either pass <em>one</em>
-argument to your function (assuming it is a <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a>) or 100% keyword
+argument to your function (assuming it is a <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt>) or 100% keyword
 arguments.</p>
 <p>The <em>self</em> argument here is automatically assigned by
 <tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> using the <a class="reference internal" href="utils.html#utils.bind" title="utils.bind"><tt class="xref py py-obj docutils literal"><span class="pre">utils.bind</span></tt></a> method.</p>
@@ -297,7 +297,7 @@ a new terminal.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

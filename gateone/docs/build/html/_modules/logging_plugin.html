@@ -501,7 +501,7 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;cols&#39;</span><span class="p">]</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="c"># Log was created before rows/cols metadata was included via termio.py</span>
         <span class="c"># Use some large values to ensure nothing wraps and hope for the best:</span>
@@ -627,7 +627,7 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;cols&#39;</span><span class="p">]</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="c"># Log was created before rows/cols metadata was included via termio.py</span>
         <span class="c"># Use some large values to ensure nothing wraps and hope for the best:</span>
@@ -742,7 +742,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

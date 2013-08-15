@@ -157,7 +157,7 @@ the logged-in user's username (aka UPN) is 'administrator'.</p>
 if the user is authenticated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Only meant to be used with WebSockets.  <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a>
+<p class="last">Only meant to be used with WebSockets.  <tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt>
 instances can use <tt class="xref py py-obj docutils literal"><span class="pre">&#64;tornado.web.authenticated</span></tt></p>
 </div>
 </dd></dl>
@@ -195,7 +195,7 @@ called the registered policy-checking function (e.g.
 instance of <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
 <p>It is then up to the policy-checking function to make a determination as to
 whether or not the user is allowed to execute the decorated function and
-must return <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a> if allowed.  Also note that the policy-checking function
+must return <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt> if allowed.  Also note that the policy-checking function
 will be able to make modifications to the function and its arguments if the
 security policies warrant it.</p>
 <div class="admonition note">
@@ -435,7 +435,7 @@ the browser will be redirected to login.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

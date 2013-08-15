@@ -7,23 +7,16 @@ gateone.js and all related original code...
 
 Copyright 2013 Liftoff Software Corporation
 
-Gate One Client - JavaScript
-============================
-
 Note: Icons came from the folks at GoSquared.  Thanks guys!
 http://www.gosquared.com/liquidicity/archives/122
 
-NOTE regarding plugins:  Only plugins that could feasibly be removed entirely
-from Gate One were broken out into their own plugin directories.  Only modules
-and functions that are absolutely essential to Gate One should be placed within
-this file.
 */
 
 // General TODOs
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
-// TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).  Will require overriding some aspects of Backbone.js but this is easier than re-inventing the wheel with Models.
+// TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).
 
 // This detects the proper transitionend event name (used by alignTerminal()):
 var transitionEndSupported = false,
@@ -105,6 +98,10 @@ var noop = function(a) { return a }, // Let's us reference functions that may or
 
 // Define GateOne
 var GateOne = GateOne || function() {};
+/**:GateOne
+
+The base object for all Gate One modules/plugins.
+*/
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
 GateOne.__repr__ = function () {
@@ -121,20 +118,34 @@ var seed1 = null, seed2 = null; // NOTE: Not used yet.
 //       ...which is MIT licensed: http://www.opensource.org/licenses/mit-license.php
 //      Other functions copied from MochiKit are indicated individually throughout this file
 GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used to create/update Gate One modules/plugins
+/**:GateOne.Base
+
+The Base module is mostly copied from `MochiKit <http://mochikit.com/>`_ and consists of the following:
+*/
 GateOne.loadedModules = [];
 GateOne.loadedApplications = {};
 GateOne.initializedModules = []; // So we don't accidentally call a plugin's init() or postInit() functions twice
 
 
 GateOne.Base.module = function(parent, name, version, deps) {
-    /**:GateOne.Base.module(parent, name, version, deps)
+    /**:GateOne.Base.module(parent, name, version[, deps])
 
-    Creates a new module in a parent namespace. This function will create a new empty module object with "__name__", "__version__", "toString" and "__repr__" properties. This object will be inserted into the parent object using the specified name (i.e. parent[name] = module). It will also verify that all the dependency modules are defined in the parent, or an error will be thrown.
+    Creates a new *name* module in a *parent* namespace. This function will create a new empty module object with *NAME*, *VERSION*, *toString* and *__repr__* properties. It will also verify that all the strings in deps are defined in parent, or an error will be thrown.
 
-    @param {Object} parent the parent module (use "this" or "window" for a global module)
-    @param {String} name the module name, e.g. "Base"
-    @param {String} version the module version, e.g. "1.0"
-    @param {Array} [deps] the array of module dependencies (as strings)
+    :param parent: The parent module or namespace (object).
+    :param name: A string representing the new module name.
+    :param version: The version string for this module (e.g. "1.0").
+    :param deps: An array of module dependencies, as strings.
+
+    The following example would create a new object named, "Net", attach it to the :js:data:`GateOne` object, at version "1.0", with :js:attr:`GateOne.Base` and :js:attr:`GateOne.Utils` as dependencies:
+
+    .. code-block:: javascript
+
+        > GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
+        > GateOne.Net.__repr__();
+        "[GateOne.Net 1.0]"
+        > GateOne.Net.NAME;
+        "GateOne.Net"
     */
     var module = parent[name] = parent[name] || {},
         prefix = (parent.__name__ ? parent.__name__ + "." : "");
@@ -157,13 +168,17 @@ GateOne.Base.module = function(parent, name, version, deps) {
 };
 GateOne.Base.module(GateOne, "Base", "1.2", []);
 GateOne.Base.update = function(self, obj/*, ... */) {
-    /**:GateOne.Base.update(self, obj[, obj2[, ...]])
+    /**:GateOne.Base.update(self, obj[, obj2[, objN]])
 
     Mutate self by replacing its key:value pairs with those from other object(s). Key:value pairs from later objects will overwrite those from earlier objects.
 
-    If self is `null`, a new Object instance will be created and returned.
+    If *self* is `null`, a new Object instance will be created and returned.
 
-    .. warning:: This mutates and returns *self*.
+    .. warning:: This mutates *and* returns *self*.
+
+    :param object self: The object you wish to mutate with *obj*.
+    :param obj: Any given JavaScript object (e.g. {}).
+    :returns: *self*
     */
     if (self === null || self === undefined) {
         self = {};
@@ -183,14 +198,14 @@ GateOne.Base.update = function(self, obj/*, ... */) {
     return self;
 };
 GateOne.Base.module(GateOne, "i18n", "1.0");
-GateOne.i18n.translations = {}; // Stores the localized translation of various strings
 /**:GateOne.i18n
 
 A module to store and retrieve localized translations of strings.
 */
+GateOne.i18n.translations = {}; // Stores the localized translation of various strings
 GateOne.Base.update(GateOne.i18n, {
     gettext: function(string) {
-        /**:GateOne.Base.gettext(string)
+        /**:GateOne.i18n.gettext(string)
 
         Returns a localized translation of *string* if available.  Returns *string* if no translation is available.
         */
@@ -202,14 +217,14 @@ GateOne.Base.update(GateOne.i18n, {
     registerTranslationAction: function(table) {
         /**:GateOne.i18n.registerTranslationAction(table)
 
-        Attached to the 'go:register_translation' WebSocket action; stores the translation *table* in `GateOne.i18n.translations`.
+        Attached to the `go:register_translation` WebSocket action; stores the translation *table* in `GateOne.i18n.translations`.
         */
         GateOne.i18n.translations = table;
     },
     setLocale: function(locale) {
         /**:GateOne.i18n.setLocale(locale)
 
-        Tells the Gate One server to set the user's locale to *locale*.  Example::
+        Tells the Gate One server to set the user's locale to *locale*.  Example:
 
             >>> GateOne.i18n.setLocale('fr_FR');
         */
@@ -224,10 +239,10 @@ var gettext = GateOne.i18n.gettext;
 // GateOne Settings
 GateOne.location = "default"; // Yes, the default location is called "default" :)
 GateOne.prefs = {
-    /**:GateOne.prefs
+/**:GateOne.prefs
 
-    This object holds all of Gate One's preferences.  Both those things that are meant to be user-controlled (e.g. `theme`) and those things that are globally configured (e.g. `url`).  Applications and plugins can store their own preferences here.
-    */
+This object holds all of Gate One's preferences.  Both those things that are meant to be user-controlled (e.g. `theme`) and those things that are globally configured (e.g. `url`).  Applications and plugins can store their own preferences here.
+*/
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
     embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
@@ -244,10 +259,10 @@ GateOne.prefs = {
     url: null // URL of the GateOne server.  Will default to whatever is in window.location
 }
 GateOne.noSavePrefs = {
-    /**GateOne.noSavePrefs
+/**:GateOne.noSavePrefs
 
-     Properties in this object will get ignored when GateOne.prefs is saved to localStorage
-    */
+Properties in this object will get ignored when :js:attr:`GateOne.prefs` is saved to ``localStorage``
+*/
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
     auth: null,
     embedded: null,
@@ -272,6 +287,10 @@ GateOne.noSavePrefs = {
 // }
 // Icons (so we can use them in more than one place or replace them all by applying a theme)
 GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of this file.
+/**:GateOne.Icons
+
+All of Gate One's SVG icons are stored in here (nothing really special about it).
+*/
 GateOne.initialized = false; // Used to detect if we've already called initialize()
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
@@ -302,9 +321,9 @@ var go = GateOne.Base.update(GateOne, {
     init: function(prefs, /*opt*/callback) {
         /**:GateOne.init(prefs[, callback])
 
-        Initializes Gate One using the provided *prefs*.
+        Initializes Gate One using the provided *prefs*.  Also performs the initial authentication, performs compatibility checks, and sets up basic preferences.
 
-        If *callback* is provided it will be called after :js:meth:`GateOne.Net.connect` completes
+        If *callback* is provided it will be called after :js:meth:`GateOne.Net.connect` completes.
         */
         var go = GateOne,
             u = go.Utils,
@@ -431,6 +450,10 @@ var go = GateOne.Base.update(GateOne, {
         go.node.innerHTML = '';
     },
     initialize: function() {
+        /**:GateOne.initialize()
+
+        Called after :js:meth:`GateOne.init`, Sets up Gate One's graphical elements (panels and whatnot) and attaches events related to visuals (browser resize and whatnot).
+        */
         if (GateOne.initialized) {
             // If we've already called initialize() we don't need to re-create all these panels and whatnot
             GateOne.Visual.updateDimensions(); // Just in case
@@ -650,16 +673,6 @@ var go = GateOne.Base.update(GateOne, {
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         go.Visual.togglePanel(); // Scales them all away
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
-//         goDiv.addEventListener('blur', function(e) {
-//             setTimeout(function() {
-//                 console.log('goDiv blur: ' + document.activeElement.id);
-//                 // NOTE:  This is wrapped in a timeout because--for whatever reason--document.body will be the activeElement at the beginning of onmouseup (always!).
-//                 if (!u.isDescendant(go.node, document.activeElement)) {
-//                     go.Visual.enableOverlay();
-//                 }
-//             }, 100);
-//         }, false);
-//         goDiv.addEventListener('focus', go.Visual.disableOverlay, false);
         go.initialized = true;
         go.Events.trigger("go:initialized");
         setTimeout(function() {
@@ -676,6 +689,10 @@ if (!localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedWorkspace']) {
 
 // GateOne.Utils (generic utility functions)
 GateOne.Base.module(GateOne, "Utils", "1.2", ['Base']);
+/**:GateOne.Utils
+
+This module consists of a collection of utility functions used throughout Gate One.  Think of it like a mini JavaScript library of useful tools.
+*/
 GateOne.Utils.benchmark = null; // Used in conjunction with the startBenchmark and stopBenchmark functions
 GateOne.Utils.benchmarkCount = 0; // Ditto
 GateOne.Utils.benchmarkTotal = 0; // Ditto
@@ -683,6 +700,15 @@ GateOne.Utils.benchmarkAvg = 0; // Ditto
 GateOne.Utils.failedRequirementsCounter = {}; // Used by loadJSAction() to keep track of how long a JS file has been waiting for a dependency
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
+        /**:GateOne.Utils.init()
+
+        Registers the following WebSocket actions:
+
+            * `go:save_file` -> :js:meth:`GateOne.Utils.saveAsAction`
+            * `go:load_style` -> :js:meth:`GateOne.Utils.loadStyleAction`
+            * `go:load_js` -> :js:meth:`GateOne.Utils.loadJSAction`
+            * `go:themes_list` -> :js:meth:`GateOne.Utils.enumerateThemes`
+        */
         go.Net.addAction('go:save_file', go.Utils.saveAsAction);
         go.Net.addAction('go:load_style', go.Utils.loadStyleAction);
         // Commented this out since it wasn't working out but may be useful in the future
@@ -691,12 +717,19 @@ GateOne.Base.update(GateOne.Utils, {
     },
     // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
     startBenchmark: function() {
-        // Put GateOne.Utils.startBenchmark() at the top of any function you want to benchmark (to see how long it takes)
+        /**:GateOne.Utils.startBenchmark()
+
+        Put :js:meth:`GateOne.Utils.startBenchmark` at the beginning of any code you wish to benchmark (to see how long it takes) and call :js:meth:`GateOne.Utils.stopBenchmark` when complete.
+        */
         GateOne.Utils.benchmark = new Date().getTime();
     },
     stopBenchmark: function(msg) {
-        // Put GateOne.Utils.stopBenchmark('optional descriptive message') at the bottom of any function where you've called startBenchmark()
-        // It will report how long it took to run the code between startBenchmark() and stopBenchmark() along with a running total of all benchmarks.
+        /**:GateOne.Utils.stopBenchmark([msg])
+
+        Put ``GateOne.Utils.stopBenchmark('optional descriptive message')`` at the end of any code where you've called :js:meth:`GateOne.Utils.startBenchmark`.
+
+        It will report how long it took to run the code (in the JS console) between :js:meth:`~GateOne.Utils.startBenchmark` and :js:meth:`~GateOne.Utils.stopBenchmark` along with a running total of all benchmarks.
+        */
         var u = GateOne.Utils,
             date2 = new Date(),
             diff =  date2.getTime() - u.benchmark;
@@ -710,8 +743,24 @@ GateOne.Base.update(GateOne.Utils, {
         logInfo(msg + ": " + diff + "ms" + ", total: " + u.benchmarkTotal + "ms, Average: " + u.benchmarkAvg);
     },
     getNode: function(nodeOrSelector) {
-        // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
-        // NOTE: The benefit of this over just querySelector() is that if it is given a node it will just return the node as-is (so functions can accept both without having to worry about such things).  See removeElement() below for a good example.
+        /**:GateOne.Utils.getNode(nodeOrSelector)
+
+        Returns a DOM node if given a `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-style string or an existing DOM node (will return the node as-is).
+
+        .. note:: The benefit of this over just ``document.querySelector()`` is that if it is given a node it will return the node as-is (so functions can accept both without having to worry about such things).  See :js:func:`~GateOne.Utils.removeElement` below for a good example.
+
+        :param nodeOrSelector: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :returns: A DOM node or ``null`` if not found.
+
+        Example:
+
+        .. code-block:: javascript
+
+            goDivNode = GateOne.Utils.getNode('#gateone');
+
+            > GateOne.Utils.getEmDimensions('#gateone');
+            {'w': 8, 'h': 15}
+        */
         var u = GateOne.Utils;
         if (typeof(nodeOrSelector) == 'string') {
             var result = document.querySelector(nodeOrSelector);
@@ -720,6 +769,21 @@ GateOne.Base.update(GateOne.Utils, {
         return nodeOrSelector;
     },
     getNodes: function(nodeListOrSelector) {
+        /**:GateOne.Utils.getNodes(nodeListOrSelector)
+
+        Given a CSS `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string (e.g. '.some_class') or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (in case we're not sure), lookup the node using ``document.querySelectorAll()`` and return the result (which will be a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_).
+
+        .. note:: The benefit of this over just ``document.querySelectorAll()`` is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).
+
+        :param nodeListOrSelector: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_class`` or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+        :returns: A `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ or ``[]`` (an empty Array) if not found.
+
+        Example:
+
+        .. code-block:: javascript
+
+            panels = GateOne.Utils.getNodes('#gateone .panel');
+        */
         // Given a CSS query selector (string, e.g. 'input[name="foo"]') or nodeList (in case we're not sure), lookup the node using document.querySelectorAll() and return the result (which will be a nodeList).
         // NOTE: The benefit of this over just querySelectorAll() is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).
         if (typeof(nodeListOrSelector) == 'string') {
@@ -728,6 +792,28 @@ GateOne.Base.update(GateOne.Utils, {
         return nodeListOrSelector;
     },
     partial: function(fn) {
+        /**:GateOne.Utils.partial(fn)
+
+        :returns: A partially-applied function.
+
+        Similar to `MochiKit.Base.partial <http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-partial>`_.  Returns partially applied function.
+
+        :param function fn: The function to ultimately be executed.
+        :param arguments arguments: Whatever arguments you want to be pre-applied to *fn*.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > addNumbers = function (a, b) {
+                return a + b;
+            }
+            > addOne = GateOne.Utils.partial(addNumbers, 1);
+            > addOne(3);
+            4
+
+        .. note:: This function can also be useful to simply save yourself a lot of typing.  If you're planning on calling a function with the same parameters a number of times it is a good idea to use partial() to create a new function with all the parameters pre-applied.  Can make code easier to read too.
+        */
         var args = Array.prototype.slice.call(arguments);
         args.shift();
         return function() {
@@ -737,7 +823,24 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
      /** @id MochiKit.Base.items */
-    items: function (obj) {
+    items: function(obj) {
+        /**:GateOne.Utils.items(obj)
+
+        Copied from `MochiKit.Base.items <http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-items>`_.  Returns an Array of ``[propertyName, propertyValue]`` pairs for the given *obj*.
+
+        :param object obj: Any given JavaScript object.
+        :returns: Array
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.items(GateOne.terminals).forEach(function(item) { console.log(item) });
+            ["1", Object]
+            ["2", Object]
+
+        .. note:: Can be very useful for debugging.
+        */
         var rval = [],
             e;
         for (var prop in obj) {
@@ -752,13 +855,63 @@ GateOne.Base.update(GateOne.Utils, {
         return rval;
     },
     /** @id MochiKit.Base.itemgetter */
-    itemgetter: function (name) {
+    itemgetter: function(name) {
+        /**:GateOne.Utils.itemgetter(name)
+
+        Copied from `MochiKit.Base.itemgetter <http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-itemgetter>`_.  Returns a ``function(obj)`` that returns ``obj[name]``.
+
+        :param value name: The value that will be used as the key when the returned function is called to retrieve an item.
+        :returns: A function.
+
+        To better understand what this function does it is probably best to simply provide the code:
+
+        .. code-block:: javascript
+
+            itemgetter: function (name) {
+                return function (arg) {
+                    return arg[name];
+                }
+            }
+
+        Here's an example of how to use it:
+
+        .. code-block:: javascript
+
+            > var object1 = {};
+            > var object2 = {};
+            > object1.someNumber = 12;
+            > object2.someNumber = 37;
+            > var numberGetter = GateOne.Utils.itemgetter("someNumber");
+            > numberGetter(object1);
+            12
+            > numberGetter(object2);
+            37
+
+        .. note:: Yes, it can be confusing.  Especially when thinking up use cases but it actually is incredibly useful when the need arises!
+        */
         return function (arg) {
             return arg[name];
         };
     },
     /** @id MochiKit.DOM.hasElementClass */
     hasElementClass: function (element, className/*...*/) {
+        /**:GateOne.Utils.hasElementClass(element, className)
+
+        Almost a direct copy of `MochiKit.DOM.hasElementClass <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass>`_...  Returns true if *className* is found on *element*. *element* is looked up with :js:func:`~GateOne.Utils.getNode` so `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-style identifiers or DOM nodes are acceptable.
+
+        :param element: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :param className: The name of the class you're checking is applied to *element*.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.hasElementClass('#go_panel_info', 'panel');
+            true
+            > GateOne.Utils.hasElementClass('#go_panel_info', 'foo');
+            false
+        */
         var obj = GateOne.Utils.getNode(element);
         if (obj == null) {
             return false;
@@ -785,23 +938,113 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return true;
     },
-    startsWith: function (substr, str) {
+    startsWith: function(substr, str) {
+        /**:GateOne.Utils.startsWith(substr, str)
+
+        Returns true if *str* starts with *substr*.
+
+        :param string substr: The string that you want to see if *str* starts with.
+        :param string str: The string you're checking *substr* against.
+        :returns: true/false
+
+        Examples:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.startsWith('some', 'somefile.txt');
+            true
+            > GateOne.Utils.startsWith('foo', 'somefile.txt');
+            false
+        */
         return str != null && substr != null && str.indexOf(substr) == 0;
     },
-    endsWith: function (substr, str) {
+    endsWith: function(substr, str) {
+        /**:GateOne.Utils.endsWith(substr, str)
+
+        Returns true if *str* ends with *substr*.
+
+        :param string substr: The string that you want to see if *str* ends with.
+        :param string str: The string you're checking *substr* against.
+        :returns: true/false
+
+        Examples:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.endsWith('.txt', 'somefile.txt');
+            true
+            > GateOne.Utils.endsWith('.txt', 'somefile.svg');
+            false
+        */
         return str != null && substr != null &&
             str.lastIndexOf(substr) == Math.max(str.length - substr.length, 0);
     },
     isArray: function(obj) {
+        /**:GateOne.Utils.isArray(obj)
+
+        Returns true if *obj* is an Array.
+
+        :param object obj: A JavaScript object.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isArray(GateOne.terminals['1'].screen);
+            true
+        */
         return obj.constructor == Array;
     },
     isNodeList: function(obj) {
+        /**:GateOne.Utils.isNodeList(obj)
+
+        Returns true if *obj* is a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.  NodeList objects come from DOM level 3 and are what is returned by some browsers when you execute functions like `document.getElementsByTagName <https://developer.mozilla.org/en/DOM/element.getElementsByTagName>`_.  This function lets us know if the Array-like object we've got is an actual `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (as opposed to an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_ or just an `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_).
+
+        :param object obj: A JavaScript object.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isHTMLCollection(document.getElementsByTagName('pre'));
+            true // Just like isHTMLCollection this will vary
+        */
         return obj instanceof NodeList;
     },
     isHTMLCollection: function(obj) {
+        /**:GateOne.Utils.isHTMLCollection(obj)
+
+        Returns true if *obj* is an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_.  HTMLCollection objects come from DOM level 1 and are what is returned by some browsers when you execute functions like `document.getElementsByTagName <https://developer.mozilla.org/en/DOM/element.getElementsByTagName>`_.  This function lets us know if the Array-like object we've got is an actual HTMLCollection (as opposed to a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ or just an `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_).
+
+        :param object obj: A JavaScript object.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isHTMLCollection(document.getElementsByTagName('pre'));
+            true // Will vary from browser to browser.  Don't you just love JavaScript programming?  Sigh.
+        */
         return obj instanceof HTMLCollection;
     },
     isElement: function(obj) {
+        /**:GateOne.Utils.isElement(obj)
+
+        Returns true if *obj* is an `HTMLElement <https://developer.mozilla.org/en/Document_Object_Model_(DOM)/HTMLElement>`_.
+
+        :param object obj: A JavaScript object.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isElement(GateOne.Utils.getNode('#gateone'));
+            true
+        */
         return obj instanceof HTMLElement;
     },
     renames: {
@@ -816,16 +1059,43 @@ GateOne.Base.update(GateOne.Utils, {
         "cellpadding": "cellPadding"
     },
     removeElement: function(elem) {
-        // Removes the given element.  Works with node objects and CSS selectors.
+        /**:GateOne.Utils.removeElement(elem)
+
+        Removes the given *elem* from the DOM.
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.removeElement('#go_infocontainer');
+        */
         var node = GateOne.Utils.getNode(elem);
         if (node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
             node.parentNode.removeChild(node);
         }
     },
     createElement: function(tagname, properties, noprefix) {
-        // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.  If an 'id' is given as a property it will automatically be prepended with GateOne.prefs.prefix.
-        // If *noprefix* is false, the prefix will not be prepended to the 'id' of the created element.
-        // Example: createElement('div', {'id': 'foo', 'style': {'opacity': 0.5, 'color': 'black'}});
+        /**:GateOne.Utils.createElement(tagname, [, properties[, noprefix]])
+
+        A simplified version of MochiKit's `createDOM <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-createdom>`_ function, it creates a *tagname* (e.g. "div") element using the given *properties*.
+
+        :param string tagname: The type of element to create ("a", "table", "div", etc)
+        :param object properties: An object containing the properties which will be pre-attached to the created element.
+        :param boolean noprefix: If `true`, will not prefix the created element ID with :js:attr:`GateOne.prefs.prefix`.
+        :returns: A node suitable for adding to the DOM.
+
+        Examples:
+
+        .. code-block:: javascript
+
+            myDiv = GateOne.Utils.createElement('div', {'id': 'foo', 'style': {'opacity': 0.5, 'color': 'black'}});
+            myAnchor = GateOne.Utils.createElement('a', {'id': 'liftoff', 'href': 'http://liftoffsoftware.com/'});
+            myParagraph = GateOne.Utils.createElement('p', {'id': 'some_paragraph'});
+
+        .. note:: ``createElement`` will automatically apply :js:attr:`GateOne.prefs.prefix` to the 'id' of the created elements (if an 'id' was given).
+        */
         var u = go.Utils,
             elem = document.createElement(tagname);
         for (var key in properties) {
@@ -853,13 +1123,36 @@ GateOne.Base.update(GateOne.Utils, {
         return elem;
     },
     showElement: function(elem) {
-        // Sets the 'display' style of the given element to 'block' (which undoes setting it to 'none')
+        /**:GateOne.Utils.showElement(elem)
+
+        Shows the given element (if previously hidden via :js:func:`~GateOne.Utils.hideElement`) by setting ``elem.style.display = 'block'``.
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.showElement('#go_icon_newterm');
+        */
         var u = GateOne.Utils,
             node = u.getNode(elem);
         node.style.display = 'block';
         node.className = node.className.replace(/(?:^|\s)✈go_none(?!\S)/, '');
     },
     hideElement: function(elem) {
+        /**:GateOne.Utils.hideElement(elem)
+
+        Hides the given element by setting ``elem.style.display = 'none'``.
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.hideElement('#go_icon_newterm');
+        */
         // Sets the 'display' style of the given element to 'none'
         var u = GateOne.Utils,
             node = u.getNode(elem);
@@ -869,6 +1162,18 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     showElements: function(elems) {
+        /**:GateOne.Utils.showElements(elems)
+
+        Shows the given elements (if previously hidden via :js:meth:`~GateOne.Utils.hideElement` or :js:meth:`~GateOne.Utils.hideElements`) by setting ``elem.style.display = 'block'``.
+
+        :param elems: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_element_class``, a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_, or an array.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.showElements('.pastearea');
+        */
         // Sets the 'display' style of the given elements to 'block' (which undoes setting it to 'none').
         // Elements must be an iterable (or a querySelectorAll string) such as an HTMLCollection or an Array of DOM nodes
         var u = GateOne.Utils,
@@ -882,7 +1187,15 @@ GateOne.Base.update(GateOne.Utils, {
     hideElements: function(elems) {
         /**:GateOne.Utils.hideElements(elems)
 
-        Sets the 'display' style of the given elements (*elems*) to 'none'.  Elements must be an iterable such as an HTMLCollection, NodeList, or an Array of DOM nodes
+        Hides the given elements by setting ``elem.style.display = 'none'`` on all of them.
+
+        :param elems: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_element_class``, a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_, or an array.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.hideElements('.pastearea');
         */
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
@@ -897,7 +1210,14 @@ GateOne.Base.update(GateOne.Utils, {
     getOffset: function(elem) {
         /**:GateOne.Utils.getOffset(elem)
 
-        Returns `{top: <offsetTop>, left: <offsetLeft>}` for the given *elem*.
+        :returns: An object representing ``elem.offsetTop`` and ``elem.offsetLeft``.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.getOffset(someNode);
+            {"top":130, "left":50}
         */
         var node = GateOne.Utils.getNode(elem), x = 0, y = 0;
         while( node && !isNaN( node.offsetLeft ) && !isNaN( node.offsetTop ) ) {
@@ -910,16 +1230,37 @@ GateOne.Base.update(GateOne.Utils, {
     noop: function(a) {
         /**:GateOne.Utils.noop(a)
 
-        This function does nothing.  It stands for 'no operation'.  Useful as a placeholder for objects and variables that will later be replaced with functions that actually do something.
+        AKA "No Operation".  Returns whatever is given to it (if anything at all).  In other words, this function doesn't do anything and that's exactly what it is supposed to do!
 
-        Returns *a*.
+        :param a: Anything you want.
+        :returns: a
+
+        Example:
+
+        .. code-block:: javascript
+
+            var functionList = {'1': GateOne.Utils.noop, '2': GateOne.Utils.noop};
+
+        .. note:: This function is most useful as a placeholder for when you plan to update *something* in-place later.  In the event that *something* never gets replaced, you can be assured that nothing bad will happen if it gets called (no exceptions).
         */
         return a;
     },
     toArray: function (obj) {
         /**:GateOne.Utils.toArray(obj)
 
-        Returns *obj* as a JavaScript array.  Primarily used to make it easier to iterate/manipulate things like NodeLists.
+        Returns an actual Array() given an Array-like *obj* such as an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_ or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+
+        :param object obj: An Array-like object.
+        :returns: Array
+
+        Example:
+
+        .. code-block:: javascript
+
+            > var terms = document.getElementsByClassName(GateOne.prefs.prefix+'terminal');
+            > GateOne.Utils.toArray(terms).forEach(function(termObj) {
+                GateOne.Terminal.closeTerminal(termObj.id.split('term')[1]);
+            });
         */
         var array = [];
         // Iterate backwards ensuring that length is an UInt32
@@ -931,7 +1272,18 @@ GateOne.Base.update(GateOne.Utils, {
     scrollLines: function(elem, lines) {
         /**:GateOne.Utils.scrollLines(elem, lines)
 
-        Scrolls the given element (*elem*) by *lines* (positive or negative).
+        Scrolls the given element (*elem*) by the number given in *lines*.  It will automatically determine the line height using :js:func:`~GateOne.Utils.getEmDimensions`.  *lines* can be a positive or negative integer (to scroll down or up, respectively).
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :param number lines: The number of lines to scroll *elem* by.  Can be positive or negative.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.scrollLines('#go_term1_pre', -3);
+
+        .. note:: There must be a scrollbar visible (and ``overflow-y = "auto"`` or equivalent) for this to work.
         */
         // Lines are calculated based on the EM height of text in the element.
         logDebug('scrollLines(' + elem + ', ' + lines + ')');
@@ -942,7 +1294,15 @@ GateOne.Base.update(GateOne.Utils, {
     scrollToBottom: function(elem) {
         /**:GateOne.Utils.scrollToBottom(elem)
 
-        Scrolls to the bottom of *elem*.
+        Scrolls the given element (*elem*) to the very bottom (all the way down).
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.scrollLines('#term1_pre');
         */
         var node = GateOne.Utils.getNode(elem);
         try {
@@ -960,7 +1320,18 @@ GateOne.Base.update(GateOne.Utils, {
     replaceURLWithHTMLLinks: function(text) {
         /**:GateOne.Utils.replaceURLWithHTMLLinks(text)
 
-        Returns *text* with embedded links (e.g. http://whatever) converted into anchor tags (e.g. <a href="http://whatever">http://whatever</a>).
+        :returns: *text* with URLs transformed into links.
+
+        Turns textual URLs like 'http://whatever.com/' into links.
+
+        :param string text: Any text with or without links in it (no URLs == no changes)
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.replaceURLWithHTMLLinks('Downloading http://foo.bar.com/some/file.zip');
+            "Downloading <a href='http://foo.bar.com/some/file.zip'>http://foo.bar.com/some/file.zip</a>"
         */
         var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         return text.replace(exp,"<a href='$1'>$1</a>");
@@ -968,7 +1339,19 @@ GateOne.Base.update(GateOne.Utils, {
     isEven: function(someNumber){
         /**:GateOne.Utils.isEven(someNumber)
 
-        Returns `true` if *someNumber* is even.
+        Returns true if *someNumber* is even.
+
+        :param number someNumber: A JavaScript object.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isEven(2);
+            true
+            > GateOne.Utils.isEven(3);
+            false
         */
         return (someNumber%2 == 0) ? true : false;
     },
@@ -976,6 +1359,19 @@ GateOne.Base.update(GateOne.Utils, {
         /**:GateOne.Utils.isDescendant(parent, child)
 
         Returns true if *child* is a descendent of *parent* (in the DOM).
+
+        :param node parent: A DOM node.
+        :param node child: A DOM node.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isDescendant(go.node, pastearea);
+            true
+            > GateOne.Utils.isDescendant(go.node, document.body);
+            false
         */
         var node = child.parentNode;
         while (node != null) {
@@ -989,7 +1385,14 @@ GateOne.Base.update(GateOne.Utils, {
     getSelText: function() {
         /**:GateOne.Utils.getSelText()
 
-        Returns whatever text is currently selected in the browser.
+        :returns: The text that is currently highlighted in the browser.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.getSelText();
+            "localhost" // Assuming the user had highlighted the word, "localhost"
         */
         var txt = '';
         if (window.getSelection) {
@@ -1007,11 +1410,24 @@ GateOne.Base.update(GateOne.Utils, {
     getEmDimensions: function(elem, /*opt*/where) {
         /**:GateOne.Utils.getEmDimensions(elem[, where])
 
-        Returns the pixel height and width of a full character block inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
+        Returns the height and width of 1em inside the given elem (e.g. '#term1_pre').  The returned object will be in the form of:
 
-             {'w': <width in px>, 'h': <height in px>}
+        .. code-block:: javascript
+
+            {'w': <width in px>, 'h': <height in px>}
 
         If *where* (element) is given, the EM dimensions calculation will be based on what sizes would apply if the given *elem* were placed inside *where*.
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :param where: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :returns: An object containing the width and height as obj.w and obj.h.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.getEmDimensions('#gateone');
+            {'w': 8, 'h': 15}
         */
 //         logDebug('getEmDimensions('+elem+', id: '+elem.id+')');
         var u = GateOne.Utils,
@@ -1091,11 +1507,25 @@ GateOne.Base.update(GateOne.Utils, {
     getRowsAndColumns: function(elem) {
         /**:GateOne.Utils.getRowsAndColumns(elem)
 
-        Calculates and returns the number of text rows and colunmns that will fit in the given element ID (elem).
+        Calculates and returns the number of text rows and colunmns that will fit in the given element (*elem*) as an object like so:
 
-        **Important:**  *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
+        .. code-block:: javascript
 
-        .. note::  This function only works properly with monospaced fonts but it does work with high-resolution displays (so users with properly-configured high-DPI displays will be happy =). Other similar functions on the web have hard-coded pixel widths for known fonts at certain point sizes.  These break on any display with a resolution higher than 96dpi.
+            {'cols': 165, 'rows': 45}
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :returns: An object with obj.cols and obj.rows representing the maximum number of columns and rows of text that will fit inside *elem*.
+
+        .. warning:: *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
+
+        .. note::  This function only works properly with monospaced fonts but it does work with high-resolution displays (so users with properly-configured high-DPI displays will be happy =).  Other similar functions I've found on the web had hard-coded pixel widths for known fonts at certain point sizes.  These break on any display with a resolution higher than 96dpi.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.getRowsAndColumns('#gateone');
+            {'cols': 165, 'rows': 45}
         */
 //         logDebug('getRowsAndColumns('+elem+')');
         var u = go.Utils,
@@ -1130,6 +1560,21 @@ GateOne.Base.update(GateOne.Utils, {
     // Thanks to Paul Sowden (http://www.alistapart.com/authors/s/paulsowden) at A List Apart for this function.
     // See: http://www.alistapart.com/articles/alternate/
     setActiveStyleSheet: function(title) {
+        /**:GateOne.Utils.setActiveStyleSheet(title)
+
+        Sets the stylesheet matching *title* to be active.
+
+        Thanks to `Paul Sowden <http://www.alistapart.com/authors/s/paulsowden>`_ at `A List Apart <http://www.alistapart.com/>`_ for this function.
+        See: http://www.alistapart.com/articles/alternate/ for a great article on how to control active/alternate stylesheets in JavaScript.
+
+        :param string title: The title of the stylesheet to set active.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.setActiveStyleSheet("myplugin_stylesheet");
+        */
         var i, a, main;
         for (var i=0; (a = document.getElementsByTagName("link")[i]); i++) {
             if (a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
@@ -1139,9 +1584,9 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     runPostInit: function() {
-        /**GateOne.Utils.runPostInit()
+        /**:GateOne.Utils.runPostInit()
 
-        Called after all the plugins have been loaded; calls each plugin's init() and postInit() functions.
+        Called by :js:meth:`GateOne.runPostInit`, iterates over the list of plugins in :js:attr:`GateOne.loadedModules` calling the ``init()`` function of each (if present).  When that's done it does the same thing with each respective plugin's ``postInit()`` function.
         */
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
@@ -1174,7 +1619,7 @@ GateOne.Base.update(GateOne.Utils, {
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)
 
-        Loads a JavaScript file sent via the 'load_js' WebSocket action into a <script> tag inside of GateOne.prefs.goDiv (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following::
+        Loads a JavaScript file sent via the `go:load_js` WebSocket action into a <script> tag inside of ``GateOne.prefs.goDiv`` (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following:
 
             >>> GateOne.ws.send(JSON.stringify({'go:get_js': 'some_script.js'}));
             >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
@@ -1251,11 +1696,29 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     loadStyleAction: function(message, /*opt*/noCache) {
-        /**:GateOne.Utils.loadStyleAction(message)
+        /**:GateOne.Utils.loadStyleAction(message[, noCache])
 
-        Loads various kinds of stylesheets sent via the 'go:load_style' WebSocket action.  These stylesheets would be a, 'theme', 'colors', 'plugins', 'print', or 'css' (generic).
+        Loads the stylesheet sent via the `go:load_style` WebSocket action.  The *message* is expected to be a JSON object that contains the following objects:
 
-        If *message['cache']* is `false` or *noCache* is true, will not update the fileCache database with this incoming file.
+            :result: Must be "Success" if delivering actual CSS.  Anything else will be reported as an error in the JS console.
+            :css:    Must be ``true``.
+            :data:   The actual stylesheet (the CSS).
+            :cache:  If ``false`` the stylesheet will not be cached at the client (stored in the fileCache database).
+            :media:  *Optional:* If provided this value will be used as the "media" attribute inside the created ``<style>`` tag.
+
+        Example message object:
+
+        .. code-block:: javascript
+
+            {
+                "result": "Success",
+                "css": true,
+                "data": ".someclass:hover {cursor: pointer;}",
+                "media": "screen",
+                "cache": true
+            }
+
+        If called directly (as opposed to via the WebSocket action) the *noCache*
         */
         logDebug("loadStyleAction()");
         var u = go.Utils,
@@ -1306,9 +1769,25 @@ GateOne.Base.update(GateOne.Utils, {
         }, 1500);
     },
     loadCSS: function(url, id){
-        // Imports the given CSS *URL* and applies the stylesheet to the current document.
-        // When the <link> element is created it will use *id* like so: {'id': GateOne.prefs.prefix + id}.
-        // If an existing <link> element already exists with the same *id* it will be overridden.
+        /**:GateOne.Utils.loadCSS(url, id)
+
+        Loads and applies the CSS at *url*.  When the ``<link>`` element is created it will use *id* like so:
+
+        .. code-block:: javascript
+
+            {'id': GateOne.prefs.prefix + id}
+
+        :param string url: The URL path to the style sheet.
+        :param string id: The 'id' that will be applied to the ``<link>`` element when it is created.
+
+        .. note:: If an existing ``<link>`` element already exists with the same *id* it will be overridden.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.loadCSS("static/css/some_app.css", "some_app_css");
+        */
         if (!id) {
             id = 'css_file';
         }
@@ -1332,7 +1811,15 @@ GateOne.Base.update(GateOne.Utils, {
     loadTheme: function(theme) {
         /**:GateOne.Utils.loadTheme(theme)
 
-        Tells the server to perform a sync of the given *theme* with the client.
+        Sends the `go:get_theme` WebSocket action to the server asking it to send/sync/load the given *theme*.
+
+        :param string theme: The theme you wish to load.
+
+        Example:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.loadTheme("white");
         */
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
@@ -1367,6 +1854,20 @@ GateOne.Base.update(GateOne.Utils, {
         GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
     },
     loadScript: function(url, callback){
+        /**:GateOne.Utils.loadScript(url[, callback])
+
+        Loads the JavaScript (.js) file at *URL* and appends it to `document.body <https://developer.mozilla.org/en/DOM/document.body>`_.  If *callback* is given, it will be called after the script has been loaded.
+
+        :param string URL: The URL of a JavaScript file.
+        :param function callback:  *Optional:* A function to call after the script has been loaded.
+
+        Example:
+
+        .. code-block:: javascript
+
+            var myfunc = function() { console.log("finished loading whatever.js"); };
+            GateOne.Utils.loadScript("https://someserver.com/static/whatever.js", myfunc);
+        */
         // Imports the given JS *url*
         // If *callback* is given, it will be called in the onload() event handler for the script
         var u = GateOne.Utils,
@@ -1388,7 +1889,7 @@ GateOne.Base.update(GateOne.Utils, {
     enumerateThemes: function(messageObj) {
         /**:GateOne.Utils.enumerateThemes(messageObj)
 
-        Attached to the 'go:themes_list' WebSocket action; updates the preferences panel with the list of themes stored on the server.
+        Attached to the `go:themes_list` WebSocket action; updates the preferences panel with the list of themes stored on the server.
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
@@ -1403,8 +1904,14 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     savePrefs: function(skipNotification) {
-        // Saves all user-specific settings in GateOne.prefs.* to localStorage[prefix+'prefs']
-        // if *skipNotification* is True, no message will be displayed to the user.
+        /**:GateOne.Utils.savePrefs(skipNotification)
+
+        Saves what's set in :js:attr:`GateOne.prefs` to ``localStorage[GateOne.prefs.prefix+'prefs']`` as JSON; skipping anything that's set in :js:attr:`GateOne.noSavePrefs`.
+
+        Displays a notification to the user that preferences have been saved.
+
+        :param boolean skipNotification:  If ``true``, don't notify the user that prefs were just saved.
+        */
         var prefs = GateOne.prefs,
             userPrefs = {};
         for (var pref in prefs) {
@@ -1420,7 +1927,10 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     loadPrefs: function() {
-        // Populates GateOne.prefs.* with values from localStorage['prefs']
+        /**:GateOne.Utils.loadPrefs
+
+        Populates :js:attr:`GateOne.prefs` with values from ``localStorage[GateOne.prefs.prefix+'prefs']``.
+        */
         if (localStorage[GateOne.prefs.prefix+'prefs']) {
             var userPrefs = JSON.parse(localStorage[GateOne.prefs.prefix+'prefs']);
             for (var i in userPrefs) {
@@ -1431,6 +1941,24 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     xhrGet: function(url, callback) {
+        /**:GateOne.Utils.xhrGet(url[, callback])
+
+        Performs a GET on the given *url* and if given, calls *callback* with the responseText as the only argument.
+
+        :param string url: The URL to GET.
+        :param function callback: A function to call like so: ``callback(responseText)``
+
+        Example:
+
+        .. code-block:: javascript
+
+            > var mycallback = function(responseText) { console.log("It worked: " + responseText) };
+            > GateOne.Utils.xhrGet('https://demo.example.com/static/about.html', mycallback);
+            It worked: <!DOCTYPE html>
+            <html>
+            <head>
+            ...
+        */
         // Performs a GET on the given *url* and calls *callback* with the responseText as the only argument.
         // If *callback* is given, it will be called with the result as the only argument.
         var http = new XMLHttpRequest(); // We don't support older browsers anyway so no need to worry about ActiveX garbage
@@ -1445,7 +1973,15 @@ GateOne.Base.update(GateOne.Utils, {
     getCookie: function(name) {
         /**:GateOne.Utils.getCookie(name)
 
-            Returns the cookie of the given *name*
+        Returns the given cookie (*name*).
+
+        :param string name: The name of the cookie to retrieve.
+
+        Examples:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.getCookie(GateOne.prefs.prefix + 'gateone_user'); // Returns the 'gateone_user' cookie
         */
         var i,x,y,ARRcookies=document.cookie.split(";");
         for (i=0;i<ARRcookies.length;i++) {
@@ -1460,7 +1996,17 @@ GateOne.Base.update(GateOne.Utils, {
     setCookie: function(name, value, days) {
         /**:GateOne.Utils.setCookie(name, value, days)
 
-            Sets the cookie of the given *name* to the given *value* with the given number of expiration *days*.
+        Sets the cookie of the given *name* to the given *value* with the given number of expiration *days*.
+
+        :param string name: The name of the cookie to retrieve.
+        :param string value: The value to set.
+        :param number days: The number of days the cookie will be allowed to last before expiring.
+
+        Examples:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.setCookie('test', 'some value', 30); // Sets the 'test' cookie to 'some value' with an expiration of 30 days
         */
         var exdate=new Date();
         exdate.setDate(exdate.getDate() + days);
@@ -1468,9 +2014,39 @@ GateOne.Base.update(GateOne.Utils, {
         document.cookie=name + "=" + c_value;
     },
     deleteCookie: function(name, path, domain) {
+        /**:GateOne.Utils.deleteCookie(name, path, domain)
+
+        Deletes the given cookie (*name*) from *path* for the given *domain*.
+
+        :param string name: The name of the cookie to delete.
+        :param string path: The path of the cookie to delete (typically '/' but could be '/some/path/on/the/webserver' =).
+        :param string path: The domain where this cookie is from (an empty string means "the current domain in window.location.href").
+
+        Examples:
+
+        .. code-block:: javascript
+
+            GateOne.Utils.deleteCookie('gateone_user', '/', ''); // Deletes the 'gateone_user' cookie
+        */
         document.cookie = name + "=" + ((path) ? ";path=" + path : "") + ((domain) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
     },
     isPrime: function(n) {
+        /**:GateOne.Utils.isPrime(n)
+
+        Returns true if *n* is a prime number.
+
+        :param number n: The number we're checking to see if it is prime or not.
+        :returns: true/false
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isPrime(13);
+            true
+            > GateOne.Utils.isPrime(14);
+            false
+        */
         // Copied from http://www.javascripter.net/faq/numberisprime.htm (thanks for making the Internet a better place!)
         if (isNaN(n) || !isFinite(n) || n%1 || n<2) return false;
         var m=Math.sqrt(n);
@@ -1478,6 +2054,17 @@ GateOne.Base.update(GateOne.Utils, {
         return true;
     },
     randomPrime: function() {
+        /**:GateOne.Utils.randomPrime()
+
+        :returns: A random prime number <= 9 digits.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.randomPrime();
+            618690239
+        */
         // Returns a random prime number <= 9 digits
         var i = 10;
         while (!GateOne.Utils.isPrime(i)) {
@@ -1486,8 +2073,24 @@ GateOne.Base.update(GateOne.Utils, {
         return i;
     },
     randomString: function(length, chars) {
-        // Returns a random string of the given *length* using the given *chars*.
-        // If *chars* is not given it will use ASCII alphanumerics (lower case)
+        /**:GateOne.Utils.randomString(length[, chars])
+
+        :returns: A random string of the given *length* using the given *chars*.
+
+        If *chars* is omitted the returned string will consist of lower-case ASCII alphanumerics.
+
+        :param int length: The length of the random string to be returned.
+        :param string chars: *Optional:* a string containing the characters to use when generating the random string.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.randomString(8);
+            "oa2f9txf"
+            > GateOne.Utils.randomString(8, '123abc');
+            "1b3ac12b"
+        */
         var result = '';
         if (!chars) {
             chars = "1234567890abcdefghijklmnopqrstuvwxyz";
@@ -1496,12 +2099,12 @@ GateOne.Base.update(GateOne.Utils, {
         return result;
     },
     saveAs: function(blob, filename) {
-        // Saves the given *blob* (which must be a proper Blob object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
-        // For reference, this is how to construct a "proper" Blob:
-        //      var bb = new BlobBuilder();
-        //      bb.append(<your data here>);
-        //      var blob = bb.getBlob("text/plain;charset=" + document.characterSet);
-        // NOTE:  Replace 'text/plain' with the actual mimetype of the file.
+        /**:GateOne.Utils.saveAs(blob, filename)
+
+        Saves the given *blob* (which must be a proper `Blob <https://developer.mozilla.org/en/DOM/Blob>`_ object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
+
+        .. note:: This is amazingly handy for downloading files over the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_.
+        */
         var u = go.Utils,
             clickEvent = document.createEvent('MouseEvents'),
             blobURL = urlObj.createObjectURL(blob),
@@ -1510,12 +2113,17 @@ GateOne.Base.update(GateOne.Utils, {
         save_link.dispatchEvent(clickEvent);
     },
     saveAsAction: function(message) {
-        // Meant to be called as one of our WebSocket 'actions', saves the file to disk contained in *message*.
-        // *message* should contain the following:
-        //      *message['result']* - Either 'Success' or a descriptive error message.
-        //      *message['filename']* - The name we'll give to the file when we save it.
-        //      *message['data']* - The content of the file we're saving.
-        //      *message['mimetype']* - Optional:  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
+        /**:GateOne.Utils.saveAsAction(message)
+
+        .. note:: This function is attached to the 'save_file' `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ action (in :js:attr:`GateOne.Net.actions`) via :js:func:`GateOne.Utils.init`.
+
+        Saves to disk the file contained in *message*.  The *message* object should contain the following:
+
+            :result: Either 'Success' or a descriptive error message.
+            :filename: The name we'll give to the file when we save it.
+            :data: The content of the file we're saving.
+            :mimetype: *Optional:*  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
+        */
         var u = go.Utils,
             result = message['result'],
             data = message['data'],
@@ -1532,6 +2140,7 @@ GateOne.Base.update(GateOne.Utils, {
             go.Visual.displayMessage(message['result']);
         }
     },
+    // NOTE: getToken() is a work-in-progress and ultimately may not be necessary thanks to the security of the WebSocket.
     // NOTE: The token-based approach prevents an attacker from copying a user's session ID to another host and using it to login but it has the disadvantage of requiring that the user re-login if they reload the page or close their tab.
     // NOTE: If we save the seed in sessionStorage, the user can see it but their session could persist as long as they didn't close the tab (saving them from the reload problem).  This would leave the seeds visible to attackers that had access to the JavaScript console on the client though.  So we would need to change the seeds on a fairly regular basis (say, every minute) to mitigate this.
     getToken: function() {
@@ -1549,13 +2158,35 @@ GateOne.Base.update(GateOne.Utils, {
         return digest.slice(2,11); // Only need a subset of the md5
     },
     isPageHidden: function() {
+        /**:GateOne.Utils.isPageHidden()
+
+        Returns ``true`` if the page (browser tab) is hidden (e.g. inactive).  Returns ``false`` otherwise.
+
+        Example:
+
+        .. code-block:: javascript
+
+            > GateOne.Utils.isPageHidden();
+            false
+        */
         // Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
         return document.hidden || document.msHidden || document.webkitHidden || document.mozHidden;
     },
     createBlob: function(array, mimetype) {
-        // Returns a Blob constructed from the data in *array* of the given *mimetype*.  *array* may be passed as a string; it will be automatically wrapped in an array.
-        // If *mimetype* is omitted it will be set to 'text/plain'.
-        // NOTE:  The point of this function is favor the Blob function while maintaining backwards-compatibility with the deprecated BlobBuilder interface (for browsers that don't support Blob() yet).
+        /**:GateOne.Utils.createBlob(array, mimetype)
+
+        Returns a Blob() object using the given *array* and *mimetype*.  If *mimetype* is omitted it will default to 'text/plain'.  Optionally, *array* may be given as a string in which case it will be automatically wrapped in an array.
+
+        :param array array: A string or array containing the data that the Blob will contain.
+        :param string mimetype: A string representing the mimetype of the data (e.g. 'application/javascript').
+        :returns: A Blob()
+
+        .. note:: The point of this function is favor the :js:func:`Blob` function while maintaining backwards-compatibility with the deprecated :js:attr:`BlobBuilder` interface (for browsers that don't support Blob() yet).
+
+        Example:
+
+            >>> var blob = GateOne.Utils.createBlob('some data here', 'text/plain);
+        */
         if (typeof(array) == 'string') {
             array = [array]; // Convert to actual array
         }
@@ -1573,22 +2204,40 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     rtrim: function(string) {
-        // Returns *string* minus right-hand whitespace
+        /**:GateOne.Utils.rtrim(string)
+
+        Returns *string* minus right-hand whitespace
+        */
         return string.replace(/\s+$/,"");
     },
     ltrim: function(string) {
-        // Returns *string* minus left-hand whitespace
+        /**:GateOne.Utils.ltrim(string)
+
+        Returns *string* minus left-hand whitespace
+        */
         return string.replace(/^\s+/,"");
     },
     stripHTML: function(html) {
-        // Returns the contents of *html* minus the HTML
+        /**:GateOne.Utils.stripHTML(html)
+
+        Returns the contents of *html* minus the HTML.
+        */
         var tmp = document.createElement("DIV");
         tmp.innerHTML = html;
         return tmp.textContent||tmp.innerText;
     },
     isVisible: function(elem) {
-        // Returns true if *elem* is visible (checks parent nodes recursively too).  *elem* may be a DOM node or a selector string.
-        // NOTE: Relies on checking elem.style.opacity and elem.style.display.  Does NOT check transforms.
+        /**:GateOne.Utils.isVisible(elem)
+
+        Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
+
+        Example:
+
+            >>> GateOne.Utils.isVisible('#'+GateOne.prefs.prefix+'pastearea1');
+            true
+
+        .. note:: Relies on checking elem.style.opacity and elem.style.display.  Does *not* check transforms.
+        */
         var node = GateOne.Utils.getNode(elem), style;
         if (!node) {
             return false;
@@ -1634,12 +2283,12 @@ GateOne.Base.update(GateOne.Utils, {
 
         Returns the value of a query string variable from :js:attr:`window.location`.
 
-        If no matching variable is found, returns undefined.  Example::
+        If no matching variable is found, returns undefined.  Example:
 
-            > // Assume window.location.href = 'https://gateone/?foo=bar,bar,bar'
-            > GateOne.Utils.getQueryVariable('foo');
+            >>> // Assume window.location.href = 'https://gateone/?foo=bar,bar,bar'
+            >>> GateOne.Utils.getQueryVariable('foo');
             'bar,bar,bar'
-            >
+            >>>
 
         Optionally, a *url* may be specified to perform the same evaluation on *url* insead of :js:attr:`window.location`.
         */
@@ -1658,7 +2307,7 @@ GateOne.Base.update(GateOne.Utils, {
     removeQueryVariable: function(variable) {
         /**:GateOne.Utils.removeQueryVariable(variable)
 
-        Removes the given query string variable from window.location.href using window.history.replaceState().  Leaving all other query string variables alone.
+        Removes the given query string variable from :js:attr:`window.location.href` using :js:meth:`window.history.replaceState`.  Leaving all other query string variables alone.
 
         Returns the new query string.
         */
@@ -1686,12 +2335,12 @@ GateOne.Base.update(GateOne.Utils, {
 
         Returns the last element of the given *iterable*.
 
-        If *n* is given it will return the last N values in the array.  Example::
+        If *n* is given it will return the last N values in the array.  Example:
 
             >>> GateOne.Utils.last("foobar", 3);
             ["b", "a", "r"]
 
-        The *guard* variable is there so it will work with :js:meth:`Array.prototype.map`.
+        .. note:: The *guard* variable is there so it will work with :js:meth:`Array.prototype.map`.
         */
         if (iterable == null) return void 0;
         if ((n != null) && !guard) {
@@ -1703,7 +2352,7 @@ GateOne.Base.update(GateOne.Utils, {
     insertAfter: function(newElement, targetElement) {
         /**:GateOne.Utils.insertAfter(newElement, targetElement)
 
-        The opposite of the DOM's built in `insertBefore()` function; inserts the given *newElement* after *targetElement*.
+        The opposite of the DOM's built in ``insertBefore()`` function; inserts the given *newElement* after *targetElement*.
 
         *targetElement* may be given as a pre-constructed node object or a querySelector-like string.
         */
@@ -1737,8 +2386,45 @@ GateOne.Base.update(GateOne.Utils, {
     }
 });
 
-// GateOne.Logging
-GateOne.Base.module(GateOne, "Logging", '1.1', ['Base']);
+GateOne.Base.module(GateOne, "Logging", '1.2', ['Base']);
+/**:GateOne.Logging
+
+Gate One's Logging module provides functions for logging to the console (or whatever destination you like) and supports multiple log levels:
+
+    =====       ======= ========================
+    Level       Name    Default Console Function
+    =====       ======= ========================
+    10          DEBUG   ``console.debug()``
+    20          INFO    ``console.log()``
+    30          WARNING ``console.warn()``
+    40          ERROR   ``console.error()``
+    50          FATAL   ``console.error()``
+    =====       ======= ========================
+
+If a particular console function is unavailable the ``console.log()`` function will be used as a fallback.
+
+.. tip:: You can add your own destinations; whatever you like!  See the :js:meth:`GateOne.Logging.addDestination` function for details.
+
+Shortcuts
+---------
+There are various shortcut functions available to save some typing:
+
+* :js:meth:`GateOne.Logging.logDebug`
+* :js:meth:`GateOne.Logging.logInfo`
+* :js:meth:`GateOne.Logging.logWarning`
+* :js:meth:`GateOne.Logging.logError`
+* :js:meth:`GateOne.Logging.logFatal`
+
+It is recommended that you assign these shortcuts at the top of your code like so:
+
+    >>> var logFatal = GateOne.Logging.logFatal,
+            logError = GateOne.Logging.logError,
+            logWarning = GateOne.Logging.logWarning,
+            logInfo = GateOne.Logging.logInfo,
+            logDebug = GateOne.Logging.logDebug;
+
+That way you can just type "logDebug()" anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).
+*/
 GateOne.Logging.levels = {
     // Forward and backward
     50: 'FATAL',
@@ -1768,7 +2454,10 @@ GateOne.Base.update(GateOne.Logging, {
     setLevel: function(level) {
         /**:GateOne.Logging.setLevel(level)
 
-        Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.
+        Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.  Examples:
+
+            >>> GateOne.Logging.setLevel(10); // Set log level to DEBUG
+            >>> GateOne.Logging.setLevel("DEBUG") // Same thing; they both work!
         */
         var l = GateOne.Logging,
             levelStr = null;
@@ -1785,7 +2474,7 @@ GateOne.Base.update(GateOne.Logging, {
 
         Logs the given *msg* to the browser's JavaScript console.  If *level* is provided it will attempt to use the appropriate console logger (e.g. console.warn()).
 
-        .. note:: Original version of this function is from: `MochiKit.Logging.Logger.prototype.logToConsole`.
+        .. note:: The original version of this function is from: `MochiKit.Logging.Logger.prototype.logToConsole`.
         */
         if (typeof(window) != "undefined" && window.console && window.console.log) {
             // Safari and FireBug 0.4
@@ -1831,18 +2520,18 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     log: function(msg, level, destination) {
-        /**:GateOne.Logging.log(msg, level, destination)
+        /**:GateOne.Logging.log(msg[, level[, destination]])
 
         Logs the given *msg* using all of the functions in `GateOne.Logging.destinations` after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") if *level* is determined to be greater than the value of `GateOne.Logging.level`.  If the given *level* is not greater than `GateOne.Logging.level` *msg* will be discarded (noop).
 
         *level* can be provided as a string, an integer, null, or be left undefined:
 
-             If an integer, an attempt will be made to convert it to a string using GateOne.Logging.levels but if this fails it will use "lvl:<integer>" as the level string.
-             If a string, an attempt will be made to obtain an integer value using GateOne.Logging.levels otherwise GateOne.Logging.level will be used (to determine whether or not the message should actually be logged).
-             If undefined, the level will be set to GateOne.Logging.level.
-             If null (as opposed to undefined), level info will not be included in the log message.
+            * If an integer, an attempt will be made to convert it to a string using `GateOne.Logging.levels` but if this fails it will use "lvl:<integer>" as the level string.
+            * If a string, an attempt will be made to obtain an integer value using `GateOne.Logging.levels` otherwise `GateOne.Logging.level` will be used (to determine whether or not the message should actually be logged).
+            * If undefined, the level will be set to `GateOne.Logging.level`.
+            * If ``null`` (as opposed to undefined), level info will not be included in the log message.
 
-        If *destination* is given (must be a function) it will be used to log messages like so: `destination(message, levelStr)`.  The usual conversion of *msg* to *message* will apply.
+        If *destination* is given (must be a function) it will be used to log messages like so: ``destination(message, levelStr)``.  The usual conversion of *msg* to *message* will apply.
         */
         var l = GateOne.Logging,
             now = new Date(),
@@ -1899,6 +2588,8 @@ GateOne.Base.update(GateOne.Logging, {
              GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
 
         .. note:: The above example is kind of fun.  Try it in your JavaScript console!
+
+        .. tip:: With the right function you can send client log messages *anywhere*.
         */
         GateOne.Logging.destinations[name] = dest;
     },
@@ -1950,6 +2641,65 @@ GateOne.Logging.destinations = { // Default to console logging.
 }
 
 GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
+/**:GateOne.Net
+
+Just about all of Gate One's communications with the server are handled inside this module.  It contains all the functions and properties to deal with setting up the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ and issuing/receiving commands over it.  The most important facet of :js:attr:`GateOne.Net` is :js:attr:`GateOne.Net.actions` which holds the mapping of what function maps to which command.  More info on :js:attr:`GateOne.Net.actions` is below.
+*/
+/**:GateOne.Net.actions
+
+This is where all of Gate One's `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ protocol actions are assigned to functions.  Here's how they are defined by default:
+
+    ===================  ====================================================
+    Action               Function
+    ===================  ====================================================
+    `go:gateone_user`    :js:func:`GateOne.User.storeSession`
+    `go:load_css`        :js:func:`GateOne.Visual.CSSPluginAction`
+    `go:load_style`      :js:func:`GateOne.Utils.loadStyleAction`
+    `go:log`             :js:func:`GateOne.Net.log`
+    `go:notice`          :js:func:`GateOne.Visual.serverMessageAction`
+    `go:ping`            :js:func:`GateOne.Net.ping`
+    `go:pong`            :js:func:`GateOne.Net.pong`
+    `go:reauthenticate`  :js:func:`GateOne.Net.reauthenticate`
+    `go:save_file`       :js:func:`GateOne.Utils.saveAsAction`
+    `go:set_username`    :js:func:`GateOne.User.setUsername`
+    `go:timeout`         :js:func:`GateOne.Terminal.timeoutAction`
+    ===================  ====================================================
+
+
+.. note:: Most of the above is added via :js:func:`~GateOne.Net.addAction` inside of each respective module's ``init()`` function.
+
+For example, if we execute :js:func:`GateOne.Net.ping`, this will send a message over the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ like so:
+
+.. code-block:: javascript
+
+    GateOne.ws.send(JSON.stringify({'ping': timestamp}));
+
+The GateOne server will receive this message and respond with a ``pong`` message that looks like this (Note: Python code below):
+
+.. code-block:: python
+
+    message = {'pong': timestamp} # The very same timestamp we just sent via GateOne.Net.ping()
+    self.write_message(json_encode(message))
+
+When GateOne.Net receives a message from the server over the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ it will evaluate the object it receives as ``{action: message}`` and call the matching action in :js:attr:`GateOne.Net.actions`.  In this case, our action "pong" matches  :js:attr:`GateOne.Net.actions['pong']` so it will be called like so:
+
+.. code-block:: javascript
+
+    GateOne.Net.actions['pong'](message);
+
+Plugin authors can add their own arbitrary actions using :js:func:`GateOne.Net.addAction`.  Here's an example taken from the SSH plugin:
+
+.. code-block:: javascript
+
+    GateOne.Net.addAction('sshjs_connect', GateOne.SSH.handleConnect);
+    GateOne.Net.addAction('sshjs_reconnect', GateOne.SSH.handleReconnect);
+
+If no action can be found for a message it will be passed to :js:func:`GateOne.Visual.displayMessage` and displayed to the user like so:
+
+.. code-block:: javascript
+
+    GateOne.Visual.displayMessage('Message From Server: ' + <message>);
+*/
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // DEPRECATED: A hook plugins can use if they want to call something whenever the terminal dimensions change
@@ -1968,12 +2718,18 @@ GateOne.Base.update(GateOne.Net, {
         });
     },
     sendChars: function() {
-        /**:GateOne.Net.sendChars() DEPRECATED:  Use GateOne.Terminal.sendChars() instead. */
+        /**:GateOne.Net.sendChars()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.sendChars` instead.
+        */
         go.Logging.deprecated("GateOne.Net.sendChars", "Use GateOne.Terminal.Input.sendChars() instead.");
         go.Terminal.sendChars();
     },
     sendString: function(chars, term) {
-        /**:GateOne.Net.sendString() DEPRECATED:  Use GateOne.Terminal.sendString() instead. */
+        /**:GateOne.Net.sendString()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.sendString` instead.
+        */
         go.Logging.deprecated("GateOne.Net.sendString", "Use GateOne.Terminal.sendString() instead.");
         go.Terminal.sendString(chars, term);
     },
@@ -2072,7 +2828,10 @@ GateOne.Base.update(GateOne.Net, {
         }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
-        /**:GateOne.Net.sendDimensions() DEPRECATED:  Use GateOne.Terminal.sendDimensions() instead. */
+        /**:GateOne.Net.sendDimensions()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.sendDimensions` instead.
+        */
         GateOne.Logging.deprecated("GateOne.Net.sendDimensions", "Use GateOne.Terminal.sendDimensions() instead.");
         GateOne.Terminal.sendDimensions(term, ctrl_l);
     },
@@ -2267,22 +3026,34 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.Net.actions[name] = func;
     },
     setTerminal: function(term) {
-        /**:GateOne.Net.setTerminal() DEPRECATED:  Use GateOne.Terminal.setTerminal() instead. */
+        /**:GateOne.Net.setTerminal()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.setTerminal` instead.
+        */
         GateOne.Logging.deprecated("GateOne.Net.setTerminal", "Use GateOne.Terminal.setTerminal() instead.");
         GateOne.Terminal.setTerminal(term);
     },
     killTerminal: function(term) {
-        /**:GateOne.Net.killTerminal() DEPRECATED:  Use GateOne.Terminal.killTerminal() instead. */
+        /**:GateOne.Net.killTerminal()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.killTerminal` instead.
+        */
         GateOne.Logging.deprecated("GateOne.Net.killTerminal", "Use GateOne.Terminal.killTerminal() instead.");
         GateOne.Terminal.killTerminal(term);
     },
     refresh: function(term) {
-        /**:GateOne.Net.refresh() DEPRECATED:  Use GateOne.Terminal.refresh() instead. */
+        /**:GateOne.Net.refresh()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.refresh` instead.
+        */
         GateOne.Logging.deprecated("GateOne.Net.refresh", "Use GateOne.Terminal.refresh() instead.");
         GateOne.Terminal.refresh(term);
     },
     fullRefresh: function(term) {
-        /**:GateOne.Net.fullRefresh() DEPRECATED:  Use GateOne.Terminal.fullRefresh() instead. */
+        /**:GateOne.Net.fullRefresh()
+
+        DEPRECATED:  Use :js:meth:`GateOne.Terminal.fullRefresh` instead.
+        */
         GateOne.Logging.deprecated("GateOne.Net.fullRefresh", "Use GateOne.Terminal.fullRefresh() instead.");
         GateOne.Terminal.fullRefresh(term);
     }
@@ -2941,8 +3712,8 @@ GateOne.Base.update(GateOne.Visual, {
 
         This function also has some events that can be hooked into:
 
-            * When the panel is toggled out of view: GateOne.Events.trigger("go:panel_toggle:out", panelElement)
-            * When the panel is toggled into view: GateOne.Events.trigger("go:panel_toggle:in", panelElement)
+            * When the panel is toggled out of view: ``GateOne.Events.trigger("go:panel_toggle:out", panelElement)``
+            * When the panel is toggled into view: ``GateOne.Events.trigger("go:panel_toggle:in", panelElement)``
 
         You can hook into these events like so::
 
@@ -4155,29 +4926,6 @@ GateOne.Base.update(GateOne.Visual, {
             * Make it so other panes are aware of all other panes and their dimensions so they can be resized together (say, move one pane up and the one below it grows to fill the new space).
             * By default a pane should just add a full width/height div to the specified element.
 
-        Visualing panels (end goal):
-
-        --------------------------------------------------------------------
-        |terminal list pane |         main terminal pane           |toolbar|
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |<--draggable left/right to resize     |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |                   |                                      |       |
-        |-------------------|<--draggable up/down                  |       |
-        |some other pane    |                                      |       |
-        |                   |<--can move pane top, bottom, etc     |       |
-        |                   |                                      |       |
-        |------------------------------------------------------------------|
-        |       Some other pane              | Some other pane  (log view?)|
-        --------------------------------------------------------------------
-
         Programmatic necessities:
             * An object to store panes and their properties.
             * Functions to perform:
@@ -4393,7 +5141,7 @@ GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files t
 GateOne.Storage.failedRequirementsCounter = {}; // Used to detect when we've waited too long for a dependency.
 GateOne.Storage.fileCacheReady = false;
 GateOne.Base.update(GateOne.Storage, {
-    /**:GateOne.Base.Storage
+    /**:GateOne.Storage
 
     The Storage module provides several functions that make it easier store data in a persistent way.  It will attempt to use IndexedDB but if that's not available it will fall back to using localStorage.
     */
@@ -4936,12 +5684,12 @@ GateOne.Base.update(GateOne.User, {
 });
 
 GateOne.Base.module(GateOne, "Events", '1.0', ['Base', 'Utils']);
+/**:GateOne.Events
+
+An object for event-specific stuff.  Inspired by Backbone.js Events.
+*/
 GateOne.Events.callbacks = {};
 GateOne.Base.update(GateOne.Events, {
-    /**:GateOne.Events
-
-    An object for event-specific stuff.  Inspired by Backbone.js Events.
-    */
     init: {
         // Nothing here yet :)
     },
@@ -5021,7 +5769,7 @@ GateOne.Base.update(GateOne.Events, {
         return f;
     },
     on: function(events, callback, context, times) {
-        /**:GateOne.Events on(events, callback, context, times)
+        /**:GateOne.Events.on(events, callback, context, times)
 
         Adds the given *callback* / *context* combination to the given *events*; to be called when the given *events* are triggered.
 
@@ -5064,7 +5812,7 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     },
     off: function(events, callback, context) {
-        /**:GateOne.Events off(events, callback, context)
+        /**:GateOne.Events.off(events, callback, context)
 
         Removes the given *callback* / *context* combination from the given *events*
 
@@ -5110,14 +5858,14 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     },
     once: function(events, callback, context) {
-        /**:GateOne.Events once(events, callback, context)
+        /**:GateOne.Events.once(events, callback, context)
 
         A shortcut that performs the equivalent of GateOne.Events.on(events, callback, context, 1)
         */
         return GateOne.Events.on(events, callback, context, 1);
     },
     trigger: function(events) {
-        /**:GateOne.Events trigger(events)
+        /**:GateOne.Events.trigger(events)
 
         Triggers the given *events*.  Any additional provided arguments will be passed to the callbacks attached to the given events.
 

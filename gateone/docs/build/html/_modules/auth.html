@@ -95,7 +95,10 @@
 <span class="s">It is great for both transparent authentication and being able to tie sessions</span>
 <span class="s">and logs to specific users within your organization (compliance).</span>
 
-<span class="s">.. note:: The sso.py module itself has extensive documentation on this authentication type.</span>
+<span class="s">.. note::</span>
+
+<span class="s">    The sso.py module itself has extensive documentation on this authentication</span>
+<span class="s">    type.</span>
 
 <span class="s">Google Authentication</span>
 <span class="s">---------------------</span>
@@ -104,7 +107,10 @@
 <span class="s">of course, that your Gate One server and clients will have access to the</span>
 <span class="s">Internet.</span>
 
-<span class="s">.. note:: This authentication type is perfect if you&#39;re using Chromebooks (Chrome OS devices).</span>
+<span class="s">.. note::</span>
+
+<span class="s">    This authentication type is perfect if you&#39;re using Chromebooks (Chrome OS</span>
+<span class="s">    devices).</span>
 
 <span class="s">API Authentication</span>
 <span class="s">------------------</span>
@@ -116,11 +122,6 @@
 <span class="s">Docstrings</span>
 <span class="s">==========</span>
 <span class="s">&quot;&quot;&quot;</span>
-
-<span class="c"># TODO: Need authorization stuff for the following:</span>
-<span class="c">#   * Access (you are/are not allowed to do this, etc)</span>
-<span class="c">#   * Limits (max terms, you may only do this X times, etc)</span>
-<span class="c">#   *</span>
 
 <span class="c"># Import stdlib stuff</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">re</span>
@@ -236,7 +237,10 @@
 <span class="sd">    A condition class to be used with the @require decorator that returns True</span>
 <span class="sd">    if the user is authenticated.</span>
 
-<span class="sd">    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use @tornado.web.authenticated</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Only meant to be used with WebSockets.  `tornado.web.RequestHandler`</span>
+<span class="sd">        instances can use `@tornado.web.authenticated`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Only valid users may access this function&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -278,8 +282,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
-
-<span class="c"># Still experimenting on how various security limits will be handled...  Many aspects of this function may change:</span></div>
+</div>
 <div class="viewcode-block" id="policies"><a class="viewcode-back" href="../Developer/auth.html#auth.policies">[docs]</a><span class="k">class</span> <span class="nc">policies</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A condition class to be used with the @require decorator that returns True</span>
@@ -289,18 +292,34 @@
 <span class="sd">        @require(authenticated(), policies(&#39;terminal&#39;))</span>
 <span class="sd">        def new_terminal(self, settings):</span>
 <span class="sd">            # Actual function would be here</span>
+<span class="sd">            pass</span>
 
 <span class="sd">    That would apply all policies that are configured for the &#39;terminal&#39;</span>
 <span class="sd">    application.  It works like this:</span>
 
-<span class="sd">        # The :class:`~app_terminal.TerminalApplication` application registers its name and policy-checking function inside of :meth:`~app_terminal.TerminalApplication.initialize` like so::</span>
+<span class="sd">    The :class:`~app_terminal.TerminalApplication` application registers its</span>
+<span class="sd">    name and policy-checking function inside of</span>
+<span class="sd">    :meth:`~app_terminal.TerminalApplication.initialize` like so::</span>
 
-<span class="sd">            self.ws.security.update({&#39;terminal&#39;: terminal_policies})</span>
+<span class="sd">        self.ws.security.update({&#39;terminal&#39;: terminal_policies})</span>
 
-<span class="sd">        # Whenever a function decorated with `@require(policies(&#39;terminal&#39;))` is called the registered policy-checking function (e.g. :func:`app_terminal.terminal_policies`) will be called, passing the current instance of :class:`policies` as the only argument.</span>
-<span class="sd">        # It is then up to the policy-checking function to make a determination as to whether or not the user is allowed to execute the decorated function and must return `True` if allowed.  Also note that the policy-checking function will be able to make modifications to the function and its arguments if the security policies warrant it.</span>
+<span class="sd">    Whenever a function decorated with `@require(policies(&#39;terminal&#39;))` is</span>
+<span class="sd">    called the registered policy-checking function (e.g.</span>
+<span class="sd">    :func:`app_terminal.terminal_policies`) will be called, passing the current</span>
+<span class="sd">    instance of :class:`policies` as the only argument.</span>
 
-<span class="sd">    .. note:: If you write your own policy-checking function (like :func:`terminal_policies`) it is often a good idea to send a notification to the user indicating why they&#39;ve been denied.  You can do this with the :meth:`instance.send_message` method.</span>
+<span class="sd">    It is then up to the policy-checking function to make a determination as to</span>
+<span class="sd">    whether or not the user is allowed to execute the decorated function and</span>
+<span class="sd">    must return `True` if allowed.  Also note that the policy-checking function</span>
+<span class="sd">    will be able to make modifications to the function and its arguments if the</span>
+<span class="sd">    security policies warrant it.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you write your own policy-checking function (like</span>
+<span class="sd">        :func:`terminal_policies`) it is often a good idea to send a</span>
+<span class="sd">        notification to the user indicating why they&#39;ve been denied.  You can</span>
+<span class="sd">        do this with the :meth:`instance.send_message` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># NOTE:  In the future if we wish to use this function with Gate One itself</span>
     <span class="c"># (as opposed to just a GOApplication) the &#39;app&#39; will need to be &#39;gateone&#39;.</span>
@@ -771,7 +790,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

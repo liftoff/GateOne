@@ -11,7 +11,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys, os, logging
+
+log = logging.getLogger(__name__)
+log.setLevel(getattr(logging, "DEBUG"))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -71,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Gate One'
-copyright = u'2011, Liftoff Software Corporation'
+copyright = u'2013, Liftoff Software Corporation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -292,8 +295,8 @@ epub_copyright = u'2011, Liftoff Software Corporation'
 
 # -- Intersphinx stuff ---------------------------------------------------------
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/2.7', None),
-    'tornado': ('http://www.tornadoweb.org/en/stable/', None)
+    #'python': ('http://docs.python.org/2.7', None),
+    #'tornado': ('http://www.tornadoweb.org/en/stable/', None)
 }
 
 # Make PHP syntax highlighting work

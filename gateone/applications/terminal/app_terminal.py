@@ -1231,12 +1231,14 @@ class TerminalApplication(GOApplication):
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""
-        term_obj = self.loc_terms[term]
         try:
+            term_obj = self.loc_terms[term]
             term_obj['last_activity'] = datetime.now()
         except KeyError:
             # This can happen if the user disconnected in the middle of a screen
-            # update.  Nothing to be concerned about.
+            # update or if the terminal was closed really quickly before the
+            # Tornado framework got a chance to call this function.  Nothing to
+            # be concerned about.
             return # Ignore
         multiplex = term_obj['multiplex']
         scrollback, screen = multiplex.dump_html(

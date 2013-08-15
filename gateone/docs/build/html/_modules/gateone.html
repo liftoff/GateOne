@@ -80,7 +80,7 @@
 <span class="s">Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends</span>
 <span class="s">on the following 3rd party Python modules:</span>
 
-<span class="s"> * `Tornado &lt;http://www.tornadoweb.org/&gt;`_ 2.2+ - A non-blocking web server framework that powers FriendFeed.</span>
+<span class="s"> * `Tornado &lt;http://www.tornadoweb.org/&gt;`_ 3.0+ - A non-blocking web server framework that powers FriendFeed.</span>
 
 <span class="s">The following modules are optional and can provide Gate One with additional</span>
 <span class="s">functionality:</span>
@@ -88,18 +88,20 @@
 <span class="s"> * `pyOpenSSL &lt;https://launchpad.net/pyopenssl&gt;`_ 0.10+ - An OpenSSL module/wrapper for Python.  Only used to generate self-signed SSL keys and certificates.  If pyOpenSSL isn&#39;t available Gate One will fall back to using the &#39;openssl&#39; command to generate self-signed certificates.</span>
 <span class="s"> * `kerberos &lt;http://pypi.python.org/pypi/kerberos&gt;`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</span>
 <span class="s"> * `python-pam &lt;http://packages.debian.org/lenny/python-pam&gt;`_ 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.</span>
+<span class="s"> * `PIL (Python Imaging Library) &lt;http://www.pythonware.com/products/pil/&gt;`_ 1.1.7+ - A Python module for manipulating images.  **Alternative:** `Pillow &lt;https://github.com/python-imaging/Pillow&gt;`_ 2.0+ - A &quot;friendly fork&quot; of PIL that works with Python 3.</span>
+<span class="s"> * `mutagen &lt;https://code.google.com/p/mutagen/&gt;`_ 1.21+ - A Python module to handle audio metadata.  Makes it so that if you `cat music_file.ogg` in a terminal you&#39;ll get useful track/tag information.</span>
 
-<span class="s">With the exception of python-pam, both the required and optional modules can usually be installed via one of these commands:</span>
+<span class="s">With the exception of python-pam, all required and optional modules can usually be installed via one of these commands:</span>
 
 <span class="s">    .. ansi-block::</span>
 
-<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo pip install tornado pyopenssl kerberos</span>
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo pip install --upgrade tornado pyopenssl kerberos pillow mutagen</span>
 
 <span class="s">...or:</span>
 
 <span class="s">    .. ansi-block::</span>
 
-<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@legacy-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo easy_install tornado pyopenssl kerberos</span>
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@legacy-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo easy_install tornado pyopenssl kerberos pillow mutagen</span>
 
 <span class="s">.. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don&#39;t have it.</span>
 
@@ -123,28 +125,118 @@
 
 <span class="s">Settings</span>
 <span class="s">--------</span>
-<span class="s">All of Gate One&#39;s configurable options can be controlled either via command line</span>
-<span class="s">switches or by settings in the server.conf file (they match up 1-to-1).  If no</span>
-<span class="s">server.conf exists one will be created using defaults (i.e. when Gate One is run</span>
-<span class="s">for the first time).  Settings in the server.conf file use the following format::</span>
+<span class="s">Most of Gate One&#39;s options can be controlled by command line switches or via</span>
+<span class="s">.conf files in the settings directory.  If you haven&#39;t configured Gate One</span>
+<span class="s">before a number of .conf files will be automatically generated using defaults</span>
+<span class="s">and/or the command line switches provided the first time you run `gateone.py`.</span>
 
-<span class="s">    &lt;setting&gt; = &lt;value&gt;</span>
+<span class="s">Settings in the various `settings/*.conf` files are JSON-formatted:</span>
 
-<span class="s">Here&#39;s an example::</span>
+<span class="s">.. note::</span>
 
-<span class="s">    address = &quot;127.0.0.1;::1;10.1.1.4&quot; # Strings are surrounded by quotes</span>
-<span class="s">    port = 443 # Numbers don&#39;t need quotes</span>
+<span class="s">    Technically, JSON doesn&#39;t allow comments but Gate One&#39;s .conf files do.</span>
+
+<span class="s">.. code-block:: javascript</span>
+
+<span class="s">    { // You can use single-line comments like this</span>
+<span class="s">    /*</span>
+<span class="s">    Or multi-line comments like this.</span>
+<span class="s">    */</span>
+<span class="s">        &quot;*&quot;: { // The * here designates this as &quot;default&quot; values</span>
+<span class="s">            &quot;gateone&quot;: { // Settings in this dict are specific to the &quot;gateone&quot; app</span>
+<span class="s">                &quot;address&quot;: &quot;10.0.0.100&quot;, // A string value</span>
+<span class="s">                &quot;log_file_num_backups&quot;: 10, // An integer value</span>
+<span class="s">                // Here&#39;s an example list:</span>
+<span class="s">                &quot;origins&quot;: [&quot;localhost&quot;, &quot;127.0.0.1&quot;, &quot;10.0.0.100&quot;],</span>
+<span class="s">                &quot;https_redirect&quot;: false, // Booleans are all lower case</span>
+<span class="s">                &quot;log_to_stderr&quot;: null // Same as `None` in Python (also lower case)</span>
+<span class="s">                // NOTE: No comma after last item</span>
+<span class="s">            },</span>
+<span class="s">            &quot;terminal&quot;: { // Example of a different application&#39;s settings</span>
+<span class="s">                &quot;default_command&quot;: &quot;SSH&quot;, // &lt;-- don&#39;t leave traling commas like this!</span>
+<span class="s">                ... // So on and so forth</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    You *must* use double quotes (&quot;&quot;) to define strings.  Single quotes *can* be</span>
+<span class="s">    used inside double quotes, however.  `&quot;example&quot;: &quot;of &#39;single&#39; quotes&quot;`  To</span>
+<span class="s">    escape a double-quote inside a double quote use three slashes:</span>
+<span class="s">    `&quot;</span><span class="se">\\\\\\\\\\\\</span><span class="s">&quot;foo</span><span class="se">\\\\\\\\\\\\</span><span class="s">&quot;&quot;`</span>
+
+<span class="s">.. All those slashes above are so Sphinx won&#39;t mangle it in HTML.</span>
+
+<span class="s">You can have as many .conf files in your settings directory as you like.  When</span>
+<span class="s">Gate One runs it reads all files in alphanumeric order and combines all settings</span>
+<span class="s">into a single Python dictionary.  Files loaded last will override settings from</span>
+<span class="s">earlier files.  Example:</span>
+
+<span class="s">.. topic:: 20example.conf</span>
+
+<span class="s">    .. code-block:: javascript</span>
+
+<span class="s">        {</span>
+<span class="s">            &quot;*&quot;: {</span>
+<span class="s">                &quot;terminal&quot;: {</span>
+<span class="s">                    &quot;session_logging&quot;: true,</span>
+<span class="s">                    &quot;default_command&quot;: &quot;SSH&quot;</span>
+<span class="s">                }</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+
+<span class="s">.. topic:: 99override.conf</span>
+
+<span class="s">    .. code-block:: javascript</span>
+
+<span class="s">        {</span>
+<span class="s">            &quot;*&quot;: {</span>
+<span class="s">                &quot;terminal&quot;: {</span>
+<span class="s">                    &quot;default_command&quot;: &quot;my_override&quot;</span>
+<span class="s">                }</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+
+<span class="s">If Gate One loaded the above example .conf files the resulting dict would be:</span>
+
+<span class="s">.. topic:: Merged settings</span>
+
+<span class="s">    .. code-block:: javascript</span>
+
+<span class="s">        {</span>
+<span class="s">            &quot;*&quot;: {</span>
+<span class="s">                &quot;terminal&quot;: {</span>
+<span class="s">                    &quot;session_logging&quot;: true,</span>
+<span class="s">                    &quot;default_command&quot;: &quot;my_override&quot;</span>
+<span class="s">                }</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    These settings are loaded using the `~utils.RUDict` (Recusive Update Dict)</span>
+<span class="s">    class.</span>
 
 <span class="s">There are a few important differences between the configuration file and</span>
 <span class="s">command line switches in regards to boolean values (True/False).  A switch such</span>
-<span class="s">as --debug evaluates to &quot;debug = True&quot; and this is exactly how it would be</span>
-<span class="s">configured in server.conf::</span>
+<span class="s">as `--debug` is equivalent to &#39;&quot;debug&quot; = true&#39; in the 10.server.conf:</span>
 
-<span class="s">    debug = True # Booleans don&#39;t need quotes either</span>
+<span class="s">.. code-block:: javascript</span>
 
-<span class="s">.. note:: The following values in server.conf are case sensitive: True, False and None (and should not be placed in quotes).</span>
+<span class="s">    &quot;debug&quot; = true // Booleans are all lower case (not in quotes)</span>
 
-<span class="s">Running gateone.py with the --help switch will print the usage information as</span>
+<span class="s">.. tip::</span>
+
+<span class="s">    Use `--setting=True`, `--setting=False`, or `--setting=None` to avoid</span>
+<span class="s">    confusion.</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    The following values in 10server.conf are case sensitive: `true`, `false`</span>
+<span class="s">    and `null` (and should not be placed in quotes).</span>
+
+<span class="s">Running gateone.py with the `--help` switch will print the usage information as</span>
 <span class="s">well as descriptions of what each configurable option does:</span>
 
 <span class="s">.. ansi-block::</span>
@@ -153,78 +245,223 @@
 <span class="s">    Usage: ./gateone.py [OPTIONS]</span>
 
 <span class="s">    Options:</span>
-<span class="s">      --help                           show this help information</span>
-<span class="s">      --log_file_max_size              max size of log files before rollover</span>
-<span class="s">      --log_file_num_backups           number of log files to keep</span>
-<span class="s">      --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)</span>
-<span class="s">      --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.</span>
-<span class="s">      --logging=debug|info|warning|error|none Set the Python log level. If &#39;none&#39;, tornado won&#39;t touch the logging configuration.</span>
-<span class="s">      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
-<span class="s">      --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam</span>
-<span class="s">      --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.</span>
-<span class="s">      --command                        Run the given command when a user connects (e.g. &#39;/bin/login&#39;).</span>
-<span class="s">      --config                         Path to the config file.  Default: /opt/gateone/server.conf</span>
-<span class="s">      --cookie_secret                  Use the given 45-character string for cookie encryption.</span>
-<span class="s">      --debug                          Enable debugging features such as auto-restarting when files are modified.</span>
-<span class="s">      --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).</span>
-<span class="s">      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).</span>
-<span class="s">      --embedded                       Doesn&#39;t do anything (yet).</span>
-<span class="s">      --enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).</span>
-<span class="s">      --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.</span>
-<span class="s">      --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: &#39;white&#39;}&quot; would result in GateOne.init({scheme: &#39;white&#39;})</span>
-<span class="s">      --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.</span>
-<span class="s">      --kill                           Kill any running Gate One terminal processes including dtach&#39;d processes.</span>
-<span class="s">      --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is &#39;en_US&#39; in your current shell), or en_US if not set.</span>
-<span class="s">      --new_api_key                    Generate a new API key that an external application can use to embed Gate One.</span>
-<span class="s">      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here&#39;s the default on your system: &#39;https://localhost;https://yourhostname&#39;. Alternatively, &#39;*&#39; may be  specified to allow access from anywhere.</span>
-<span class="s">      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.</span>
-<span class="s">      --pam_service                    PAM service to use.  Defaults to &#39;login&#39;. Only relevant if PAM authentication is enabled.</span>
-<span class="s">      --pid_file                       Path of the pid file.   Default: /tmp/gateone.pid</span>
-<span class="s">      --port                           Run on the given port.</span>
-<span class="s">      --session_dir                    Path to the location where session information will be stored.</span>
-<span class="s">      --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled</span>
-<span class="s">      --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is &#39;5d&#39; (5 days).</span>
-<span class="s">      --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.</span>
-<span class="s">      --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.</span>
-<span class="s">      --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon</span>
-<span class="s">      --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don&#39;t include Python&#39;s syslog module.</span>
-<span class="s">      --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.</span>
-<span class="s">      --unix_socket_path               Run on the given socket file.  Default: /tmp/gateone.sock</span>
-<span class="s">      --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. &#39;/gateone/&#39;.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.</span>
-<span class="s">      --user_dir                       Path to the location where user files will be stored.</span>
 
-<span class="s">.. note:: Some of these options (e.g. log_file_prefix) are inherent to the Tornado framework.  You won&#39;t find them anywhere in gateone.py.</span>
+<span class="s">    --address                       Run on the given address.  Default is all</span>
+<span class="s">                                    addresses (IPv6 included).  Multiple address</span>
+<span class="s">                                    can be specified using a semicolon as a</span>
+<span class="s">                                    separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
+<span class="s">    --api_keys                      The &#39;key:secret,...&#39; API key pairs you wish</span>
+<span class="s">                                    to use (only applies if using API</span>
+<span class="s">                                    authentication)</span>
+<span class="s">    --api_timestamp_window          How long before an API authentication object</span>
+<span class="s">                                    becomes invalid.  Default is &#39;30s&#39; (30</span>
+<span class="s">                                    seconds). (default 30s)</span>
+<span class="s">    --auth                          Authentication method to use.  Valid options</span>
+<span class="s">                                    are: none, api, google, ssl, kerberos, pam</span>
+<span class="s">                                    (default none)</span>
+<span class="s">    --ca_certs                      Path to a file containing any number of</span>
+<span class="s">                                    concatenated CA certificates in PEM format.</span>
+<span class="s">                                    They will be used to authenticate clients if</span>
+<span class="s">                                    the &#39;ssl_auth&#39; option is set to &#39;optional&#39;</span>
+<span class="s">                                    or &#39;required&#39;.</span>
+<span class="s">    --cache_dir                     Path where Gate One should store temporary</span>
+<span class="s">                                    global files (e.g. rendered templates, CSS,</span>
+<span class="s">                                    JS, etc). (default /tmp/gateone_cache)</span>
+<span class="s">    --certificate                   Path to the SSL certificate.  Will be auto-</span>
+<span class="s">                                    generated if none is provided. (default</span>
+<span class="s">                                    certificate.pem)</span>
+<span class="s">    --combine_css                   Combines all of Gate One&#39;s CSS Template</span>
+<span class="s">                                    files into one big file and saves it at the</span>
+<span class="s">                                    given path (e.g. ./gateone.py</span>
+<span class="s">                                    --combine_css=/tmp/gateone.css).</span>
+<span class="s">    --combine_css_container         Use this setting in conjunction with</span>
+<span class="s">                                    --combine_css if the &lt;div&gt; where Gate One</span>
+<span class="s">                                    lives is named something other than #gateone</span>
+<span class="s">                                    (default #gateone)</span>
+<span class="s">    --combine_js                    Combines all of Gate One&#39;s JavaScript files</span>
+<span class="s">                                    into one big file and saves it at the given</span>
+<span class="s">                                    path (e.g. ./gateone.py</span>
+<span class="s">                                    --combine_js=/tmp/gateone.js)</span>
+<span class="s">    --command                       DEPRECATED: Use the &#39;commands&#39; option in the</span>
+<span class="s">                                    terminal settings.</span>
+<span class="s">    --config                        DEPRECATED.  Use --settings_dir. (default</span>
+<span class="s">                                    /opt/gateone/server.conf)</span>
+<span class="s">    --cookie_secret                 Use the given 45-character string for cookie</span>
+<span class="s">                                    encryption.</span>
+<span class="s">    --debug                         Enable debugging features such as auto-</span>
+<span class="s">                                    restarting when files are modified. (default</span>
+<span class="s">                                    False)</span>
+<span class="s">    --disable_ssl                   If enabled, Gate One will run without SSL</span>
+<span class="s">                                    (generally not a good idea). (default False)</span>
+<span class="s">    --dtach                         Wrap terminals with dtach. Allows sessions</span>
+<span class="s">                                    to be resumed even if Gate One is stopped</span>
+<span class="s">                                    and started (which is a sweet feature).</span>
+<span class="s">                                    (default True)</span>
+<span class="s">    --embedded                      When embedding Gate One, this option is</span>
+<span class="s">                                    available to templates. (default False)</span>
+<span class="s">    --enable_unix_socket            Enable Unix socket support. (default False)</span>
+<span class="s">    --gid                           Drop privileges and run Gate One as this</span>
+<span class="s">                                    group/gid. (default 0)</span>
+<span class="s">    --help                          show this help information</span>
+<span class="s">    --https_redirect                If enabled, a separate listener will be</span>
+<span class="s">                                    started on port 80 that redirects users to</span>
+<span class="s">                                    the configured port using HTTPS. (default</span>
+<span class="s">                                    False)</span>
+<span class="s">    --js_init                       A JavaScript object (string) that will be</span>
+<span class="s">                                    used when running GateOne.init() inside</span>
+<span class="s">                                    index.html.  Example: --js_init=&quot;{scheme:</span>
+<span class="s">                                    &#39;white&#39;}&quot; would result in</span>
+<span class="s">                                    GateOne.init({scheme: &#39;white&#39;})</span>
+<span class="s">    --keyfile                       Path to the SSL keyfile.  Will be auto-</span>
+<span class="s">                                    generated if none is provided. (default</span>
+<span class="s">                                    keyfile.pem)</span>
+<span class="s">    --kill                          Kill any running Gate One terminal processes</span>
+<span class="s">                                    including dtach&#39;d processes. (default False)</span>
+<span class="s">    --locale                        The locale (e.g. pt_PT) Gate One should use</span>
+<span class="s">                                    for translations.  If not provided, will</span>
+<span class="s">                                    default to $LANG (which is &#39;en_US&#39; in your</span>
+<span class="s">                                    current shell), or en_US if not set.</span>
+<span class="s">                                    (default en_US)</span>
+<span class="s">    --new_api_key                   Generate a new API key that an external</span>
+<span class="s">                                    application can use to embed Gate One.</span>
+<span class="s">                                    (default False)</span>
+<span class="s">    --origins                       A semicolon-separated list of origins you</span>
+<span class="s">                                    wish to allow access to your Gate One server</span>
+<span class="s">                                    over the WebSocket.  This value must contain</span>
+<span class="s">                                    the hostnames and FQDNs (e.g. foo;foo.bar;)</span>
+<span class="s">                                    users will use to connect to your Gate One</span>
+<span class="s">                                    server as well as the hostnames/FQDNs of any</span>
+<span class="s">                                    sites that will be embedding Gate One.</span>
+<span class="s">                                    Here&#39;s the default on your system: &#39;localhos</span>
+<span class="s">                                    t;127.0.0.1;enterprise.lan;enterprise;localh</span>
+<span class="s">                                    ost;enterprise.lan;enterprise;enterprise.exa</span>
+<span class="s">                                    mple.com;127.0.0.1;10.1.1.100&#39;.</span>
+<span class="s">                                    Alternatively, &#39;*&#39; may be  specified to</span>
+<span class="s">                                    allow access from anywhere. (default localho</span>
+<span class="s">                                    st;127.0.0.1;enterprise.lan;enterprise;local</span>
+<span class="s">                                    host;enterprise.lan;enterprise;enterprise.ex</span>
+<span class="s">                                    ample.com;127.0.0.1;10.1.1.100)</span>
+<span class="s">    --pam_realm                     Basic auth REALM to display when</span>
+<span class="s">                                    authenticating clients.  Default: hostname.</span>
+<span class="s">                                    Only relevant if PAM authentication is</span>
+<span class="s">                                    enabled. (default enterprise)</span>
+<span class="s">    --pam_service                   PAM service to use.  Defaults to &#39;login&#39;.</span>
+<span class="s">                                    Only relevant if PAM authentication is</span>
+<span class="s">                                    enabled. (default login)</span>
+<span class="s">    --pid_file                      Define the path to the pid file.  Default:</span>
+<span class="s">                                    /tmp/gateone.pid (default /tmp/gateone.pid)</span>
+<span class="s">    --port                          Run on the given port. (default 443)</span>
+<span class="s">    --session_dir                   Path to the location where session</span>
+<span class="s">                                    information will be stored. (default</span>
+<span class="s">                                    /tmp/gateone)</span>
+<span class="s">    --session_logging               If enabled, logs of user sessions will be</span>
+<span class="s">                                    saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default:</span>
+<span class="s">                                    Enabled (default True)</span>
+<span class="s">    --session_timeout               Amount of time that a session is allowed to</span>
+<span class="s">                                    idle before it is killed.  Accepts &lt;num&gt;X</span>
+<span class="s">                                    where X could be one of s, m, h, or d for</span>
+<span class="s">                                    seconds, minutes, hours, and days.  Default</span>
+<span class="s">                                    is &#39;5d&#39; (5 days). (default 5d)</span>
+<span class="s">    --settings_dir                  Path to the settings directory.  Default:</span>
+<span class="s">                                    /opt/gateone/settings (default</span>
+<span class="s">                                    /opt/gateone/settings)</span>
+<span class="s">    --ssl_auth                      Enable the use of client SSL (X.509)</span>
+<span class="s">                                    certificates as a secondary authentication</span>
+<span class="s">                                    factor (the configured &#39;auth&#39; type will come</span>
+<span class="s">                                    after SSL auth).  May be one of &#39;none&#39;,</span>
+<span class="s">                                    &#39;optional&#39;, or &#39;required&#39;.  NOTE: Only works</span>
+<span class="s">                                    if the &#39;ca_certs&#39; option is configured.</span>
+<span class="s">                                    (default none)</span>
+<span class="s">    --sso_realm                     Kerberos REALM (aka DOMAIN) to use when</span>
+<span class="s">                                    authenticating clients. Only relevant if</span>
+<span class="s">                                    Kerberos authentication is enabled.</span>
+<span class="s">    --sso_service                   Kerberos service (aka application) to use.</span>
+<span class="s">                                    Defaults to HTTP. Only relevant if Kerberos</span>
+<span class="s">                                    authentication is enabled. (default HTTP)</span>
+<span class="s">    --syslog_facility               Syslog facility to use when logging to</span>
+<span class="s">                                    syslog (if syslog_session_logging is</span>
+<span class="s">                                    enabled).  Must be one of: auth, cron,</span>
+<span class="s">                                    daemon, kern, local0, local1, local2,</span>
+<span class="s">                                    local3, local4, local5, local6, local7, lpr,</span>
+<span class="s">                                    mail, news, syslog, user, uucp.  Default:</span>
+<span class="s">                                    daemon (default daemon)</span>
+<span class="s">    --syslog_host                   Remote host to send syslog messages to if</span>
+<span class="s">                                    syslog_logging is enabled.  Default: None</span>
+<span class="s">                                    (log to the local syslog daemon directly).</span>
+<span class="s">                                    NOTE:  This setting is required on platforms</span>
+<span class="s">                                    that don&#39;t include Python&#39;s syslog module.</span>
+<span class="s">    --syslog_session_logging        If enabled, logs of user sessions will be</span>
+<span class="s">                                    written to syslog. (default False)</span>
+<span class="s">    --uid                           Drop privileges and run Gate One as this</span>
+<span class="s">                                    user/uid. (default 0)</span>
+<span class="s">    --unix_socket_path              Path to the Unix socket (if</span>
+<span class="s">                                    --enable_unix_socket=True). (default</span>
+<span class="s">                                    /tmp/gateone.sock)</span>
+<span class="s">    --url_prefix                    An optional prefix to place before all Gate</span>
+<span class="s">                                    One URLs. e.g. &#39;/gateone/&#39;.  Use this if</span>
+<span class="s">                                    Gate One will be running behind a reverse</span>
+<span class="s">                                    proxy where you want it to be located at</span>
+<span class="s">                                    some sub-URL path. (default /)</span>
+<span class="s">    --user_dir                      Path to the location where user files will</span>
+<span class="s">                                    be stored. (default /opt/gateone/users)</span>
+<span class="s">    --user_logs_max_age             Maximum amount of length of time to keep any</span>
+<span class="s">                                    given user log before it is removed.</span>
+<span class="s">                                    (default 30d)</span>
+
+<span class="s">    /usr/local/lib/python2.7/dist-packages/tornado/log.py options:</span>
+
+<span class="s">    --log_file_max_size             max size of log files before rollover</span>
+<span class="s">                                    (default 100000000)</span>
+<span class="s">    --log_file_num_backups          number of log files to keep (default 10)</span>
+<span class="s">    --log_file_prefix=PATH          Path prefix for log files. Note that if you</span>
+<span class="s">                                    are running multiple tornado processes,</span>
+<span class="s">                                    log_file_prefix must be different for each</span>
+<span class="s">                                    of them (e.g. include the port number)</span>
+<span class="s">    --log_to_stderr                 Send log output to stderr (colorized if</span>
+<span class="s">                                    possible). By default use stderr if</span>
+<span class="s">                                    --log_file_prefix is not set and no other</span>
+<span class="s">                                    logging is configured.</span>
+<span class="s">    --logging=debug|info|warning|error|none</span>
+<span class="s">                                    Set the Python log level. If &#39;none&#39;, tornado</span>
+<span class="s">                                    won&#39;t touch the logging configuration.</span>
+<span class="s">                                    (default info)</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    Some of these options (e.g. log_file_prefix) are inherent to the</span>
+<span class="s">    Tornado framework.  You won&#39;t find them anywhere in gateone.py.</span>
 
 <span class="s">File Paths</span>
 <span class="s">----------</span>
 <span class="s">Gate One stores its files, temporary session information, and persistent user</span>
 <span class="s">data in the following locations (Note: Many of these are configurable):</span>
 
-<span class="s">================= ==================================================================================</span>
+<span class="s">==================  ==========================================================================================</span>
 <span class="s">File/Directory      Description</span>
-<span class="s">================= ==================================================================================</span>
-<span class="s">authpam.py        Contains the PAM authentication Mixin used by auth.py.</span>
-<span class="s">auth.py           Authentication classes.</span>
-<span class="s">certificate.pem   The default certificate Gate One will use in SSL communications.</span>
-<span class="s">docs/             Gate One&#39;s documentation.</span>
-<span class="s">gateone.py        Gate One&#39;s primary executable/script. Also, the file containing this documentation</span>
-<span class="s">i18n/             Gate One&#39;s internationalization (i18n) support and locale/translation files.</span>
-<span class="s">keyfile.pem       The default private key used with SSL communications.</span>
-<span class="s">logviewer.py      A utility to view Gate One session logs.</span>
-<span class="s">plugins/          Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</span>
-<span class="s">remote_syslog.py  A module that supports sending syslog messages over UDP to a remote syslog host.</span>
-<span class="s">server.conf       Gate One&#39;s configuration file.</span>
-<span class="s">sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)</span>
-<span class="s">static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).</span>
-<span class="s">templates/        Tornado template files such as index.html.</span>
-<span class="s">terminal.py       A Pure Python terminal emulator module.</span>
-<span class="s">termio.py         Terminal input/output control module.</span>
-<span class="s">tests/            Various scripts and tools to test Gate One&#39;s functionality.</span>
-<span class="s">utils.py          Various supporting functions.</span>
-<span class="s">users/            Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</span>
-<span class="s">users/&lt;user&gt;/logs This is where session logs get stored if session_logging is set.</span>
-<span class="s">/tmp/gateone      Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</span>
-<span class="s">================= ==================================================================================</span>
+<span class="s">==================  ==========================================================================================</span>
+<span class="s">authpam.py          Contains the PAM authentication Mixin used by auth.py.</span>
+<span class="s">auth.py             Authentication classes.</span>
+<span class="s">babel_gateone.cfg   Pybabel configuration for generating localized translations of Gate One&#39;s strings.</span>
+<span class="s">certificate.pem     The default certificate Gate One will use in SSL communications.</span>
+<span class="s">docs/               Gate One&#39;s documentation.</span>
+<span class="s">gateone.py          Gate One&#39;s primary executable/script. Also, the file containing this documentation.</span>
+<span class="s">gopam.py            PAM (Authentication) Python module (used by authpam.py).</span>
+<span class="s">i18n/               Gate One&#39;s internationalization (i18n) support and locale/translation files.</span>
+<span class="s">keyfile.pem         The default private key used with SSL communications.</span>
+<span class="s">logviewer.py        A utility to view Gate One session logs.</span>
+<span class="s">plugins/            (Global) Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</span>
+<span class="s">remote_syslog.py    A module that supports sending syslog messages over UDP to a remote syslog host.</span>
+<span class="s">settings/           All Gate One settings files live here (.conf files).</span>
+<span class="s">sso.py              A Kerberos Single Sign-on module for Tornado (used by auth.py)</span>
+<span class="s">static/             Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).</span>
+<span class="s">templates/          Tornado template files such as index.html.</span>
+<span class="s">tests/              Various scripts and tools to test Gate One&#39;s functionality.</span>
+<span class="s">utils.py            Various supporting functions.</span>
+<span class="s">users/              Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</span>
+<span class="s">users/&lt;user&gt;/logs   This is where session logs get stored if session_logging is set.</span>
+<span class="s">/tmp/gateone        Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</span>
+<span class="s">/tmp/gateone_cache  Used to store cached files such as minified JavaScript and CSS.</span>
+<span class="s">==================  ==========================================================================================</span>
 
 <span class="s">Running</span>
 <span class="s">-------</span>
@@ -239,53 +476,42 @@
 <span class="s">    By default Gate One will run on port 443 which requires root on most</span>
 <span class="s">    systems.  Use `--port=(something higher than 1024)` for non-root users.</span>
 
-<span class="s">Plugins</span>
-<span class="s">-------</span>
-<span class="s">Gate One includes support for any combination of the following types of plugins:</span>
+<span class="s">Applications and Plugins</span>
+<span class="s">------------------------</span>
+<span class="s">Gate One supports both *applications* and *plugins*.  The difference is mostly</span>
+<span class="s">architectural.  Applications go in the `gateone/applications` directory while</span>
+<span class="s">(global) plugins reside in `gateone/plugins`.  The scope of application code</span>
+<span class="s">applies only to the application wheras global Gate One plugin code will apply</span>
+<span class="s">to Gate One itself and all applications.</span>
+
+<span class="s">.. note:: Applications may have plugins of their own (e.g. terminal/plugins).</span>
+
+<span class="s">Gate One applications and plugins can be written using any combination of the</span>
+<span class="s">following:</span>
 
 <span class="s"> * Python</span>
 <span class="s"> * JavaScript</span>
 <span class="s"> * CSS</span>
 
-<span class="s">Python plugins can integrate with Gate One in three ways:</span>
+<span class="s">Applications and Python plugins can integrate with Gate One in a number ways:</span>
 
-<span class="s"> * Adding or overriding tornado.web.RequestHandlers (with a given regex).</span>
-<span class="s"> * Adding or overriding methods (aka &quot;commands&quot;) in ApplicationWebSocket.</span>
-<span class="s"> * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).</span>
+<span class="s"> * Adding or overriding request handlers to provide custom URLs (with a given regex).</span>
+<span class="s"> * Adding or overriding methods in `GOApplication` to handle asynchronous WebSocket &quot;actions&quot;.</span>
+<span class="s"> * Adding or overriding events via the :meth:`on`, :meth:`off`, :meth:`once`, and :meth:`trigger` functions.</span>
+<span class="s"> * Delivering custom content to clients (e.g. JavaScript and CSS templates).</span>
 
-<span class="s">JavaScript plugins will be added to the &lt;body&gt; tag of Gate One&#39;s base index.html</span>
-<span class="s">template by way of a single file (`{{gateone_js}}` below) that is the</span>
-<span class="s">concatenation of all plugins&#39; JS templates:</span>
+<span class="s">JavaScript and CSS plugins will be delivered over the WebSocket and cached at</span>
+<span class="s">the client by way of a novel synchronization mechanism.  Once JavaScript and CSS</span>
+<span class="s">assets have been delivered they will only ever have to be re-delivered to</span>
+<span class="s">clients if they have been modified (on the server).  This mechanism is extremely</span>
+<span class="s">bandwidth efficient and should allow clients to load Gate One content much more</span>
+<span class="s">quickly than traditional HTTP GET requests.</span>
 
-<span class="s">.. code-block:: html</span>
+<span class="s">.. tip::</span>
 
-<span class="s">    &lt;script type=&quot;text/javascript&quot; src=&quot;{{gateone_js}}&quot;&gt;&lt;/script&gt;</span>
-
-<span class="s">CSS plugins are similar to JavaScript but instead of being appended to the</span>
-<span class="s">&lt;body&gt; they are added to the &lt;head&gt; by way of a WebSocket download and some</span>
-<span class="s">fancy JavaScript inside of gateone.js:</span>
-
-<span class="s">.. code-block:: javascript</span>
-
-<span class="s">    CSSPluginAction: function(url) {</span>
-<span class="s">        // Loads the CSS for a given plugin by adding a &lt;link&gt; tag to the &lt;head&gt;</span>
-<span class="s">        var queries = url.split(&#39;?&#39;)[1].split(&#39;&amp;&#39;), // So we can parse out the plugin name and the template</span>
-<span class="s">            plugin = queries[0].split(&#39;=&#39;)[1],</span>
-<span class="s">            file = queries[1].split(&#39;=&#39;)[1].split(&#39;.&#39;)[0];</span>
-<span class="s">        // The /cssrender method needs the prefix and the container</span>
-<span class="s">        url = url + &#39;&amp;container=&#39; + GateOne.prefs.goDiv.substring(1);</span>
-<span class="s">        url = url + &#39;&amp;prefix=&#39; + GateOne.prefs.prefix;</span>
-<span class="s">        url = GateOne.prefs.url + url.substring(1);</span>
-<span class="s">        GateOne.Utils.loadCSS(url, plugin+&#39;_&#39;+file);</span>
-<span class="s">    }</span>
-
-<span class="s">There are also hooks throughout Gate One&#39;s code for plugins to add or override</span>
-<span class="s">Gate One&#39;s functionality.  Documentation on how to write plugins can be found in</span>
-<span class="s">the Plugin Development docs.  From the perspective of gateone.py, it performs</span>
-<span class="s">the following tasks in relation to plugins:</span>
-
-<span class="s"> * Imports Python plugins and connects their hooks.</span>
-<span class="s"> * Serves the index.html that includes plugins&#39; respective .js and .css files.</span>
+<span class="s">    If you install the `cssmin` and/or `slimit` Python modules all JavaScript</span>
+<span class="s">    and CSS assets will be automatically minified before being delivered to</span>
+<span class="s">    clients.</span>
 
 <span class="s">Class Docstrings</span>
 <span class="s">================</span>
@@ -303,7 +529,7 @@
 <span class="kn">import</span> <span class="nn">ssl</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span>
 
@@ -438,8 +664,8 @@
 <span class="c"># Helper functions</span>
 <div class="viewcode-block" id="require_auth"><a class="viewcode-back" href="../Developer/gateone.html#gateone.require_auth">[docs]</a><span class="k">def</span> <span class="nf">require_auth</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    An equivalent to tornado.web.authenticated for WebSockets</span>
-<span class="sd">    (ApplicationWebSocket, specifically).</span>
+<span class="sd">    An equivalent to `tornado.web.authenticated` for WebSockets</span>
+<span class="sd">    (`ApplicationWebSocket`, specifically).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -545,12 +771,10 @@
 <span class="sd">    returns True or False depending on what is defined in the settings dir and</span>
 <span class="sd">    what function is being called.</span>
 
-<span class="sd">    This function will keep track of and place limmits on the following:</span>
+<span class="sd">    This function will keep track of and place limits on the following:</span>
 
 <span class="sd">        * Who can send messages to other users (including broadcasts).</span>
 <span class="sd">        * Who can retrieve a list of connected users.</span>
-
-<span class="sd">    If no &#39;terminal&#39; policies are defined this function will always return True.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">instance</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">instance</span> <span class="c"># ApplicationWebSocket instance</span>
     <span class="n">function</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">function</span> <span class="c"># Wrapped function</span>
@@ -585,10 +809,13 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loops over the SESSIONS dict killing any sessions that haven&#39;t been used</span>
 <span class="sd">    for the length of time specified in *TIMEOUT* (global).  The value of</span>
-<span class="sd">    *TIMEOUT* can be set in server.conf or specified on the command line via the</span>
-<span class="sd">    *session_timeout* value.  Arguments:</span>
+<span class="sd">    *TIMEOUT* can be set in 10server.conf or specified on the command line via</span>
+<span class="sd">    the *session_timeout* value.</span>
 
-<span class="sd">    .. note:: This function is meant to be called via Tornado&#39;s :meth:`~tornado.ioloop.PeriodicCallback`.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This function is meant to be called via Tornado&#39;s</span>
+<span class="sd">        :meth:`~tornado.ioloop.PeriodicCallback`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Commented because it is a bit noisy.  Uncomment to debug this mechanism.</span>
     <span class="c">#logging.debug(&quot;timeout_sessions() TIMEOUT: %s&quot; % TIMEOUT)</span>
@@ -640,7 +867,8 @@
 <span class="c"># Classes</span></div>
 <div class="viewcode-block" id="HTTPSRedirectHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler">[docs]</a><span class="k">class</span> <span class="nc">HTTPSRedirectHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A handler to redirect clients from HTTP to HTTPS.</span>
+<span class="sd">    A handler to redirect clients from HTTP to HTTPS.  Only used if</span>
+<span class="sd">    `https_redirect` is True in Gate One&#39;s settings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="HTTPSRedirectHandler.get"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Just redirects the client from HTTP to HTTPS&quot;&quot;&quot;</span>
@@ -653,7 +881,13 @@
 <div class="viewcode-block" id="StaticHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StaticHandler">[docs]</a><span class="k">class</span> <span class="nc">StaticHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">StaticFileHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An override of :class:`tornado.web.StaticFileHandler` to ensure that the</span>
-<span class="sd">    Access-Control-Allow-Origin header gets set correctly.</span>
+<span class="sd">    Access-Control-Allow-Origin header gets set correctly.  This is necessary in</span>
+<span class="sd">    order to support embedding Gate One into other web-based applications.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Gate One performs its own origin checking so header-based access</span>
+<span class="sd">        controls at the client are unnecessary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># This is the only function we need to override thanks to the thoughtfulness</span>
     <span class="c"># of the Tornado devs.</span>
@@ -669,6 +903,8 @@
 <div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A base handler that all Gate One RequestHandlers will inherit methods from.</span>
+
+<span class="sd">    Provides the :meth:`get_current_user` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Right now it&#39;s just the one function...</span>
 <div class="viewcode-block" id="BaseHandler.get_current_user"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -689,8 +925,8 @@
 <span class="sd">    A :class:`tornado.web.RequestHandler` to serve up files that wind up in a</span>
 <span class="sd">    given user&#39;s `session_dir` in the &#39;downloads&#39; directory.  Generally speaking</span>
 <span class="sd">    these files are generated by the terminal emulator (e.g. cat somefile.pdf)</span>
-<span class="sd">    but it could be used by plugins as a way to serve up temporary files as</span>
-<span class="sd">    well.</span>
+<span class="sd">    but it can be used by applications and plugins as a way to serve up</span>
+<span class="sd">    all sorts of (temporary/transient) files to users.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># NOTE:  This is a modified version of torando.web.StaticFileHandler</span>
     <span class="nd">@tornado.web.authenticated</span>
@@ -764,11 +1000,6 @@
 
 <span class="sd">    Will include the minified version of gateone.js if available as</span>
 <span class="sd">    gateone.min.js.</span>
-
-<span class="sd">    Will encode GATEONE_DIR/static/bell.ogg as a data:URI and put it as the</span>
-<span class="sd">    &lt;source&gt; of the &lt;audio&gt; tag inside the index.html template.  Gate One</span>
-<span class="sd">    administrators can replace bell.ogg with whatever they like but the file</span>
-<span class="sd">    size should be less than 32k when encoded to Base64.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@tornado.web.authenticated</span>
     <span class="nd">@tornado.web.addslash</span>
@@ -847,9 +1078,19 @@
 <span class="sd">        * The application and its module(s) should live inside its own directory inside the &#39;applications&#39; directory.  For example, `/opt/gateone/applications/some_app/some_app.py`</span>
 <span class="sd">        * Subclasses of `GOApplication` must be added to an `apps` global (list) inside of the application&#39;s module(s) like so: `apps = [SomeApplication]` (usually a good idea to put that at the very bottom of the module).</span>
 
-<span class="sd">    .. note:: All .py modules inside of the application&#39;s main directory will be imported even if they do not contain or register a `GOApplication`.</span>
+<span class="sd">    .. note::</span>
 
-<span class="sd">    .. tip:: You can add command line arguments to Gate One by calling :func:`tornado.options.define` anywhere in your application&#39;s global namespace.  This works because the :func:`~tornado.options.define` function registers options in Gate One&#39;s global namespace (as `tornado.options.options`) and Gate One imports application modules before it evaluates command line arguments.</span>
+<span class="sd">        All .py modules inside of the application&#39;s main directory will be</span>
+<span class="sd">        imported even if they do not contain or register a `GOApplication`.</span>
+
+<span class="sd">    .. tip::</span>
+
+<span class="sd">        You can add command line arguments to Gate One by calling</span>
+<span class="sd">        :func:`tornado.options.define` anywhere in your application&#39;s global</span>
+<span class="sd">        namespace.  This works because the :func:`~tornado.options.define`</span>
+<span class="sd">        function registers options in Gate One&#39;s global namespace (as</span>
+<span class="sd">        `tornado.options.options`) and Gate One imports application modules</span>
+<span class="sd">        before it evaluates command line arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span> <span class="o">=</span> <span class="n">ws</span> <span class="c"># WebSocket instance</span>
@@ -871,7 +1112,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by :meth:`ApplicationWebSocket.open` after __init__().</span>
 <span class="sd">        GOApplications can override this function to perform their own actions</span>
-<span class="sd">        when the WebSocket is initialized.</span>
+<span class="sd">        when the Application is initialized (happens just before the WebSocket</span>
+<span class="sd">        is opened).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 </div>
@@ -917,9 +1159,9 @@
 <div class="viewcode-block" id="ApplicationWebSocket"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket">[docs]</a><span class="k">class</span> <span class="nc">ApplicationWebSocket</span><span class="p">(</span><span class="n">WebSocketHandler</span><span class="p">,</span> <span class="n">OnOffMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The main WebSocket interface for Gate One, this class is setup to call</span>
-<span class="sd">    &#39;commands&#39; (aka WebSocket Actions) which are methods registered in</span>
-<span class="sd">    `self.actions`.  Methods that are registered this way will be exposed and</span>
-<span class="sd">    directly callable over the WebSocket.</span>
+<span class="sd">    WebSocket &#39;actions&#39; which are methods registered in `self.actions`.</span>
+<span class="sd">    Methods that are registered this way will be exposed and directly callable</span>
+<span class="sd">    over the WebSocket.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">instances</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="c"># These three attributes handle watching files for changes:</span>
@@ -956,6 +1198,13 @@
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="ApplicationWebSocket.file_checker"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.file_checker">[docs]</a>    <span class="k">def</span> <span class="nf">file_checker</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A `Tornado.IOLoop.PeriodicCallback` that regularly checks all files</span>
+<span class="sd">        registered in the `ApplicationWebSocket.watched_files` dict for changes.</span>
+
+<span class="sd">        If changes are detected the corresponding function(s) in</span>
+<span class="sd">        `ApplicationWebSocket.file_update_funcs` will be called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#logging.debug(&quot;file_checker()&quot;) # Kinda noisy so I&#39;ve commented it out</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SESSIONS</span><span class="p">:</span>
             <span class="c"># No connected sessions; no point in watching files</span>
@@ -996,9 +1245,11 @@
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="ApplicationWebSocket.watch_file"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.watch_file">[docs]</a>    <span class="k">def</span> <span class="nf">watch_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Registers the given file *path* and *func* in</span>
-<span class="sd">        `ApplicationWebSocket.watched_files`.  The *func* will be called if the</span>
-<span class="sd">        file at *path* is modified.</span>
+<span class="sd">        A classmethod that registers the given file *path* and *func* in</span>
+<span class="sd">        `ApplicationWebSocket.watched_files` and</span>
+<span class="sd">        `ApplicationWebSocket.file_update_funcs`, respectively.  The given</span>
+<span class="sd">        *func* will be called (by `ApplicationWebSocket.file_checker`) whenever</span>
+<span class="sd">        the file at *path* is modified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;watch_file(&#39;{path}&#39;, {func}())&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
@@ -1008,8 +1259,32 @@
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="ApplicationWebSocket.broadcast_file_update"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.broadcast_file_update">[docs]</a>    <span class="k">def</span> <span class="nf">broadcast_file_update</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called when there&#39;s an update to the &#39;broadcast_file&#39;, broadcasts its</span>
-<span class="sd">        contents to all connected users.</span>
+<span class="sd">        Called when there&#39;s an update to the `broadcast_file` (e.g.</span>
+<span class="sd">        `&lt;session_dir&gt;/broadcast`); broadcasts its contents to all connected</span>
+<span class="sd">        users.  The message will be displayed via the</span>
+<span class="sd">        :js:meth:`GateOne.Visual.displayMessage` function at the client and can</span>
+<span class="sd">        be formatted with HTML.  For this reason it is important to strictly</span>
+<span class="sd">        control write access to the broadcast file.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Under normal circumstances only root (or the owner of the</span>
+<span class="sd">            gateone.py process) can enter and/or write to files inside</span>
+<span class="sd">            Gate One&#39;s `session_dir` directory.</span>
+
+<span class="sd">        The path to the broadcast file can be configured via the</span>
+<span class="sd">        `broadcast_file` setting which can be placed anywhere under the</span>
+<span class="sd">        &#39;gateone&#39; application/scope (e.g. inside 10server.conf).  The setting</span>
+<span class="sd">        isn&#39;t there by default but you can simply add it if you wish:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            &quot;broadcast_file&quot;: &quot;/whatever/path/you/want/broadcast&quot;</span>
+
+<span class="sd">        .. tip::</span>
+
+<span class="sd">            Want to broadcast a message to all the users currently connected to</span>
+<span class="sd">            Gate One?  Just `sudo echo &quot;your message&quot; &gt; /tmp/gateone/broadcast`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">session_dir</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">session_dir</span>
         <span class="n">broadcast_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="s">&#39;broadcast&#39;</span><span class="p">)</span>
@@ -1026,9 +1301,12 @@
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.initialize"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apps</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This gets called by the Tornado framework when ApplicationWebSocket is</span>
+<span class="sd">        This gets called by the Tornado framework when `ApplicationWebSocket` is</span>
 <span class="sd">        instantiated.  It will be passed the list of *apps* (Gate One</span>
-<span class="sd">        applications) that are assigned inside the :class:`Application` object.</span>
+<span class="sd">        applications) that are assigned inside the :class:`GOApplication`</span>
+<span class="sd">        object.  These :class:`GOApplication`s will be instantiated and stored</span>
+<span class="sd">        in `self.apps`.</span>
+
 <span class="sd">        These *apps* will be mutated in-place so that `self` will refer to the</span>
 <span class="sd">        current instance of :class:`ApplicationWebSocket`.  Kind of like a</span>
 <span class="sd">        dynamic mixin.</span>
@@ -1041,6 +1319,21 @@
             <span class="k">if</span> <span class="s">&#39;Events&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">[</span><span class="s">&#39;Events&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+        <span class="c"># Setup some actions to take place after the user authenticates</span>
+        <span class="c"># Send our plugin .js and .css files to the client</span>
+        <span class="n">send_plugin_static_files</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_plugin_static_files</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="n">send_plugin_static_files</span><span class="p">)</span>
+        <span class="c"># This is so the client knows what applications it can use:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_applications</span><span class="p">)</span>
+        <span class="c"># This starts up the PeriodicCallback that watches sessions for timeouts</span>
+        <span class="c"># and cleans them up (if not already started):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_session_watcher</span><span class="p">)</span>
+        <span class="c"># This starts up the PeriodicCallback that watches and cleans up old</span>
+        <span class="c"># user logs (anything in gateone/users/&lt;user&gt;/logs):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_log_cleaner</span><span class="p">)</span>
+        <span class="c"># This starts up the file watcher PeriodicCallback:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_file_watcher</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">apps</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">apps</span><span class="p">:</span>
@@ -1081,16 +1374,30 @@
 <div class="viewcode-block" id="ApplicationWebSocket.write_binary"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.write_binary">[docs]</a>    <span class="k">def</span> <span class="nf">write_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes the given *message* to the WebSocket in binary mode (opcode</span>
-<span class="sd">        0x02).</span>
+<span class="sd">        0x02).  Binary WebSocket messages are handled differently from regular</span>
+<span class="sd">        messages at the client (they use a completely different &#39;action&#39;</span>
+<span class="sd">        mechanism).  For more information see the JavaScript developer</span>
+<span class="sd">        documentation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.open"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when a new WebSocket is opened.  Will deny access to any</span>
-<span class="sd">        origin that is not defined in self.settings[&#39;origin&#39;].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        origin that is not defined in `self.settings[&#39;origin&#39;]`.  Also sends</span>
+<span class="sd">        any relevant localization data (JavaScript) to the client and calls the</span>
+<span class="sd">        :meth:`open` method of any and all enabled Applications.</span>
 
+<span class="sd">        Triggers the `go:open` event.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            `self.settings` comes from the Tornado framework and includes most</span>
+<span class="sd">            command line arguments and the settings from the `settings_dir` that</span>
+<span class="sd">            fall under the &quot;gateone&quot; scope.  It is not the same thing as</span>
+<span class="sd">            `self.prefs` which includes *all* of Gate One&#39;s settings (including</span>
+<span class="sd">            settings for other applications and scopes).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cls</span> <span class="o">=</span> <span class="n">ApplicationWebSocket</span>
         <span class="n">cls</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">valid_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;origins&#39;</span><span class="p">]</span>
@@ -1158,9 +1465,15 @@
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span> <span class="c"># Call applications&#39; open() functions (if any)</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s">&#39;open&#39;</span><span class="p">):</span>
                 <span class="n">app</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;go:open&quot;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.on_message"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.on_message">[docs]</a>    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Called when we receive a message from the client.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when we receive a message from the client.  Performs some basic</span>
+<span class="sd">        validation of the message, decodes it (JSON), and finally calls an</span>
+<span class="sd">        appropriate WebSocket action (registered method) with the message</span>
+<span class="sd">        contents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># This is super useful when debugging:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">origin_denied</span><span class="p">:</span>
@@ -1203,7 +1516,10 @@
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.on_close"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.on_close">[docs]</a>    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called when the client terminates the connection.</span>
+<span class="sd">        Called when the client terminates the connection.  Also calls the</span>
+<span class="sd">        :meth:`on_close` method of any and all enabled Applications.</span>
+
+<span class="sd">        Triggers the `go:close` event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;on_close()&quot;</span><span class="p">)</span>
         <span class="n">ApplicationWebSocket</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1221,6 +1537,7 @@
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s">&#39;on_close&#39;</span><span class="p">):</span>
                 <span class="n">app</span><span class="o">.</span><span class="n">on_close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;go:close&quot;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.pong"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.pong">[docs]</a>    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1236,12 +1553,22 @@
 <span class="sd">        cookie or if Gate One is configured to use API authentication it will</span>
 <span class="sd">        use *settings[&#39;auth&#39;]*.  Additionally, it will accept</span>
 <span class="sd">        *settings[&#39;container&#39;]* and *settings[&#39;prefix&#39;]* to apply those to the</span>
-<span class="sd">        equivalent properties (self.container and self.prefix).</span>
+<span class="sd">        equivalent properties (`self.container` and `self.prefix`).</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            &#39;container&#39; refers to the element on which Gate One was initialized</span>
+<span class="sd">            at the client (e.g. `#gateone`).  &#39;prefix&#39; refers to the string that</span>
+<span class="sd">            will be prepended to all Gate One element IDs when added to the web</span>
+<span class="sd">            page (to avoid namespace conflicts).  Both these values are only</span>
+<span class="sd">            used when generating CSS templates.</span>
 
 <span class="sd">        If *settings[&#39;location&#39;]* is something other than &#39;default&#39; all new</span>
 <span class="sd">        application instances will be associated with the given (string) value.</span>
 <span class="sd">        These applications will be treated separately so they can exist in a</span>
 <span class="sd">        different browser tab/window.</span>
+
+<span class="sd">        Triggers the `go:authenticate` event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;authenticate(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="c"># Make sure the client is authenticated if authentication is enabled</span>
@@ -1524,7 +1851,7 @@
         <span class="c"># A shortcut for SESSIONS[self.session][&#39;locations&#39;]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">]</span>
         <span class="c"># Send our plugin .js and .css files to the client</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_plugin_static_files</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">))</span>
+        <span class="c">#self.send_plugin_static_files(os.path.join(GATEONE_DIR, &#39;plugins&#39;))</span>
         <span class="c"># Call applications&#39; authenticate() functions (if any)</span>
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
             <span class="c"># Set the current user for convenient access</span>
@@ -1534,17 +1861,78 @@
         <span class="c"># This is just so the client has a human-readable point of reference:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:set_username&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-        <span class="c"># Tell the client which applications are available</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">list_applications</span><span class="p">()</span>
-        <span class="c"># Startup the session watcher if it isn&#39;t already running</span>
+        <span class="c">## Startup the file watcher if it isn&#39;t already running and get it</span>
+        <span class="c">## watching the broadcast file.</span>
+        <span class="c">#cls = ApplicationWebSocket</span>
+        <span class="c">#broadcast_file = os.path.join(self.settings[&#39;session_dir&#39;], &#39;broadcast&#39;)</span>
+        <span class="c">#broadcast_file = self.prefs[&#39;*&#39;][&#39;gateone&#39;].get(</span>
+            <span class="c">#&#39;broadcast_file&#39;, broadcast_file)</span>
+        <span class="c">#if broadcast_file not in cls.watched_files:</span>
+            <span class="c">## No broadcast file means the file watcher isn&#39;t running</span>
+            <span class="c">#io.open(broadcast_file, &#39;w&#39;).write(u&#39;&#39;) # Touch file</span>
+            <span class="c">#check_time = self.prefs[&#39;*&#39;][&#39;gateone&#39;].get(</span>
+                <span class="c">#&#39;file_check_interval&#39;, 5000)</span>
+            <span class="c">#cls.watch_file(broadcast_file, cls.broadcast_file_update)</span>
+            <span class="c">#io_loop = tornado.ioloop.IOLoop.instance()</span>
+            <span class="c">#cls.file_watcher = tornado.ioloop.PeriodicCallback(</span>
+                <span class="c">#cls.file_checker, check_time, io_loop=io_loop)</span>
+            <span class="c">#cls.file_watcher.start()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&#39;go:authenticate&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ApplicationWebSocket._start_session_watcher"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket._start_session_watcher">[docs]</a>    <span class="k">def</span> <span class="nf">_start_session_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts up the `SESSION_WATCHER` (assigned to that global)</span>
+<span class="sd">        :class:`~tornado.ioloop.PeriodicCallback` that regularly checks for user</span>
+<span class="sd">        sessions that have timed out via the :func:`timeout_sessions` function</span>
+<span class="sd">        and cleans them up (shuts down associated processes).</span>
+
+<span class="sd">        The interval in which it performs this check is controlled via the</span>
+<span class="sd">        `session_timeout_check_interval` setting. This setting is not included</span>
+<span class="sd">        in Gate One&#39;s 10server.conf by default but can be added if needed to</span>
+<span class="sd">        override the default value of 30 seconds.  Example:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;*&quot;: {</span>
+<span class="sd">                    &quot;gateone&quot;: {</span>
+<span class="sd">                        &quot;session_timeout_check_interval&quot;: &quot;30s&quot;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">global</span> <span class="n">SESSION_WATCHER</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SESSION_WATCHER</span><span class="p">:</span>
             <span class="n">interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s">&#39;session_timeout_check_interval&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span> <span class="c"># 30s default</span>
+                <span class="s">&#39;session_timeout_check_interval&#39;</span><span class="p">,</span> <span class="s">&quot;30s&quot;</span><span class="p">)</span> <span class="c"># 30s default</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>
             <span class="n">SESSION_WATCHER</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span>
                 <span class="n">timeout_sessions</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
             <span class="n">SESSION_WATCHER</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="c"># Startup the log cleaner so that old user logs get cleaned up</span>
+</div>
+<div class="viewcode-block" id="ApplicationWebSocket._start_log_cleaner"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket._start_log_cleaner">[docs]</a>    <span class="k">def</span> <span class="nf">_start_log_cleaner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts up the `CLEANER` (assigned to that global)</span>
+<span class="sd">        `~tornado.ioloop.PeriodicCallback` that regularly checks for and</span>
+<span class="sd">        deletes expired user logs (e.g. terminal session logs or anything in the</span>
+<span class="sd">        `GATEONE_DIR/users/&lt;user&gt;/logs` dir) via the</span>
+<span class="sd">        :func:`cleanup_user_logs` function.</span>
+
+<span class="sd">        The interval in which it performs this check is controlled via the</span>
+<span class="sd">        `user_logs_cleanup_interval` setting. This setting is not included in</span>
+<span class="sd">        Gate One&#39;s 10server.conf by default but can be added if needed to</span>
+<span class="sd">        override the default value of 5 minutes.  Example:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;*&quot;: {</span>
+<span class="sd">                    &quot;gateone&quot;: {</span>
+<span class="sd">                        &quot;user_logs_cleanup_interval&quot;: &quot;5m&quot;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">global</span> <span class="n">CLEANER</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">CLEANER</span><span class="p">:</span>
             <span class="n">default_interval</span> <span class="o">=</span> <span class="mi">5</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">1000</span> <span class="c"># 5 minutes</span>
@@ -1552,11 +1940,56 @@
             <span class="c"># kind of obscure.  No reason to clutter things up.</span>
             <span class="n">interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s">&#39;user_logs_cleanup_interval&#39;</span><span class="p">,</span> <span class="n">default_interval</span><span class="p">)</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>
             <span class="n">CLEANER</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span>
                 <span class="n">cleanup_user_logs</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
             <span class="n">CLEANER</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="c"># Startup the file watcher if it isn&#39;t already running and get it</span>
-        <span class="c"># watching the broadcast file.</span>
+</div>
+<div class="viewcode-block" id="ApplicationWebSocket._start_file_watcher"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket._start_file_watcher">[docs]</a>    <span class="k">def</span> <span class="nf">_start_file_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts up the :attr:`ApplicationWebSocket.file_watcher`</span>
+<span class="sd">        `~tornado.ioloop.PeriodicCallback` (which regularly calls</span>
+<span class="sd">        :meth:`ApplicationWebSocket.file_checker` and immediately starts it</span>
+<span class="sd">        watching the broadcast file for changes (if not already watching it).</span>
+
+<span class="sd">        The path to the broadcast file defaults to &#39;*settings_dir*/broadcast&#39;</span>
+<span class="sd">        but can be changed via the &#39;broadcast_file&#39; setting.  This setting is</span>
+<span class="sd">        not included in Gate One&#39;s 10server.conf by default but can be added if</span>
+<span class="sd">        needed to overrided the default value.  Example:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;*&quot;: {</span>
+<span class="sd">                    &quot;gateone&quot;: {</span>
+<span class="sd">                        &quot;broadcast_file&quot;: &quot;/some/path/to/broadcast&quot;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        .. tip::</span>
+
+<span class="sd">            You can send messages to all users currently connected to the Gate</span>
+<span class="sd">            One server by writing text to the broadcast file.  Example:</span>
+<span class="sd">            `sudo echo &quot;Server will be rebooted as part of regularly scheduled</span>
+<span class="sd">            maintenance in 5 minutes.  Pleas save your work.&quot; &gt;</span>
+<span class="sd">            /tmp/gateone/broadcast`</span>
+
+<span class="sd">        The interval in which it performs this check is controlled via the</span>
+<span class="sd">        `file_check_interval` setting. This setting is not included in</span>
+<span class="sd">        Gate One&#39;s 10server.conf by default but can be added if needed to</span>
+<span class="sd">        override the default value of 5 seconds.  Example:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;*&quot;: {</span>
+<span class="sd">                    &quot;gateone&quot;: {</span>
+<span class="sd">                        &quot;file_check_interval&quot;: &quot;5s&quot;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cls</span> <span class="o">=</span> <span class="n">ApplicationWebSocket</span>
         <span class="n">broadcast_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_dir&#39;</span><span class="p">],</span> <span class="s">&#39;broadcast&#39;</span><span class="p">)</span>
         <span class="n">broadcast_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -1564,14 +1997,14 @@
         <span class="k">if</span> <span class="n">broadcast_file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">watched_files</span><span class="p">:</span>
             <span class="c"># No broadcast file means the file watcher isn&#39;t running</span>
             <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">broadcast_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&#39;&#39;</span><span class="p">)</span> <span class="c"># Touch file</span>
-            <span class="n">check_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s">&#39;file_check_interval&#39;</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s">&#39;file_check_interval&#39;</span><span class="p">,</span> <span class="s">&quot;5s&quot;</span><span class="p">)</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">watch_file</span><span class="p">(</span><span class="n">broadcast_file</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">broadcast_file_update</span><span class="p">)</span>
             <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">file_watcher</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span>
-                <span class="n">cls</span><span class="o">.</span><span class="n">file_checker</span><span class="p">,</span> <span class="n">check_time</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="n">io_loop</span><span class="p">)</span>
+                <span class="n">cls</span><span class="o">.</span><span class="n">file_checker</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="n">io_loop</span><span class="p">)</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">file_watcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&#39;go:authenticate&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.list_applications"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.list_applications">[docs]</a>    <span class="k">def</span> <span class="nf">list_applications</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1814,9 +2247,9 @@
 
 <div class="viewcode-block" id="ApplicationWebSocket.cache_cleanup"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.cache_cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cache_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attached to the &#39;go:cache_cleanup&#39; WebSocket action; rifles through the</span>
+<span class="sd">        Attached to the `go:cache_cleanup` WebSocket action; rifles through the</span>
 <span class="sd">        given list of *message[&#39;filenames&#39;]* from the client and sends a</span>
-<span class="sd">        &#39;go:cache_expired&#39; WebSocket action to the client with a list of files</span>
+<span class="sd">        `go:cache_expired` WebSocket action to the client with a list of files</span>
 <span class="sd">        that no longer exist in `self.file_cache` (so it can clean them up).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;cache_cleanup(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
@@ -1857,7 +2290,7 @@
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.file_request"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.file_request">[docs]</a>    <span class="k">def</span> <span class="nf">file_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files_or_hash</span><span class="p">,</span> <span class="n">use_client_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attached to the &#39;go:file_request&#39; WebSocket action; minifies, caches,</span>
+<span class="sd">        Attached to the `go:file_request` WebSocket action; minifies, caches,</span>
 <span class="sd">        and finally sends the requested file to the client.  If</span>
 <span class="sd">        *use_client_cache* is `False` the client will be instructed not to cache</span>
 <span class="sd">        the file.  Example message from the client requesting a file:</span>
@@ -1969,7 +2402,10 @@
 <span class="sd">        Optionally, a *media* string may be provided to specify the &#39;media=&#39;</span>
 <span class="sd">        value when creating a &lt;style&gt; tag to hold the given CSS.</span>
 
-<span class="sd">        .. note: If the slimit module is installed it will be used to minify the JS before being sent to the client.</span>
+<span class="sd">        .. note:</span>
+
+<span class="sd">            If the slimit module is installed it will be used to minify the JS</span>
+<span class="sd">            before being sent to the client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;js&#39;</span><span class="p">:</span>
             <span class="n">send_js</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;send_js&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
@@ -2113,7 +2549,7 @@
 
 <span class="sd">            If you want to serve Gate One&#39;s CSS via a different mechanism</span>
 <span class="sd">            (e.g. nginx) this functionality can be completely disabled by adding</span>
-<span class="sd">            `&#39;send_css&#39;: false` to gateone/settings/10server.conf</span>
+<span class="sd">            `&quot;send_css&quot;: false` to gateone/settings/10server.conf</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">send_css</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;send_css&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">send_css</span><span class="p">:</span>
@@ -2168,7 +2604,7 @@
 
 <span class="sd">            If you want to serve Gate One&#39;s JavaScript via a different mechanism</span>
 <span class="sd">            (e.g. nginx) this functionality can be completely disabled by adding</span>
-<span class="sd">            `&#39;send_js&#39;: false` to gateone/settings/10server.conf</span>
+<span class="sd">            `&quot;send_js&quot;: false` to gateone/settings/10server.conf</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;send_plugin_static_files(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">plugins_dir</span><span class="p">)</span>
         <span class="n">send_js</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;send_js&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
@@ -2297,7 +2733,7 @@
 
 <div class="viewcode-block" id="ApplicationWebSocket.send_message"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_message">[docs]</a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">upn</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sends the given *message* to the client using the &#39;notice&#39; WebSocket</span>
+<span class="sd">        Sends the given *message* to the client using the `go:notice` WebSocket</span>
 <span class="sd">        action at the currently-connected client.</span>
 
 <span class="sd">        If *upn* is provided the *message* will be sent to all users with a</span>
@@ -3634,7 +4070,7 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">

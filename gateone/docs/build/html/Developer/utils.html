@@ -124,7 +124,7 @@ inside *path</em> and returns them as an <a class="reference internal" href="#ut
 may be a specific file (as opposed to just a directory).</p>
 <p>By default, all returned <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> objects will include a '*' dict
 which indicates &quot;all users&quot;.  This behavior can be skipped by setting the
-<em>add_default</em> keyword argument to <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#False" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt></a>.</p>
+<em>add_default</em> keyword argument to <tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -156,9 +156,9 @@ an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt c
 <dt id="utils.shell_command">
 <tt class="descclassname">utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="reference internal" href="../_modules/utils.html#shell_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.shell_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the SIGCHLD signal handler (if necessary), executes <em>cmd</em> via
-<a class="reference external" href="http://docs.python.org/2.7/library/commands.html#commands.getstatusoutput" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt></a>, then re-enables the SIGCHLD handler (if
+<tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt>, then re-enables the SIGCHLD handler (if
 it was set to something other than SIG_DFL).  Returns the result of
-<a class="reference external" href="http://docs.python.org/2.7/library/commands.html#commands.getstatusoutput" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt></a> which is a tuple in the form of:</p>
+<tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt> which is a tuple in the form of:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -172,7 +172,7 @@ auto-killed and the following will be returned:</p>
 <dl class="function">
 <dt id="utils.json_encode">
 <tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/en/stable/escape.html#tornado.escape.json_decode" title="(in Tornado v3.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
+<dd><p>On some platforms (CentOS 6.2, specifically) <tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
 </dd></dl>
@@ -382,7 +382,7 @@ compatibility with <a class="reference internal" href="#utils.killall" title="ut
 <dl class="function">
 <dt id="utils.get_applications">
 <tt class="descclassname">utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_applications" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds applications' Python files to <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a> and returns a list containing
+<dd><p>Adds applications' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a list containing
 the name of each application.  If given, only applications in the <em>enabled</em>
 list will be returned.</p>
 </dd></dl>
@@ -390,7 +390,7 @@ list will be returned.</p>
 <dl class="function">
 <dt id="utils.get_plugins">
 <tt class="descclassname">utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds plugins' Python files to <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a> and returns a dictionary of
+<dd><p>Adds plugins' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a dictionary of
 JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
 <div class="highlight-python"><pre>{
     'js': [ // NOTE: These would be be inside *plugin_dir*/static
@@ -423,7 +423,7 @@ those plugins will be added to the 'py' portion of the returned dict.</p>
 <dd><p>Given a list of Python <em>modules</em>, imports them.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Assumes they're all in <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a>.</p>
+<p class="last">Assumes they're all in <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -460,7 +460,7 @@ SomePluginHandler; overriding Gate One's default StyleHandler.</p>
 <dl class="function">
 <dt id="utils.convert_to_timedelta">
 <tt class="descclassname">utils.</tt><tt class="descname">convert_to_timedelta</tt><big>(</big><em>time_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_timedelta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <em>time_val</em> (string) such as '5d', returns a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a>
+<dd><p>Given a <em>time_val</em> (string) such as '5d', returns a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt>
 object representing the given value (e.g. <tt class="xref py py-obj docutils literal"><span class="pre">timedelta(days=5)</span></tt>).  Accepts the
 following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <table border="1" class="docutils">
@@ -691,7 +691,7 @@ underscore (if <em>allow_underscore</em> is True).</p>
 <dl class="function">
 <dt id="utils.check_write_permissions">
 <tt class="descclassname">utils.</tt><tt class="descname">check_write_permissions</tt><big>(</big><em>user</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#check_write_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.check_write_permissions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a> if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
+<dd><p>Returns <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt> if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
 can be a UID (int) or a username (string).</p>
 </dd></dl>
 
@@ -727,7 +727,7 @@ to write functions like this:</p>
 <dt id="utils.get_or_cache">
 <tt class="descclassname">utils.</tt><tt class="descname">get_or_cache</tt><big>(</big><em>cache_dir</em>, <em>path</em>, <em>minify=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_or_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_or_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>path</em>, returns the cached version of that file.  If the file has
-yet to be cached, cache it and return the result.  If <em>minify</em> is <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a>
+yet to be cached, cache it and return the result.  If <em>minify</em> is <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt>
 (the default), the file will be minified as part of the caching process (if
 possible).</p>
 </dd></dl>
@@ -964,7 +964,7 @@ sessions.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
+        &copy; Copyright 2013, Liftoff Software Corporation.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
