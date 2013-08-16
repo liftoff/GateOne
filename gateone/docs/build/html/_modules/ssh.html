@@ -523,7 +523,6 @@
                     <span class="s">&#39;terminal:sshjs_reconnect&#39;</span><span class="p">:</span> <span class="n">json_encode</span><span class="p">(</span>
                     <span class="p">{</span><span class="n">term</span><span class="p">:</span> <span class="n">connect_string</span><span class="p">})</span>
                 <span class="p">}</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;get_connect_string() writing: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
                 <span class="k">return</span> <span class="c"># All done</span>
 </div>
@@ -1114,7 +1113,6 @@
 <span class="sd">        :func:`terminal.Terminal._opt_handler`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;opt_esc_handler message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

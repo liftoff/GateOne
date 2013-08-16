@@ -1776,31 +1776,56 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="init">
 <em class="property">static </em><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Adds the <tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt> action and the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event (which just displays a message to the user indicating as such).</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="sendChars">
 <em class="property">static </em><tt class="descname">sendChars</tt><big>(</big><big>)</big><a class="headerlink" href="#sendChars" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendChars()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendChars()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="sendString">
 <em class="property">static </em><tt class="descname">sendString</tt><big>(</big><big>)</big><a class="headerlink" href="#sendString" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendString()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendString()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt>
-<em class="property">static </em><tt class="descname">log</tt><big>(</big><em>msg</em><big>)</big></dt>
-<dd><p>Logs the given <em>message</em> via <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logInfo()</span></tt> (for debugging plugins and whatnot).</p>
+<em class="property">static </em><tt class="descname">log</tt><big>(</big><em>message</em><big>)</big></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>message</strong> (<em>string</em>) -- The message received from the Gate One server.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This function can be used in debugging <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>; it logs whatever message is received from the Gate One server: <tt class="docutils literal"><span class="pre">GateOne.Logging.logInfo(message)</span></tt> (which would equate to console.log under most circumstances).</p>
+<p>When developing a new action, you can test out or debug your server-side messages by attaching the respective action to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.log()</span></tt> like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;my_action&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">log</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Then you can view the exact messages received by the client in the JavaScript console in your browser.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Executing <tt class="docutils literal"><span class="pre">GateOne.Logging.setLevel('DEBUG')</span></tt> in your JS console will also log all incoming messages from the server (though it can be a bit noisy).</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="ping">
 <em class="property">static </em><tt class="descname">ping</tt><big>(</big><span class="optional">[</span><em>logLatency</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a 'ping' to the server over the WebSocket.  The response from the server is handled by <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Net.pong()</span></tt>.</p>
-<p>If a response is not received within a certain amount of time (milliseconds, controlled via <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.pingTimeout</span></tt>) the WebSocket will be closed and a '<a class="reference external" href="go:ping_timeout">go:ping_timeout</a>' event will be triggered.</p>
+<p>If a response is not received within a certain amount of time (milliseconds, controlled via <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.pingTimeout</span></tt>) the WebSocket will be closed and a <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event will be triggered.</p>
 <p>If <em>logLatency</em> is <tt class="xref py py-obj docutils literal"><span class="pre">true</span></tt> (the default) the latency will be logged to the JavaScript console via <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logInfo()</span></tt>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1811,21 +1836,65 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="pong">
 <em class="property">static </em><tt class="descname">pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="headerlink" href="#pong" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the server and responds to a 'ping' with a 'pong'.  Logs (via <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logInfo()</span></tt>) and returns the latency in ms.</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>timestamp</strong> (<em>string</em>) -- Expected to be the output of <tt class="docutils literal"><span class="pre">new</span> <span class="pre">Date().toISOString()</span></tt> (as generated by <tt class="xref js js-func docutils literal"><span class="pre">ping()</span></tt>).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Simply logs <em>timestamp</em> using <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Logging.logInfo()</span></tt> and includes a measurement of the round-trip time in milliseconds.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="reauthenticate">
 <em class="property">static </em><tt class="descname">reauthenticate</tt><big>(</big><big>)</big><a class="headerlink" href="#reauthenticate" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a courtesy from the Gate One server telling us to re-auth since it is about to close the WebSocket.
-Deletes the 'gateone_user' cookie and the equivalent in <tt class="xref py py-obj docutils literal"><span class="pre">localStorage</span></tt> then asks informs the user that the page is about to be reloaded (and reloads).</p>
+<dd><p>Called when the Gate One server wants us to re-authenticate our session (e.g. our cookie expired).  Deletes the 'gateone_user' cookie and reloads the current page.</p>
+<p>This will force the client to re-authenticate with the Gate One server.</p>
 <p>To disable the automatic reload set <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Net.reauthForceReload</span> <span class="pre">=</span> <span class="pre">false</span></tt>.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="sendDimensions">
 <em class="property">static </em><tt class="descname">sendDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#sendDimensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="connectionError">
+<em class="property">static </em><tt class="descname">connectionError</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#connectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's an error communicating over the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>...  Displays a message to the user indicating there's a problem, logs the error (using <tt class="docutils literal"><span class="pre">logError()</span></tt>), and sets a five-second timeout to attempt reconnecting.</p>
+<p>This function is attached to the WebSocket's <tt class="docutils literal"><span class="pre">onclose</span></tt> event and shouldn't be called directly.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="sslError">
+<em class="property">static </em><tt class="descname">sslError</tt><big>(</big><big>)</big><a class="headerlink" href="#sslError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It displays a message to the user that gives them the option to open up a new page where they can accept the SSL certificate (it automatically redirects them back to the current page).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="connect">
+<em class="property">static </em><tt class="descname">connect</tt><big>(</big><span class="optional">[</span><em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a connection to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> defined in <tt class="docutils literal"><span class="pre">GateOne.prefs.url</span></tt> and stores it as <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws</span></tt>.  Once connected <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a> will be called.</p>
+<p>If an error is encountered while trying to connect to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>, <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.connectionError()</span></tt> will be called to notify the user as such.  After five seconds, if a connection has yet to be connected successfully it will be assumed that the user needs to accept the Gate One server's SSL certificate.  This will invoke call to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.sslError()</span></tt> which will redirect the user to the <tt class="docutils literal"><span class="pre">accept_certificate.html</span></tt> page on the Gate One server.  Once that page has loaded successfully (after the user has clicked through the interstitial page) the user will be redirected back to the page they were viewing that contained Gate One.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function gets called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> and there's really no reason why it should be called directly by anything else.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="onOpen">
+<em class="property">static </em><tt class="descname">onOpen</tt><big>(</big><span class="optional">[</span><em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#onOpen" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onopen</span></tt> inside of <tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt>.  It clears any error message that might be displayed to the user and asks the server to send us the (currently-selected) theme CSS and all plugin JS/CSS.  It then sends an authentication message (the <tt class="xref py py-obj docutils literal"><span class="pre">go:authenticate</span></tt> WebSocket action) and calls <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.ping()</span></tt> after a short timeout (to let things settle down lest they interfere with the ping time calculation).</p>
+<p>Lastly, it fires the <tt class="xref py py-obj docutils literal"><span class="pre">go:connnection_established</span></tt> event.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1915,16 +1984,135 @@ Deletes the 'gateone_user' cookie and the equivalent in <tt class="xref py py-ob
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Visual.applyTransform">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">applyTransform</tt><big>(</big><em>obj</em>, <em>transform</em><big>)</big><a class="headerlink" href="#GateOne.Visual.applyTransform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies the given CSS3 <em>transform</em> to <em>obj</em> for all known vendor prefixes (e.g. -&lt;whatever&gt;-transform).</p>
+<dt id="GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">applyTransform(obj, transform[, callback1[, callbackN]]</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the given CSS3 <em>transform</em> to <em>obj</em> for all known vendor prefixes (e.g. -&lt;whatever&gt;-transform).  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(-2%)&#39;</span><span class="p">);</span> <span class="o">//</span> <span class="n">Slide</span> <span class="c">#gateone to the left a little bit</span>
+</pre></div>
+</div>
 <p><em>obj</em> can be a string, a node, an array of nodes, or a NodeList.  In the case that <em>obj</em> is a string, GateOne.Utils.getNode(<em>obj</em>) will be performed under the assumption that the string represents a CSS selector.</p>
+<p>Optionally, any amount of callback functions may be provided which will be called after each transform (aka transition) completes.  These callbacks will be called in a chain with the next callback being called after the previous one is complete.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="o">//</span> <span class="n">Chain</span> <span class="n">three</span> <span class="n">moves</span> <span class="n">of</span> <span class="c">#gateone; each waiting for the previous transition to complete before continuing in the chain:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(-2%)&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(2%)&#39;</span><span class="p">)</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">);</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;transition chain complete&#39;</span><span class="p">);</span> <span class="p">});</span>
+</pre></div>
+</div>
+<p><a href="#id36"><span class="problematic" id="id37">*</span></a>/</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.togglePanel">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">togglePanel</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#GateOne.Visual.togglePanel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
+<dl class="docutils">
+<dt>//         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');</dt>
+<dd><blockquote class="first">
+<div><blockquote>
+<div><dl class="docutils">
+<dt>var transforms = {</dt>
+<dd><blockquote class="first">
+<div>'-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
+'-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
+'-o-transform': '', // Opera
+'-ms-transform': '', // IE9+
+'-khtml-transform': '', // Konqueror
+'transform': '' // Some day this will be all that is necessary</div></blockquote>
+<p>},
+callbacks = Array.prototype.slice.call(arguments, 2).reverse(), // All arguments after the first two
+chain = function(node) {</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>var callback = callbacks.pop(),</dt>
+<dd><dl class="first docutils">
+<dt>next = function() {</dt>
+<dd><p class="first">callback();
+node.removeEventListener(transitionEndName, next, false); // Clean up
+if (callbacks.length) {</p>
+<blockquote>
+<div>// To iterate is human; to recur, divine.
+chain(node);</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+<p class="last">};</p>
+</dd>
+</dl>
+<p>node.addEventListener(transitionEndName, next, false);</p>
+</div></blockquote>
+<p class="last">};</p>
+</dd>
+<dt>if (go.Utils.isNodeList(obj) || go.Utils.isHTMLCollection(obj) || go.Utils.isArray(obj)) {</dt>
+<dd><dl class="first docutils">
+<dt>go.Utils.toArray(obj).forEach(function(node) {</dt>
+<dd><p class="first">node = go.Utils.getNode(node);
+for (var prefix in transforms) {</p>
+<blockquote>
+<div>node.style[prefix] = transform;</div></blockquote>
+<p>}
+if (node.style.MozTransform != undefined) {</p>
+<blockquote>
+<div>node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason</div></blockquote>
+<p>}
+if (callbacks.length) {</p>
+<blockquote>
+<div>chain(node);</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+<p class="last">});</p>
+</dd>
+<dt>} else if (typeof(obj) == 'string' || go.Utils.isElement(obj)) {</dt>
+<dd><p class="first">var node = go.Utils.getNode(obj); // Doesn't hurt to pass a node to getNode
+for (var prefix in transforms) {</p>
+<blockquote>
+<div>node.style[prefix] = transform;</div></blockquote>
+<p>}
+if (node.style.MozTransform != undefined) {</p>
+<blockquote>
+<div>node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason</div></blockquote>
+<p>}
+if (callbacks.length) {</p>
+<blockquote>
+<div>chain(node);</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>},
+applyStyle: function (elem, style) {</p>
+<blockquote>
+<div>// A convenience function that allows us to apply multiple style changes in one function
+// Example: applyStyle('somediv', {'opacity': 0.5, 'color': 'black'})</div></blockquote>
+</div></blockquote>
+<p>var node = GateOne.Utils.getNode(elem);
+for (var name in style) {</p>
+<blockquote>
+<div>node.style[name] = style[name];</div></blockquote>
+<dl class="docutils">
+<dt>}</dt>
+<dd>},
+getTransform: function(elem) {</dd>
+</dl>
+<p>// Returns the transform string applied to the style of the given <em>elem</em>
+var node = GateOne.Utils.getNode(elem);
+if (node.style['transform']) {</p>
+<blockquote>
+<div>return node.style['transform'];</div></blockquote>
+<dl class="docutils">
+<dt>} else if (node.style['-webkit-transform']) {</dt>
+<dd>return node.style['-webkit-transform'];</dd>
+<dt>} else if (node.style.MozTransform) {</dt>
+<dd>return node.style.MozTransform;</dd>
+<dt>} else if (node.style['-khtml-transform']) {</dt>
+<dd>return node.style['-khtml-transform'];</dd>
+<dt>} else if (node.style['-ms-transform']) {</dt>
+<dd>return node.style['-ms-transform'];</dd>
+<dt>} else if (node.style['-o-transform']) {</dt>
+<dd>return node.style['-o-transform'];</dd>
+</dl>
+<dl class="docutils">
+<dt>}</dt>
+<dd>},
+togglePanel: function(panel) {</dd>
+</dl>
+<p>/<a href="#id38"><span class="problematic" id="id39">**</span></a>:GateOne.Visual.togglePanel(panel)</p>
+<p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
 If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <p>This function also has some events that can be hooked into:</p>
 <blockquote>
@@ -1934,12 +2122,12 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 </ul>
 </div></blockquote>
 <p>You can hook into these events like so:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:in&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled into view</span>
+<div class="last highlight-js"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:in&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled into view</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:out&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled out of view</span>
 </pre></div>
 </div>
-</dd></dl>
-
+</dd>
+</dl>
 <dl class="function">
 <dt id="GateOne.Visual.disableTransitions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.disableTransitions" title="Permalink to this definition">¶</a></dt>

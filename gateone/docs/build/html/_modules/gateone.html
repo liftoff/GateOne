@@ -72,6 +72,7 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20130815210514&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
@@ -1861,8 +1862,6 @@
                 <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># A shortcut for SESSIONS[self.session][&#39;locations&#39;]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">]</span>
-        <span class="c"># Send our plugin .js and .css files to the client</span>
-        <span class="c">#self.send_plugin_static_files(os.path.join(GATEONE_DIR, &#39;plugins&#39;))</span>
         <span class="c"># Call applications&#39; authenticate() functions (if any)</span>
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
             <span class="c"># Set the current user for convenient access</span>
@@ -1872,22 +1871,6 @@
         <span class="c"># This is just so the client has a human-readable point of reference:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:set_username&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-        <span class="c">## Startup the file watcher if it isn&#39;t already running and get it</span>
-        <span class="c">## watching the broadcast file.</span>
-        <span class="c">#cls = ApplicationWebSocket</span>
-        <span class="c">#broadcast_file = os.path.join(self.settings[&#39;session_dir&#39;], &#39;broadcast&#39;)</span>
-        <span class="c">#broadcast_file = self.prefs[&#39;*&#39;][&#39;gateone&#39;].get(</span>
-            <span class="c">#&#39;broadcast_file&#39;, broadcast_file)</span>
-        <span class="c">#if broadcast_file not in cls.watched_files:</span>
-            <span class="c">## No broadcast file means the file watcher isn&#39;t running</span>
-            <span class="c">#io.open(broadcast_file, &#39;w&#39;).write(u&#39;&#39;) # Touch file</span>
-            <span class="c">#check_time = self.prefs[&#39;*&#39;][&#39;gateone&#39;].get(</span>
-                <span class="c">#&#39;file_check_interval&#39;, 5000)</span>
-            <span class="c">#cls.watch_file(broadcast_file, cls.broadcast_file_update)</span>
-            <span class="c">#io_loop = tornado.ioloop.IOLoop.instance()</span>
-            <span class="c">#cls.file_watcher = tornado.ioloop.PeriodicCallback(</span>
-                <span class="c">#cls.file_checker, check_time, io_loop=io_loop)</span>
-            <span class="c">#cls.file_watcher.start()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&#39;go:authenticate&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket._start_session_watcher"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket._start_session_watcher">[docs]</a>    <span class="k">def</span> <span class="nf">_start_session_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2325,6 +2308,9 @@
 <span class="sd">        If the `cssmin` module is installed CSS files will be minified before</span>
 <span class="sd">        being sent to the client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;file_request(</span><span class="si">%s</span><span class="s">, use_client_cache=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">files_or_hash</span><span class="p">,</span> <span class="n">use_client_cache</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files_or_hash</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="k">for</span> <span class="n">filename_hash</span> <span class="ow">in</span> <span class="n">files_or_hash</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">file_request</span><span class="p">(</span>
@@ -2335,7 +2321,7 @@
         <span class="k">if</span> <span class="n">filename_hash</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
             <span class="c"># The file_cache uses hashes; convert it</span>
             <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
-                <span class="n">filename_hash</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+                <span class="n">filename_hash</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
         <span class="c"># Get the file info out of the file_cache so we can send it</span>
         <span class="n">element_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;element_id&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">][</span><span class="s">&#39;path&#39;</span><span class="p">]</span>
@@ -2371,7 +2357,8 @@
                 <span class="n">application</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;applications/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">if</span> <span class="s">&#39;plugins&#39;</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
                     <span class="n">static_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/plugins/&quot;</span> <span class="o">%</span> <span class="n">application</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">source_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s</span><span class="s">/plugins/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="c"># /terminal/ssh/static/</span>
+                    <span class="n">source_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                         <span class="n">url_prefix</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">static_path</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">static_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/static/&quot;</span> <span class="o">%</span> <span class="n">application</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
@@ -2450,7 +2437,7 @@
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
                 <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
-                    <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+                    <span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
                     <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
@@ -2495,7 +2482,7 @@
         <span class="c"># Use a hash of the filename because these names can get quite long.</span>
         <span class="c"># Also, we don&#39;t want to reveal the file structure on the server.</span>
         <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
-            <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+            <span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
         <span class="c"># NOTE: The .split(&#39;.&#39;) above is so the hash we generate is always the</span>
         <span class="c"># same.  The tail end of the filename will have its modification date.</span>
         <span class="c"># Cache the metadata for sync</span>
@@ -3860,7 +3847,7 @@
             <span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="c"># Display the version in case someone sends in a log for for support</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Gate One </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">__version__</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Version: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__version__</span><span class="p">,</span> <span class="n">__commit__</span><span class="p">)))</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Tornado version </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">tornado_version</span><span class="p">))</span>
     <span class="c"># Set our global session timeout</span>
     <span class="k">global</span> <span class="n">TIMEOUT</span>

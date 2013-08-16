@@ -228,6 +228,14 @@ p.admonition-title:after {
     content: ":";
 }
 
+div.deprecated {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    color: red;
+    padding-top: 0.4em;
+}
+
 pre {
     padding: 5px;
     color: #222;
