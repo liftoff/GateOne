@@ -8,8 +8,15 @@ var document = window.document; // Have to do this because we're sandboxed
 var go = GateOne,
     u = go.Utils,
     t = go.Terminal,
+    v = go.Visual,
+    E = go.Events,
     prefix = go.prefs.prefix,
     noop = u.noop,
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug,
     months = {
         '0': 'JAN',
         '1': 'FEB',
@@ -24,12 +31,6 @@ var go = GateOne,
         '10': 'NOV',
         '11': 'DEC'
     };
-// Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = noop,
-    logError = noop,
-    logWarning = noop,
-    logInfo = noop,
-    logDebug = noop;
 
 // TODO: Add the ability to have Search bookmarks for query types that use POST instead of GET
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
@@ -37,7 +38,7 @@ var logFatal = noop,
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
 
 // GateOne.Bookmarks (bookmark management functions)
-go.Base.module(GateOne, "Bookmarks", "1.1", ['Base']);
+go.Base.module(GateOne, "Bookmarks", "1.2", ['Base']);
 go.Bookmarks.bookmarks = [];
 /**:GateOne.Bookmarks.bookmarks
 
@@ -81,14 +82,6 @@ go.Base.update(GateOne.Bookmarks, {
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar ✈icon_bookmarks', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        if (go.Logging) {
-            logFatal = go.Logging.logFatal;
-            logError = go.Logging.logError;
-            logWarning = go.Logging.logWarning;
-            logInfo = go.Logging.logInfo;
-            logDebug = go.Logging.logDebug;
-        }
         // Default sort order is by date created, descending, followed by alphabetical order
         if (!localStorage[prefix+'sort']) {
             // Set a default

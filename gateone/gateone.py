@@ -10,6 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
+__commit__ = "20130815180104" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1799,8 +1800,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 SESSIONS[self.session]['locations'][self.location] = {}
         # A shortcut for SESSIONS[self.session]['locations']:
         self.locations = SESSIONS[self.session]['locations']
-        # Send our plugin .js and .css files to the client
-        #self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
         for app in self.apps:
             # Set the current user for convenient access
@@ -1810,22 +1809,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # This is just so the client has a human-readable point of reference:
         message = {'go:set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
-        ## Startup the file watcher if it isn't already running and get it
-        ## watching the broadcast file.
-        #cls = ApplicationWebSocket
-        #broadcast_file = os.path.join(self.settings['session_dir'], 'broadcast')
-        #broadcast_file = self.prefs['*']['gateone'].get(
-            #'broadcast_file', broadcast_file)
-        #if broadcast_file not in cls.watched_files:
-            ## No broadcast file means the file watcher isn't running
-            #io.open(broadcast_file, 'w').write(u'') # Touch file
-            #check_time = self.prefs['*']['gateone'].get(
-                #'file_check_interval', 5000)
-            #cls.watch_file(broadcast_file, cls.broadcast_file_update)
-            #io_loop = tornado.ioloop.IOLoop.instance()
-            #cls.file_watcher = tornado.ioloop.PeriodicCallback(
-                #cls.file_checker, check_time, io_loop=io_loop)
-            #cls.file_watcher.start()
         self.trigger('go:authenticate')
 
     def _start_session_watcher(self):
@@ -2263,6 +2246,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         If the `cssmin` module is installed CSS files will be minified before
         being sent to the client.
         """
+        logging.debug(
+            "file_request(%s, use_client_cache=%s" % (
+                files_or_hash, use_client_cache))
         if isinstance(files_or_hash, (list, tuple)):
             for filename_hash in files_or_hash:
                 self.file_request(
@@ -2273,7 +2259,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if filename_hash.endswith('.js'):
             # The file_cache uses hashes; convert it
             filename_hash = md5(
-                filename_hash.split('.')[0].encode('utf-8')).hexdigest()[:10]
+                filename_hash.encode('utf-8')).hexdigest()[:10]
         # Get the file info out of the file_cache so we can send it
         element_id = self.file_cache[filename_hash].get('element_id', None)
         path = self.file_cache[filename_hash]['path']
@@ -2309,7 +2295,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 application = path.split('applications/')[1].split('/')[0]
                 if 'plugins' in path:
                     static_path = path.split("%s/plugins/" % application)[1]
-                    source_url = "%s%s/plugins/%s" % (
+                    # /terminal/ssh/static/
+                    source_url = "%s%s/%s" % (
                         url_prefix, application, static_path)
                 else:
                     static_path = path.split("%s/static/" % application)[1]
@@ -2388,7 +2375,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     filename = os.path.split(file_obj.name)[1]
                 mtime = os.stat(path).st_mtime
                 filename_hash = md5(
-                    filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
+                    filename.encode('utf-8')).hexdigest()[:10]
                 self.file_cache[filename_hash] = {
                     'filename': filename,
                     'kind': kind,
@@ -2433,7 +2420,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
         filename_hash = md5(
-            filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
+            filename.encode('utf-8')).hexdigest()[:10]
         # NOTE: The .split('.') above is so the hash we generate is always the
         # same.  The tail end of the filename will have its modification date.
         # Cache the metadata for sync
@@ -3798,7 +3785,7 @@ def main():
             options.settings_dir)
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
-    logging.info(_("Gate One %s" % __version__))
+    logging.info(_("Gate One %s (%s)" % (__version__, __commit__)))
     logging.info(_("Tornado version %s" % tornado_version))
     # Set our global session timeout
     global TIMEOUT

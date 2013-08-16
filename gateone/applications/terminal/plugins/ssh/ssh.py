@@ -461,7 +461,6 @@ def get_connect_string(self, term):
                     'terminal:sshjs_reconnect': json_encode(
                     {term: connect_string})
                 }
-                print("get_connect_string() writing: %s" % message)
                 self.write_message(message)
                 return # All done
 
@@ -1052,7 +1051,6 @@ def opt_esc_handler(self, text):
         :func:`terminal.Terminal._opt_handler`
     """
     message = {'terminal:sshjs_connect': text}
-    print("opt_esc_handler message: %s" % message)
     self.write_message(message)
 
 def create_user_ssh_dir(self):

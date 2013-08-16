@@ -5,7 +5,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>Release Notes / Changelog &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -183,7 +194,7 @@
 <h3>Other Notable Changes<a class="headerlink" href="#other-notable-changes" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
-<li><strong>EMBEDDED MODE CHANGES:</strong>  Embedded mode now requires manual invokation of many things that were previously automatic.  For example, if you've set <tt class="xref py py-obj docutils literal"><span class="pre">embedded:</span> <span class="pre">true</span></tt> when calling <tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt> you must now manually invoke <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.newTerminal()</span></tt> at the appropriate time in your code (e.g. when a user clicks a button or when the page loads).  See the hello_embedded tutorial for examples on how to use Embedded Mode.</li>
+<li><strong>EMBEDDED MODE CHANGES:</strong>  Embedded mode now requires manual invokation of many things that were previously automatic.  For example, if you've set <tt class="xref py py-obj docutils literal"><span class="pre">embedded:</span> <span class="pre">true</span></tt> when calling <a class="reference internal" href="../Developer/js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> you must now manually invoke <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.newTerminal()</span></tt> at the appropriate time in your code (e.g. when a user clicks a button or when the page loads).  See the hello_embedded tutorial for examples on how to use Embedded Mode.</li>
 <li><strong>gateone.py:</strong>  Added a new configuration option:  <tt class="xref py py-obj docutils literal"><span class="pre">api_timestamp_window</span></tt>.  This setting controls how long to wait before an API authentication timestamp is no longer accepted.  The default is 30 seconds.</li>
 <li><strong>gateone.py:</strong>  The dict that tracks things unique to individual browser sessions (i.e. where the 'refresh_timeout' gets stored) now gets cleaned up automatically when the user disconnects.</li>
 <li><strong>gateone.py:</strong>  You can now provide a <em>partial</em> server.conf before running Gate One for the first time (e.g. in packaging) and it will be used to set the provided values as defaults.  After which it will overwrite your server.conf with the existing settings in addition to what was missing.</li>
@@ -202,7 +213,7 @@
 <li><strong>gateone.js:</strong>  Added <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.skipChecks</span></tt> as an option that can be passed to GateOne.init().  If set to true it will skip all the capabilities checks/alerts that Gate One throws up if the browser doesn't support something like WebSockets.</li>
 <li><strong>gateone.js:</strong>  You can now close panels and dialogs by pressing the ESC key.</li>
 <li><strong>gateone.js:</strong>  When Gate One is loaded from a different origin than where the server lives (i.e. when embedded) and the user has yet to accept the SSL certificate for said origin they will be presented with a dialog where they can accept it and continue.  This should work around the problem of having to buy SSL certificates for all your Gate One servers.</li>
-<li><strong>gateone.js:</strong>  Added a <tt class="xref js js-attr docutils literal"><span class="pre">webWorker</span></tt> option to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt>.  By default it will only be used when Gate One is unable to load the Web Worker via the WebSocket (i.e. via a Blob()).  This usually only happens on older versions of Firefox and IE 10, specifically.  Also, it will <em>actually</em> only need to be set if you're embedding Gate One into another application that is listening on a different port than the Gate One server (I know, right?).  It is a very, very specific situation in which it would be required.</li>
+<li><strong>gateone.js:</strong>  Added a <tt class="xref js js-attr docutils literal"><span class="pre">webWorker</span></tt> option to <a class="reference internal" href="../Developer/js_gateone.html#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a>.  By default it will only be used when Gate One is unable to load the Web Worker via the WebSocket (i.e. via a Blob()).  This usually only happens on older versions of Firefox and IE 10, specifically.  Also, it will <em>actually</em> only need to be set if you're embedding Gate One into another application that is listening on a different port than the Gate One server (I know, right?).  It is a very, very specific situation in which it would be required.</li>
 <li><strong>gateone.js:</strong>  Lots of minor API additions and changes.  Too many to list; you'll just have to look at the docs.  See: <a class="reference internal" href="../Developer/js_gateone.html#gateone-javascript"><em>gateone.js</em></a>.</li>
 <li><strong>gateone.js:</strong>  When the screen updates while viewing the scrollback buffer it will no longer automatically scroll to the bottom of the view.  If a keystroke is pressed <em>that</em> will scroll to the bottom.  This should allow one to scroll up while something is outputting lines to the terminal without having the scrolling behavior interrupt what you're looking at.</li>
 <li><strong>gateone.js:</strong>  When &lt;script&gt; tags are included in the incoming terminal screen they will be executed automatically.  Very convenient for plugins that override HTML output of FileType magic in terminal.py</li>
@@ -222,7 +233,7 @@
 <li><strong>termio.py:</strong>  The functions that handle how logs are finalized have been modified to reduce memory consumption by orders of magnitude.  For example, when finalizing a humongous .golog, the <tt class="xref py py-obj docutils literal"><span class="pre">get_or_update_metadata()</span></tt> function will now read the file in chunks and be very conservative about the whole process instead of reading the entire log into memory before performing operations.</li>
 <li><strong>utils.py:</strong>  Increased the timeout value on the openssl commands since the default 5-second timeout wasn't long enough on slower systems.</li>
 <li><strong>Playback Plugin:</strong>  The logic that adds the playback controls has been modified to use the new <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.rowAdjust</span></tt> property (JavaScript).</li>
-<li><strong>Playback plugin:</strong>  Whether or not the playback controls will appear can now be configured via the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.showPlaybackControls</span></tt> option.  So if you're embedding Gate One and don't want the playback controls just pass <tt class="xref py py-obj docutils literal"><span class="pre">showPlaybackControls:</span> <span class="pre">false</span></tt> to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt>.</li>
+<li><strong>Playback plugin:</strong>  Whether or not the playback controls will appear can now be configured via the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.showPlaybackControls</span></tt> option.  So if you're embedding Gate One and don't want the playback controls just pass <tt class="xref py py-obj docutils literal"><span class="pre">showPlaybackControls:</span> <span class="pre">false</span></tt> to <a class="reference internal" href="../Developer/js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>.</li>
 <li><strong>SSH Plugin:</strong>  In ssh_connect.py, added a check to make sure that the user's 'ssh' directory is created before it starts trying to use it.</li>
 <li><strong>SSH Plugin:</strong>  <tt class="xref py py-obj docutils literal"><span class="pre">execRemoteCmd()</span></tt> now supports an errorback function as a fourth argument that will get called in the event that the remote command exeution isn't successful.</li>
 <li><strong>SSH Plugin:</strong>  Generating the public key using the private key is now handled asynchronously (so it won't block on a slow or bogged-down system).</li>

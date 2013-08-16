@@ -5,7 +5,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>The Logging Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -164,19 +175,19 @@
 </div>
 <dl class="staticmethod">
 <dt id="GateOne.TermLogging.sortFunctions.alphabetical">
-<tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts logs alphabetically using the title (connect_string).</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="alphabetical">
-<tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#alphabetical" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#alphabetical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts logs according to their size.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="date">
-<tt class="descname">date</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#date" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">date</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts logs by date (start_date) followed by alphabetical order of the title (connect_string).</p>
 </dd></dl>
 

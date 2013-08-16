@@ -104,8 +104,9 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
+GateOne.__commit__ = "20130815180104";
 GateOne.__repr__ = function () {
-    return "[" + this.__name__ + " " + this.__version__ + "]";
+    return "[" + this.__name__ + " " + this.__version__ + " (" + this.__commit__ + ")]";
 };
 GateOne.toString = function () {
     return this.__repr__();
@@ -2405,8 +2406,8 @@ If a particular console function is unavailable the ``console.log()`` function w
 
 .. tip:: You can add your own destinations; whatever you like!  See the :js:meth:`GateOne.Logging.addDestination` function for details.
 
-Shortcuts
----------
+**Shortcuts:**
+
 There are various shortcut functions available to save some typing:
 
 * :js:meth:`GateOne.Logging.logDebug`
@@ -2607,7 +2608,10 @@ GateOne.Base.update(GateOne.Logging, {
     dateFormatter: function(dateObj) {
         /**:GateOne.Logging.dateFormatter(dateObj)
 
-        Converts a Date() object into string suitable for logging.  e.g. 2011-05-29 13:24:03
+        Converts a Date() object into string suitable for logging.  Example:
+
+            >>> GateOne.Logging.dateFormatter(new Date());
+            "2013-08-15 08:45:41"
         */
         var year = dateObj.getFullYear(),
             month = dateObj.getMonth() + 1, // JS starts months at 0
@@ -3644,38 +3648,64 @@ GateOne.Base.update(GateOne.Visual, {
             go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
     },
     applyTransform: function (obj, transform) {
-        /**:GateOne.Visual.applyTransform(obj, transform)
+        /**:GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]
 
-        Applies the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform).
+        Applies the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform).  Example:
+
+            >>> GateOne.Visual.applyTransform(GateOne.node, 'translateX(-2%)'); // Slide #gateone to the left a little bit
 
         *obj* can be a string, a node, an array of nodes, or a NodeList.  In the case that *obj* is a string, GateOne.Utils.getNode(*obj*) will be performed under the assumption that the string represents a CSS selector.
+
+        Optionally, any amount of callback functions may be provided which will be called after each transform (aka transition) completes.  These callbacks will be called in a chain with the next callback being called after the previous one is complete.  Example:
+
+            >>> // Chain three moves of #gateone; each waiting for the previous transition to complete before continuing in the chain:
+            >>> GateOne.Visual.applyTransform(GateOne.node, 'translateX(-2%)', function() { GateOne.Visual.applyTransform(GateOne.node, 'translateX(2%)') }, function() { GateOne.Visual.applyTransform(GateOne.node, ''); }, function() { console.log('transition chain complete'); });
         */
 //         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');
         var transforms = {
-            '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
-            '-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
-            '-o-transform': '', // Opera
-            '-ms-transform': '', // IE9+
-            '-khtml-transform': '', // Konqueror
-            'transform': '' // Some day this will be all that is necessary
-        };
-        if (GateOne.Utils.isNodeList(obj) || GateOne.Utils.isHTMLCollection(obj) || GateOne.Utils.isArray(obj)) {
-            GateOne.Utils.toArray(obj).forEach(function(node) {
-                node = GateOne.Utils.getNode(node);
+                '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
+                '-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
+                '-o-transform': '', // Opera
+                '-ms-transform': '', // IE9+
+                '-khtml-transform': '', // Konqueror
+                'transform': '' // Some day this will be all that is necessary
+            },
+            callbacks = Array.prototype.slice.call(arguments, 2).reverse(), // All arguments after the first two
+            chain = function(node) {
+                var callback = callbacks.pop(),
+                    next = function() {
+                        callback();
+                        node.removeEventListener(transitionEndName, next, false); // Clean up
+                        if (callbacks.length) {
+                            // To iterate is human; to recur, divine.
+                            chain(node);
+                        }
+                    };
+                node.addEventListener(transitionEndName, next, false);
+            };
+        if (go.Utils.isNodeList(obj) || go.Utils.isHTMLCollection(obj) || go.Utils.isArray(obj)) {
+            go.Utils.toArray(obj).forEach(function(node) {
+                node = go.Utils.getNode(node);
                 for (var prefix in transforms) {
                     node.style[prefix] = transform;
                 }
                 if (node.style.MozTransform != undefined) {
                     node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason
                 }
+                if (callbacks.length) {
+                    chain(node);
+                }
             });
-        } else if (typeof(obj) == 'string' || GateOne.Utils.isElement(obj)) {
-            var node = GateOne.Utils.getNode(obj); // Doesn't hurt to pass a node to getNode
+        } else if (typeof(obj) == 'string' || go.Utils.isElement(obj)) {
+            var node = go.Utils.getNode(obj); // Doesn't hurt to pass a node to getNode
             for (var prefix in transforms) {
                 node.style[prefix] = transform;
             }
             if (node.style.MozTransform != undefined) {
                 node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason
+            }
+            if (callbacks.length) {
+                chain(node);
             }
         }
     },

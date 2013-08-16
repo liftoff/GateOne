@@ -5,7 +5,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>The Example Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -172,7 +183,7 @@ hook at the bottom of this file.  The way it works is like this:</p>
 Gate One will automatically
 decode it into a Python <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt> (only JSON-encoded messages are accepted).
 Any and all keys in that <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt> will be assumed to be 'actions' (just
-like <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> but on the server) such as this one.  If
+like <a class="reference internal" href="js_gateone.html#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> but on the server) such as this one.  If
 the incoming key matches a registered action that action will be called
 like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">key</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>

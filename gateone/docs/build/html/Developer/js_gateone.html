@@ -5,7 +5,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>gateone.js &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -1585,6 +1596,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <p class="first admonition-title">Tip</p>
 <p class="last">You can add your own destinations; whatever you like!  See the <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.addDestination()</span></tt> function for details.</p>
 </div>
+<p><strong>Shortcuts:</strong></p>
 <p>There are various shortcut functions available to save some typing:</p>
 <ul class="simple">
 <li><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logDebug()</span></tt></li>
@@ -1668,7 +1680,11 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="dateFormatter">
 <em class="property">static </em><tt class="descname">dateFormatter</tt><big>(</big><em>dateObj</em><big>)</big><a class="headerlink" href="#dateFormatter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a Date() object into string suitable for logging.  e.g. 2011-05-29 13:24:03</p>
+<dd><p>Converts a Date() object into string suitable for logging.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">dateFormatter</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">());</span>
+<span class="go">&quot;2013-08-15 08:45:41&quot;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>

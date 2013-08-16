@@ -37,6 +37,7 @@ var go = GateOne,
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
+    I = go.Input,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -99,6 +100,7 @@ go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into cli
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
 go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
+go.Terminal.outputSuspended = "Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.";
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
@@ -359,10 +361,28 @@ go.Base.update(GateOne.Terminal, {
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
         if (!go.prefs.embedded) {
-            go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
+            I.registerShortcut('KEY_N',
+                {'modifiers': {
+                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Terminal.newTerminal()'
+                });
             // Ctrl-Alt-W to close the current terminal
-            go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
-            go.Input.registerShortcut('KEY_P', {'modifiers': {'ctrl': false, 'alt': false, 'meta': true, 'shift': false}, 'action': 'go.Terminal.printScreen()'});
+            I.registerShortcut('KEY_W',
+                {'modifiers': {
+                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'
+                });
+            I.registerShortcut('KEY_P',
+                {'modifiers': {
+                    'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
+                    'action': 'go.Terminal.printScreen()'
+                });
+            // Helpful message so the user doesn't get confused as to why their terminal stopped working:
+            I.registerShortcut('KEY_S',
+                {'modifiers': {
+                    'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'
+                });
         }
         // Load the bell sound from the cache.  If that fails ask the server to send us the file.
         if (go.prefs.bellSound.length) {
@@ -2347,6 +2367,15 @@ go.Base.update(GateOne.Terminal, {
         u.toArray(u.getNodes('.✈highlight')).forEach(function(elem) {
             elem.className = "";
         });
+    },
+    showSuspended: function() {
+        /**:GateOne.Terminal.showSuspended()
+
+        Displays a little widget in the terminal that indicates that output has been suspended.
+        */
+        var suspendedWidget = u.createElement('div', {'id': 'widget_suspended', 'style': {'width': '20em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid', 'background-color': 'white', 'opacity': '0.7'}});
+        suspendedWidget.innerHTML = go.Terminal.outputSuspended;
+        v.widget('Terminal Output Suspended', suspendedWidget);
     }
 });
 
