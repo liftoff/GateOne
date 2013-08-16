@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130815180104" # Gets replaced by git (holds the date/time)
+__commit__ = "20130815210115" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3785,7 +3785,7 @@ def main():
             options.settings_dir)
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
-    logging.info(_("Gate One %s (%s)" % (__version__, __commit__)))
+    logging.info(_("${DATE}" % (__version__, __commit__)))
     logging.info(_("Tornado version %s" % tornado_version))
     # Set our global session timeout
     global TIMEOUT
