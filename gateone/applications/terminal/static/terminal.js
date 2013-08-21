@@ -416,6 +416,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('terminal:term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('terminal:term_moved', go.Terminal.moveTerminalAction);
+        go.Net.addAction('terminal:term_locations', go.Terminal.locationsAction);
         go.Net.addAction('terminal:set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('terminal:reset_client_terminal', go.Terminal.resetTerminalAction);
         go.Net.addAction('terminal:load_webworker', go.Terminal.loadWebWorkerAction);
@@ -1597,21 +1598,24 @@ go.Base.update(GateOne.Terminal, {
         }, 500);
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
-    closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message) {
-        /**:GateOne.Terminal.closeTerminal(term[, noCleanup[, message]])
+    closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message, /*opt*/sendKill) {
+        /**:GateOne.Terminal.closeTerminal(term[, noCleanup[, message[, sendKill]]])
+
+        :param number term: The terminal to close.
+        :param boolean noCleanup: If ``true`` the terminal's metadata in localStorage (i.e. scrollback buffer) will not be removed.
+        :param string message: An optional message to display to the user after the terminal is close.
+        :param boolean sendKill: If undefined or ``true``, will tell the server to kill the process associated with the given *term* (i.e. close it for real).
 
         Closes the given terminal (*term*) and tells the server to end its running process.
-
-        If *noCleanup* resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
-
-        If a *message* is given it will be displayed to the user instead of the default "Closed term..." message.
         */
         var lastTerm = null;
         if (!message) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
         // Tell the server to kill the terminal
-        go.Terminal.killTerminal(term);
+        if (sendKill === undefined || sendKill) {
+            go.Terminal.killTerminal(term);
+        }
         if (!noCleanup) {
             // Delete the associated scrollback buffer (save the world from localStorage pollution)
             delete localStorage[prefix+'scrollback'+term];
@@ -2061,8 +2065,25 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.applyScreen(emptyScreen, term);
     },
+    getLocations: function() {
+        /**:GateOne.Terminal.getLocations()
+
+        Sends the `terminal:get_locations` WebSocket action to the server.
+        */
+        go.ws.send(JSON.stringify({'terminal:get_locations': null}));
+    },
+    locationsAction: function(locations) {
+        /**:GateOne.Terminal.locationsAction(locations)
+
+        Attached to the `terminal:term_locations` WebSocket action, triggers the `terminal:term_locations` event (in case someone wants to do something with that information).
+        */
+        E.trigger("terminal:term_locations", locations);
+    },
     moveTerminalLocation: function(term, location) {
         /**:GateOne.Terminal.moveTerminalLocation(term, location)
+
+        :param number term: The number of the terminal to move (e.g. 1).
+        :param string location: The 'location' where the terminal will be moved (e.g. 'window2').
 
         Moves the given *term* to the given *location* (aka window) by sending
         the appropriate message to the Gate One server.
@@ -2072,6 +2093,16 @@ go.Base.update(GateOne.Terminal, {
             'location': location
         }
         go.ws.send(JSON.stringify({'terminal:move_terminal': settings}));
+    },
+    changeLocation: function(location, /*opt*/settings) {
+        /**:GateOne.Terminal.changeLocation(location[, settings])
+
+        Attached to the `go:set_location` event, removes all terminals from the current view and opens up all the terminals at the new *location*.  If there are currently no terminals at *location* a new terminal will be opened automatically.
+
+        To neglect opening a new terminal automatically provide a settings object like so:
+
+            >>> GateOne.Terminal.changeLocation('window2', {'new_term': false}`);
+        */
     },
     reconnectTerminalAction: function(term) {
         /**:GateOne.Terminal.reconnectTerminalAction(term)
@@ -2091,12 +2122,12 @@ go.Base.update(GateOne.Terminal, {
     moveTerminalAction: function(obj) {
         /**:GateOne.Terminal.moveTerminalAction(obj)
 
-        Attached to the 'term_moved' WebSocket Action, closes the given *term* with a slightly different message than closeTerminal().
+        Attached to the `terminal:term_moved` WebSocket Action, closes the given *term* with a slightly different message than closeTerminal().
         */
         var term = obj['term'],
             location = obj['location'],
             message = "Terminal " + term + " has been relocated to location, '" + location + "'";
-        GateOne.Terminal.closeTerminal(term, null, message);
+        GateOne.Terminal.closeTerminal(term, null, message, false); // Close the terminal with our special message and don't kill its process
     },
     reattachTerminalsAction: function(terminals) {
         /**:GateOne.Terminal.reattachTerminalsAction(terminals)

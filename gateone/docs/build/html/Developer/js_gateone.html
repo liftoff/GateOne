@@ -1658,7 +1658,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 <p>Example usage:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">addDestination</span><span class="p">(</span><span class="s1">&#39;screen&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayMessage</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">addDestination</span><span class="p">(</span><span class="s1">&#39;screen&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayMessage</span><span class="p">);</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1898,33 +1898,82 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="onMessage">
+<em class="property">static </em><tt class="descname">onMessage</tt><big>(</big><em>evt</em><big>)</big><a class="headerlink" href="#onMessage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> (<em>event</em>) -- <p>A <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> event object as passed by the 'message' event.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onmessage</span></tt> inside of <tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt>.  It takes care of decoding (<a class="reference external" href="https://developer.mozilla.org/en/JSON">JSON</a>) messages sent from the server and calling any matching <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">actions</span></tt></a>.  If no matching action can be found inside <tt class="docutils literal"><span class="pre">event.data</span></tt> it will fall back to passing the message directly to <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="timeoutAction">
 <em class="property">static </em><tt class="descname">timeoutAction</tt><big>(</big><big>)</big><a class="headerlink" href="#timeoutAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a message to the screen indicating a session timeout has occurred (on the server) and closes the WebSocket.</p>
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="addAction">
+<em class="property">static </em><tt class="descname">addAction</tt><big>(</big><em>name</em>, <em>func</em><big>)</big><a class="headerlink" href="#addAction" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) -- The name of the action we're going to attach <em>func</em> to.</li>
+<li><strong>func</strong> (<em>function</em>) -- <p>The function to be called when an action arrives over the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> matching <em>name</em>.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Adds an action to the <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> object.</p>
+<p>Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_connect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleConnect</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="setTerminal">
 <em class="property">static </em><tt class="descname">setTerminal</tt><big>(</big><big>)</big><a class="headerlink" href="#setTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTerminal()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTerminal()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="killTerminal">
 <em class="property">static </em><tt class="descname">killTerminal</tt><big>(</big><big>)</big><a class="headerlink" href="#killTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.killTerminal()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.killTerminal()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="refresh">
 <em class="property">static </em><tt class="descname">refresh</tt><big>(</big><big>)</big><a class="headerlink" href="#refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.refresh()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.refresh()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="fullRefresh">
 <em class="property">static </em><tt class="descname">fullRefresh</tt><big>(</big><big>)</big><a class="headerlink" href="#fullRefresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED:  Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.fullRefresh()</span></tt> instead.</p>
+<dd><div class="deprecated">
+<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.fullRefresh()</span></tt> instead.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1996,7 +2045,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(-2%)&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(2%)&#39;</span><span class="p">)</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">);</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;transition chain complete&#39;</span><span class="p">);</span> <span class="p">});</span>
 </pre></div>
 </div>
-<p><a href="#id36"><span class="problematic" id="id37">*</span></a>/</p>
+<p><a href="#id38"><span class="problematic" id="id39">*</span></a>/</p>
 </dd></dl>
 
 <dl class="docutils">
@@ -2111,7 +2160,7 @@ if (node.style['transform']) {</p>
 <dd>},
 togglePanel: function(panel) {</dd>
 </dl>
-<p>/<a href="#id38"><span class="problematic" id="id39">**</span></a>:GateOne.Visual.togglePanel(panel)</p>
+<p>/<a href="#id40"><span class="problematic" id="id41">**</span></a>:GateOne.Visual.togglePanel(panel)</p>
 <p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
 If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <p>This function also has some events that can be hooked into:</p>
@@ -2214,6 +2263,24 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">toggleGridView</tt><big>(</big><span class="optional">[</span><em>goBack</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.toggleGridView" title="Permalink to this definition">¶</a></dt>
 <dd><p>Brings up the workspace grid view or returns to full-size.</p>
 <p>If <em>goBack</em> is false, don't bother switching back to the previously-selected workspace</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.widget">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">widget</tt><big>(</big><em>title</em>, <em>content</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an on-screen widget with the given <em>title</em> and <em>content</em>.  Returns a function that will remove the widget when called.</p>
+<p>Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).</p>
+<p>Widgets can be attached to a specific element by specifying a DOM object or querySelector string in <a href="#id42"><span class="problematic" id="id43">*</span></a>options*['where'].  Otherwise the widget will be attached to the currently-selected workspace.</p>
+<p>Widgets can be 'global' (attached to document.body) by setting <a href="#id44"><span class="problematic" id="id45">*</span></a>options*['where'] to 'global'.</p>
+<p>By default widgets will appear in the upper-right corner of a given workspace.
+<em>title</em> - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
+<em>content</em> - HTML string or JavaScript DOM node:  The content of the widget.
+<em>options</em> - An associative array of parameters that change the look and/or behavior of the widget.  Here's the possibilities:</p>
+<blockquote>
+<div>options['onopen'] - Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
+options['onclose'] - Assign a function to this option and it will be called when the widget is closed.
+options['onconfig'] - If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
+options['where'] - The node where we'll be attaching this widget or 'global' to add the widget to document.body.</div></blockquote>
 </dd></dl>
 
 <dl class="function">

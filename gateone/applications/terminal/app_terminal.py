@@ -542,10 +542,11 @@ class TerminalApplication(GOApplication):
         message = {'terminal:colors_list': {'colors': colors}}
         self.write_message(message)
 
+    @require(authenticated(), policies('terminal'))
     def terminals(self):
         """
         Sends a list of the current open terminals to the client using the
-        'terminal:get_terminals' WebSocket action.
+        `terminal:terminals` WebSocket action.
         """
         logging.debug('terminals()')
         terminals = []
@@ -978,8 +979,9 @@ class TerminalApplication(GOApplication):
     @require(authenticated())
     def move_terminal(self, settings):
         """
-        Moves *settings['term']* (terminal number) to
-        *SESSIONS[self.ws.session][[settings['location']]['terminal']*.  In
+        Attached to the `terminal:move_terminal` WebSocket action. Moves
+        *settings['term']* (terminal number) to
+        ``SESSIONS[self.ws.session][[*settings['location']*]['terminal']``.  In
         other words, it moves the given terminal to the given location in the
         *SESSIONS* dict.
 
@@ -989,22 +991,27 @@ class TerminalApplication(GOApplication):
         new_location_exists = True
         term = existing_term = int(settings['term'])
         new_location = settings['location']
-        session_obj = SESSIONS[self.ws.session]
+        if term not in self.loc_terms:
+            self.ws.send_message(_(
+                "Error: Terminal {term} does not exist at the current location"
+                " ({location})".format(term=term, location=self.ws.location)))
+            return
         existing_term_obj = self.loc_terms[term]
-        if new_location not in session_obj:
+        if new_location not in self.ws.locations:
             term = 1 # Starting anew in the new location
-            session_obj['locations'][new_location]['terminal'] = {
+            self.ws.locations[new_location] = {}
+            self.ws.locations[new_location]['terminal'] = {
                 term: existing_term_obj
             }
             new_location_exists = False
         else:
             existing_terms = [
-                a for a in session_obj['locations'][
+                a for a in self.ws.locations[
                   new_location]['terminal'].keys()
                     if isinstance(a, int)]
             existing_terms.sort()
             term = existing_terms[-1] + 1
-            session_obj['locations'][new_location][
+            self.ws.locations[new_location][
                 'terminal'][term] = existing_term_obj
         multiplex = existing_term_obj['multiplex']
         # Remove the existing object's callbacks so we don't end up sending
@@ -1017,11 +1024,12 @@ class TerminalApplication(GOApplication):
             'h': multiplex.em_dimensions['height'],
             'w': multiplex.em_dimensions['width']
         }
+        # TODO: Get this working...
         if new_location_exists:
             # Already an open window using this 'location'...  Tell it to open
             # a new terminal for the user.
             new_location_instance = None
-            for instance in self.instances:
+            for instance in self.ws.instances:
                 if instance.location == new_location:
                     new_location_instance = instance
                     break
@@ -1559,8 +1567,9 @@ class TerminalApplication(GOApplication):
     @require(authenticated(), policies('terminal'))
     def get_locations(self):
         """
-        Attached to the "terminal:get_locations" WebSocket action.  Sends a
-        message to the client listing all 'locations' where terminals reside.
+        Attached to the `terminal:get_locations` WebSocket action.  Sends a
+        message to the client (via the `terminal:term_locations` WebSocket
+        action) listing all 'locations' where terminals reside.
 
         .. note::
 
@@ -1568,11 +1577,12 @@ class TerminalApplication(GOApplication):
             different windows/tabs.
         """
         term_locations = {}
-        session = self.ws.session
-        for location, obj in SESSIONS[session]['locations'].items:
-            terms = location.get('terminal', [])
-            term_locations[location] = terms
+        for location, obj in self.ws.locations.items():
+            terms = obj.get('terminal', None)
+            if terms:
+                term_locations[location] = terms.keys()
         message = {'terminal:term_locations': term_locations}
+        print("term_locations: %s" % message)
         self.write_message(json_encode(message))
         self.trigger("terminal:term_locations", term_locations)
 

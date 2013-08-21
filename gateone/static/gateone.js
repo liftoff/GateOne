@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130815210514";
+GateOne.__commit__ = "20130816164556";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -823,7 +823,6 @@ GateOne.Base.update(GateOne.Utils, {
             return fn.apply(window, args);
         }
     },
-     /** @id MochiKit.Base.items */
     items: function(obj) {
         /**:GateOne.Utils.items(obj)
 
@@ -855,7 +854,6 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return rval;
     },
-    /** @id MochiKit.Base.itemgetter */
     itemgetter: function(name) {
         /**:GateOne.Utils.itemgetter(name)
 
@@ -894,7 +892,6 @@ GateOne.Base.update(GateOne.Utils, {
             return arg[name];
         };
     },
-    /** @id MochiKit.DOM.hasElementClass */
     hasElementClass: function (element, className/*...*/) {
         /**:GateOne.Utils.hasElementClass(element, className)
 
@@ -2584,9 +2581,9 @@ GateOne.Base.update(GateOne.Logging, {
 
             dest(<log message>);
 
-        Example usage::
+        Example usage:
 
-             GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
+            >>> GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
 
         .. note:: The above example is kind of fun.  Try it in your JavaScript console!
 
@@ -2649,6 +2646,7 @@ GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 
 Just about all of Gate One's communications with the server are handled inside this module.  It contains all the functions and properties to deal with setting up the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ and issuing/receiving commands over it.  The most important facet of :js:attr:`GateOne.Net` is :js:attr:`GateOne.Net.actions` which holds the mapping of what function maps to which command.  More info on :js:attr:`GateOne.Net.actions` is below.
 */
+// NOTE:  The actual default actions are assigned at the end of the module.  I put this all the way up here because it flows better in the documentation.
 /**:GateOne.Net.actions
 
 This is where all of Gate One's `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ protocol actions are assigned to functions.  Here's how they are defined by default:
@@ -2715,9 +2713,10 @@ GateOne.Base.update(GateOne.Net, {
     init: function() {
         /**:GateOne.Net.init()
 
-        Adds the `go:timeout` action and the `go:ping_timeout` event (which just displays a message to the user indicating as such).
+        Adds the `go:timeout` and `go:locations` WebSocket actions as well as the `go:ping_timeout` event (which just displays a message to the user indicating as such).
         */
         go.Net.addAction('go:timeout', go.Net.timeoutAction);
+        go.Net.addAction('go:locations', GateOne.Net.locationsAction);
         go.Events.on("go:ping_timeout", function() {
             go.Visual.displayMessage("A keepalive ping has timed out.  Attempting to reconnect...");
         });
@@ -3018,7 +3017,13 @@ GateOne.Base.update(GateOne.Net, {
             }, 100);
         }
     },
-    onMessage: function (evt) {
+    onMessage: function(evt) {
+        /**:GateOne.Net.onMessage(evt)
+
+        :param event event: A `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ event object as passed by the 'message' event.
+
+        This gets attached to :js:attr:`GateOne.ws.onmessage` inside of :js:func:`~GateOne.Net.connect`.  It takes care of decoding (`JSON <https://developer.mozilla.org/en/JSON>`_) messages sent from the server and calling any matching :js:attr:`~GateOne.Net.actions`.  If no matching action can be found inside ``event.data`` it will fall back to passing the message directly to :js:func:`GateOne.Visual.displayMessage`.
+        */
         logDebug('message: ' + evt.data);
         var prefix = GateOne.prefs.prefix,
             v = GateOne.Visual,
@@ -3063,40 +3068,85 @@ GateOne.Base.update(GateOne.Net, {
         E.trigger('go:timeout');
     },
     addAction: function(name, func) {
+        /**:GateOne.Net.addAction(name, func)
+
+        :param string name: The name of the action we're going to attach *func* to.
+        :param function func: The function to be called when an action arrives over the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ matching *name*.
+
+        Adds an action to the :js:attr:`GateOne.Net.actions` object.
+
+        Example:
+
+            >>> GateOne.Net.addAction('sshjs_connect', GateOne.SSH.handleConnect);
+        */
         // Adds/overwrites actions in GateOne.Net.actions
-        GateOne.Net.actions[name] = func;
+        go.Net.actions[name] = func;
     },
     setTerminal: function(term) {
         /**:GateOne.Net.setTerminal()
 
-        DEPRECATED:  Use :js:meth:`GateOne.Terminal.setTerminal` instead.
+        .. deprecated:: 1.2
+            Use :js:meth:`GateOne.Terminal.setTerminal` instead.
         */
-        GateOne.Logging.deprecated("GateOne.Net.setTerminal", "Use GateOne.Terminal.setTerminal() instead.");
-        GateOne.Terminal.setTerminal(term);
+        go.Logging.deprecated("GateOne.Net.setTerminal", "Use GateOne.Terminal.setTerminal() instead.");
+        go.Terminal.setTerminal(term);
     },
     killTerminal: function(term) {
         /**:GateOne.Net.killTerminal()
 
-        DEPRECATED:  Use :js:meth:`GateOne.Terminal.killTerminal` instead.
+        .. deprecated:: 1.2
+            Use :js:meth:`GateOne.Terminal.killTerminal` instead.
         */
-        GateOne.Logging.deprecated("GateOne.Net.killTerminal", "Use GateOne.Terminal.killTerminal() instead.");
-        GateOne.Terminal.killTerminal(term);
+        go.Logging.deprecated("GateOne.Net.killTerminal", "Use GateOne.Terminal.killTerminal() instead.");
+        go.Terminal.killTerminal(term);
     },
     refresh: function(term) {
         /**:GateOne.Net.refresh()
 
-        DEPRECATED:  Use :js:meth:`GateOne.Terminal.refresh` instead.
+        .. deprecated:: 1.2
+            Use :js:meth:`GateOne.Terminal.refresh` instead.
         */
-        GateOne.Logging.deprecated("GateOne.Net.refresh", "Use GateOne.Terminal.refresh() instead.");
-        GateOne.Terminal.refresh(term);
+        go.Logging.deprecated("GateOne.Net.refresh", "Use GateOne.Terminal.refresh() instead.");
+        go.Terminal.refresh(term);
     },
     fullRefresh: function(term) {
         /**:GateOne.Net.fullRefresh()
 
-        DEPRECATED:  Use :js:meth:`GateOne.Terminal.fullRefresh` instead.
+        .. deprecated:: 1.2
+            Use :js:meth:`GateOne.Terminal.fullRefresh` instead.
         */
-        GateOne.Logging.deprecated("GateOne.Net.fullRefresh", "Use GateOne.Terminal.fullRefresh() instead.");
-        GateOne.Terminal.fullRefresh(term);
+        go.Logging.deprecated("GateOne.Net.fullRefresh", "Use GateOne.Terminal.fullRefresh() instead.");
+        go.Terminal.fullRefresh(term);
+    },
+    getLocations: function() {
+        /**:GateOne.Net.getLocations()
+
+        Asks the server to send us a list of locations via the `go:get_locations` WebSocket action.  Literally:
+
+            >>> GateOne.ws.send(JSON.stringify({'go:get_locations': null}));
+
+        This will ultimately result in :js:meth:`GateOne.Net.locationsAction` being called.
+        */
+        go.ws.send(JSON.stringify({'go:get_locations': null}));
+    },
+    locationsAction: function(locations) {
+        /**:GateOne.Net.locationsAction()
+
+        Attached to the `go:locations` WebSocket action.  Sets :js:attr:`GateOne.locations` to *locations*.
+        */
+        go.locations = locations;
+        go.Events.trigger('go:locations', locations);
+    },
+    setLocation: function(location) {
+        /**:GateOne.Net.setLocation(location)
+
+        :param string location: A string containing no spaces.
+
+        Sets :js:attr:`GateOne.location` to *location* and sends a message (the `go:set_location` WebSocket action) to the Gate One server telling it to change the current location to *location*.
+        */
+        go.location = location;
+        go.ws.send(JSON.stringify({'go:set_location': location}));
+        go.Events.trigger("go:set_location", location);
     }
 });
 // Protocol actions
@@ -4621,7 +4671,7 @@ GateOne.Base.update(GateOne.Visual, {
         go.Events.trigger('go:alert', title, message, closeDialog);
     },
     widget: function(title, content, /*opt*/options) {
-        /**GateOne.Visual.widget(title, content[, options])
+        /**:GateOne.Visual.widget(title, content[, options])
 
         Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
 

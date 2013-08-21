@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130815210514" # Gets replaced by git (holds the date/time)
+__commit__ = "20130816164556" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -311,7 +311,8 @@ well as descriptions of what each configurable option does:
                                     idle before it is killed.  Accepts <num>X
                                     where X could be one of s, m, h, or d for
                                     seconds, minutes, hours, and days.  Default
-                                    is '5d' (5 days). (default 5d)
+                                    is '5d' (5 days).  Set to '0' to disable
+                                    the ability to resume sessions. (default 5d)
     --settings_dir                  Path to the settings directory.  Default:
                                     /opt/gateone/settings (default
                                     /opt/gateone/settings)
@@ -767,8 +768,12 @@ def timeout_sessions():
         This function is meant to be called via Tornado's
         :meth:`~tornado.ioloop.PeriodicCallback`.
     """
+    disabled = timedelta(0) # If the user sets session_timeout to "0"
     # Commented because it is a bit noisy.  Uncomment to debug this mechanism.
-    #logging.debug("timeout_sessions() TIMEOUT: %s" % TIMEOUT)
+    #if TIMEOUT != disabled:
+        #logging.debug("timeout_sessions() TIMEOUT: %s" % TIMEOUT)
+    #else :
+        #logging.debug("timeout_sessions() TIMEOUT: disabled")
     try:
         if not SESSIONS: # Last client has timed out
             logging.info(_("All user sessions have terminated."))
@@ -798,7 +803,8 @@ def timeout_sessions():
             if SESSIONS[session]["last_seen"] == 'connected':
                 # Connected sessions do not need to be checked for timeouts
                 continue
-            if datetime.now() > SESSIONS[session]["last_seen"] + TIMEOUT:
+            if TIMEOUT == disabled or \
+                datetime.now() > SESSIONS[session]["last_seen"] + TIMEOUT:
                 # Kill the session
                 logging.info(_("{session} timeout.".format(session=session)))
                 if "timeout_callbacks" in SESSIONS[session]:
@@ -1132,6 +1138,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:send_user_message': self.send_user_message,
             'go:broadcast': self.broadcast,
             'go:list_users': self.list_server_users,
+            'go:get_locations': self.get_locations,
+            'go:set_location': self.set_location,
             'go:set_locale': self.set_locale,
         }
         self._events = {}
@@ -1274,6 +1282,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         send_plugin_static_files = partial(
             self.send_plugin_static_files, os.path.join(GATEONE_DIR, 'plugins'))
         self.on("go:authenticate", send_plugin_static_files)
+        # Tell the client about any existing locations where applications may be
+        # storing things like terminal instances and whatnot:
+        self.on("go:authenticate", self.get_locations)
         # This is so the client knows what applications it can use:
         self.on("go:authenticate", self.list_applications)
         # This starts up the PeriodicCallback that watches sessions for timeouts
@@ -1284,6 +1295,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.on("go:authenticate", self._start_log_cleaner)
         # This starts up the file watcher PeriodicCallback:
         self.on("go:authenticate", self._start_file_watcher)
+        # This ensures that sessions will timeout immediately if session_timeout
+        # is set to 0:
+        self.on("go:close", timeout_sessions)
         if not apps:
             return
         for app in apps:
@@ -1966,6 +1980,39 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         user_apps = policy.get('user_applications', enabled_applications)
         message = {'go:applications': user_apps}
         self.write_message(json_encode(message))
+
+    @require(authenticated(), policies('gateone'))
+    def set_location(self, location):
+        """
+        Attached to the `go:set_location` WebSocket action.  Sets
+        ``self.location`` to the given value.
+
+        This mechanism can be used by applications embedding Gate One to
+        create/control groups of application resources (e.g. terminals) that
+        each reside in unique virtual 'locations'.  Use this function to change
+        locations on-the-fly without having to re-authenticate the user.
+
+        .. note::
+
+            If this location is new, ``self.locations[*location*]`` will be
+            created automatically.
+        """
+        if location not in self.locations:
+            self.locations[location] = {}
+        self.location = location
+        self.trigger("go:set_location", location)
+
+    @require(authenticated(), policies('gateone'))
+    def get_locations(self):
+        """
+        Attached to the `go:get_locations` WebSocket action.  Sends a message to
+        the client (via the `go:locations` WebSocket action) with a list of all
+        the locations associated with the connected user.
+        """
+        locations = self.locations.keys()
+        message = {'go:locations': locations}
+        self.write_message(message)
+        self.trigger("go:get_locations")
 
     def render_style(self, style_path, **kwargs):
         """
@@ -3158,7 +3205,8 @@ def define_options():
         default="5d",
         help=_("Amount of time that a session is allowed to idle before it is "
         "killed.  Accepts <num>X where X could be one of s, m, h, or d for "
-        "seconds, minutes, hours, and days.  Default is '5d' (5 days)."),
+        "seconds, minutes, hours, and days.  Default is '5d' (5 days).   Set to"
+        " '0' to disable the ability to resume sessions."),
         type=basestring
     )
     define(
