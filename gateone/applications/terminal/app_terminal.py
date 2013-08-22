@@ -1010,9 +1010,9 @@ class TerminalApplication(GOApplication):
                   new_location]['terminal'].keys()
                     if isinstance(a, int)]
             existing_terms.sort()
-            term = existing_terms[-1] + 1
+            new_term_num = existing_terms[-1] + 1
             self.ws.locations[new_location][
-                'terminal'][term] = existing_term_obj
+                'terminal'][new_term_num] = existing_term_obj
         multiplex = existing_term_obj['multiplex']
         # Remove the existing object's callbacks so we don't end up sending
         # things like screen updates to the wrong place.
@@ -1024,21 +1024,27 @@ class TerminalApplication(GOApplication):
             'h': multiplex.em_dimensions['height'],
             'w': multiplex.em_dimensions['width']
         }
-        # TODO: Get this working...
         if new_location_exists:
             # Already an open window using this 'location'...  Tell it to open
             # a new terminal for the user.
             new_location_instance = None
+            # Find the ApplicationWebSocket instance using the given 'location':
             for instance in self.ws.instances:
                 if instance.location == new_location:
-                    new_location_instance = instance
+                    ws_instance = instance
                     break
+            # Find the TerminalApplication inside the ws_instance:
+            for app in ws_instance.apps:
+                if isinstance(app, TerminalApplication):
+                    new_location_instance = app
             new_location_instance.new_terminal({
-                'term': term,
+                'term': new_term_num,
                 'rows': multiplex.rows,
                 'columns': multiplex.cols,
                 'em_dimensions': em_dimensions
             })
+            ws_instance.send_message(_(
+                "Incoming terminal from location: %s" % self.ws.location))
         #else:
             # Make sure the new location dict is setup properly
             #self.add_terminal_callbacks(term, multiplex, callback_id)

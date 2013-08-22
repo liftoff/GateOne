@@ -1608,6 +1608,7 @@ go.Base.update(GateOne.Terminal, {
 
         Closes the given terminal (*term*) and tells the server to end its running process.
         */
+        logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill);
         var lastTerm = null;
         if (!message) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
