@@ -721,8 +721,7 @@ class TerminalApplication(GOApplication):
             for func in self.plugin_command_hooks:
                 cmd = func(self, cmd)
         additional_log_metadata = {
-            'ip_address': self.current_user['ip_address'],
-            'user': self.current_user['upn']
+            'ip_address': self.current_user['ip_address']
         }
         # This allows plugins to add their own metadata to .golog files:
         if self.plugin_log_metadata_hooks:
