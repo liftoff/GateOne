@@ -374,6 +374,7 @@ class BaseMultiplex(object):
     :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
     :syslog_host: *string* - An optional syslog host to send session log information to (this is independent of the *syslog* option above--it does not require a syslog daemon be present on the host running Gate One).
     :syslog_facility: *integer* - The syslog facility to use when logging messages.  All possible facilities can be found in `utils.FACILITIES` (if you need a reference other than the syslog module).
+    :additional_metadata: *dict* - Anything in this dict will be included in the metadata frame of the log file.  Can only be key:value strings.
     :encoding: *string* - The encoding to use when writing or reading output.
     :debug: *boolean* - Used by the `expect` methods...  If set, extra debugging information will be output whenever a regular expression is matched.
     """
@@ -389,6 +390,7 @@ class BaseMultiplex(object):
             syslog=False,
             syslog_host=None,
             syslog_facility=None,
+            additional_metadata=None, # Will be stored in the log (if any)
             encoding='utf-8',
             debug=False):
         self.encoding = encoding
@@ -427,6 +429,7 @@ class BaseMultiplex(object):
         self.term_id = term_id
         self.syslog_host = syslog_host
         self.syslog_buffer = ''
+        self.additional_metadata = additional_metadata
         if self.syslog and not self.syslog_host:
             try:
                 import syslog
@@ -581,12 +584,16 @@ class BaseMultiplex(object):
                 metadata = {
                     'version': '1.0', # Log format version
                     'rows': self.rows,
-                    'cols': self.cols,
+                    'columns': self.cols,
+                    'term_id': self.term_id,
                     'start_date': now.decode('UTF-8') # JSON needs strings
                     # NOTE: end_date should be added later when the is read for
                     # the first time by either the logviewer or the logging
                     # plugin.
                 }
+                # Add any extra metadata to the first frame
+                if self.additional_metadata:
+                    metadata.update(self.additional_metadata)
                 # The hope is that we can use the first-frame-metadata paradigm
                 # to store all sorts of useful information about a log.
                 # NOTE: Using .encode() below to ensure it is bytes in Python 3

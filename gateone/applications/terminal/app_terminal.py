@@ -397,6 +397,7 @@ class TerminalApplication(GOApplication):
         self.plugin_esc_handlers = {}
         self.plugin_auth_hooks = []
         self.plugin_command_hooks = []
+        self.plugin_log_metadata_hooks = []
         self.plugin_new_multiplex_hooks = []
         self.plugin_new_term_hooks = {}
         self.plugin_env_hooks = {}
@@ -416,6 +417,12 @@ class TerminalApplication(GOApplication):
                     self.plugin_command_hooks.extend(hooks['Command'])
                 else:
                     self.plugin_command_hooks.append(hooks['Command'])
+            if 'Metadata' in hooks:
+                # Apply the plugin's 'Metadata' hooks (called by new_multiplex)
+                if isinstance(hooks['Metadata'], (list, tuple)):
+                    self.plugin_log_metadata_hooks.extend(hooks['Metadata'])
+                else:
+                    self.plugin_log_metadata_hooks.append(hooks['Metadata'])
             if 'Multiplex' in hooks:
                 # Apply the plugin's Multiplex hooks (called by new_multiplex)
                 if isinstance(hooks['Multiplex'], (list, tuple)):
@@ -703,13 +710,25 @@ class TerminalApplication(GOApplication):
                 # Create the log dir if not already present
                 if not os.path.exists(log_dir):
                     mkdir_p(log_dir)
-                log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
+                log_suffix = "-{0}.golog".format(
+                    self.current_user['ip_address'])
+                log_name = datetime.now().strftime(
+                    '%Y%m%d%H%M%S%f') + log_suffix
                 log_path = os.path.join(log_dir, log_name)
         facility = string_to_syslog_facility(self.settings['syslog_facility'])
         # This allows plugins to transform the command however they like
         if self.plugin_command_hooks:
             for func in self.plugin_command_hooks:
                 cmd = func(self, cmd)
+        additional_log_metadata = {
+            'ip_address': self.current_user['ip_address'],
+            'user': self.current_user['upn']
+        }
+        # This allows plugins to add their own metadata to .golog files:
+        if self.plugin_log_metadata_hooks:
+            for func in self.plugin_log_metadata_hooks:
+                metadata = func(self)
+                additional_log_metadata.update(metadata)
         m = termio.Multiplex(
             cmd,
             log_path=log_path,
@@ -719,6 +738,7 @@ class TerminalApplication(GOApplication):
             syslog=syslog_logging,
             syslog_facility=facility,
             syslog_host=self.settings['syslog_host'],
+            additional_metadata=additional_log_metadata,
             encoding=encoding
         )
         if self.plugin_new_multiplex_hooks:
