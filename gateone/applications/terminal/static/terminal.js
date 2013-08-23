@@ -470,6 +470,7 @@ go.Base.update(GateOne.Terminal, {
             E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
             go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
         });
+        E.on("go:set_location", go.Terminal.changeLocation);
     },
     __new__: function(settings) {
         /**:GateOne.Terminal.__new__(settings)
@@ -1610,7 +1611,7 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill);
         var lastTerm = null;
-        if (!message) {
+        if (message === undefined) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
         // Tell the server to kill the terminal
@@ -1627,7 +1628,9 @@ go.Base.update(GateOne.Terminal, {
         delete go.Terminal.terminals[term];
         // Now find out what the previous terminal was and move to it
         var terms = u.toArray(u.getNodes('.✈terminal'));
-        go.Visual.displayMessage(message);
+        if (message.length) {
+            go.Visual.displayMessage(message);
+        }
         terms.forEach(function(termObj) {
             lastTerm = termObj;
         });
@@ -1647,9 +1650,11 @@ go.Base.update(GateOne.Terminal, {
         } else {
             // Only open a new terminal if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
             if (!go.prefs.embedded) {
-                if (go.ws.readyState == 1) {
-                    // There are no other terminals and we're still connected.  Open a new one...
-                    go.Terminal.newTerminal();
+                if (sendKill !== false) {
+                    if (go.ws.readyState == 1) {
+                        // There are no other terminals and we're still connected.  Open a new one...
+                        go.Terminal.newTerminal();
+                    }
                 }
             }
         }
@@ -2069,7 +2074,7 @@ go.Base.update(GateOne.Terminal, {
     getLocations: function() {
         /**:GateOne.Terminal.getLocations()
 
-        Sends the `terminal:get_locations` WebSocket action to the server.
+        Sends the `terminal:get_locations` WebSocket action to the server.  This will ultimately trigger the :js:meth:`GateOne.Terminal.locationsAction` function.
         */
         go.ws.send(JSON.stringify({'terminal:get_locations': null}));
     },
@@ -2104,6 +2109,11 @@ go.Base.update(GateOne.Terminal, {
 
             >>> GateOne.Terminal.changeLocation('window2', {'new_term': false}`);
         */
+        var terms = u.toArray(u.getNodes('.✈terminal'));
+        terms.forEach(function(termObj) {
+            // Close all open terminals as quietly as possible
+            go.Terminal.closeTerminal(termObj.id.split('term')[1], false, "", false);
+        });
     },
     reconnectTerminalAction: function(term) {
         /**:GateOne.Terminal.reconnectTerminalAction(term)
@@ -2408,6 +2418,31 @@ go.Base.update(GateOne.Terminal, {
         var suspendedWidget = u.createElement('div', {'id': 'widget_suspended', 'style': {'width': '20em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid', 'background-color': 'white', 'opacity': '0.7'}});
         suspendedWidget.innerHTML = go.Terminal.outputSuspended;
         v.widget('Terminal Output Suspended', suspendedWidget);
+    },
+ // TODO: Finish this...
+    scrollPageUp: function(term) {
+        /**:GateOne.Terminal.scrollPageUp([term])
+
+        Scrolls the given *term* one page up.  If *term* is not given the currently-selected terminal will be used.
+        */
+        if (!term) {
+            term = localStorage[prefix+'selectedTerminal'];
+        }
+        var termNode = go.Terminal.terminals[term]['node'],
+            lines = parseInt(go.Terminal.terminals[term]['rows']);
+        u.scrollLines(termNode, -lines);
+    },
+    scrollPageDown: function(term) {
+        /**:GateOne.Terminal.scrollPageDown([term])
+
+        Scrolls the given *term* one page up.  If *term* is not given the currently-selected terminal will be used.
+        */
+        if (!term) {
+            term = localStorage[prefix+'selectedTerminal'];
+        }
+        var termNode = go.Terminal.terminals[term]['node'],
+            lines = parseInt(go.Terminal.terminals[term]['rows']);
+        u.scrollLines(termNode, lines);
     }
 });
 

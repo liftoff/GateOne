@@ -379,6 +379,9 @@ class TerminalApplication(GOApplication):
         plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         logging.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
+        # Setup some events
+        terminals_func = partial(self.terminals, self)
+        self.ws.on("go:set_location", terminals_func)
         # Attach plugin hooks
         self.plugin_hooks = {}
         # TODO: Keep track of plugins and hooks to determine when they've
@@ -550,11 +553,13 @@ class TerminalApplication(GOApplication):
         self.write_message(message)
 
     @require(authenticated(), policies('terminal'))
-    def terminals(self):
+    def terminals(self, *args, **kwargs):
         """
         Sends a list of the current open terminals to the client using the
         `terminal:terminals` WebSocket action.
         """
+        # Note: *args and **kwargs are present so we can attach this to a go:
+        # event and just ignore the provided arguments.
         logging.debug('terminals()')
         terminals = []
         # Create an application-specific storage space in the locations dict

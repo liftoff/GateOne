@@ -634,6 +634,11 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 } else { // Shift was held down
                     if (t.Input.keyTable[key.string]['shift']) {
                         q(t.Input.keyTable[key.string]['shift']);
+                    // This allows the browser's native pgup and pgdown to scroll up and down when the shift key is held:
+                    } else if (key.string == 'KEY_PAGE_UP') {
+                        t.scrollPageUp();
+                    } else if (key.string == 'KEY_PAGE_DOWN') {
+                        t.scrollPageDown();
                     } else if (t.Input.keyTable[key.string][keyboard]) { // Fall back to the mode's non-shift value
                         q(t.Input.keyTable[key.string][keyboard]);
                     }

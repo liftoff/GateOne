@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130821221010";
+GateOne.__commit__ = "20130821222058";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1285,9 +1285,20 @@ GateOne.Base.update(GateOne.Utils, {
         */
         // Lines are calculated based on the EM height of text in the element.
         logDebug('scrollLines(' + elem + ', ' + lines + ')');
-        var node = GateOne.Utils.getNode(elem),
-            emDimensions = GateOne.Utils.getEmDimensions(elem);
-        node.scrollTop = node.scrollTop + (emDimensions.h * lines);
+        var node = go.Utils.getNode(elem),
+            emDimensions = GateOne.Utils.getEmDimensions(elem),
+            negative = (lines < 0),
+            absoluteVal = Math.abs(lines),
+            fullPage = emDimensions.h * absoluteVal,
+            scrollTop = node.scrollTop;
+        node.scrollIntoView(true);
+        console.log('scrollTop: ' + scrollTop, ', fullPage: ' + fullPage + ', scrollHeight: ' + node.scrollHeight);
+        if (negative) {
+            node.scrollTop = scrollTop - fullPage;
+        } else {
+            node.scrollTop = scrollTop + fullPage;
+        }
+        console.log('WHY IS SCROLLTOP RESETTING?!? node.scrollTop: ' + node.scrollTop);
     },
     scrollToBottom: function(elem) {
         /**:GateOne.Utils.scrollToBottom(elem)
@@ -3145,6 +3156,10 @@ GateOne.Base.update(GateOne.Net, {
         Sets :js:attr:`GateOne.location` to *location* and sends a message (the `go:set_location` WebSocket action) to the Gate One server telling it to change the current location to *location*.
         */
         go.location = location;
+        if (!go.prefs.embedded) {
+            // Set the URL to reflect the proper location in case the user reloads the page
+            history.pushState({}, document.title, "?location=" + location);
+        }
         go.ws.send(JSON.stringify({'go:set_location': location}));
         go.Events.trigger("go:set_location", location);
     }
