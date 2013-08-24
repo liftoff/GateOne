@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130821222058";
+GateOne.__commit__ = "20130822221340";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1286,19 +1286,20 @@ GateOne.Base.update(GateOne.Utils, {
         // Lines are calculated based on the EM height of text in the element.
         logDebug('scrollLines(' + elem + ', ' + lines + ')');
         var node = go.Utils.getNode(elem),
-            emDimensions = GateOne.Utils.getEmDimensions(elem),
+            emDimensions = go.Utils.getEmDimensions(elem),
             negative = (lines < 0),
             absoluteVal = Math.abs(lines),
             fullPage = emDimensions.h * absoluteVal,
             scrollTop = node.scrollTop;
-        node.scrollIntoView(true);
-        console.log('scrollTop: ' + scrollTop, ', fullPage: ' + fullPage + ', scrollHeight: ' + node.scrollHeight);
+        if (go.Utils.scrollTopTemp) {
+            scrollTop = go.Utils.scrollTopTemp;
+        }
         if (negative) {
             node.scrollTop = scrollTop - fullPage;
         } else {
             node.scrollTop = scrollTop + fullPage;
         }
-        console.log('WHY IS SCROLLTOP RESETTING?!? node.scrollTop: ' + node.scrollTop);
+        go.Utils.scrollTopTemp = node.scrollTop;
     },
     scrollToBottom: function(elem) {
         /**:GateOne.Utils.scrollToBottom(elem)
@@ -3440,6 +3441,14 @@ GateOne.Base.update(GateOne.Input, {
         if (goIn.composition) {
             return true; // Let the IME handle this keystroke
         }
+        if (modifiers.shift) {
+            // Reset go.Utils.scrollTopTemp if something other than PgUp or PgDown was pressed
+            if (key.string != 'KEY_PAGE_UP' && key.string != 'KEY_PAGE_DOWN') {
+                delete go.Utils.scrollTopTemp;
+            }
+        } else {
+            delete go.Utils.scrollTopTemp; // Reset it for everything else
+        }
         // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
         for (var k in shortcuts) {
             if (key.string == k) {
@@ -3949,13 +3958,28 @@ GateOne.Base.update(GateOne.Visual, {
             }, 1100);
         }
     },
+    // TODO: Add support for 0 removeTimeout for message that need to be confirmed
     displayMessage: function(message, /*opt*/timeout, /*opt*/removeTimeout, /*opt*/id) {
-        /* Displays a message to the user that sticks around for *timeout* (milliseconds) after which a *removeTimeout* (milliseconds) timer will be started after which the element will be removed (*removeTimeout* is meant to allow for a CSS3 effect to finish).
-        If *timeout* is not given it will default to 1000 milliseconds.
-        If *removeTimeout* is not given it will default to 5000 milliseconds.
-        If *id* not is given, the DIV that is created to contain the message will have its ID set to "GateOne.prefs.prefix+'notice'".
-        If multiple messages appear at the same time they will be stacked.
-        NOTE: The show/hide effect is expected to be controlled via CSS based on the DIV ID.
+        /**:GateOne.Visual.displayMessage(message[, timeout[, removeTimeout[, id]]])
+
+        :param string message: The message to display.
+        :param integer timeout: Milliseconds; How long to display the message before starting the *removeTimeout* timer.  **Default:** 1000.
+        :param integer removeTimeout: Milliseconds; How long to delay before calling :js:func:`GateOne.Utils.removeElement` on the message DIV.  **Default:** 5000.
+        :param string id: The ID to assign the message DIV.  **Default:** "notice".
+
+        .. figure:: screenshots/gateone_displaymessage.png
+            :class: portional-screenshot
+            :align: right
+
+        Displays *message* to the user via a transient pop-up DIV that will appear inside :js:attr:`GateOne.prefs.goDiv`.  How long the message lasts can be controlled via *timeout* and *removeTimeout* (which default to 1000 and 5000, respectively).
+
+        If *id* is given, it will be prefixed with :js:attr:`GateOne.prefs.prefix` and used as the DIV ID for the pop-up.  i.e. ``GateOne.prefs.prefix+id``.  The default is ``GateOne.prefs.prefix+"notice"``.
+
+        .. code-block:: javascript
+
+            GateOne.Visual.displayMessage('This is a test.');
+
+        .. note:: The default is to display the message in the lower-right corner of :js:attr:`GateOne.prefs.goDiv` but this can be controlled via CSS.
         */
         logInfo('displayMessage(): ' + message); // Useful for looking at previous messages
         if (!id) {

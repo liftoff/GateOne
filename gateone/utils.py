@@ -759,14 +759,15 @@ def get_process_tree(parent_pid):
     walk_pids(pidmap, parent_pid)
     return out
 
-def kill_dtached_proc(session, term):
+def kill_dtached_proc(session, location, term):
     """
-    Kills the dtach processes associated with the given *term* and all its
-    sub-processes.  Requires *session* so it can figure out the right
-    processess to kill.
+    Kills the dtach processes associated with the given *session* that matches
+    the given *location* and *term*.  All the dtach'd sub-processes will be
+    killed as well.
     """
-    logging.debug('kill_dtached_proc(%s, %s)' % (session, term))
-    dtach_socket_name = 'dtach_%s' % term
+    logging.debug('kill_dtached_proc(%s, %s, %s)' % (session, location, term))
+    dtach_socket_name = 'dtach_{location}_{term}'.format(
+        location=location, term=term)
     to_kill = []
     for f in os.listdir('/proc'):
         pid_dir = os.path.join('/proc', f)
@@ -792,7 +793,7 @@ def kill_dtached_proc(session, term):
             except OSError:
                 pass # Process already died.  Not a problem.
 
-def kill_dtached_proc_bsd(session, term):
+def kill_dtached_proc_bsd(session, location, term):
     """
     A BSD-specific implementation of `kill_dtached_proc` since Macs don't have
     /proc.  Seems simpler than :func:`kill_dtached_proc` but actually having to
@@ -807,9 +808,9 @@ def kill_dtached_proc_bsd(session, term):
         psopts = "-aux"
     cmd = (
         "%s %s | "
-        "grep %s/dtach_%s | " # Limit to those matching our session/term combo
+        "grep %s/dtach_%s_%s | " # Match our session/location/term combo
         "grep -v grep | " # Get rid of grep from the results (if present)
-        "awk '{print $2}' " % (ps, psopts, session, term) # Just the PID please
+        "awk '{print $2}' " % (ps, psopts, session, location, term) # Just PID
     )
     logging.debug('kill cmd: %s' % cmd)
     exitstatus, output = shell_command(cmd)

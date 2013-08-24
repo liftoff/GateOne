@@ -94,7 +94,7 @@ def kill_session(session, kill_dtach=False):
                 if loc[term]['multiplex'].isalive():
                     loc[term]['multiplex'].terminate()
                 if kill_dtach:
-                    kill_dtached_proc(session, term)
+                    kill_dtached_proc(session, location, term)
 
 def policy_new_terminal(cls, policy):
     """
@@ -1099,7 +1099,7 @@ class TerminalApplication(GOApplication):
         try:
             if self.ws.settings['dtach']: # dtach needs special love
                 from utils import kill_dtached_proc
-                kill_dtached_proc(self.ws.session, term)
+                kill_dtached_proc(self.ws.session, self.ws.location, term)
             if multiplex.isalive():
                 multiplex.terminate()
         except KeyError:

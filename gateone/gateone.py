@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130821222058" # Gets replaced by git (holds the date/time)
+__commit__ = "20130822221340" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -853,7 +853,11 @@ class StaticHandler(tornado.web.StaticFileHandler):
         access to static content for applications embedding Gate One.
         Specifically, this is necessary in order to support loading fonts
         from different origins.
+
+        Also sets the 'X-UA-Compatible' header to 'IE=edge' to enforce IE 10+
+        into standards mode when content is loaded from intranet sites.
         """
+        self.set_header('X-UA-Compatible', 'IE=edge')
         self.set_header('Access-Control-Allow-Origin', '*')
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -961,6 +965,8 @@ class MainHandler(BaseHandler):
     @tornado.web.addslash
     # TODO: Get this auto-minifying gateone.js
     def get(self):
+        # Force IE 10 into Standard Mode:
+        self.set_header('X-UA-Compatible', 'IE=edge')
         hostname = os.uname()[1]
         location = self.get_argument("location", "default")
         prefs = self.get_argument("prefs", None)

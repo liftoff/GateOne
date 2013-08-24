@@ -439,14 +439,15 @@ WebSocket Commands
 # WebSocket commands (not the same as handlers)
 def get_connect_string(self, term):
     """
-    Writes the connection string associated with *term* to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    Attached to the (server-side) `terminal:ssh_get_connect_string` WebSocket
+    action; writes the connection string associated with *term* to the WebSocket
     like so::
 
-        {'sshjs_reconnect': {*term*: <connection string>}}
+        {'terminal:sshjs_reconnect': {*term*: <connection string>}}
 
-    In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`
-    for 'sshjs_reconnect' messages that attaches the connection string to
-    `GateOne.Terminal.terminals[*term*]['sshConnectString']`
+    In ssh.js we attach a WebSocket action to 'terminal:sshjs_reconnect'
+    that assigns the connection string sent by this function to
+    `GateOne.Terminal.terminals[*term*]['sshConnectString']`.
     """
     logging.debug("get_connect_string() term: %s" % term)
     session = self.ws.session

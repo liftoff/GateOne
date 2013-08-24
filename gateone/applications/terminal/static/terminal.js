@@ -2419,7 +2419,6 @@ go.Base.update(GateOne.Terminal, {
         suspendedWidget.innerHTML = go.Terminal.outputSuspended;
         v.widget('Terminal Output Suspended', suspendedWidget);
     },
- // TODO: Finish this...
     scrollPageUp: function(term) {
         /**:GateOne.Terminal.scrollPageUp([term])
 
@@ -2443,6 +2442,14 @@ go.Base.update(GateOne.Terminal, {
         var termNode = go.Terminal.terminals[term]['node'],
             lines = parseInt(go.Terminal.terminals[term]['rows']);
         u.scrollLines(termNode, lines);
+    },
+    terminalChooser: function() {
+        /**:GateOne.Terminal.terminalChooser()
+
+        Pops up a dialog where the user can immediately switch to any terminal in any 'location'.
+
+        .. note:: If the terminal is in a different location the current location will be changed along with all terminals before the switch is made.
+        */
     }
 });
 

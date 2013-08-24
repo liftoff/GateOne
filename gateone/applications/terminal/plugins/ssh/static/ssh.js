@@ -118,6 +118,7 @@ go.Base.update(go.SSH, {
         go.Net.addAction('terminal:sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('terminal:sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
         E.on("terminal:new_terminal", go.SSH.autoConnect);
+        E.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
         }
@@ -963,7 +964,7 @@ go.Base.update(go.SSH, {
     handleConnect: function(connectString) {
         /**:GateOne.SSH.handleConnect(connectString)
 
-        Handles the 'terminal:sshjs_connect' WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
+        Handles the `terminal:sshjs_connect` WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
 
         The *connectString* will be stored in `GateOne.Terminal.terminals[term]['sshConnectString']` which is meant to be used in duplicating terminals (because you can't rely on the title).
 
@@ -980,7 +981,7 @@ go.Base.update(go.SSH, {
     handleReconnect: function(jsonDoc) {
         /**:GateOne.SSH.handleReconnect(jsonDoc)
 
-        Handles the 'sshjs_reconnect' WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example *jsonDoc*::
+        Handles the `terminal:sshjs_reconnect` WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example *jsonDoc*::
 
             {1: 'user@host1:22', 2: 'user@host2:22'}
         */
