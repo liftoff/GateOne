@@ -1,29 +1,5 @@
 @charset "UTF-8";
 /* Gate One solarized theme */
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('{{url_prefix}}static/ubuntumono-bold.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: normal;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('{{url_prefix}}static/ubuntumono-normal.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('{{url_prefix}}static/ubuntumono-bold-italic.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: normal;
-  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
-}
 #{{container}} hr, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
@@ -368,12 +344,11 @@ potential conflicts with other classes that may be on the page.
     z-index: 700; /* Same as toolbar */
     overflow-x: hidden;
     overflow-y: auto;
-    padding-right: 1.2em;
-    padding-top: 0.2em;
-    padding-left: 0.2em;
+    padding-right: .4em;
+    padding-top: .2em;
+    padding-left: .4em;
     font-size: 1em;
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
+    margin: 0.1em;
     max-height: 90%; /* Ensures a scrollbar will appear if the browser window is too small to fit a panel */
     -webkit-transform: scale(0);
     -webkit-transform-origin: top right;
@@ -397,7 +372,7 @@ potential conflicts with other classes that may be on the page.
 .✈panel h2 {
     width: 100%;
     font-size: 1.5em;
-    border-bottom: 0.1em #000 solid;
+    border-bottom: 0.1em #839496 solid;
     position: relative;
     margin-bottom: 0.2em;
     padding-right: 1em; /* Make room for the X icon */
@@ -453,11 +428,11 @@ potential conflicts with other classes that may be on the page.
     cursor:pointer;
 }
 .✈prefs_panel {
-    min-width: 70%;
 }
 .✈prefs_list {
-    float: left;
-    margin-right: .7em;
+    float: right;
+    margin-left: 2em;
+    margin-bottom: 0.5em;
 }
 .✈save_button {
     float: right;
@@ -474,16 +449,9 @@ potential conflicts with other classes that may be on the page.
     padding: .5em;
     -webkit-transition: -webkit-transform 0.25s ease-in-out;
     -moz-transition: -moz-transform 0.25s ease-in-out;
-    -o-transition-property: -o-transform;
-    -o-transition-duration: 0.5s;
-    -o-transition-timing-function: ease-in-out;
-    -ms-transition: -ms-transform 0.5s ease-in-out;
-    transition: transform 0.5s ease-in-out;
-}
-.✈prefs_list li:after {
-    content: "✷";
-    padding-left: 1.5em;
-    float: right;
+    -ms-transition: -ms-transform 0.25s ease-in-out;
+    -o-transition: -o-transform 0.25s ease-in-out;
+    transition: transform 0.25s ease-in-out;
 }
 .✈prefs_list li:hover {
     cursor: pointer;
@@ -500,13 +468,12 @@ potential conflicts with other classes that may be on the page.
 }
 .✈prefs_content {
     float: left;
-    width: 67%;
 }
 .✈sub1 li {
-    padding-left: .9em;
+    padding-left: 0.6em;
 }
 .✈sub1 li:before {
-    content: "⛱ ";
+    content: "⏋ ";
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -571,7 +538,6 @@ potential conflicts with other classes that may be on the page.
     font-size: 0.8em;
     padding-bottom: 0.25em;
     text-align: right;
-    margin-right: -1.2em;
 }
 .✈user_info a:hover {
     cursor: pointer;

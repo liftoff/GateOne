@@ -1502,7 +1502,6 @@ go.Base.update(GateOne.Terminal, {
         } else {
             u.getNode(where).appendChild(terminal);
         }
-        emDimensions = u.getEmDimensions(terminal, terminal.parentNode);
         dimensions = u.getRowsAndColumns(terminal);
         rows = Math.ceil(dimensions.rows - rowAdjust);
         columns = Math.ceil(dimensions.columns - colAdjust);
@@ -1519,8 +1518,7 @@ go.Base.update(GateOne.Terminal, {
         var termSettings = {
                 'term': term,
                 'rows': rows,
-                'columns': columns,
-                'em_dimensions': emDimensions
+                'columns': columns
             },
             slide = u.partial(go.Terminal.switchTerminal, term);
         // Update termSettings with *settings* (overriding with anything that was given)
@@ -1539,6 +1537,7 @@ go.Base.update(GateOne.Terminal, {
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { termSettings.columns = go.prefs.columns };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
+        termSettings['em_dimensions'] = u.getEmDimensions(terminal, terminal.parentNode);
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)

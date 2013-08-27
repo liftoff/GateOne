@@ -791,8 +791,8 @@ class ImageFile(FileType):
                         rendition = term_instance.renditions.pop()
                         term_instance.screen.insert(0, line)
                         term_instance.renditions.insert(0, rendition)
-                        term_instance.cursorY += 1
-                        #term_instance.newline()
+                        if term_instance.cursorY < (term_instance.rows - 1):
+                            term_instance.cursorY += 1
                 # Save the new image location
                 term_instance.screen[
                     term_instance.cursorY][term_instance.cursorX] = ref
@@ -1948,7 +1948,8 @@ class Terminal(object):
         needed.  If *em_dimensions* are provided they will be stored in
         *self.em_dimensions* (which is currently only used by image output).
         """
-        logging.debug("resize(%s, %s)" % (rows, cols))
+        logging.debug(
+            "resize(%s, %s, em_dimensions: %s)" % (rows, cols, em_dimensions))
         if em_dimensions:
             self.em_dimensions = em_dimensions
         if rows == self.rows and cols == self.cols:

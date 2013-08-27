@@ -904,10 +904,7 @@ class TerminalApplication(GOApplication):
             if resumed_dtach:
                 # Send an extra Ctrl-L to refresh the screen and fix the sizing
                 # after it has been reattached.
-                resize = partial(m.resize, rows, cols, ctrl_l=True,
-                                    em_dimensions=self.em_dimensions)
-                m.io_loop.add_timeout(
-                    timedelta(seconds=2), resize)
+                m.write(u'\x0c')
         else:
             # Terminal already exists
             m = term_obj['multiplex']
@@ -1399,7 +1396,7 @@ class TerminalApplication(GOApplication):
                 m.resize(
                     rows,
                     cols,
-                    self.em_dimensions,
+                    em_dimensions=self.em_dimensions,
                     ctrl_l=ctrl_l
                 )
             else: # Resize them all
@@ -1408,7 +1405,8 @@ class TerminalApplication(GOApplication):
                         self.loc_terms[term]['multiplex'].resize(
                             rows,
                             cols,
-                            self.em_dimensions
+                            em_dimensions=self.em_dimensions,
+                            ctrl_l=ctrl_l
                         )
         except KeyError: # Session doesn't exist yet, no biggie
             pass

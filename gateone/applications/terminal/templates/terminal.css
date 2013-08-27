@@ -1,4 +1,29 @@
+@charset "UTF-8";
 /* Generic Terminal application CSS that will be the same across all themes */
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('{{url_prefix}}static/ubuntumono-normal.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: bold;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('{{url_prefix}}static/ubuntumono-bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: bold;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('{{url_prefix}}static/ubuntumono-bold-italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: normal;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
+}
 .✈pastearea {
     font-family: monospace;
     display: block;
@@ -54,4 +79,10 @@
 .✈IME:focus {
     height: 1.2em;
     width: auto;
+}
+.✈font_monospace {
+    font-family: monospace;
+}
+.✈font_ubuntu {
+    font-family: 'Ubuntu Mono';
 }

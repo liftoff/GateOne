@@ -1362,8 +1362,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
             fcntl.fcntl(self.fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
             # Set the size of the terminal
-            resize = partial(self.resize, rows, cols, ctrl_l=False)
-            self.io_loop.add_timeout(timedelta(seconds=2), resize)
+            self.resize(rows, cols, em_dimensions=em_dimensions, ctrl_l=False)
             return fd
 
     def isalive(self):
@@ -1395,8 +1394,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
         The sending of ctrl-l can be disabled by setting *ctrl_l* to False.
         """
-        logging.debug("Resizing term %s to rows: %s, cols: %s" % (
-            self.term_id, rows, cols))
+        logging.debug(
+            "Resizing term %s to rows: %s, cols: %s, em_dimensions=%s"
+            % (self.term_id, rows, cols, em_dimensions))
         if rows < 2:
             rows = 24
         if cols < 2:

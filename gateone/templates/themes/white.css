@@ -1,29 +1,5 @@
 @charset "UTF-8";
 /* Gate One white theme */
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('{{url_prefix}}static/ubuntumono-bold.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: normal;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('{{url_prefix}}static/ubuntumono-normal.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('{{url_prefix}}static/ubuntumono-bold-italic.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: normal;
-  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
-}
 #{{container}} hr, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
@@ -361,17 +337,17 @@ potential conflicts with other classes that may be on the page.
     top:1em;
     right:3.4em;
     display: block;
-    background: #ccc; color: #000;
+    background: #ccc;
+    color: #000;
     font-family: sans-serif;
     z-index: 700; /* Same as toolbar to stay above pasteText */
     overflow-x: hidden;
     overflow-y: auto;
-    padding-right: 1.2em;
-    padding-top: 0.2em;
-    padding-left: 0.2em;
+    padding-right: .4em;
+    padding-top: .2em;
+    padding-left: .4em;
     font-size: 1em;
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
+    margin: 0.1em;
     max-height: 90%; /* Ensures a scrollbar will appear if the browser window is too small to fit a panel */
     -webkit-transform: scale(0);
     -webkit-transform-origin: top right;
@@ -462,11 +438,11 @@ potential conflicts with other classes that may be on the page.
     cursor:pointer;
 }
 .✈prefs_panel {
-    min-width: 60%;
 }
 .✈prefs_list {
-    float: left;
-    margin-right: .7em;
+    float: right;
+    margin-left: 2em;
+    margin-bottom: 0.5em;
 }
 .✈save_button {
     float: right;
@@ -485,16 +461,9 @@ potential conflicts with other classes that may be on the page.
     background-image: linear-gradient(#FFF, #CCC);
     -webkit-transition: -webkit-transform 0.25s ease-in-out;
     -moz-transition: -moz-transform 0.25s ease-in-out;
-    -o-transition-property: -o-transform;
-    -o-transition-duration: 0.5s;
-    -o-transition-timing-function: ease-in-out;
-    -ms-transition: -ms-transform 0.5s ease-in-out;
-    transition: transform 0.5s ease-in-out;
-}
-.✈prefs_list li:after {
-    content: "➤";
-    padding-left: 1.5em;
-    float: right;
+    -ms-transition: -ms-transform 0.25s ease-in-out;
+    -o-transition: -o-transform 0.25s ease-in-out;
+    transition: transform 0.25s ease-in-out;
 }
 .✈prefs_list li:hover {
     cursor: pointer;
@@ -515,7 +484,10 @@ potential conflicts with other classes that may be on the page.
     float: left;
 }
 .✈sub1 li {
-    padding-left: 1.5em;
+    padding-left: 0.6em;
+}
+.✈sub1 li:before {
+    content: "⏋ ";
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -580,7 +552,6 @@ potential conflicts with other classes that may be on the page.
     font-size: 0.8em;
     padding-bottom: 0.25em;
     text-align: right;
-    margin-right: -1.2em;
 }
 .✈user_info a:hover {
     cursor: pointer;
