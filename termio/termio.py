@@ -1362,7 +1362,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
             fcntl.fcntl(self.fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
             # Set the size of the terminal
-            self.resize(rows, cols, em_dimensions=em_dimensions, ctrl_l=False)
+            resize = partial(self.resize, rows, cols, ctrl_l=False)
+            self.io_loop.add_timeout(timedelta(milliseconds=100), resize)
             return fd
 
     def isalive(self):

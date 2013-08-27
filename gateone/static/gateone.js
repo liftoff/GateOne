@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130823204214";
+GateOne.__commit__ = "20130826211949";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1464,7 +1464,7 @@ GateOne.Base.update(GateOne.Utils, {
                 node.style.display = '';
                 node.style.opacity = 1;
             }
-            node.className = "✈terminal";
+            node.className = "✈noanimate ✈terminal";
             // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
             for (var i=0; i <= 63; i++) {
                 fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)

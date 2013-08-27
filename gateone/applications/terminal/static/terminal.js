@@ -619,17 +619,14 @@ go.Base.update(GateOne.Terminal, {
         if (!terminalObj) {
             return; // Nothing to do (terminal not open yet or was already removed)
         }
-        var terminalNode = terminalObj['terminal'],
-            termPre = terminalObj['node'],
-            screenNode = terminalObj['screenNode'],
-            emHeight = u.getEmDimensions(terminalNode, terminalNode.parentNode).h;
+        var termPre = terminalObj['node'];
         if (u.isVisible(termPre)) {
             for (var termNum in go.Terminal.terminals) {
                 if (termNum % 1 === 0) { // Actual terminal objects are integers
                     go.Terminal.sendDimensions(termNum);
                 }
             };
-            var parentHeight = termPre.parentElement.clientHeight;
+            var parentHeight = termPre.parentNode.clientHeight;
             if (parentHeight) {
                 termPre.style.height = parentHeight + 'px';
             } else {
@@ -766,7 +763,7 @@ go.Base.update(GateOne.Terminal, {
         var termNode = termObj['terminal'],
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-            emDimensions = u.getEmDimensions(termNode, termNode.parentNode),
+            emDimensions = u.getEmDimensions(termNode, termNode.parentNode.parentNode),
             dimensions = u.getRowsAndColumns(termNode),
             prefs = {
                 'term': term,
@@ -1537,9 +1534,6 @@ go.Base.update(GateOne.Terminal, {
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { termSettings.columns = go.prefs.columns };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
-        termSettings['em_dimensions'] = u.getEmDimensions(terminal, terminal.parentNode);
-        // Tell the server to create a new terminal process
-        go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
         screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'})
@@ -1582,6 +1576,9 @@ go.Base.update(GateOne.Terminal, {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
             setTimeout(slide, 100);
         }
+        termSettings['em_dimensions'] = u.getEmDimensions(terminal, terminal.parentNode.parentNode);
+        // Tell the server to create a new terminal process
+        go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
             go.Logging.deprecated("newTermCallbacks", "Use GateOne.Events.on('terminal:new_terminal', func) instead.");
@@ -1945,7 +1942,7 @@ go.Base.update(GateOne.Terminal, {
                 var termPreNode = go.Terminal.terminals[termNum]['node'],
                     termScreen = go.Terminal.terminals[termNum]['screenNode'],
                     termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
-                    parentHeight = termPreNode.parentElement.clientHeight;
+                    parentHeight = termPreNode.parentNode.clientHeight;
                 if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
                     return; // We're done here
                 }
@@ -2117,7 +2114,7 @@ go.Base.update(GateOne.Terminal, {
     reconnectTerminalAction: function(term) {
         /**:GateOne.Terminal.reconnectTerminalAction(term)
 
-        Called when the server reports that the terminal number supplied via 'new_terminal' already exists.
+        Called when the server reports that the terminal number supplied via 'terminal:new_terminal' already exists.
         */
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(' + term + ')');
@@ -2377,7 +2374,7 @@ go.Base.update(GateOne.Terminal, {
                         return true;
                     }
                 } else if ( (sel = document.selection) && sel.type != "Control") {
-                    return isOrContains(sel.createRange().parentElement(), el);
+                    return isOrContains(sel.createRange().parentNode(), el);
                 }
                 return false;
             },
