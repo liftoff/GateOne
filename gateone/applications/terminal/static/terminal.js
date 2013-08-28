@@ -53,7 +53,6 @@ go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-n
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
-go.prefs['scrollback'] = go.prefs['scrollback'] || 500, // Amount of lines to keep in the scrollback buffer
 go.prefs['rows'] = go.prefs['rows'] || null; // Override the automatically calculated value (null means fill the window)
 go.prefs['columns'] = go.prefs['columns'] || null; // Ditto
 go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If false selecting text will not result in other occurences of that text being highlighted
@@ -65,6 +64,9 @@ go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false
 go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
                             // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
 go.prefs['colAdjust'] = go.prefs['colAdjust'] || 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
+if(isNaN(go.prefs['scrollback'])) {
+    go.prefs['scrollback'] = 500;
+}
 // This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
 go.noSavePrefs['webWorker'] = null;
 go.noSavePrefs['rowAdjust'] = null;
@@ -925,6 +927,9 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return; // Can happen if the terminal is closed immediately after being opened
         }
+        if (go.prefs.scrollback == 0) {
+            return; // Don't bother if scrollback has been disabled
+        }
         var termPre = go.Terminal.terminals[term]['node'],
             screenSpan = go.Terminal.terminals[term]['screenNode'];
         if (!termPre) {
@@ -1055,6 +1060,9 @@ go.Base.update(GateOne.Terminal, {
                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
                 u.noop(); // Just ignore it.
             }
+        }
+        if (go.prefs.scrollback == 0) {
+            scrollback = []; // Empty it out since the user has disabled the scrollback buffer
         }
         if (scrollback.length && go.Terminal.terminals[term]['scrollback'].toString() != scrollback.toString()) {
             var reScrollback = u.partial(GateOne.Terminal.enableScrollback, term),
@@ -1548,6 +1556,10 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.terminals[term]['screenNode'] = screenSpan;
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+        if (go.prefs.scrollback == 0) {
+            // This ensures the scrollback buffer stays hidden if scrollback is 0
+            termPre.style['overflow-y'] = 'hidden';
+        }
         termPre.appendChild(screenSpan);
         terminal.appendChild(termPre);
         u.scrollToBottom(termPre);
@@ -1936,9 +1948,10 @@ go.Base.update(GateOne.Terminal, {
         If *term* is given, only disable scrollback for that terminal.
         */
         logDebug('enableScrollback(' + term + ')');
-        var u = go.Utils,
-            prefix = go.prefs.prefix,
-            enableSB = function(termNum) {
+        if (go.prefs.scrollback == 0) {
+            return; // Don't re-enable scrollback if it has been disabled
+        }
+        var enableSB = function(termNum) {
                 var termPreNode = go.Terminal.terminals[termNum]['node'],
                     termScreen = go.Terminal.terminals[termNum]['screenNode'],
                     termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
