@@ -360,6 +360,9 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:reset_terminal': localStorage[prefix+'selectedTerminal']}));
         }
         div.appendChild(resetTermButton);
+        if (go.prefs.scrollback == 0) {
+            go.Terminal.colAdjust = 0; // No need to adjust if the scrollbar isn't present
+        }
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
         if (!go.prefs.embedded) {
