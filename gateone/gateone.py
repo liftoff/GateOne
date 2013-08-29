@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130826222314" # Gets replaced by git (holds the date/time)
+__commit__ = "20130827222111" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -546,6 +546,12 @@ from utils import write_pid, read_pid, remove_pid, drop_privileges, get_or_cache
 from utils import check_write_permissions, get_applications, get_settings
 from onoff import OnOffMixin
 
+# Setup our base loggers (these get overwritten in main())
+from golog import go_logger
+logger = go_logger(None)
+auth_log = go_logger('gateone.auth')
+msg_log = go_logger('gateone.message')
+
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
 user_locale = None # Replaced with the actual user locale object in __main__
@@ -664,7 +670,7 @@ def cleanup_user_logs():
             mtime = datetime.fromtimestamp(time.mktime(mtime))
             if datetime.now() - mtime > max_age:
                 # The log is older than max_age, remove it
-                logging.info(_("Removing log due to age (>%s old): %s" % (
+                logger.info(_("Removing log due to age (>%s old): %s" % (
                     max_age_str, log_path)))
                 os.remove(log_path)
     for user in os.listdir(user_dir):
@@ -776,7 +782,7 @@ def timeout_sessions():
         #logging.debug("timeout_sessions() TIMEOUT: disabled")
     try:
         if not SESSIONS: # Last client has timed out
-            logging.info(_("All user sessions have terminated."))
+            logger.info(_("All user sessions have terminated."))
             global SESSION_WATCHER
             if SESSION_WATCHER:
                 SESSION_WATCHER.stop() # Stop ourselves
@@ -786,7 +792,7 @@ def timeout_sessions():
             # necessary due to Gate One's prodigous use of dynamic imports but
             # in reality people will see an idle gateone.py eating up 30 megs of
             # RAM and wonder, "WTF...  No one has connected in weeks."
-            logging.info(_("The last idle session has timed out. Reloading..."))
+            logger.info(_("The last idle session has timed out. Reloading..."))
             try:
                 os.execv(sys.executable, [sys.executable] + sys.argv)
             except OSError:
@@ -806,14 +812,14 @@ def timeout_sessions():
             if TIMEOUT == disabled or \
                 datetime.now() > SESSIONS[session]["last_seen"] + TIMEOUT:
                 # Kill the session
-                logging.info(_("{session} timeout.".format(session=session)))
+                logger.info(_("{session} timeout.".format(session=session)))
                 if "timeout_callbacks" in SESSIONS[session]:
                     if SESSIONS[session]["timeout_callbacks"]:
                         for callback in SESSIONS[session]["timeout_callbacks"]:
                             callback(session)
                 del SESSIONS[session]
     except Exception as e:
-        logging.info(_(
+        logger.error(_(
             "Exception encountered in timeout_sessions(): {exception}".format(
                 exception=e)
         ))
@@ -896,7 +902,7 @@ class DownloadHandler(BaseHandler):
         if user and 'session' in user:
             session = user['session']
         else:
-            logging.error(_("DownloadHandler: Could not determine use session"))
+            logger.error(_("DownloadHandler: Could not determine use session"))
             return # Something is wrong
         filepath = os.path.join(session_dir, session, 'downloads', path)
         abspath = os.path.abspath(filepath)
@@ -1148,6 +1154,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:set_location': self.set_location,
             'go:set_locale': self.set_locale,
         }
+        # Setup some instance-specific loggers that we can later update with
+        # more metadata
+        self.logger = go_logger(None)
+        self.msg_log = go_logger('gateone.auth')
+        self.auth_log = go_logger('gateone.message')
         self._events = {}
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
@@ -1169,7 +1180,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         If changes are detected the corresponding function(s) in
         `ApplicationWebSocket.file_update_funcs` will be called.
         """
-        #logging.debug("file_checker()") # Kinda noisy so I've commented it out
+        #logging.debug("file_checker()") # Noisy so I've commented it out
         if not SESSIONS:
             # No connected sessions; no point in watching files
             cls.file_watcher.stop()
@@ -1185,7 +1196,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for path, mtime in list(cls.watched_files.items()):
             if not os.path.exists(path):
                 # Someone deleted something they shouldn't have
-                logging.error(_(
+                logger.error(_(
                     "{path} has been removed.  Removing from file "
                     "checker.".format(path=path)))
                 del cls.watched_files[path]
@@ -1198,10 +1209,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 cls.watched_files[path] = current_mtime
                 cls.file_update_funcs[path]()
             except Exception as e:
-                logging.error(_(
+                logger.error(_(
                     "Exception encountered trying to execute the file update "
                     "function for {path}...".format(path=path)))
-                logging.error(e)
+                logger.error(e)
                 if options.logging == 'debug':
                     import traceback
                     traceback.print_exc(file=sys.stdout)
@@ -1258,7 +1269,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             message = f.read()
         if message:
             message = message.rstrip()
-            logging.info("Broadcast (via broadcast_file): %s" % message)
+            msg_log.info("Broadcast (via broadcast_file): %s" % message)
             message_dict = {'go:notice': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
             io.open(broadcast_file, 'w').write(u'') # Empty it out
@@ -1383,7 +1394,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if origin not in valid_origins:
                 self.origin_denied = True
                 denied_msg = _("Access denied for origin: %s" % origin)
-                logging.error(denied_msg)
+                auth_log.error(denied_msg)
                 self.write_message(denied_msg)
                 self.write_message(_(
                     "If you feel this is incorrect you just have to add '%s' to"
@@ -1401,13 +1412,18 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # NOTE: self.current_user will call self.get_current_user() the first
         # time it is used.
         if user and 'upn' in user:
-            logging.info(
+            # Update our loggers to include the user metadata
+            metadata = {'upn': user['upn'], 'ip_address': user['ip_address']}
+            self.logger = go_logger(None, **metadata)
+            self.auth_log = go_logger('gateone.auth', **metadata)
+            self.msg_log = go_logger('gateone.message', **metadata)
+            auth_log.info( # Use global auth_log so we're not redundant
                 _("WebSocket opened (%s %s) via origin %s.") % (
                     user['upn'], client_address, origin))
         else:
-            logging.info(_("WebSocket opened (unknown user)."))
+            auth_log.info(_("WebSocket opened (unknown user)."))
         if user and 'upn' not in user: # Invalid user info
-            logging.error(_("Unauthenticated WebSocket attempt."))
+            auth_log.error(_("Unauthenticated WebSocket attempt."))
             # In case this is a legitimate client that simply had its auth info
             # expire/go bad, tell it to re-auth by calling the appropriate
             # action on the other side.
@@ -1447,7 +1463,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # This is super useful when debugging:
         logging.debug("message: %s" % repr(message))
         if self.origin_denied:
-            logging.error(_("Message rejected due to invalid origin."))
+            self.auth_log.error(_("Message rejected due to invalid origin."))
             self.close() # Close the WebSocket
         message_obj = None
         try:
@@ -1465,7 +1481,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         PLUGIN_WS_CMDS[key](value, tws=self)
                         # tws==ApplicationWebSocket
                     except (KeyError, TypeError, AttributeError) as e:
-                        logging.error(_(
+                        self.logger.error(_(
                             "Error running plugin WebSocket action: %s" % key))
                 else:
                     try:
@@ -1478,7 +1494,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         import traceback
                         for frame in traceback.extract_tb(sys.exc_info()[2]):
                             fname, lineno, fn, text = frame
-                        logging.error(_(
+                        self.logger.error(_(
                          "Error/Unknown WebSocket action, %s: %s (%s line %s)" %
                          (key, e, fname, lineno)))
                         if self.settings['logging'] == 'debug':
@@ -1499,10 +1515,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # Update 'last_seen' with a datetime object for accuracy
             SESSIONS[user['session']]['last_seen'] = datetime.now()
         if user and 'upn' in user:
-            logging.info(
+            self.auth_log.info(
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
         else:
-            logging.info(_("WebSocket closed (unknown user)."))
+            self.auth_log.info(_("WebSocket closed (unknown user)."))
         # Call applications' on_close() functions (if any)
         for app in self.apps:
             if hasattr(app, 'on_close'):
@@ -1547,14 +1563,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             try:
                 user = self.current_user
                 if not user:
-                    logging.error(_("Unauthenticated WebSocket attempt."))
+                    self.auth_log.error(_("Unauthenticated WebSocket attempt."))
                     # This usually happens when the cookie_secret gets changed
                     # resulting in "Invalid cookie..." errors.  If we tell the
                     # client to re-auth the problem should correct itself.
                     self.write_message(json_encode(reauth))
                     return
                 elif user and user['upn'] == 'ANONYMOUS':
-                    logging.error(_("Unauthenticated WebSocket attempt."))
+                    self.auth_log.error(_("Unauthenticated WebSocket attempt."))
                     # This can happen when a client logs in with no auth type
                     # configured and then later the server is configured to use
                     # authentication.  The client must be told to re-auth:
@@ -1610,14 +1626,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         'HMAC-SHA512': hashlib.sha512,
                     }
                     if signature_method not in supported_hmacs:
-                        logging.error(_(
+                        self.auth_log.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API auth '
                                 'signature method: %s' % signature_method))
                         self.write_message(json_encode(reauth))
                         return
                     hmac_algo = supported_hmacs[signature_method]
                     if api_version != "1.0":
-                        logging.error(_(
+                        self.auth_log.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API version:'
                                 '%s' % api_version))
                         self.write_message(json_encode(reauth))
@@ -1625,7 +1641,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     try:
                         secret = self.settings['api_keys'][api_key]
                     except KeyError:
-                        logging.error(_(
+                        self.auth_log.error(_(
                             'AUTHENTICATION ERROR: API Key not found.'))
                         self.write_message(json_encode(reauth))
                         return
@@ -1639,7 +1655,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         # api_timestamp_window setting and whether or not we've
                         # already used it (to prevent replay attacks).
                         if signature in self.prev_signatures:
-                            logging.error(_(
+                            self.auth_log.error(_(
                             "API authentication replay attack detected!  User: "
                             "%s, Remote IP: %s, Origin: %s" % (
                                 upn, self.request.remote_ip, self.origin)))
@@ -1653,7 +1669,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         then = datetime.fromtimestamp(int(timestamp)/1000)
                         time_diff = datetime.now() - then
                         if time_diff > window:
-                            logging.error(_(
+                            self.auth_log.error(_(
                             "API authentication failed due to an expired auth "
                             "object.  If you just restarted the server this is "
                             "normal (users just need to reload the page).  If "
@@ -1677,7 +1693,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 # Make a directory to store this user's settings/files/logs/etc
                         user_dir = os.path.join(self.settings['user_dir'], upn)
                         if not os.path.exists(user_dir):
-                            logging.info(
+                            self.logger.info(
                                 _("Creating user directory: %s" % user_dir))
                             mkdir_p(user_dir)
                             os.chmod(user_dir, 0o770)
@@ -1712,14 +1728,23 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         self.user['ip_address'] = self.request.remote_ip
                         # Force-set the current user:
                         self._current_user = self.user
+                        # Update our loggers to include the user metadata
+                        metadata = {
+                            'upn': self.user['upn'],
+                            'ip_address': self.user['ip_address']
+                        }
+                        self.logger = go_logger(None, **metadata)
+                        self.auth_log = go_logger('gateone.auth', **metadata)
+                        self.msg_log = go_logger('gateone.message', **metadata)
                     else:
-                        logging.error(_(
+                        self.auth_log.error(_(
                             "WebSocket auth failed signature check."))
                         message = {'go:reauthenticate': True}
                         self.write_message(json_encode(message))
                         return
             else:
-                logging.error(_("Missing API Key in authentication object"))
+                self.auth_log.error(_(
+                    "Missing API Key in authentication object"))
                 message = {'go:reauthenticate': True}
                 self.write_message(json_encode(message))
                 return
@@ -1741,7 +1766,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     # but this server isn't configured with 'auth = "api"'.
                     # Let's be real user-friendly and point out this mistake
                     # with a helpful error message...
-                    logging.error(_(
+                    self.auth_log.error(_(
                         "Client tried to use API-based authentication but this "
                         "server is configured with 'auth = \"{0}\"'.  Did you "
                         "forget to set 'auth = \"api\" in your settings?"
@@ -1773,12 +1798,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if user and 'session' in user:
                 self.session = user['session']
             else:
-                logging.error(_("Authentication failed for unknown user"))
+                self.auth_log.error(_("Authentication failed for unknown user"))
                 message = {'go:notice': _('AUTHENTICATION ERROR: User unknown')}
                 self.write_message(json_encode(message))
                 return
         except Exception as e:
-            logging.error(_(
+            self.logger.error(_(
                 "Exception encountered trying to authenticate: %s" % e))
             return
         try:
@@ -1787,7 +1812,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 for auth_hook in PLUGIN_AUTH_HOOKS:
                     auth_hook(self, self.current_user, self.settings)
         except Exception as e:
-            logging.error(_("Exception in registered Auth hook: %s" % e))
+            self.logger.error(_("Exception in registered Auth hook: %s" % e))
         # Apply the container/prefix settings (if present)
         if 'container' in settings:
             self.container = settings['container']
@@ -1797,7 +1822,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.location = 'default'
         if 'location' in settings:
             self.location = settings['location']
-        logging.info(
+        auth_log.info(
             _("User {upn} authenticated successfully via origin {origin}"
               " (location: {location}).").format(
                   upn=user['upn'], origin=self.origin, location=self.location))
@@ -2073,7 +2098,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
             if not hasattr('logged_css_message', self):
-                logging.info(_(
+                self.logger.info(_(
                     "send_css is false; will not send JavaScript."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
@@ -2200,7 +2225,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         in GATEONE_DIR/static/ the plugin's copy of the file will take
         precedence.  This is to allow plugins to override defaults.
 
-        .. note:: This will alow authenticated clients to download whatever file they want that ends in .js inside of /static/ directories.
+        .. note::
+
+            This will alow authenticated clients to download whatever file they
+            want that ends in .js inside of /static/ directories.
         """
         logging.debug('get_js(%s)' % filename)
         out_dict = {'result': 'Success', 'filename': filename, 'data': None}
@@ -2400,7 +2428,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             send_js = self.prefs['*']['gateone'].get('send_js', True)
             if not send_js:
                 if not hasattr('logged_js_message', self):
-                    logging.info(_(
+                    self.logger.info(_(
                         "send_js is false; will not send JavaScript."))
                 # So we don't repeat this message a zillion times in the logs:
                 self.logged_js_message = True
@@ -2409,7 +2437,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             send_css = self.prefs['*']['gateone'].get('send_css', True)
             if not send_css:
                 if not hasattr('logged_css_message', self):
-                    logging.info(_("send_css is false; will not send CSS."))
+                    self.logger.info(_("send_css is false; will not send CSS."))
                 # So we don't repeat this message a zillion times in the logs:
                 self.logged_css_message = True
         use_client_cache = self.prefs['*']['gateone'].get(
@@ -2468,7 +2496,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         mtime = os.stat(path).st_mtime
         logging.debug('send_js_or_css(%s) (mtime: %s)' % (path, mtime))
         if not os.path.exists(path):
-            logging.error(_("send_js_or_css(): File not found: %s" % path))
+            self.logger.error(_("send_js_or_css(): File not found: %s" % path))
             return
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
@@ -2543,7 +2571,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
             if not hasattr('logged_css_message', self):
-                logging.info(_("send_css is false; will not send CSS."))
+                self.logger.info(_("send_css is false; will not send CSS."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
             return
@@ -2599,7 +2627,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         send_js = self.prefs['*']['gateone'].get('send_js', True)
         if not send_js:
             if not hasattr('logged_js_message', self):
-                logging.info(_("send_js is false; will not send JavaScript."))
+                self.logger.info(_(
+                    "send_js is false; will not send JavaScript."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_js_message = True
             return
@@ -2690,7 +2719,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     message = {'go:register_translation': decoded}
                     self.write_message(message)
             else:
-                logging.error(
+                self.logger.error(
                     _("Translation file, %s could not be found") % path)
         elif os.path.exists(json_translation):
             with io.open(json_translation, 'r', encoding="utf-8") as f:
@@ -2749,7 +2778,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Sends the given *message* (string) to all connected, authenticated
         users.
         """
-        logging.info("Broadcast: %s" % message)
+        self.msg_log.info("Broadcast: %s" % message)
         from utils import strip_xss # Prevent XSS attacks
         message, bad_tags = strip_xss(message, replacement="entities")
         self.send_message(message, upn="AUTHENTICATED")
@@ -2900,9 +2929,9 @@ class GateOneApp(tornado.web.Application):
                 AuthHandler = SSLAuthHandler
             elif settings['auth'] == 'api':
                 AuthHandler = APIAuthHandler
-            logging.info(_("Using %s authentication") % settings['auth'])
+            auth_log.info(_("Using %s authentication") % settings['auth'])
         else:
-            logging.info(_(
+            auth_log.info(_(
                 "No authentication method configured. All users will be "
                 "ANONYMOUS"))
         docs_path = os.path.join(GATEONE_DIR, 'docs')
@@ -3028,7 +3057,7 @@ class GateOneApp(tornado.web.Application):
                 css_plugins.append(i.split('/')[1])
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        logging.info(_("Loaded plugins: %s") % ", ".join(plugin_list))
+        logger.info(_("Loaded plugins: %s") % ", ".join(plugin_list))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
 def define_options():
@@ -3381,7 +3410,7 @@ def generate_server_conf():
     Generates a fresh settings/10server.conf file using the arguments provided
     on the command line to override defaults.
     """
-    logging.info(_(
+    logger.info(_(
         u"Gate One settings are incomplete.  A new settings/10server.conf"
         u" will be generated."))
     from utils import options_to_settings
@@ -3390,7 +3419,7 @@ def generate_server_conf():
     settings_path = options.settings_dir
     server_conf_path = os.path.join(settings_path, '10server.conf')
     if os.path.exists(server_conf_path):
-        logging.error(_(
+        logger.error(_(
             "You have a 10server.conf but it is either invalid (syntax "
             "error) or missing essential settings."))
         sys.exit(1)
@@ -3483,7 +3512,7 @@ def convert_old_server_conf():
         # NOTE: Using a separate file for authentication stuff for no other
         #       reason than it seems like a good idea.  Don't want one
         #       gigantic config file for everything (by default, anyway).
-        logging.info(_(
+        logger.info(_(
             "Old server.conf file found.  Converting to the new format as "
             "%s, %s, and %s" % (
                 server_conf_path, auth_conf_path, terminal_conf_path)))
@@ -3605,6 +3634,9 @@ def main():
     global _
     global PLUGINS
     global APPLICATIONS
+    global logger
+    global auth_log
+    global msg_log
     define_options()
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.
@@ -3918,6 +3950,11 @@ def main():
             continue # These don't belong
         if option not in go_settings:
             go_settings[option] = options._options[option].value()
+    tornado.log.enable_pretty_logging(options=options)
+    # Assign our logging globals
+    logger = go_logger(None)
+    auth_log = go_logger('gateone.auth')
+    msg_log = go_logger('gateone.message')
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)
@@ -3929,7 +3966,7 @@ def main():
     tornado.web.ErrorHandler = ErrorHandler
     if go_settings['auth'] == 'pam':
         if uid != 0 or os.getuid() != 0:
-            logging.warning(_(
+            logger.warning(_(
                 "PAM authentication is configured but you are not running Gate"
                 " One as root.  If the pam_service you've selected (%s) is "
                 "configured to use pam_unix.so for 'auth' (i.e. authenticating "
@@ -3942,7 +3979,7 @@ def main():
             https_server.add_socket(
                 tornado.netutil.bind_unix_socket(
                     go_settings['unix_socket_path']))
-            logging.info(_("Listening on Unix socket '{socketpath}'".format(
+            logger.info(_("Listening on Unix socket '{socketpath}'".format(
                 socketpath=go_settings['unix_socket_path'])))
         address = none_fix(go_settings['address'])
         if address:
@@ -3950,16 +3987,16 @@ def main():
                 if addr: # Listen on all given addresses
                     if go_settings['https_redirect']:
                         if go_settings['disable_ssl']:
-                            logging.error(_(
+                            logger.error(_(
                             "You have https_redirect *and* disable_ssl enabled."
                             "  Please pick one or the other."))
                             sys.exit(1)
-                        logging.info(_(
+                        logger.info(_(
                             "http://{addr}:80/ will be redirected to...".format(
                                 addr=addr)
                         ))
                         https_redirect.listen(port=80, address=addr)
-                    logging.info(_(
+                    logger.info(_(
                         "Listening on {proto}{address}:{port}/".format(
                             proto=proto, address=addr, port=go_settings['port'])
                     ))
@@ -3968,13 +4005,13 @@ def main():
             # Listen on all addresses (including IPv6)
             if go_settings['https_redirect']:
                 if go_settings['disable_ssl']:
-                    logging.error(_(
+                    logger.error(_(
                         "You have https_redirect *and* disable_ssl enabled."
                         "  Please pick one or the other."))
                     sys.exit(1)
-                logging.info(_("http://*:80/ will be redirected to..."))
+                logger.info(_("http://*:80/ will be redirected to..."))
                 https_redirect.listen(port=80, address="")
-            logging.info(_(
+            logger.info(_(
                 "Listening on {proto}*:{port}/".format(
                     proto=proto, port=go_settings['port'])))
             try: # Listen on all IPv4 and IPv6 addresses
@@ -3985,7 +4022,7 @@ def main():
         #        address=None
         write_pid(go_settings['pid_file'])
         pid = read_pid(go_settings['pid_file'])
-        logging.info(_("Process running with pid " + pid))
+        logger.info(_("Process running with pid " + pid))
         # Check to see what group owns /dev/pts and use that for supl_groups
         # First we have to make sure there's at least one pty present
         tempfd1, tempfd2 = pty.openpty()
@@ -3999,11 +4036,11 @@ def main():
             drop_privileges(uid, gid, [tty_gid])
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
-        logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
+        logger.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
     finally:
         tornado.ioloop.IOLoop.instance().stop()
         remove_pid(go_settings['pid_file'])
-        logging.info(_("pid file removed."))
+        logger.info(_("pid file removed."))
         # TODO: Move this dtach stuff to app_terminal.py
         if not all_settings['*']['terminal']['dtach']:
             # If we're not using dtach play it safe by cleaning up any leftover
