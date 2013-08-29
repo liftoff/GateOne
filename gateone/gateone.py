@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130827222111" # Gets replaced by git (holds the date/time)
+__commit__ = "20130828214808" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1389,25 +1389,26 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         origin = origin.lower() # hostnames are case-insensitive
         origin = origin.split('://', 1)[1]
         self.origin = origin
+        client_address = self.request.remote_ip
         logging.debug("open() origin: %s" % origin)
         if '*' not in valid_origins: # NOTE: valid_origins is a list
             if origin not in valid_origins:
                 self.origin_denied = True
-                denied_msg = _("Access denied for origin: %s" % origin)
+                denied_msg = _(
+                    '{"ip_address": "%s"} Access denied for origin: %s'
+                    ) % (client_address, origin)
                 auth_log.error(denied_msg)
                 self.write_message(denied_msg)
                 self.write_message(_(
                     "If you feel this is incorrect you just have to add '%s' to"
                     " the 'origin' option in your settings.  See the docs "
-                    "for details." % origin
-                ))
+                    "for details.") % origin)
                 self.close()
         self.origin_denied = False
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
-        client_address = self.request.connection.address[0]
         user = self.current_user
         # NOTE: self.current_user will call self.get_current_user() the first
         # time it is used.
@@ -1421,9 +1422,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 _("WebSocket opened (%s %s) via origin %s.") % (
                     user['upn'], client_address, origin))
         else:
-            auth_log.info(_("WebSocket opened (unknown user)."))
+            auth_log.info(_(
+                '{"ip_address": "%s"} WebSocket opened (unknown user).')
+            % client_address)
         if user and 'upn' not in user: # Invalid user info
-            auth_log.error(_("Unauthenticated WebSocket attempt."))
+            auth_log.error(_(
+                '{"ip_address": "%s"} Unauthenticated WebSocket attempt.'
+                ) % client_address)
             # In case this is a legitimate client that simply had its auth info
             # expire/go bad, tell it to re-auth by calling the appropriate
             # action on the other side.

@@ -78,6 +78,7 @@ import os, logging, re
 # Import our own stuff
 from utils import mkdir_p, generate_session_id, noop, RUDict
 from utils import get_translation, memoize
+from golog import go_logger
 
 # 3rd party imports
 import tornado.web
@@ -91,6 +92,8 @@ _ = get_translation()
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_CACHE = {} # Lists of settings files and their modification times
 # The security stuff below is a work-in-progress.  Likely to change all around.
+
+auth_log = go_logger('gateone.auth')
 
 # Authorization stuff
 @memoize
@@ -164,19 +167,25 @@ class require(object):
                 if not condition.check():
                     if hasattr(self, 'current_user') and self.current_user:
                         if 'upn' in self.current_user:
-                            logging.error(_(
-                                "%s -> %s failed requirement: %s" % (
+                            auth_log.error(_(
+                                '{"ip_address": "%s"} %s -> %s '
+                                'failed requirement: %s' % (
+                                self.request.remote_ip,
                                 self.current_user['upn'],
                                 f.__name__, str(condition))))
                     else:
-                        logging.error(_(
-                            "unknown user -> %s failed requirement: %s" % (
-                            f.__name__, str(condition))))
-                    msg = _("ERROR: %s" % condition.error)
-                    if hasattr(self, 'send_message'):
-                        self.send_message(msg)
-                    elif hasattr(self, 'ws'):
-                        self.ws.send_message(msg)
+                        auth_log.error(_(
+                            '{"ip_address": "%s"} unknown user -> %s '
+                            'failed requirement: %s' % (
+                            self.request.remote_ip, f.__name__, str(condition))
+                        ))
+                    # Try to notify the client of their failings
+                    if self.ws_connection:
+                        msg = _("ERROR: %s" % condition.error)
+                        if hasattr(self, 'send_message'):
+                            self.send_message(msg)
+                        elif hasattr(self, 'ws'):
+                            self.ws.send_message(msg)
                     return noop
             return f(self, *args, **kwargs)
         return wrapped_f
