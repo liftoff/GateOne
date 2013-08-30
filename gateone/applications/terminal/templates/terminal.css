@@ -4,25 +4,25 @@
   font-family: 'Ubuntu Mono';
   font-style: normal;
   font-weight: normal;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('{{url_prefix}}static/ubuntumono-normal.woff') format('woff');
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('{{url_prefix}}terminal/static/fonts/ubuntumono-normal.woff') format('woff');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: normal;
   font-weight: bold;
-  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('{{url_prefix}}static/ubuntumono-bold.woff') format('woff');
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('{{url_prefix}}terminal/static/fonts/ubuntumono-bold.woff') format('woff');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: italic;
   font-weight: bold;
-  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('{{url_prefix}}static/ubuntumono-bold-italic.woff') format('woff');
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('{{url_prefix}}terminal/static/fonts/ubuntumono-bold-italic.woff') format('woff');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: italic;
   font-weight: normal;
-  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}terminal/static/fonts/ubuntumono-italic.woff') format('woff');
 }
 .✈pastearea {
     font-family: monospace;
