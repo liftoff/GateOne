@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130828222101" # Gets replaced by git (holds the date/time)
+__commit__ = "20130828222842" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1887,7 +1887,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if not SESSION_WATCHER:
             interval = self.prefs['*']['gateone'].get(
                 'session_timeout_check_interval', "30s") # 30s default
-            interval = convert_to_timedelta(interval).total_seconds() * 1000
+            td = convert_to_timedelta(interval)
+            interval = ((
+                td.microseconds +
+                (td.seconds + td.days * 24 * 3600) *
+                10**6) / 10**6) * 1000
             SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
                 timeout_sessions, interval)
             SESSION_WATCHER.start()
@@ -1922,7 +1926,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # kind of obscure.  No reason to clutter things up.
             interval = self.prefs['*']['gateone'].get(
                 'user_logs_cleanup_interval', default_interval)
-            interval = convert_to_timedelta(interval).total_seconds() * 1000
+            td = convert_to_timedelta(interval)
+            interval = ((
+                td.microseconds +
+                (td.seconds + td.days * 24 * 3600) *
+                10**6) / 10**6) * 1000
             CLEANER = tornado.ioloop.PeriodicCallback(
                 cleanup_user_logs, interval)
             CLEANER.start()
@@ -1981,7 +1989,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             io.open(broadcast_file, 'w').write(u'') # Touch file
             interval = self.prefs['*']['gateone'].get(
                 'file_check_interval', "5s")
-            interval = convert_to_timedelta(interval).total_seconds() * 1000
+            td = convert_to_timedelta(interval)
+            interval = ((
+                td.microseconds +
+                (td.seconds + td.days * 24 * 3600) *
+                10**6) / 10**6) * 1000
             cls.watch_file(broadcast_file, cls.broadcast_file_update)
             io_loop = tornado.ioloop.IOLoop.instance()
             cls.file_watcher = tornado.ioloop.PeriodicCallback(
@@ -3403,7 +3415,7 @@ def define_options():
     )
     define(
         "combine_css_container",
-        default="#gateone",
+        default="gateone",
         help=_(
             "Use this setting in conjunction with --combine_css if the <div> "
             "where Gate One lives is named something other than #gateone"),

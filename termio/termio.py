@@ -191,7 +191,11 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     If *force_update* the metadata inside the golog will be updated even if it
     already exists.
 
-    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
+    .. note::
+
+        All logs will need "fixing" the first time they're enumerated like this
+        since they won't have an end_date.  Fortunately we only need to do this
+        once per golog.
     """
     logging.debug('get_or_update_metadata(%s, %s, %s)' % (golog_path, user, force_update))
     if not os.path.getsize(golog_path): # 0 bytes

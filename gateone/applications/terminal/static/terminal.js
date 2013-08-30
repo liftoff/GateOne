@@ -361,7 +361,7 @@ go.Base.update(GateOne.Terminal, {
         }
         div.appendChild(resetTermButton);
         if (go.prefs.scrollback == 0) {
-            go.Terminal.colAdjust = 0; // No need to adjust if the scrollbar isn't present
+            go.Terminal.colAdjust = 1; // No scrollbar so we can use the extra space
         }
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
@@ -467,7 +467,6 @@ go.Base.update(GateOne.Terminal, {
             u.showElements('.✈pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
-        E.on("terminal:send_dimensions", go.Terminal.alignTerminal);
         E.on("go:timeout", go.Terminal.timeoutEvent);
         go.Terminal.loadTextColors();
         E.on("go:js_loaded", function() {
@@ -533,7 +532,18 @@ go.Base.update(GateOne.Terminal, {
                     go.prefs.colors = colors; // Save them for later
                 }
                 if (scrollbackValue) {
+                    var prevValue = go.prefs.scrollback;
                     go.prefs.scrollback = parseInt(scrollbackValue);
+                    if (prevValue == 0 && prevValue != go.prefs.scrollback) {
+                        // Re-enable the scrollback buffer, fix the colAdjust parameter, and turn overflow-y back on in all terminals
+                        var terms = u.toArray(u.getNodes('.✈terminal'));
+                        go.Terminal.colAdjust = 4;
+                        terms.forEach(function(termObj) {
+                            var term = termObj.id.split('term')[1],
+                                termPre = GateOne.Terminal.terminals[term]['node'];
+                            termPre.style['overflow-y'] = 'auto';
+                        });
+                    }
                 }
                 if (rowsValue) {
                     go.prefs.rows = parseInt(rowsValue);
@@ -639,7 +649,12 @@ go.Base.update(GateOne.Terminal, {
             }
             // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
             u.scrollToBottom(termPre);
-            E.once("terminal:term_updated", go.Terminal.alignTerminal);
+            // Make sure the terminal is in alignment
+            E.once("terminal:term_updated", function() {
+                setTimeout(function() {
+                    go.Terminal.alignTerminal(term);
+                }, 100);
+            });
         }
     },
     timeoutEvent: function() {
@@ -847,6 +862,7 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.terminals[term]['columns'] = columns;
         infoPanelRows.innerHTML = rows + "<br />";
         infoPanelCols.innerHTML = columns + "<br />";
+        E.trigger("terminal:resize", term, rows, columns);
     },
     paste: function(e) {
         /**:GateOne.Terminal.paste(e)
@@ -889,12 +905,14 @@ go.Base.update(GateOne.Terminal, {
         }
         return null;
     },
-    applyScreen: function(screen, term) {
-        /**:GateOne.Terminal.applyScreen(screen, term)
+    applyScreen: function(screen, /*opt*/term, /*opt*/noUpdate) {
+        /**:GateOne.Terminal.applyScreen(screen[, term[, noUpdate]])
 
         Uses *screen* (array of HTML-formatted lines) to update *term*.
 
-        If *term* isn't given, will use `localStorage[prefix+selectedTerminal]`.
+        If *term* is omitted `localStorage[prefix+selectedTerminal]` will be used.
+
+        If *noUpdate* is ``true`` the array that holds the current screen in `GateOne.Terminal.terminals` will not be updated (useful for temporary screen replacements).
 
         .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
         */
@@ -905,19 +923,21 @@ go.Base.update(GateOne.Terminal, {
         }
         for (var i=0; i < screen.length; i++) {
             if (screen[i].length) {
-                // TODO: Get this using pre-cached line nodes
-                if (go.Terminal.terminals[term]['screen'][i] != screen[i]) {
-                    // Update the existing screen array in-place to cut down on GC
-                    go.Terminal.terminals[term]['screen'][i] = screen[i];
-                    var existingLine = existingScreen.querySelector('.' + prefix + 'line_' + i);
-                    if (existingLine) {
+                var existingLine = go.Terminal.terminals[term]['lineCache'][i];
+                if (existingLine) {
+                    if (screen[i] != existingLine.innerHTML) {
+                        if (noUpdate !== true) {
+                            // Update the existing screen array in-place to cut down on GC
+                            go.Terminal.terminals[term]['screen'][i] = screen[i];
+                        }
                         existingLine.innerHTML = screen[i];
-                    } else { // Size of the terminal increased
-                        var classes = '✈termline ' + prefix + 'line_' + i,
-                            lineSpan = u.createElement('span', {'class': classes});
-                        lineSpan.innerHTML = screen[i];
-                        existingScreen.appendChild(lineSpan);
                     }
+                } else { // Size of the terminal increased
+                    var classes = '✈termline ' + prefix + 'line_' + i,
+                        lineSpan = u.createElement('span', {'class': classes});
+                    lineSpan.innerHTML = screen[i];
+                    existingScreen.appendChild(lineSpan);
+                    go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
                 }
             }
         }
@@ -927,6 +947,7 @@ go.Base.update(GateOne.Terminal, {
 
         Uses a CSS3 transform to move the terminal <pre> element upwards just a bit so that the scrollback buffer isn't visislbe unless you actually scroll.  This improves the terminal's overall appearance considerably because the bottoms of characters in the scollback buffer tend to look like graphical glitches.
         */
+        logDebug("alignTerminal("+term+")");
         if (!go.Terminal.terminals[term]) {
             return; // Can happen if the terminal is closed immediately after being opened
         }
@@ -1031,6 +1052,8 @@ go.Base.update(GateOne.Terminal, {
                                 existingScreen.appendChild(lineSpan);
                                 // Update the existing screen array in-place to cut down on GC
                                 go.Terminal.terminals[term]['screen'][i] = screen[i];
+                                // Update the existing lineCache too
+                                go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
                             }
                         }
                     } else {
@@ -1478,6 +1501,7 @@ go.Base.update(GateOne.Terminal, {
             encoding: 'utf-8',  // Just a default--will get overridden if provided via settings['encoding']
             screen: [],
             prevScreen: [],
+            lineCache: [],
             title: 'Gate One',
             scrollback: [],
             scrollbackTimer: null, // Controls re-adding scrollback buffer
@@ -1556,6 +1580,8 @@ go.Base.update(GateOne.Terminal, {
             screenSpan.appendChild(lineSpan);
             // Update the existing screen array in-place to cut down on GC
             go.Terminal.terminals[term]['screen'][i] = ' ';
+            // Update the lineCache too
+            go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
         }
         go.Terminal.terminals[term]['screenNode'] = screenSpan;
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
@@ -1955,48 +1981,49 @@ go.Base.update(GateOne.Terminal, {
             return; // Don't re-enable scrollback if it has been disabled
         }
         var enableSB = function(termNum) {
-                var termPreNode = go.Terminal.terminals[termNum]['node'],
-                    termScreen = go.Terminal.terminals[termNum]['screenNode'],
-                    termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
-                    parentHeight = termPreNode.parentNode.clientHeight;
-                if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
-                    return; // We're done here
+            var termPre = go.Terminal.terminals[termNum]['node'],
+                termScreen = go.Terminal.terminals[termNum]['screenNode'],
+                termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
+                parentHeight = termPre.parentNode.clientHeight;
+            if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
+                return; // We're done here
+            }
+            if (u.getSelText()) {
+                // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
+                // Retry again in 3.5 seconds
+                clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
+                go.Terminal.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
+                    go.Terminal.enableScrollback(termNum);
+                }, 500);
+                return;
+            }
+            // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
+            if (parentHeight) {
+                termPre.style.height = parentHeight + 'px';
+            } else {
+                termPre.style.height = "100%"; // This ensures there's a scrollbar
+            }
+            termPre.style['overflow-y'] = ""; // Allow the class to control this (will be auto)
+            if (termScrollback) {
+                var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
+                if (termScrollback.innerHTML != scrollbackHTML) {
+                    termScrollback.innerHTML = scrollbackHTML;
                 }
-                if (u.getSelText()) {
-                    // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
-                    // Retry again in 3.5 seconds
-                    clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
-                    go.Terminal.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
-                        go.Terminal.enableScrollback(termNum);
-                    }, 500);
-                    return;
-                }
-                // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
-                if (parentHeight) {
-                    termPreNode.style.height = parentHeight + 'px';
-                } else {
-                    termPreNode.style.height = "100%"; // This ensures there's a scrollbar
-                }
-                if (termScrollback) {
-                    var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
-                    if (termScrollback.innerHTML != scrollbackHTML) {
-                        termScrollback.innerHTML = scrollbackHTML;
-                    }
-                    termScrollback.style.display = ''; // Reset
-                    u.scrollToBottom(termPreNode);
-                } else {
-                    // Create the span that holds the scrollback buffer
-                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': '✈scrollback'});
-                    termScrollback.innerHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
-                    termPreNode.insertBefore(termScrollback, termScreen);
-                    go.Terminal.terminals[termNum]['scrollbackNode'] = termScrollback;
-                    u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
-                }
-                if (go.Terminal.terminals[termNum]['scrollbackTimer']) {
-                    clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
-                }
-                go.Terminal.terminals[termNum]['scrollbackVisible'] = true;
-            };
+                termScrollback.style.display = ''; // Reset
+                u.scrollToBottom(termPre);
+            } else {
+                // Create the span that holds the scrollback buffer
+                termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': '✈scrollback'});
+                termScrollback.innerHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
+                termPre.insertBefore(termScrollback, termScreen);
+                go.Terminal.terminals[termNum]['scrollbackNode'] = termScrollback;
+                u.scrollToBottom(termPre); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
+            }
+            if (go.Terminal.terminals[termNum]['scrollbackTimer']) {
+                clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
+            }
+            go.Terminal.terminals[termNum]['scrollbackVisible'] = true;
+        };
         if (term && term in GateOne.Terminal.terminals) {
             // If there's already an existing scrollback buffer...
                 enableSB(term); // Have it create/add the scrollback buffer
@@ -2008,6 +2035,7 @@ go.Base.update(GateOne.Terminal, {
                     enableSB(termNum);
                 }
             });
+            return;
         }
         go.Terminal.scrollbackToggle = true;
         E.trigger("terminal:scrollback:enabled", term);
@@ -2024,6 +2052,7 @@ go.Base.update(GateOne.Terminal, {
             if (termScrollback) {
                 termScrollback.style.display = "none";
             }
+            termPre.style['overflow-y'] = "hidden";
             go.Terminal.terminals[term]['scrollbackVisible'] = false;
         } else {
             var terms = u.toArray(u.getNodes('.✈terminal'));

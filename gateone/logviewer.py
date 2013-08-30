@@ -11,17 +11,19 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import stdlib stuff
-import os, sys, re, gzip, fcntl, termios, struct
+import os, sys, re, io, gzip, fcntl, termios, struct, shutil, tempfile
 from time import sleep
 from datetime import datetime
 from optparse import OptionParser
 
 # Import our own stuff
-from utils import raw
+from gateone import GATEONE_DIR
+from utils import raw, get_settings, combine_css
 from gateone import PLUGINS
 
 # 3rd party imports
 from tornado.escape import json_encode, json_decode
+import tornado.template
 
 __doc__ = """\
 .. _log_viewer:
@@ -119,11 +121,15 @@ def get_frames(golog_path, chunk_size=131072):
             split_frames = frame.split(encoded_separator)
             next_frame = split_frames[-1]
             for fr in split_frames[:-1]:
+                # Undo extra CRs caused by capturing shell output on top of
+                # shell output
+                fr = fr.replace('\r\n', '\n')
                 yield fr
             frame = next_frame
         if len(chunk) < chunk_size:
             # Write last frame
             if frame:
+                frame = frame.replace('\r\n', '\n')
                 yield frame
             break
 
@@ -339,6 +345,170 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
         file_like.flush()
     del term
 
+def retrieve_first_frame(golog_path):
+    """
+    Retrieves the first frame from the given *golog_path*.
+    """
+    found_first_frame = None
+    frame = b""
+    f = gzip.open(golog_path)
+    while not found_first_frame:
+        frame += f.read(1) # One byte at a time
+        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
+            # That's it; wrap this up
+            found_first_frame = True
+    distance = f.tell()
+    f.close()
+    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
+
+def get_log_metadata(golog_path):
+    """
+    Returns the metadata from the log at the given *golog_path* in the form of
+    a dict.
+    """
+    metadata = {}
+    if not os.path.getsize(golog_path): # 0 bytes
+        return metadata # Nothing to do
+    try:
+        first_frame, distance = retrieve_first_frame(golog_path)
+    except IOError:
+        # Something wrong with the log...  Probably still being written to
+        return metadata
+    if first_frame[14:].startswith('{'):
+        # This is JSON, capture metadata
+        metadata = json_decode(first_frame[14:])
+    return metadata # All done
+
+def render_log_frames(golog_path, rows, cols, limit=None):
+    """
+    Returns the frames of *golog_path* as a list of HTML-encoded strings that
+    can be used with the playback_log.html template.  It accomplishes this task
+    by running the frames through the terminal emulator and capturing the HTML
+    output from the `Terminal.dump_html` method.
+
+    If *limit* is given, only return that number of frames (e.g. for preview)
+    """
+    out_frames = []
+    from terminal import Terminal
+    term = Terminal(
+        # 14/7 for the em_height should be OK for most browsers to ensure that
+        # images don't always wind up at the bottom of the screen.
+        rows=rows, cols=cols, em_dimensions={'height':14, 'width':7})
+    for i, frame in enumerate(get_frames(golog_path)):
+        if limit and i == limit:
+            break
+        if len(frame) > 14:
+            if i == 0 and frame[14:15] == b'{':
+                # This is just the metadata frame.  Skip it
+                continue
+            frame_time = int(float(frame[:13]))
+            frame_screen = frame[14:] # Skips the colon
+            # Emulate how a real shell would output newlines:
+            frame_screen = frame_screen.replace('\n', '\r\n')
+            term.write(frame_screen)
+            # Ensure we're not in the middle of capturing a file.  Otherwise
+            # it might get cut off and result in no image being shown.
+            if term.capture:
+                continue
+            scrollback, screen = term.dump_html()
+            out_frames.append({'screen': screen, 'time': frame_time})
+    del term # Ensures any file capture file descriptors are cleaned up
+    return out_frames # Skip the first frame which is the metadata
+
+def get_256_colors(container="gateone"):
+    """
+    Returns the rendered 256-color CSS.  If *container* is provided it will be
+    used as the ``{{container}}`` variable when rendering the template (
+    defaults to "gateone").
+    """
+    terminal_app_path = os.path.join(GATEONE_DIR, 'applications', 'terminal')
+    colors_json_path = os.path.join(terminal_app_path, '256colors.json')
+    # Using get_settings() as a cool hack to get the color data as a nice dict:
+    color_map = get_settings(colors_json_path, add_default=False)
+    # Setup our 256-color support CSS:
+    colors_256 = ""
+    for i in xrange(256):
+        i = str(i)
+        fg = u"#%s span.✈fx%s {color: #%s;}" % (
+            container, i, color_map[i])
+        bg = u"#%s span.✈bx%s {background-color: #%s;} " % (
+            container, i, color_map[i])
+        fg_rev =(
+            u"#%s span.✈reverse.fx%s {background-color: #%s; color: "
+            u"inherit;}" % (container, i, color_map[i]))
+        bg_rev =(
+            u"#%s span.✈reverse.bx%s {color: #%s; background-color: "
+            u"inherit;} " % (container, i, color_map[i]))
+        colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
+    return colors_256
+
+def render_html_playback(golog_path, render_settings=None):
+    """
+    Generates a self-contained HTML playback file from the .golog at the given
+    *golog_path*.  The HTML will be output to stdout.  The optional
+    *render_settings* argument (dict) can include the following options
+    to control how the output is rendered:
+
+        :prefix:
+            (Default: "go_default_") The GateOne.prefs.prefix to emulate when
+            rendering the HTML template.
+        :container:
+            (Default: "gateone") The name of the #gateone container to emulate
+            when rendering the HTML template.
+        :theme:
+            (Default: "black") The theme to use when rendering the HTML
+            template.
+        :colors:
+            (Default: "default") The text color scheme to use when rendering
+            the HTML template.
+    """
+    # Get the necessary variables out of render_settings
+    if not render_settings:
+        render_settings = {}
+    terminal_app_path = os.path.join(GATEONE_DIR, 'applications', 'terminal')
+    prefix = render_settings.get('prefix', 'go_default_')
+    container = render_settings.get('container', 'gateone')
+    colors = render_settings.get('colors', 'default')
+    theme = render_settings.get('theme', 'black')
+    temploc = tempfile.mkdtemp(prefix='logviewer') # stores rendered CSS
+    # This function renders all themes
+    combine_css(os.path.join(
+        temploc, 'gateone.css'), container, log=False)
+    theme_css_file = "gateone_theme_{theme}.css".format(theme=theme)
+    theme_css_path = os.path.join(temploc, theme_css_file)
+    with io.open(theme_css_path, mode='r', encoding='utf-8') as f:
+        theme_css = f.read()
+    # Cleanup the CSS files since we're now down with them
+    shutil.rmtree(temploc)
+    # Colors are easiest since they don't need to be rendered
+    colors_css_file = "{0}.css".format(colors)
+    colors_css_path = os.path.join(
+        terminal_app_path, 'templates', 'term_colors', colors_css_file)
+    with io.open(colors_css_path, mode='r', encoding='utf-8') as f:
+        colors_css = f.read()
+    templates_path = os.path.join(
+        terminal_app_path, 'plugins', 'logging', 'templates')
+    asis = lambda x: x # Used to disable autoescape
+    loader = tornado.template.Loader(templates_path, autoescape="asis")
+    playback_template = loader.load('playback_log.html')
+    metadata = get_log_metadata(golog_path)
+    rows = metadata.get('rows', 24)
+    cols = metadata.get('cols', 80)
+    recording = render_log_frames(golog_path, rows, cols)
+    playback_html = playback_template.generate(
+        asis=asis,
+        prefix=prefix,
+        container=container,
+        theme=theme_css,
+        colors=colors_css,
+        colors_256=get_256_colors(container),
+        preview="false", # Only used by the logging plugin
+        recording=json_encode(recording)
+    )
+    if not isinstance(playback_html, str):
+        playback_html = playback_html.decode('utf-8')
+    return playback_html
+
 def get_terminal_size():
     """
     Returns the size of the current terminal in the form of (rows, cols).
@@ -397,6 +567,14 @@ if __name__ == "__main__":
         action="store_true",
         help="Display control characters and escape sequences when viewing."
     )
+    parser.add_option("--html",
+        dest="html",
+        default=False,
+        action="store_true",
+        help=(
+            "Render a given .golog as a self-contained HTML playback file "
+            "(to stdout).")
+    )
     (options, args) = parser.parse_args()
     if len(args) < 1:
         print("ERROR: You must specify a log file to view.")
@@ -413,9 +591,12 @@ if __name__ == "__main__":
                 sys.stdout,
                 preserve_renditions=options.pretty, show_esc=options.raw)
             print(result)
+        elif options.html:
+            result = render_html_playback(log_path)
+            print(result)
         else:
             playback_log(log_path, sys.stdout, show_esc=options.raw)
-    except KeyboardInterrupt:
+    except (IOError, KeyboardInterrupt):
         # Move the cursor to the bottom of the screen to ensure it isn't in the
         # middle of the log playback output
         rows, cols = get_terminal_size()

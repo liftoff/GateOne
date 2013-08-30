@@ -681,10 +681,14 @@ class FileType(object):
         Make sure that self.file_obj gets closed/deleted.
         """
         logging.debug("FileType __del__(): Closing/deleting temp file(s)")
-        if self.file_obj:
+        try:
             self.file_obj.close() # Ensures it gets deleted
-        if self.original_file:
+        except AttributeError:
+            pass # Probably never got opened properly (bad file); no big
+        try:
             self.original_file.close()
+        except AttributeError:
+            pass # Probably never got opened/saved properly
 
     def raw(self):
         self.file_obj.seek(0)
@@ -738,7 +742,8 @@ class ImageFile(FileType):
         """
         logging.debug('ImageFile.capture()')
         # Image file formats don't usually like carriage returns:
-        data = data.replace(b'\r\n', b'\n')
+        open('/tmp/lastimage.img', 'w').write(data) # Use for debug
+        data = data.replace(b'\r\n', b'\n') # shell adds an extra /r
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = BytesIO(data)
             try:
@@ -835,7 +840,10 @@ class ImageFile(FileType):
                 " need to install zlib-devel and libjpeg-devel then re-install "
                 "it with 'pip install --upgrade PIL' or 'pip install "
                 "--upgrade Pillow'" % self.name))
-            self.file_obj.close() # Can't do anything with it
+            try:
+                self.file_obj.close() # Can't do anything with it
+            except AttributeError:
+                pass # File was probably just never opened/saved properly
             return None
         self.file_obj.flush()
         self.file_obj.seek(0) # Go back to the start
@@ -2097,7 +2105,10 @@ class Terminal(object):
         line heights and widths.  It also handles the "screen alignment test" (
         fill the screen with Es).
 
-        .. note:: Double-line height text is currently unimplemented (does anything actually use it?).
+        .. note::
+
+            Double-line height text is currently unimplemented (does anything
+            actually use it?).
         """
         try:
             param = int(param)
@@ -2454,10 +2465,14 @@ class Terminal(object):
                             self.screen[self.cursorY][self.cursorX] = char
                 except IndexError as e:
                     # This can happen when escape sequences go haywire
-                    logging.error(_(
-                        "IndexError in write(): %s" % e))
-                    import traceback, sys
-                    traceback.print_exc(file=sys.stdout)
+                    # Only log the error if debugging is enabled (because we
+                    # really don't care that much 99% of the time)
+                    logger = logging.getLogger()
+                    if logger.level < 20:
+                        logging.error(_(
+                            "IndexError in write(): %s" % e))
+                        import traceback, sys
+                        traceback.print_exc(file=sys.stdout)
                 self.cursorX += 1
             self.prev_char = char
         if changed:
@@ -2815,7 +2830,10 @@ class Terminal(object):
                             found = True
                             break
                 if not found:
-                    self.captured_files[ref].close()
+                    try:
+                        self.captured_files[ref].close()
+                    except AttributeError:
+                        pass # File already closed or never captured properly
                     del self.captured_files[ref]
 
     def _string_terminator(self):

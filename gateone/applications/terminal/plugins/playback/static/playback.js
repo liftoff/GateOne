@@ -175,12 +175,11 @@ go.Base.update(GateOne.Playback, {
         if (playbackFrames.length < go.prefs.playbackFrames) {
             playbackFrames.push({'screen': t.terminals[term]['screen'].slice(0), 'time': new Date()});
         } else {
-            // Preserve the existing objects in the array but override their values to avoid garbage collection
+            // This strange method of pushing new elements on to the array prevents some garbage collection
             for (var i = 0, len = playbackFrames.length - 1; i < len; i++) {
                 playbackFrames[i] = playbackFrames[i + 1];
             }
-            playbackFrames[playbackFrames.length - 1]['screen'] = t.terminals[term]['screen'].slice(0);
-            playbackFrames[playbackFrames.length - 1]['time'] = new Date();
+            playbackFrames[playbackFrames.length - 1] = {'screen': t.terminals[term]['screen'].slice(0), 'time': new Date()};
         }
         // Fix the progress bar if it is in a non-default state and stop playback
         if (p.progressBarElement) {
@@ -277,7 +276,7 @@ go.Base.update(GateOne.Playback, {
             var playPause = u.getNode('#'+prefix+'playPause');
             playPause.innerHTML = '\u25B8';
             v.applyTransform(playPause, 'scale(1.5) translateY(-5%)'); // Needs to be resized a bit
-            t.applyScreen(t.terminals[term]['playbackFrames'][lastFrame]['screen'], term);
+            t.applyScreen(t.terminals[term]['playbackFrames'][lastFrame]['screen'], term, true);
             p.clockElement.innerHTML = lastDateTime.toLocaleTimeString();
             sideinfo.innerHTML = lastDateTime.toLocaleDateString();
             progressBar.style.width = '100%';
@@ -285,12 +284,13 @@ go.Base.update(GateOne.Playback, {
             p.frameUpdater = null;
             p.milliseconds = 0;
             // Restart the clock
+            clearInterval(p.clockUpdater); // Just in case
             p.clockUpdater = setInterval(p.updateClock, 1000);
             return
         }
         p.clockElement.innerHTML = frameTime.toLocaleTimeString();
         sideinfo.innerHTML = frameTime.toLocaleDateString();
-        t.applyScreen(selectedFrame['screen'], term);
+        t.applyScreen(selectedFrame['screen'], term, true);
         // Update progress bar
         var firstDateTime = new Date(t.terminals[term]['playbackFrames'][0]['time']);
         var percent = Math.abs((lastDateTime.getTime() - frameTime.getTime())/(lastDateTime.getTime() - firstDateTime.getTime()) - 1);
@@ -374,7 +374,7 @@ go.Base.update(GateOne.Playback, {
                 }
                 pB.style.width = (percent*100) + '%'; // Update the progress bar to reflect the user's click
                 // Now update the terminal window to reflect the (approximate) selected frame
-                t.applyScreen(selectedFrame['screen'], term);
+                t.applyScreen(selectedFrame['screen'], term, true);
                 p.clockElement.innerHTML = frameTime.toLocaleTimeString();
             }
         }
@@ -436,33 +436,38 @@ go.Base.update(GateOne.Playback, {
                         p.progressBarElement.style.width = '100%';
                     }
                     if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
-                        p.currentFrame = p.currentFrame + 1;
-                        if (p.currentFrame >= terminalObj['playbackFrames'].length) {
+                        console.log("Increasing playback frame: " + p.currentFrame);
+                        p.currentFrame += 1;
+                        if (p.currentFrame >= terminalObj['playbackFrames'].length - 1) {
+                            console.log("Applying current screen since we're at the max frame");
                             p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
                             p.progressBarElement.style.width = '100%';
-                            t.applyScreen(terminalObj['screen'], term);
+                            t.applyScreen(terminalObj['screen'], term, true);
                             if (!p.clockUpdater) { // Get the clock updating again
-                                p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
+                                p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
                             }
                             terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
-                                v.enableScrollback(term);
-                            }, 3500);
+                                t.enableScrollback(term);
+                            }, 500);
                         } else {
                             percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                             p.progressBarElement.style.width = percent + '%';
                             p.milliseconds = Math.round(totalMilliseconds * percent); // In case there's something being played back, this will skip forward
                             if (selectedFrame) {
-                                t.applyScreen(selectedFrame['screen'], term);
+                                t.applyScreen(selectedFrame['screen'], term, true);
                                 u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                             }
                         }
                     } else {
-                        p.currentFrame = p.currentFrame - 1;
+                        p.currentFrame -= 1;
+                        if (p.currentFrame < 0) {
+                            p.currentFrame = 0; // Don't go lower than zero
+                        }
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                         p.progressBarElement.style.width = percent + '%';
                         p.milliseconds = Math.round(totalMilliseconds * percent); // In case there's something being played back, this will skip forward
                         if (selectedFrame) {
-                            t.applyScreen(selectedFrame['screen'], term);
+                            t.applyScreen(selectedFrame['screen'], term, true);
                             u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                         } else {
                             p.currentFrame = 0; // First frame

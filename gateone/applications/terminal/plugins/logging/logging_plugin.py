@@ -47,7 +47,7 @@ from multiprocessing import Process, Queue
 
 # Our stuff
 from gateone import GATEONE_DIR
-from logviewer import flatten_log, get_frames
+from logviewer import flatten_log, render_log_frames
 from termio import get_or_update_metadata
 from utils import get_translation, json_encode
 
@@ -71,39 +71,6 @@ RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 
 # Helper functions
-def retrieve_log_frames(golog_path, rows, cols, limit=None):
-    """
-    Returns the frames of *golog_path* as a list that can be used with the
-    playback_log.html template.
-
-    If *limit* is given, only return that number of frames (e.g. for preview)
-    """
-    out_frames = []
-    from terminal import Terminal
-    terminal_emulator = Terminal
-    term = terminal_emulator(
-        # 14/7 for the em_height should be OK for most browsers to ensure that
-        # images don't always wind up at the bottom of the screen.
-        rows=rows, cols=cols, em_dimensions={'height':14, 'width':7})
-    for i, frame in enumerate(get_frames(golog_path)):
-        if limit and i == limit:
-            break
-        if len(frame) > 14:
-            if i == 0 and frame[14:15] == b'{':
-                # This is just the metadata frame.  Skip it
-                continue
-            frame_time = int(float(frame[:13]))
-            frame_screen = frame[14:] # Skips the colon
-            term.write(frame_screen)
-            # Ensure we're not in the middle of capturing a file.  Otherwise
-            # it might get cut off and result in no image being shown.
-            if term.capture:
-                continue
-            scrollback, screen = term.dump_html()
-            out_frames.append({'screen': screen, 'time': frame_time})
-    del term # Ensures any file capture fds are cleaned up
-    return out_frames # Skip the first frame which is the metadata
-
 def get_256_colors(self):
     """
     Returns the rendered 256-color CSS.
@@ -360,7 +327,6 @@ def retrieve_log_playback(self, settings):
     settings['user'] = user = self.current_user['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
-    settings['url_prefix'] = self.ws.settings['url_prefix']
     settings['256_colors'] = get_256_colors(self)
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
@@ -433,7 +399,6 @@ def _retrieve_log_playback(queue, settings):
     users_dir = settings['users_dir']
     container = settings['container']
     prefix = settings['prefix']
-    url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
     # Important paths
     # NOTE: Using os.path.join() in case Gate One can actually run on Windows
@@ -464,9 +429,9 @@ def _retrieve_log_playback(queue, settings):
         preview = 'false'
         if settings['where']:
             preview = 'true'
-            recording = retrieve_log_frames(log_path, rows, cols, limit=50)
+            recording = render_log_frames(log_path, rows, cols, limit=50)
         else:
-            recording = retrieve_log_frames(log_path, rows, cols)
+            recording = render_log_frames(log_path, rows, cols)
         playback_html = playback_template.generate(
             prefix=prefix,
             container=container,
@@ -474,8 +439,7 @@ def _retrieve_log_playback(queue, settings):
             colors=settings['colors_css'],
             colors_256=settings['256_colors'],
             preview=preview,
-            recording=json_encode(recording),
-            url_prefix=url_prefix
+            recording=json_encode(recording)
         )
         if not isinstance(playback_html, str):
             playback_html = playback_html.decode('utf-8')
@@ -495,7 +459,6 @@ def save_log_playback(self, settings):
     settings['user'] = user = self.current_user['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
-    settings['url_prefix'] = self.ws.settings['url_prefix']
     settings['256_colors'] = get_256_colors(self)
     q = Queue()
     global PROC
@@ -556,7 +519,6 @@ def _save_log_playback(queue, settings):
     users_dir = settings['users_dir']
     container = settings['container']
     prefix = settings['prefix']
-    url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
     short_logname = log_filename.split('.golog')[0]
     out_dict['filename'] = "%s.html" % short_logname
@@ -589,7 +551,7 @@ def _save_log_playback(queue, settings):
         # errors trying to do it the other way :)
         loader = tornado.template.Loader(template_path)
         playback_template = loader.load('playback_log.html')
-        recording = retrieve_log_frames(log_path, rows, cols)
+        recording = render_log_frames(log_path, rows, cols)
         preview = 'false'
         playback_html = playback_template.generate(
             prefix=prefix,
@@ -599,7 +561,6 @@ def _save_log_playback(queue, settings):
             colors_256=settings['256_colors'],
             preview=preview,
             recording=json_encode(recording),
-            url_prefix=url_prefix
         )
         out_dict['data'] = playback_html
     else:

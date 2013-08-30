@@ -18,7 +18,7 @@ http://www.gosquared.com/liquidicity/archives/122
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
 // TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).
 
-// This detects the proper transitionend event name (used by alignTerminal()):
+// This detects the proper transitionend event name:
 var transitionEndSupported = false,
     transitionEndName = null;
 (function() {
@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130828222101";
+GateOne.__commit__ = "20130828222842";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4149,6 +4149,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. tip:: If you wish to use your own workspace-switching animation just write your own function to handle it and call `GateOne.Events.off('go:switch_workspace', GateOne.Visual.slideToWorkspace); GateOne.Events.on('go:switch_workspace', yourFunction);`
         */
+        logDebug('switchWorkspace(' + workspace + ')');
         go.Events.trigger('go:switch_workspace', workspace);
         // NOTE: The following *must* come after the tiggered event above!
         localStorage[go.prefs.prefix+'selectedWorkspace'] = workspace;
@@ -4244,12 +4245,34 @@ GateOne.Base.update(GateOne.Visual, {
             });
         }, 1000); // NOTE:  This is 1s based on the assumption that the CSS has the transition configured to take 1s.
     },
+    stopIndicator: function(direction) {
+        /**:GateOne.Visual.stopIndicator(direction)
+
+        Displays a visual indicator (appearance determined by theme) that the user cannot slide in given *direction*.  Example:
+
+            >>> GateOne.Visual.stopIndicator('left');
+
+        The given *direction* may be one of:  **left**, **right**, **up**, **down**
+        */
+        var u = go.Utils,
+            prefix = go.prefs.prefix,
+            stopIndicator = u.createElement('div', {'class': '✈ws_stop ✈ws_stop_'+direction}),
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper');
+        gridwrapper.appendChild(stopIndicator);
+        setTimeout(function() {
+            stopIndicator.style.opacity = 0;
+        }, 1);
+        stopIndicator.addEventListener(transitionEndName, function() {
+            u.removeElement(stopIndicator);
+        }, false);
+    },
     slideLeft: function() {
         /**:GateOne.Visual.slideLeft()
 
         Slides to the workspace left of the current view.
         */
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             count = 0,
             workspace = 0,
@@ -4263,8 +4286,12 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (u.isEven(workspace+1)) {
                 var slideTo = workspaces[workspace-1].id.split(prefix+'workspace')[1];
-                go.Visual.switchWorkspace(slideTo);
+                v.switchWorkspace(slideTo);
+            } else {
+                v.stopIndicator('left');
             }
+        } else {
+            v.stopIndicator('left');
         }
     },
     slideRight: function() {
@@ -4273,6 +4300,7 @@ GateOne.Base.update(GateOne.Visual, {
         Slides to the workspace right of the current view.
         */
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
@@ -4286,8 +4314,12 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (!u.isEven(workspace+1)) {
                 var slideTo = workspaces[workspace+1].id.split(prefix+'workspace')[1];
-                go.Visual.switchWorkspace(slideTo);
+                v.switchWorkspace(slideTo);
+            } else {
+                v.stopIndicator('right');
             }
+        } else {
+            v.stopIndicator('right');
         }
     },
     slideDown: function() {
@@ -4296,6 +4328,7 @@ GateOne.Base.update(GateOne.Visual, {
         Slides the view downward one workspace by pushing all the others up.
         */
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
@@ -4309,8 +4342,12 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (workspaces[workspace+2]) {
                 var slideTo = workspaces[workspace+2].id.split(prefix+'workspace')[1];
-                go.Visual.switchWorkspace(slideTo);
+                v.switchWorkspace(slideTo);
+            } else {
+                v.stopIndicator('down');
             }
+        } else {
+            v.stopIndicator('down');
         }
     },
     slideUp: function() {
@@ -4319,6 +4356,7 @@ GateOne.Base.update(GateOne.Visual, {
         Slides the view downward one workspace by pushing all the others down.
         */
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
@@ -4332,8 +4370,12 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (workspaces[workspace-2]) {
                 var slideTo = workspaces[workspace-2].id.split(prefix+'workspace')[1];
-                go.Visual.switchWorkspace(Math.max(slideTo, 1));
+                v.switchWorkspace(Math.max(slideTo, 1));
+            } else {
+                v.stopIndicator('up');
             }
+        } else {
+            v.stopIndicator('up');
         }
     },
     resetGrid: function() {
@@ -5831,6 +5873,11 @@ GateOne.Base.update(GateOne.User, {
             contentContainer.innerHTML = content;
         } else {
             contentContainer.appendChild(content);
+        }
+        if (!prefsContent.childNodes.length) {
+            // Make sure the very first preference is visible
+            contentContainer.style.display = '';
+            prefsItem.classList.add('✈active');
         }
         prefsContent.appendChild(contentContainer);
         if (callback) {

@@ -39,6 +39,7 @@ except ImportError:
 
 # Import 3rd party stuff
 from tornado import locale
+import tornado.template
 from tornado.options import options
 from tornado.escape import json_encode as _json_encode
 from tornado.escape import json_decode
@@ -1829,7 +1830,7 @@ def combine_javascript(path, settings_dir=None):
                                     f.write(js_file.read() + u'\n')
         f.flush()
 
-def combine_css(path, container, settings_dir=None):
+def combine_css(path, container, settings_dir=None, log=True):
     """
     Combines all application and plugin .css template files into one big one;
     saved to the given *path*.  Templates will be rendered using the given
@@ -1837,30 +1838,44 @@ def combine_css(path, container, settings_dir=None):
 
     If given, *settings_dir* will be used to determine which applications and
     plugins should be included in the dump based on what is enabled.
+
+    If *log* is ``False`` messages indicating where the files
+    have been saved will not be logged (useful when rendering CSS for
+    programatic use).
     """
+    if container.startswith('#'): # This is just in case (don't want ##gateone)
+        container = container.lstrip('#')
     if not settings_dir:
         settings_dir = os.path.join(GATEONE_DIR, 'settings')
     all_settings = get_settings(settings_dir)
     enabled_plugins = []
     enabled_applications = []
+    embedded = False
+    url_prefix = '/'
     if 'gateone' in all_settings['*']:
         # The check above will fail in first-run situations
         enabled_plugins = all_settings['*']['gateone'].get(
             'enabled_plugins', [])
         enabled_applications = all_settings['*']['gateone'].get(
             'enabled_applications', [])
+        embedded = all_settings['*']['gateone'].get('embedded', False)
+        url_prefix = all_settings['*']['gateone'].get('url_prefix', False)
     plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
     pluginslist = os.listdir(plugins_dir)
     pluginslist.sort()
     applications_dir = os.path.join(GATEONE_DIR, 'applications')
     appslist = os.listdir(applications_dir)
     appslist.sort()
-    themes = os.listdir(os.path.join(GATEONE_DIR, 'templates', 'themes'))
+    global_themes_dir = os.path.join(GATEONE_DIR, 'templates', 'themes')
+    themes = os.listdir(global_themes_dir)
     theme_writers = {}
     for theme in themes:
         combined_theme_path = "%s_theme_%s" % (
             path.split('.css')[0], theme)
         theme_writers[theme] = io.open(combined_theme_path, 'w')
+        themepath = os.path.join(global_themes_dir, theme)
+        with io.open(themepath) as css_file:
+            theme_writers[theme].write(css_file.read())
     # NOTE: We skip gateone.css because that isn't used when embedding
     with io.open(path, 'w') as f:
         # Gate One plugins
@@ -1962,28 +1977,37 @@ def combine_css(path, container, settings_dir=None):
     for writer in theme_writers.values():
         writer.flush()
         writer.close()
-    # Now perform a replacement of the {{container}} variable
-    with io.open(path, 'r') as f:
-        css_data = f.read()
-        css_data = css_data.replace(
-            '#{{container}}', container)
-    with io.open(path, 'w') as f:
+    # Now render the templates
+    asis = lambda x: x # Used to disable autoescape
+    loader = tornado.template.Loader(os.path.split(path)[0], autoescape="asis")
+    template = loader.load(path)
+    css_data = template.generate(
+        asis=asis,
+        container=container,
+        url_prefix=url_prefix,
+        embedded=embedded)
+    # Overwrite it with the rendered version
+    with io.open(path, 'wb') as f:
         f.write(css_data)
-    logging.info(_(
-        "Non-theme CSS has been combined and saved to: %s"
-        % path))
+    if log:
+        logging.info(_(
+            "Non-theme CSS has been combined and saved to: %s" % path))
     for theme in theme_writers.keys():
         combined_theme_path = "%s_theme_%s" % (
             path.split('.css')[0], theme)
-        with io.open(combined_theme_path, 'r') as f:
-            css_data = f.read()
-            css_data = css_data.replace(
-                '#{{container}}', container)
-        with io.open(combined_theme_path, 'w') as f:
+        template = loader.load(combined_theme_path)
+        css_data = template.generate(
+            asis=asis,
+            container=container,
+            url_prefix=url_prefix,
+            embedded=embedded)
+        with io.open(combined_theme_path, 'wb') as f:
             f.write(css_data)
-        logging.info(_(
-            "The %s theme CSS has been combined and saved to: %s"
-            % (theme.split('.css')[0], combined_theme_path)))
+        if log:
+            logging.info(_(
+                "The %s theme CSS has been combined and saved to: %s"
+                % (theme.split('.css')[0], combined_theme_path)))
+
 # Misc
 _ = get_translation()
 if MACOS or OPENBSD: # Apply BSD-specific stuff
