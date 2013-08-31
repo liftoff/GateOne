@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#       Copyright 2011 Liftoff Software Corporation
+#       Copyright 2013 Liftoff Software Corporation
 #
 # For license information see LICENSE.txt
 
@@ -1197,14 +1197,15 @@ def string_to_syslog_facility(facility):
         raise UnknownFacility(_(
             "%s does not match a known syslog facility" % repr(facility)))
 
-def create_data_uri(filepath):
+def create_data_uri(filepath, mimetype=None):
     """
     Given a file at *filepath*, return that file as a data URI.
 
     Raises a `MimeTypeFail` exception if the mimetype could not be guessed.
     """
     import base64
-    mimetype = mimetypes.guess_type(filepath)[0]
+    if not mimetype:
+        mimetype = mimetypes.guess_type(filepath)[0]
     if not mimetype:
         raise MimeTypeFail("Could not guess mime type of: %s" % filepath)
     with io.open(filepath, mode='rb') as f:

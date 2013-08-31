@@ -450,7 +450,6 @@ potential conflicts with other classes that may be on the page.
 }
 .✈paneltablelabel {
     display: table-cell;
-    width: 75%;
     vertical-align: middle;
     padding-top: 0.2em;
 }

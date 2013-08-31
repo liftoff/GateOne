@@ -59,6 +59,7 @@ go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If f
 go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
 go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
 go.prefs['bellSoundType'] = go.prefs['bellSoundType'] || ''; // Stores the mimetype of the bell sound.
+go.prefs['font'] = go.prefs['font'] || 'Ubuntu Mono'; // The font to use inside of terminals (e.g. 'monospace', 'Ubuntu Mono', etc)
 go.prefs['colors'] = go.prefs['colors'] || 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
 go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false; // Disabled the sliding animation on terminals to make switching faster
 go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
@@ -160,8 +161,9 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal']);
                 }
             },
-            updateColorsfunc = function(panelNode) {
+            updatePrefsfunc = function(panelNode) {
                 if (panelNode.id == prefix+'panel_prefs') {
+                    go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
                     go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
                 }
             };
@@ -397,12 +399,6 @@ go.Base.update(GateOne.Terminal, {
             logDebug("Attempting to download our bell sound...");
             go.ws.send(JSON.stringify({'terminal:get_bell': null}));
         }
-        // Disable terminal transitions if the user wants
-//         if (go.prefs.disableTermTransitions) {
-//             var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-//             newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-//             go.node.appendChild(newStyle);
-//         }
         // Load the Web Worker
         if (!go.prefs.webWorker) {
             go.prefs.webWorker = go.prefs.url + 'terminal/static/webworkers/term_ww.js';
@@ -413,7 +409,8 @@ go.Base.update(GateOne.Terminal, {
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
-        go.Net.addAction('terminal:colors_list', go.Terminal.enumerateColors);
+        go.Net.addAction('terminal:fonts_list', go.Terminal.enumerateFontsAction);
+        go.Net.addAction('terminal:colors_list', go.Terminal.enumerateColorsAction);
         go.Net.addAction('terminal:terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('terminal:termupdate', go.Terminal.updateTerminalAction);
         go.Net.addAction('terminal:set_title', go.Terminal.setTitleAction);
@@ -430,7 +427,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:encoding', go.Terminal.termEncodingAction);
         go.Net.addAction('terminal:keyboard_mode', go.Terminal.termKeyboardModeAction);
         go.Terminal.createPrefsPanel();
-        go.Events.on("go:panel_toggle:in", updateColorsfunc);
+        go.Events.on("go:panel_toggle:in", updatePrefsfunc);
         E.on("go:save_prefs", function() {
             // In case the user changed the rows/columns or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
@@ -468,11 +465,19 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
         E.on("go:timeout", go.Terminal.timeoutEvent);
+        go.Terminal.loadFont();
         go.Terminal.loadTextColors();
         E.on("go:js_loaded", function() {
             // This ensures that whatever effects are applied to a terminal applied when resized too:
             E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
             go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
+            if (!go.prefs.embedded) {
+                E.on("go:panel_toggle:out", go.Terminal.Input.capture);
+                E.on("go:panel_toggle:out", function(panel) {
+                    go.Terminal.Input.capture();
+                    go.Terminal.setActive();
+                });
+            }
         });
         E.on("go:set_location", go.Terminal.changeLocation);
     },
@@ -503,6 +508,8 @@ go.Base.update(GateOne.Terminal, {
             prefsPanelRow5 = u.createElement('div', {'class':'✈paneltablerow'}),
             tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelFontLabel = u.createElement('span', {'id': 'prefs_font_label', 'class':'✈paneltablelabel'}),
+            prefsPanelFont = u.createElement('select', {'id': 'prefs_font', 'name':'prefs_font', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'✈paneltablelabel'}),
             prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelDisableHighlightLabel = u.createElement('span', {'id': 'prefs_disablehighlight_label', 'class':'✈paneltablelabel'}),
@@ -521,15 +528,20 @@ go.Base.update(GateOne.Terminal, {
             savePrefsCallback = function() {
                 // Called when the user clicks the "Save" button in the preferences panel; grabs all the terminal-specific values and saves deals with them appropriately
                 var colors = u.getNode('#'+prefix+'prefs_colors').value,
+                    font = u.getNode('#'+prefix+'prefs_font').value,
                     scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
                     rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                     colsValue = u.getNode('#'+prefix+'prefs_cols').value,
                     disableHighlight = u.getNode('#'+prefix+'prefs_disablehighlight').checked,
                     disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
                 // Grab the form values and set them in prefs
+                if (font != go.prefs.font) {
+                    go.Terminal.loadFont(font); // Load the font right now
+                    go.prefs.font = font;
+                }
                 if (colors != go.prefs.colors) {
                     go.Terminal.loadTextColors(colors); // Load the colors right now
-                    go.prefs.colors = colors; // Save them for later
+                    go.prefs.colors = colors;
                 }
                 if (scrollbackValue) {
                     var prevValue = go.prefs.scrollback;
@@ -571,11 +583,14 @@ go.Base.update(GateOne.Terminal, {
             e.preventDefault(); // Just in case
             go.Terminal.uploadBellDialog();
         }
+        prefsPanelFontLabel.innerHTML = "<b>Font:</b> ";
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelDisableHighlightLabel.innerHTML = "<b>Disable Selected Text Highlighting:</b> ";
         prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
         prefsPanelBell.innerHTML = "Configure";
         prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
+        prefsPanelStyleRow1.appendChild(prefsPanelFontLabel);
+        prefsPanelStyleRow1.appendChild(prefsPanelFont);
         prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
         prefsPanelStyleRow2.appendChild(prefsPanelColors);
         prefsPanelStyleRow4.appendChild(prefsPanelDisableHighlightLabel);
@@ -584,6 +599,7 @@ go.Base.update(GateOne.Terminal, {
         prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
         prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
         prefsPanelStyleRow6.appendChild(prefsPanelBell);
+        tableDiv.appendChild(prefsPanelStyleRow1);
         tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow4);
         tableDiv.appendChild(prefsPanelStyleRow5);
@@ -608,27 +624,47 @@ go.Base.update(GateOne.Terminal, {
         contentContainer.appendChild(tableDiv2);
         go.User.preference("Terminal", contentContainer, savePrefsCallback);
     },
-    enumerateColors: function(messageObj) {
-        /**:GateOne.Terminal.enumerateColors(messageObj)
+    enumerateFontsAction: function(messageObj) {
+        /**:GateOne.Terminal.enumerateFontsAction(messageObj)
+
+        Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server.
+        */
+        var fontsList = messageObj['fonts'],
+            prefsFontSelect = u.getNode('#'+prefix+'prefs_font'),
+            count = 1; // Start at 1 since we always add monospace
+        prefsFontSelect.options.length = 0;
+        prefsFontSelect.add(new Option("monospace (let browser decide)", "monospace"), null);
+        for (var i in fontsList) {
+            prefsFontSelect.add(new Option(fontsList[i], fontsList[i]), null);
+            if (go.prefs.font == fontsList[i]) {
+                prefsFontSelect.selectedIndex = count;
+            }
+            count += 1;
+        }
+    },
+    enumerateColorsAction: function(messageObj) {
+        /**:GateOne.Terminal.enumerateColorsAction(messageObj)
 
         Attached to the 'terminal:colors_list' WebSocket action; updates the preferences panel with the list of text color schemes stored on the server.
         */
-        var u = go.Utils,
-            prefix = go.prefs.prefix,
-            colorsList = messageObj['colors'],
-            prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
+        var colorsList = messageObj['colors'],
+            prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors'),
+            count = 0;
         prefsColorsSelect.options.length = 0;
         for (var i in colorsList) {
             prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
             if (go.prefs.colors == colorsList[i]) {
-                prefsColorsSelect.selectedIndex = i;
+                prefsColorsSelect.selectedIndex = count;
             }
+            count += 1;
         }
     },
     onResizeEvent: function(e) {
+        /**:GateOne.Terminal.onResizeEvent()
+
+        Attached to the "go:update_dimensions" event; calls :js:meth:`GateOne.Terminal.sendDimensions` for all terminals to ensure the new dimensions get applied.
+        */
         logDebug('GateOne.Terminal.onResizeEvent()');
-        // Update the Terminal if it is resized
-        // Wrapped in a timeout to de-bounce
         var term = localStorage[prefix+'selectedTerminal'],
             terminalObj = go.Terminal.terminals[term];
         if (!terminalObj) {
@@ -694,8 +730,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not given the currently-selected terminal will be used.
         */
-        var u = go.Utils,
-            term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
+        var term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
             message = {'chars': chars, 'term': term};
         go.ws.send(JSON.stringify({'terminal:write_chars': message}));
     },
@@ -721,6 +756,14 @@ go.Base.update(GateOne.Terminal, {
         Tells the Gate One server to send a full screen refresh to the client for the given *term*.
         */
         go.ws.send(JSON.stringify({'terminal:full_refresh': term}));
+    },
+    loadFont: function(font) {
+        /**:GateOne.Terminal.loadFont(font)
+
+        Tells the server to perform a sync of the given *font* with the client.  If *font* is not given, will load the font set in `GateOne.prefs.font`.
+        */
+        font = font || go.prefs.font;
+        go.ws.send(JSON.stringify({'terminal:get_font': font}));
     },
     loadTextColors: function(colors) {
         /**:GateOne.Terminal.loadTextColors(colors)
@@ -800,15 +843,11 @@ go.Base.update(GateOne.Terminal, {
         if (prevRows == prefs.rows && prevCols == prefs.columns) {
             return; // Nothing to do
         }
-//         if (go.prefs.showToolbar || go.prefs.showTitle) {
-//             prefs['columns'] = prefs['columns'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
-//         }
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { prefs.columns = go.prefs.columns };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         // Execute any sendDimensionsCallbacks
         E.trigger("terminal:send_dimensions", term);
-        // sendDimensionsCallbacks is DEPRECATED.  Use GateOne.Events.on("send_dimensions", yourFunc) instead
         if (GateOne.Net.sendDimensionsCallbacks.length) {
             go.Logging.deprecated("sendDimensionsCallbacks", "Use GateOne.Events.on('terminal:send_dimensions', func) instead.");
             for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
@@ -1158,9 +1197,7 @@ go.Base.update(GateOne.Terminal, {
 
             Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
         */
-        var u = go.Utils,
-            t = go.Terminal,
-            prefix = go.prefs.prefix,
+        var t = go.Terminal,
             blob = null;
         try {
             blob = u.createBlob(source, 'application/javascript');
@@ -1528,7 +1565,7 @@ go.Base.update(GateOne.Terminal, {
                 v.switchWorkspace(workspaceNum);
             }
         }
-        if (where.className == '✈terminal') {
+        if (where.classList.contains('✈terminal')) {
             terminal = where;
             terminal.id = currentTerm;
         } else {
@@ -1735,11 +1772,14 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.setTerminal(term);
         E.trigger('terminal:switch_terminal', term);
     },
-    setActive: function(term) {
-        /**:GateOne.Terminal.setActive(term)
+    setActive: function(/*opt*/term) {
+        /**:GateOne.Terminal.setActive([term])
 
         Removes the '✈inactive' class from the given *term*.
+
+        If *term* is not given the currently-selected terminal will be used.
         */
+        term = term || localStorage[prefix+'selectedTerminal'];
         var terms = u.toArray(u.getNodes('.✈terminal')),
             termNode = go.Terminal.terminals[term]['terminal'];
         terms.forEach(function(terminalNode) {
@@ -2044,8 +2084,6 @@ go.Base.update(GateOne.Terminal, {
         logDebug("disableScrollback()");
         // Replaces the contents of the selected terminal with just the screen (i.e. no scrollback)
         // If *term* is given, only disable scrollback for that terminal
-        var u = go.Utils,
-            prefix = go.prefs.prefix;
         if (term) {
             var termPre = GateOne.Terminal.terminals[term]['node'],
                 termScrollback = go.Terminal.terminals[term]['scrollbackNode'];

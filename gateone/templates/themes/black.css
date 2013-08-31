@@ -222,7 +222,7 @@
     background-color: #fff;
     outline: none;
     resize: none;
-    font-family: 'Ubuntu Mono', monospace; /* For consistency */
+    font-family: monospace; /* For consistency */
     line-height: 1.04;
 }
 .✈noanimate {
@@ -455,7 +455,6 @@ potential conflicts with other classes that may be on the page.
 }
 .✈paneltablelabel {
     display: table-cell;
-    width: 75%;
     vertical-align: middle;
     padding-top: 0.2em;
 }

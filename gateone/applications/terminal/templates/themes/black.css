@@ -36,7 +36,6 @@
     color: #90A3C5;
 }
 .✈terminal pre {
-    font-family: 'Ubuntu Mono', monospace;
     background-color: #222; /* Not quite black so we can use shadows :) */
     color: #eee;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */

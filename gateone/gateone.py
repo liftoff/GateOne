@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130829223707" # Gets replaced by git (holds the date/time)
+__commit__ = "20130830084327" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1066,6 +1066,7 @@ class GOApplication(OnOffMixin):
         self.write_message = ws.write_message
         self.write_binary = ws.write_binary
         self.render_and_send_css = ws.render_and_send_css
+        self.render_style = ws.render_style
         self.send_css = ws.send_css
         self.send_js = ws.send_js
         self.close = ws.close
@@ -2062,11 +2063,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.write_message(message)
         self.trigger("go:get_locations")
 
-    def render_style(self, style_path, **kwargs):
+    def render_style(self, style_path, force=False, **kwargs):
         """
         Renders the CSS template at *style_path* using *kwargs* and returns the
         path to the rendered result.  If the given style has already been
         rendered the existing cache path will be returned.
+
+        If *force* is ``True`` the stylesheet will be rendered even if it
+        already exists (cached).
 
         This method also cleans up older versions of the same rendered template.
         """
@@ -2079,7 +2083,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         shortened_path = short_hash(style_path)
         rendered_filename = 'rendered_%s_%s' % (shortened_path, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
-        if not os.path.exists(rendered_path):
+        if not os.path.exists(rendered_path) or force:
             style_css = self.render_string(
                 style_path,
                 **kwargs
@@ -2598,7 +2602,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if os.path.exists(rendered_path):
-            self.send_css(rendered_path)
+            self.send_css(rendered_path, element_id=element_id, media=media)
             return
         template_loaders = tornado.web.RequestHandler._template_loaders
         # This wierd little bit empties Tornado's template cache:
@@ -2613,7 +2617,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         )
         with io.open(rendered_path, 'wb') as f:
             f.write(rendered)
-        self.send_css(rendered_path)
+        self.send_css(rendered_path, element_id=element_id, media=media)
         # Remove older versions of the rendered template if present
         for fname in os.listdir(cache_dir):
             if fname == rendered_filename:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Original version (pam-0.1.3) ©2007 Chris AtLee <chris@atlee.ca>
-# This version (modifications) © 2012 Liftoff Software Corporation
+# This version (modifications) © 2013 Liftoff Software Corporation
 # Licensed under the MIT license:
 #   http://www.opensource.org/licenses/mit-license.php
 # This is a modified version of pam-0.1.3 that adds support for

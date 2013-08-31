@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130829223707";
+GateOne.__commit__ = "20130830084327";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1682,10 +1682,10 @@ GateOne.Base.update(GateOne.Utils, {
             }
             delete message['result'];
             if (noCache === undefined && message['cache'] != false) {
-                go.Storage.cacheJS(message, 'js');
+                go.Storage.cacheJS(message);
             } else if (message['cache'] == false) {
                 // Cleanup the existing entry if present
-                go.Storage.uncacheJS(message, 'js');
+                go.Storage.uncacheJS(message);
             }
             go.Storage.loadedFiles[message['filename']] = true;
             // Don't call runPostInit() until we're done loading all JavaScript
@@ -3894,7 +3894,7 @@ GateOne.Base.update(GateOne.Visual, {
             if (panels[i] && v.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
-                E.trigger("panel_toggle:out", panel);
+                E.trigger("go:panel_toggle:out", panel);
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                     for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                         if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {

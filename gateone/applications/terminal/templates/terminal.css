@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /* Generic Terminal application CSS that will be the same across all themes */
-@font-face {
+/*@font-face {
   font-family: 'Ubuntu Mono';
   font-style: normal;
   font-weight: normal;
@@ -23,7 +23,7 @@
   font-style: italic;
   font-weight: normal;
   src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}terminal/static/fonts/ubuntumono-italic.woff') format('woff');
-}
+}*/
 .✈pastearea {
     font-family: monospace;
     display: block;

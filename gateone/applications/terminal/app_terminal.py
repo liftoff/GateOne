@@ -347,6 +347,7 @@ class TerminalApplication(GOApplication):
             'terminal:manual_title': self.manual_title,
             'terminal:reset_terminal': self.reset_terminal,
             'terminal:get_webworker': self.get_webworker,
+            'terminal:get_font': self.get_font,
             'terminal:get_colors': self.get_colors,
             'terminal:set_encoding': self.set_term_encoding,
             'terminal:set_keyboard_mode': self.set_term_keyboard_mode,
@@ -355,6 +356,7 @@ class TerminalApplication(GOApplication):
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
             'terminal:unshare_terminal': self.unshare_terminal,
+            'terminal:enumerate_fonts': self.enumerate_fonts,
             'terminal:enumerate_colors': self.enumerate_colors,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
@@ -540,6 +542,89 @@ class TerminalApplication(GOApplication):
                         if self.ws.client_id in term_obj:
                             del term_obj[self.ws.client_id]
         self.trigger("terminal:on_close")
+
+    def enumerate_fonts(self):
+        """
+        Returns a JSON-encoded object containing the installed fonts.
+        """
+        from woff_info import woff_info
+        fonts_path = os.path.join(APPLICATION_PATH, 'static', 'fonts')
+        fonts = os.listdir(fonts_path)
+        font_list = []
+        for font in fonts:
+            if not font.endswith('.woff'):
+                continue
+            font_path = os.path.join(fonts_path, font)
+            font_info = woff_info(font_path)
+            if "Font Family" not in font_info:
+                self.ws.logger.error(_(
+                    "Bad font in fonts dir (missing Font Family in name "
+                    "table): %s" % font))
+                continue # Bad font
+            if font_info["Font Family"] not in font_list:
+                font_list.append(font_info["Font Family"])
+        message = {'terminal:fonts_list': {'fonts': font_list}}
+        self.write_message(message)
+
+    @require(authenticated(), policies('terminal'))
+    def get_font(self, font_family):
+        """
+        Attached to the `terminal:get_font` WebSocket action; sends the client
+        CSS that includes a complete set of fonts associated with *font_family*.
+        """
+        templates_path = templates_path = os.path.join(
+            APPLICATION_PATH, 'templates')
+        font_css_path = os.path.join(templates_path, 'font.css')
+        if font_family == 'monospace':
+            # User wants the browser to control the font; real simple:
+            rendered_path = self.render_style(
+                font_css_path, force=True, font_family=font_family)
+            self.send_css(rendered_path, element_id="terminal_font")
+            return
+        from woff_info import woff_info
+        fonts_path = os.path.join(APPLICATION_PATH, 'static', 'fonts')
+        fonts = os.listdir(fonts_path)
+        woffs = {}
+        for font in fonts:
+            if not font.endswith('.woff'):
+                continue
+            font_path = os.path.join(fonts_path, font)
+            font_info = woff_info(font_path)
+            if "Font Family" not in font_info:
+                self.ws.logger.error(_(
+                    "Bad font in fonts dir (missing Font Family in name "
+                    "table): %s" % font))
+                continue # Bad font
+            if font_info["Font Family"] == font_family:
+                font_dict = {
+                    "subfamily": font_info["Font Subfamily"],
+                    "font_style": "normal", # Overwritten below (if warranted)
+                    "font_weight": "normal", # Ditto
+                    "locals": "",
+                    "url": (
+                        "{url_prefix}terminal/static/fonts/{font}".format(
+                            url_prefix=self.settings['url_prefix'],
+                            font=font)
+                    )
+                }
+                if "Full Name" in font_info:
+                    font_dict["locals"] += (
+                        "local('{0}')".format(font_info["Full Name"]))
+                if "Postscript Name" in font_info:
+                    font_dict["locals"] += (
+                        ", local('{0}')".format(font_info["Postscript Name"]))
+                if 'italic' in font_info["Font Subfamily"].lower():
+                    font_dict["font_style"] = "italic"
+                if 'oblique' in font_info["Font Subfamily"].lower():
+                    font_dict["font_style"] = "oblique"
+                if 'bold' in font_info["Font Subfamily"].lower():
+                    font_dict["font_weight"] = "bold"
+                woffs.update({font: font_dict})
+        # NOTE: Not using render_and_send_css() because the source CSS file will
+        # never change but the output will.
+        rendered_path = self.render_style(
+            font_css_path, force=True, woffs=woffs, font_family=font_family)
+        self.send_css(rendered_path, element_id="terminal_font")
 
     def enumerate_colors(self):
         """
@@ -1557,7 +1642,6 @@ class TerminalApplication(GOApplication):
             return
         templates_path = os.path.join(APPLICATION_PATH, 'templates')
         term_colors_path = os.path.join(templates_path, 'term_colors')
-        #printing_path = os.path.join(templates_path, 'printing')
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'
@@ -1572,7 +1656,7 @@ class TerminalApplication(GOApplication):
         out_dict = {'files': []}
         colors_filename = "%s.css" % colors
         colors_path = os.path.join(term_colors_path, colors_filename)
-        rendered_path = self.ws.render_style(colors_path, **template_args)
+        rendered_path = self.render_style(colors_path, **template_args)
         filename = "term_colors.css" # Make sure it's the same every time
         mtime = os.stat(rendered_path).st_mtime
         kind = 'css'
@@ -2015,7 +2099,7 @@ class TerminalApplication(GOApplication):
         """
         print_css_path = os.path.join(
             APPLICATION_PATH, 'templates', 'printing', 'default.css')
-        self.ws.send_css(
+        self.ws.render_and_send_css(
             print_css_path, element_id="terminal_print_css", media="print")
 
     @require(authenticated())
