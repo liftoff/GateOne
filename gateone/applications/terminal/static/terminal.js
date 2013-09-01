@@ -632,6 +632,8 @@ go.Base.update(GateOne.Terminal, {
         var fontsList = messageObj['fonts'],
             prefsFontSelect = u.getNode('#'+prefix+'prefs_font'),
             count = 1; // Start at 1 since we always add monospace
+        // Save the fonts list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
+        go.Terminal.fontsList = fontsList;
         prefsFontSelect.options.length = 0;
         prefsFontSelect.add(new Option("monospace (let browser decide)", "monospace"), null);
         for (var i in fontsList) {
@@ -650,6 +652,8 @@ go.Base.update(GateOne.Terminal, {
         var colorsList = messageObj['colors'],
             prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors'),
             count = 0;
+        // Save the colors list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
+        go.Terminal.colorsList = colorsList;
         prefsColorsSelect.options.length = 0;
         for (var i in colorsList) {
             prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);

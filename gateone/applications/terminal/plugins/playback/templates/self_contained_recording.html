@@ -108,16 +108,17 @@ function setTransform(node, transform) {
 }
 function fitWindow(node) {
     // Scales the recording to fit within the browser view
-    var node = document.getElementById(node); // This allows us to pass the node name as well as a node object
-    var translate = 0;
-    var nodeHeight = node.scrollHeight;
+    var node = document.getElementById(node),
+        translate = 0,
+        nodeHeight = node.scrollHeight,
+        nodeWidth = node.scrollWidth;
     if (nodeHeight > document.documentElement.clientHeight) { // Resize to fit
-        var scale = document.documentElement.clientHeight / (nodeHeight + 15); // +15 to make room for playback bar
-        var translate = Math.abs((scale - 1)*10) * 5; // This is how much needs to be translated to match the scale
-        var scaleXY = "scale(" + scale + ", " + scale + ")";
-        var translateXY = 'translate(-' + translate + '%, -' + translate + '%) ';
-        var transform = translateXY + scaleXY;
-        setTransform(node, transform);
+        var scaleY = document.documentElement.clientHeight / (nodeHeight + 15), // +15 to make room for playback bar
+            translate = Math.abs((scaleY - 1)*10) * 5, // This is how much needs to be translated to match the scale
+            scaleXY = "scale(" + scaleY + ", " + scaleY + ")",
+            translateXY = 'translate(-' + translate + '%, -' + translate + '%) ',
+            transform = translateXY + scaleXY;
+        setTransform(node.parentNode, transform);
     }
 }
 function scrollToBottom(elem) {

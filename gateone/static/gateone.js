@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130831162533";
+GateOne.__commit__ = "20130831213544";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1905,6 +1905,8 @@ GateOne.Base.update(GateOne.Utils, {
             prefix = go.prefs.prefix,
             themesList = messageObj['themes'],
             prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme');
+        // Save the themes list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
+        go.themesList = themesList;
         prefsThemeSelect.options.length = 0;
         for (var i in themesList) {
             prefsThemeSelect.add(new Option(themesList[i], themesList[i]), null);
