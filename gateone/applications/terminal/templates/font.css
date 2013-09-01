@@ -1,0 +1,24 @@
+{% try %}
+{% if font_family == 'monospace' %}
+.✈terminal pre {
+    font-family: monospace !important;
+}
+{% else %}
+{% for path, woff in woffs.items() %}
+/* {{path}} */
+@font-face {
+  font-family: '{{font_family}}';
+  font-style: {{woff["font_style"]}};
+  font-weight: {{woff["font_weight"]}};
+  src: {{woff["locals"]}}, url('{{woff["url"]}}') format('woff');
+}
+{% end %}
+.✈terminal pre {
+    font-family: '{{font_family}}' !important;
+}
+{% end %}
+{% except %}
+.✈terminal pre {
+    font-family: monospace !important;
+}
+{% end %}

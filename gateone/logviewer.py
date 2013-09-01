@@ -493,7 +493,10 @@ def render_html_playback(golog_path, render_settings=None):
     playback_template = loader.load('playback_log.html')
     metadata = get_log_metadata(golog_path)
     rows = metadata.get('rows', 24)
-    cols = metadata.get('cols', 80)
+    cols = metadata.get('columns', None)
+    if not cols:
+        # Try the old metadata format which used 'cols':
+        cols = metadata.get('cols', 80)
     recording = render_log_frames(golog_path, rows, cols)
     playback_html = playback_template.generate(
         asis=asis,
