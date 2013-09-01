@@ -1,3 +1,4 @@
 *.pyc
 *.kate-swp
 .DS_Store
+.directory
