@@ -76,28 +76,40 @@ information for any given WOFF file:
 import sys, struct, zlib
 
 # Globals
+ENCODING_MAP = {
+    0: 'ascii',
+    1: 'latin-1',
+    2: 'iso-8859-1'
+}
+
 NAME_ID_MAP = { # For human-readable names
-    0: "Copyright",
-    1: "Font Family",
-    2: "Font Subfamily",
-    3: "ID",
-    4: "Full Name",
-    5: "Version",
-    6: "Postscript Name",
-    7: "Trademark",
-    8: "Manufacturer",
-    9: "Designer",
-    10: "Description",
-    11: "Vendor URL",
-    12: "Designer URL",
-    13: "License Description",
-    14: "License URL",
-    15: "Reserved",
-    16: "Preferred Family",
-    17: "Preferred Subfamily",
-    18: "Compatible Full",
-    19: "Sample Text",
-    20: "Postscript CID"
+    0: u"Copyright",
+    1: u"Font Family",
+    2: u"Font Subfamily",
+    3: u"ID",
+    4: u"Full Name",
+    5: u"Version",
+    6: u"Postscript Name",
+    7: u"Trademark",
+    8: u"Manufacturer",
+    9: u"Designer",
+    10: u"Description",
+    11: u"Vendor URL",
+    12: u"Designer URL",
+    13: u"License Description",
+    14: u"License URL",
+    15: u"Reserved",
+    16: u"Preferred Family",
+    17: u"Preferred Subfamily",
+    18: u"Compatible Full",
+    19: u"Sample Text",
+    20: u"Postscript CID",
+    21: u"WWS Family Name",
+    22: u"WWS Subfamily Name",
+    #200: u"???" # Liberation Mono uses this, "Webfont 1.0" is the value but
+    # what is ID 200 supposed to be?  Webfont version?
+    #201: u"???" # Liberation Mono also uses this.  Looks like a date of some
+    # sort.  Creation date, perhaps?
 }
 
 NAME_HEADER_FORMAT = """
@@ -235,7 +247,17 @@ def unpack_name_data(data):
         # Add the strings to the table
         offset = storage_offset + record['offset']
         end = offset + record['length']
-        record['string'] = data[offset:end]
+        # Remove any null chars from the string (they can have lots)
+        record['string'] = data[offset:end].replace('\x00', '')
+        # Now make sure the string is unicode
+        encoding = ENCODING_MAP[record['encoding']]
+        try:
+            record['string'] = record['string'].decode(encoding)
+        except UnicodeDecodeError:
+            # Sometimes the listed encoding is incorrect.  Fall back to latin-1
+            # (which covers the most common non-ascii characters such as the
+            # copyright symbol: \xa9)
+            record['string'] = record['string'].decode('latin-1')
         name_records.append(record)
     return name_records
 
@@ -249,12 +271,23 @@ def woff_name_data(path):
         table_data = unpack_table_data(f.read())
     if 'name' not in table_data:
         raise BadWoff("WOFF file is invalid")
+    name_data = unpack_name_data(table_data['name'])
     name_dict = {}
-    for record in unpack_name_data(table_data['name']):
-        if record['language'] == 0:
+    for record in name_data:
+        if record['language'] == 0: # English
             name_id = record['name_id']
             del record['name_id'] # To reduce redundancy
             name_dict[name_id] = record
+    if not name_dict:
+        # Fallback to using the first language we find
+        language = None
+        for record in name_data:
+            if not language:
+                language = record['language']
+            if record['language'] == language:
+                name_id = record['name_id']
+                del record['name_id'] # To reduce redundancy
+                name_dict[name_id] = record
     return name_dict
 
 def woff_info(path):
@@ -265,7 +298,7 @@ def woff_info(path):
     name_dict = woff_name_data(path)
     human_name_dict = {}
     for name_id, record in name_dict.items():
-        human_name = NAME_ID_MAP[name_id]
+        human_name = NAME_ID_MAP.get(name_id, 'Unknown Name ID: %s' % name_id)
         human_name_dict[human_name] = record['string']
     return human_name_dict
 
