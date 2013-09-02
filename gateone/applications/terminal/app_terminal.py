@@ -567,18 +567,29 @@ class TerminalApplication(GOApplication):
         self.write_message(message)
 
     @require(authenticated(), policies('terminal'))
-    def get_font(self, font_family):
+    def get_font(self, settings):
         """
         Attached to the `terminal:get_font` WebSocket action; sends the client
-        CSS that includes a complete set of fonts associated with *font_family*.
+        CSS that includes a complete set of fonts associated with
+        *settings["font_family"]*.  Optionally, the following additional
+        *settings* may be provided:
+
+            :font_size:
+
+                Assigns the 'font-size' property according to the given value.
         """
+        font_family = settings['font_family']
+        font_size = settings.get('font_size', '90%')
         templates_path = templates_path = os.path.join(
             APPLICATION_PATH, 'templates')
         font_css_path = os.path.join(templates_path, 'font.css')
         if font_family == 'monospace':
             # User wants the browser to control the font; real simple:
             rendered_path = self.render_style(
-                font_css_path, force=True, font_family=font_family)
+                font_css_path,
+                force=True,
+                font_family=font_family,
+                font_size=font_size)
             self.send_css(rendered_path, element_id="terminal_font")
             return
         from woff_info import woff_info
@@ -623,7 +634,11 @@ class TerminalApplication(GOApplication):
         # NOTE: Not using render_and_send_css() because the source CSS file will
         # never change but the output will.
         rendered_path = self.render_style(
-            font_css_path, force=True, woffs=woffs, font_family=font_family)
+            font_css_path,
+            force=True,
+            woffs=woffs,
+            font_family=font_family,
+            font_size=font_size)
         self.send_css(rendered_path, element_id="terminal_font")
 
     def enumerate_colors(self):

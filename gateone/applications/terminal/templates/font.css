@@ -2,6 +2,7 @@
 {% if font_family == 'monospace' %}
 .✈terminal pre {
     font-family: monospace !important;
+    font-size: {{font_size}};
 }
 {% else %}
 {% for path, woff in woffs.items() %}
@@ -15,10 +16,12 @@
 {% end %}
 .✈terminal pre {
     font-family: '{{font_family}}' !important;
+    font-size: {{font_size}};
 }
 {% end %}
 {% except %}
 .✈terminal pre {
     font-family: monospace !important;
+    font-size: {{font_size}};
 }
 {% end %}

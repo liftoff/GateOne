@@ -59,7 +59,8 @@ go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If f
 go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
 go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
 go.prefs['bellSoundType'] = go.prefs['bellSoundType'] || ''; // Stores the mimetype of the bell sound.
-go.prefs['font'] = go.prefs['font'] || 'Ubuntu Mono'; // The font to use inside of terminals (e.g. 'monospace', 'Ubuntu Mono', etc)
+go.prefs['terminalFont'] = go.prefs['terminalFont'] || 'Ubuntu Mono'; // The font-family to use inside of terminals (e.g. 'monospace', 'Ubuntu Mono', etc)
+go.prefs['terminalFontSize'] = go.prefs['terminalFontSize'] || '90%'; // The font-size to use inside of terminals (e.g. '90%', '0.9em', '12pt', etc)
 go.prefs['colors'] = go.prefs['colors'] || 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
 go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false; // Disabled the sliding animation on terminals to make switching faster
 go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
@@ -497,6 +498,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var contentContainer = u.createElement('div'),
             prefsPanelStyleRow1 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow1b = u.createElement('div', {'class':'✈paneltablerow'}),
             prefsPanelStyleRow2 = u.createElement('div', {'class':'✈paneltablerow'}),
             prefsPanelStyleRow3 = u.createElement('div', {'class':'✈paneltablerow'}),
             prefsPanelStyleRow4 = u.createElement('div', {'class':'✈paneltablerow'}),
@@ -510,6 +512,8 @@ go.Base.update(GateOne.Terminal, {
             tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             prefsPanelFontLabel = u.createElement('span', {'id': 'prefs_font_label', 'class':'✈paneltablelabel'}),
             prefsPanelFont = u.createElement('select', {'id': 'prefs_font', 'name':'prefs_font', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': 'prefs_font_size_label', 'class':'✈paneltablelabel'}),
+            prefsPanelFontSize = u.createElement('input', {'id': 'prefs_font_size', 'name':'prefs_font_size', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'✈paneltablelabel'}),
             prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelDisableHighlightLabel = u.createElement('span', {'id': 'prefs_disablehighlight_label', 'class':'✈paneltablelabel'}),
@@ -528,16 +532,25 @@ go.Base.update(GateOne.Terminal, {
             savePrefsCallback = function() {
                 // Called when the user clicks the "Save" button in the preferences panel; grabs all the terminal-specific values and saves deals with them appropriately
                 var colors = u.getNode('#'+prefix+'prefs_colors').value,
+                    loadFont,
                     font = u.getNode('#'+prefix+'prefs_font').value,
+                    fontSize = u.getNode('#'+prefix+'prefs_font_size').value,
                     scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
                     rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                     colsValue = u.getNode('#'+prefix+'prefs_cols').value,
                     disableHighlight = u.getNode('#'+prefix+'prefs_disablehighlight').checked,
                     disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
                 // Grab the form values and set them in prefs
-                if (font != go.prefs.font) {
-                    go.Terminal.loadFont(font); // Load the font right now
-                    go.prefs.font = font;
+                if (font != go.prefs.terminalFont) {
+                    go.prefs.terminalFont = font;
+                    loadFont = true;
+                }
+                if (fontSize != go.prefs.terminalFontSize) {
+                    go.prefs.terminalFontSize = fontSize;
+                    loadFont = true;
+                }
+                if (loadFont) {
+                    go.Terminal.loadFont(font, fontSize); // Load the font right now
                 }
                 if (colors != go.prefs.colors) {
                     go.Terminal.loadTextColors(colors); // Load the colors right now
@@ -584,6 +597,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.uploadBellDialog();
         }
         prefsPanelFontLabel.innerHTML = "<b>Font:</b> ";
+        prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelDisableHighlightLabel.innerHTML = "<b>Disable Selected Text Highlighting:</b> ";
         prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
@@ -591,6 +605,8 @@ go.Base.update(GateOne.Terminal, {
         prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
         prefsPanelStyleRow1.appendChild(prefsPanelFontLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelFont);
+        prefsPanelStyleRow1b.appendChild(prefsPanelFontSizeLabel);
+        prefsPanelStyleRow1b.appendChild(prefsPanelFontSize);
         prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
         prefsPanelStyleRow2.appendChild(prefsPanelColors);
         prefsPanelStyleRow4.appendChild(prefsPanelDisableHighlightLabel);
@@ -600,6 +616,7 @@ go.Base.update(GateOne.Terminal, {
         prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
         prefsPanelStyleRow6.appendChild(prefsPanelBell);
         tableDiv.appendChild(prefsPanelStyleRow1);
+        tableDiv.appendChild(prefsPanelStyleRow1b);
         tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow4);
         tableDiv.appendChild(prefsPanelStyleRow5);
@@ -631,6 +648,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var fontsList = messageObj['fonts'],
             prefsFontSelect = u.getNode('#'+prefix+'prefs_font'),
+            prefsFontSize = u.getNode('#'+prefix+'prefs_font_size'),
             count = 1; // Start at 1 since we always add monospace
         // Save the fonts list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
         go.Terminal.fontsList = fontsList;
@@ -638,11 +656,13 @@ go.Base.update(GateOne.Terminal, {
         prefsFontSelect.add(new Option("monospace (let browser decide)", "monospace"), null);
         for (var i in fontsList) {
             prefsFontSelect.add(new Option(fontsList[i], fontsList[i]), null);
-            if (go.prefs.font == fontsList[i]) {
+            if (go.prefs.terminalFont == fontsList[i]) {
                 prefsFontSelect.selectedIndex = count;
             }
             count += 1;
         }
+        // Also apply the user's chosen font size to the input element
+        prefsFontSize.value = go.prefs.terminalFontSize;
     },
     enumerateColorsAction: function(messageObj) {
         /**:GateOne.Terminal.enumerateColorsAction(messageObj)
@@ -761,13 +781,18 @@ go.Base.update(GateOne.Terminal, {
         */
         go.ws.send(JSON.stringify({'terminal:full_refresh': term}));
     },
-    loadFont: function(font) {
-        /**:GateOne.Terminal.loadFont(font)
+    loadFont: function(font, /*opt*/size) {
+        /**:GateOne.Terminal.loadFont(font[, size])
 
         Tells the server to perform a sync of the given *font* with the client.  If *font* is not given, will load the font set in `GateOne.prefs.font`.
+
+        Optionally, a *size* may be chosen.  It must be a valid CSS 'font-size' value such as '0.9em', '90%', '12pt', etc.
         */
-        font = font || go.prefs.font;
-        go.ws.send(JSON.stringify({'terminal:get_font': font}));
+        logDebug('loadFont(' + font + ", " + size + ")");
+        font = font || go.prefs.terminalFont;
+        var settings = { 'font_family': font };
+        if (size) { settings['font_size'] = size; }
+        go.ws.send(JSON.stringify({'terminal:get_font': settings}));
     },
     loadTextColors: function(colors) {
         /**:GateOne.Terminal.loadTextColors(colors)

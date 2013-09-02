@@ -38,7 +38,6 @@
 .✈terminal pre {
     background-color: #fff;
     color: #000;
-    font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
     line-height: 1;
     overflow-y: auto;
     overflow-x: hidden;

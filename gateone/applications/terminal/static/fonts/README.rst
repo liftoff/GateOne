@@ -13,3 +13,6 @@ Others
 The Liberation Mono font is copyright Red Hat and is distributed under the Red
 Hat Liberation License which is included in this same directory.
 
+The Source Code Pro font is Copyright 2010, 2012 Adobe Systems Incorporated and
+distributed under the SIL Open Font License which is included in this same
+directory.
