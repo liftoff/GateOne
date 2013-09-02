@@ -436,10 +436,8 @@ go.Base.update(GateOne.Playback, {
                         p.progressBarElement.style.width = '100%';
                     }
                     if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
-                        console.log("Increasing playback frame: " + p.currentFrame);
                         p.currentFrame += 1;
                         if (p.currentFrame >= terminalObj['playbackFrames'].length - 1) {
-                            console.log("Applying current screen since we're at the max frame");
                             p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
                             p.progressBarElement.style.width = '100%';
                             t.applyScreen(terminalObj['screen'], term, true);
