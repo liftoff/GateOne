@@ -356,7 +356,8 @@ Options:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;idle before it is killed.  Accepts &lt;num&gt;X
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;where X could be one of s, m, h, or d for
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seconds, minutes, hours, and days.  Default
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is '5d' (5 days). (default 5d)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is '5d' (5 days).  Set to '0' to disable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the ability to resume sessions. (default 5d)
 --settings_dir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the settings directory.  Default:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/opt/gateone/settings (default
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/opt/gateone/settings)
@@ -689,6 +690,8 @@ controls at the client are unnecessary.</p>
 access to static content for applications embedding Gate One.
 Specifically, this is necessary in order to support loading fonts
 from different origins.</p>
+<p>Also sets the 'X-UA-Compatible' header to 'IE=edge' to enforce IE 10+
+into standards mode when content is loaded from intranet sites.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1073,10 +1076,12 @@ available to the user.</p>
 
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.render_style">
-<tt class="descname">render_style</tt><big>(</big><em>style_path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.render_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.render_style" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">render_style</tt><big>(</big><em>style_path</em>, <em>force=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.render_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.render_style" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders the CSS template at <em>style_path</em> using <em>kwargs</em> and returns the
 path to the rendered result.  If the given style has already been
 rendered the existing cache path will be returned.</p>
+<p>If <em>force</em> is <tt class="docutils literal"><span class="pre">True</span></tt> the stylesheet will be rendered even if it
+already exists (cached).</p>
 <p>This method also cleans up older versions of the same rendered template.</p>
 </dd></dl>
 

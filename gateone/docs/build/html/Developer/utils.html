@@ -372,7 +372,7 @@ is used.</p>
 
 <dl class="function">
 <dt id="utils.kill_dtached_proc_bsd">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_bsd</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_bsd" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_bsd</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_bsd" title="Permalink to this definition">¶</a></dt>
 <dd><p>A BSD-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't have
 /proc.  Seems simpler than <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually having to
 call a subprocess is less efficient (due to the sophisticated signal
@@ -599,7 +599,7 @@ an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' 
 <dl class="function">
 <dt id="utils.process_opt_esc_sequence">
 <tt class="descclassname">utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse the <em>chars</em> passed from <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by way of the
+<dd><p>Parse the <em>chars</em> passed from <tt class="xref py py-class docutils literal"><span class="pre">terminal.Terminal</span></tt> by way of the
 special, optional escape sequence handler (e.g. '&lt;plugin&gt;|&lt;text&gt;') into a
 tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="s">&#39;ssh|user@host:22&#39;</span><span class="p">)</span>
@@ -630,7 +630,7 @@ syslog.LOG_* equivalent.</p>
 
 <dl class="function">
 <dt id="utils.create_data_uri">
-<tt class="descclassname">utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em>, <em>mimetype=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a file at <em>filepath</em>, return that file as a data URI.</p>
 <p>Raises a <a class="reference internal" href="#utils.MimeTypeFail" title="utils.MimeTypeFail"><tt class="xref py py-obj docutils literal"><span class="pre">MimeTypeFail</span></tt></a> exception if the mimetype could not be guessed.</p>
 </dd></dl>
@@ -873,20 +873,23 @@ enabled.</p>
 
 <dl class="function">
 <dt id="utils.combine_css">
-<tt class="descclassname">utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_css" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em>, <em>log=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_css" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines all application and plugin .css template files into one big one;
 saved to the given <em>path</em>.  Templates will be rendered using the given
 <em>container</em> as the replacement for templates use of '#{{container}}'.</p>
 <p>If given, <em>settings_dir</em> will be used to determine which applications and
 plugins should be included in the dump based on what is enabled.</p>
+<p>If <em>log</em> is <tt class="docutils literal"><span class="pre">False</span></tt> messages indicating where the files
+have been saved will not be logged (useful when rendering CSS for
+programatic use).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.kill_dtached_proc">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kills the dtach processes associated with the given <em>term</em> and all its
-sub-processes.  Requires <em>session</em> so it can figure out the right
-processess to kill.</p>
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills the dtach processes associated with the given <em>session</em> that matches
+the given <em>location</em> and <em>term</em>.  All the dtach'd sub-processes will be
+killed as well.</p>
 </dd></dl>
 
 <dl class="function">

@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130901212440";
+GateOne.__commit__ = "20130902133443";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3639,8 +3639,18 @@ GateOne.Base.update(GateOne.Input, {
 })();
 
 GateOne.Base.module(GateOne, 'Visual', '1.1', ['Base', 'Net', 'Utils']);
+/**:GateOne.Visual
+
+This module contains all of Gate One's visual effect functions.  It is just like :js:attr:`GateOne.Utils` but specific to visual effects and DOM manipulations.
+*/
+
+// NOTE:  Only adding docstrings for properties that are important/significant.
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
+/**:GateOne.Visual.goDimensions
+
+    Stores the dimensions of the :js:attr:`GateOne.prefs.goDiv` element in the form of ``{w: '800', h: '600'}`` where 'w' and 'h' represent the width and height in pixels.  It is used by several functions in order to calculate how far to slide terminals, how many rows and columns will fit, etc.
+*/
 GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}}; // DEPRECATED
 GateOne.Visual.lastMessage = '';
 GateOne.Visual.sinceLastMessage = new Date();
@@ -3649,6 +3659,47 @@ GateOne.Visual.togglingPanel = false;
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
+        /**:GateOne.Visual.init()
+
+        Adds the 'grid' icon to :js:attr:`GateOne.Icons` and adds it to the toolbar for users to click on to bring up/down the grid view.
+
+        Registers the following WebSocket actions:
+
+            ===================  ==============================================
+            Action               Function
+            ===================  ==============================================
+            `go:notice`          :js:meth:`GateOne.Visual.serverMessageAction`
+            ===================  ==============================================
+
+        Registers the following Gate One events:
+
+            =======================     ============================================
+            Event                       Function
+            =======================     ============================================
+            `go:switch_workspace`       :js:meth:`GateOne.Visual.slideToWorkspace`
+            `go:cleanup_workspaces`     :js:meth:`GateOne.Visual.cleanupWorkspaces`
+            =======================     ============================================
+
+        Registers the following DOM events:
+
+            ========    =========     ============================================
+            Element     Event         Function
+            ========    =========     ============================================
+            `window`    `resize`      :js:meth:`GateOne.Visual.updateDimensions`
+            ========    =========     ============================================
+
+        Registers the following keyboard shortcuts:
+
+            =================================== =======================
+            Function                            Shortcut
+            =================================== =======================
+            Show Grid                           :kbd:`Control-Alt-G`
+            Switch to the terminal on the left  :kbd:`Shift-LeftArrow`
+            Switch to the terminal on the right :kbd:`Shift-RightArrow`
+            Switch to the terminal above        :kbd:`Shift-UpArrow`
+            Switch to the terminal below        :kbd:`Shift-DownArrow`
+            =================================== =======================
+        */
         var u = go.Utils,
             v = go.Visual,
             toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': '✈toolbar', 'title': "Grid View"}),
@@ -3732,7 +3783,11 @@ GateOne.Base.update(GateOne.Visual, {
     updateDimensions: function() {
         /**:GateOne.Visual.updateDimensions()
 
-        Sets `GateOne.Visual.goDimensions` to the current width/height of `GateOne.node` and triggers the "go:update_dimensions" event.
+        Sets :js:attr:`GateOne.Visual.goDimensions` to the current width/height of :js:attr:`GateOne.prefs.goDiv`.  Typically called when the browser window is resized.
+
+        .. code-block:: javascript
+
+            GateOne.Visual.updateDimensions();
         */
         logDebug('updateDimensions()');
         var u = go.Utils,
@@ -3763,11 +3818,35 @@ GateOne.Base.update(GateOne.Visual, {
     applyTransform: function (obj, transform) {
         /**:GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]
 
-        Applies the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform).  Example:
+        :param obj:
+            A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id``, a DOM node, an `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ of DOM nodes, an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_, or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+        :param transform:
+            A `CSS3 transform <http://www.w3schools.com/cssref/css3_pr_transform.asp>`_ function such as ``scale()`` or ``translate()``.
+        :param callbacks:
+            Any number of functions can be supplied to be called back after the transform is applied.  Each callback will be called after the previous one has completed.  This allows the callbacks to be chained one after the other to create animations. (see below)
 
-            >>> GateOne.Visual.applyTransform(GateOne.node, 'translateX(-2%)'); // Slide #gateone to the left a little bit
+        This function is Gate One's bread and butter:  It applies the given CSS3 *transform* to *obj*.  *obj* can be one of the following:
 
-        *obj* can be a string, a node, an array of nodes, or a NodeList.  In the case that *obj* is a string, GateOne.Utils.getNode(*obj*) will be performed under the assumption that the string represents a CSS selector.
+        * A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-like string (e.g. "#some_element_id").
+        * A DOM node.
+        * An `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ or an Array-like object containing DOM nodes such as `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_ or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (it will apply the transform to all of them).
+
+        The *transform* should be *just* the actual transform function (e.g. ``scale(0.5)``).  :js:func:`~GateOne.Visual.applyTransform` will take care of applying the transform according to how each browser implements it.  For example:
+
+        >>> GateOne.Visual.applyTransform('#somediv', 'translateX(500%)');
+
+        ...would result in ``#somediv`` getting styles applied to it like this:
+
+        .. code-block:: css
+
+            #somediv {
+                -webkit-transform: translateX(500%); // Chrome/Safari/Webkit-based stuff
+                -moz-transform: translateX(500%);    // Mozilla/Firefox/Gecko-based stuff
+                -o-transform: translateX(500%);      // Opera
+                -ms-transform: translateX(500%);     // IE9+
+                -khtml-transform: translateX(500%);  // Konqueror
+                transform: translateX(500%);         // Some day this will be all that is necessary
+            }
 
         Optionally, any amount of callback functions may be provided which will be called after each transform (aka transition) completes.  These callbacks will be called in a chain with the next callback being called after the previous one is complete.  Example:
 
@@ -3822,15 +3901,31 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
     },
-    applyStyle: function (elem, style) {
-        // A convenience function that allows us to apply multiple style changes in one function
-        // Example: applyStyle('somediv', {'opacity': 0.5, 'color': 'black'})
+    applyStyle: function(elem, style) {
+        /**:GateOne.Visual.applyStyle(elem, style)
+
+        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :param style: A JavaScript object holding the style that will be applied to *elem*.
+
+        A convenience function that allows us to apply multiple style changes in one go.  For example:
+
+            >>> GateOne.Visual.applyStyle('#somediv', {'opacity': 0.5, 'color': 'black'});
+        */
         var node = GateOne.Utils.getNode(elem);
         for (var name in style) {
             node.style[name] = style[name];
         }
     },
     getTransform: function(elem) {
+        /**:GateOne.Visual.getTransform(elem)
+
+        :param number elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string ID or a DOM node.
+
+        Returns the transform string applied to the style of the given *elem*
+
+            >>> GateOne.Visual.getTransform('#go_term1_pre');
+            "translateY(-3px)"
+        */
         // Returns the transform string applied to the style of the given *elem*
         var node = GateOne.Utils.getNode(elem);
         if (node.style['transform']) {
@@ -4556,14 +4651,25 @@ GateOne.Base.update(GateOne.Visual, {
         return grid;
     },
     serverMessageAction: function(message) {
-        // Displays a *message* sent from the server
+        /**:GateOne.Visual.serverMessageAction(message)
+
+        Attached to the `go:notice` WebSocket action; displays a given *message* from the Gate One server as a transient pop-up using :js:meth:`GateOne.Visual.displayMessage`.
+        */
         GateOne.Visual.displayMessage(message);
     },
     dialog: function(title, content, /*opt*/options) {
-        // Creates a dialog with the given *title* and *content*.  Returns a function that will close the dialog when called.
-        // *title* - string: Will appear at the top of the dialog.
-        // *content* - HTML string or JavaScript DOM node:  The content of the dialog.
-        // *options* doesn't do anything for now.
+        /**:GateOne.Visual.dialog(title, content[, options])
+
+        Creates an in-page dialog with the given *title* and *content*.  Returns a function that will close the dialog when called.
+
+        Dialogs can be moved around and closed at-will by the user with a clearly visible title bar that is always present.
+
+        All dialogs are placed within the `GateOne.prefs.goDiv` container but have their position set to 'fixed' so they can be moved anywhere on the page (even outside of the container where Gate One resides).
+
+        *title* - string: Will appear at the top of the dialog.
+        *content* - string or JavaScript DOM node:  The content of the dialog.
+        *options* - An associative array of parameters that change the look and/or behavior of the dialog.  Presently unused.
+        */
         var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
@@ -4724,9 +4830,25 @@ GateOne.Base.update(GateOne.Visual, {
         dialogToForeground();
         return closeDialog;
     },
-    alert: function(title, message, callback) {
-        // Displays a dialog using the given *title* containing the given *message* along with an OK button.  When the OK button is clicked, *callback* will be called.
-        // *message* may be a string or a DOM node.
+    alert: function(title, message, /*opt*/callback) {
+        /**:GateOne.Visual.alert(title, message[, callback])
+
+        :param string title: Title of the dialog that will be displayed.
+        :param message: An HTML-formatted string or a DOM node; Main content of the alert dialog.
+        :param function callback: A function that will be called after the user clicks "OK".
+
+        .. figure:: screenshots/gateone_alert.png
+            :class: portional-screenshot
+            :align: right
+
+        Displays a dialog using the given *title* containing the given *message* along with an OK button.  When the OK button is clicked, *callback* will be called.
+
+        .. code-block:: javascript
+
+            GateOne.Visual.alert('Test Alert', 'This is an alert box.');
+
+        .. note:: This function is meant to be a less-intrusive form of JavaScript's alert().
+        */
         var go = GateOne,
             u = GateOne.Utils,
             v = GateOne.Visual,
@@ -4774,11 +4896,6 @@ GateOne.Base.update(GateOne.Visual, {
              options['where'] - The node where we'll be attaching this widget or 'global' to add the widget to document.body.
         */
         options = options || {};
-        // Here are all the options
-        options.onopen = options.onopen || null;
-        options.onclose = options.onclose || null;
-        options.onconfig = options.onconfig || null;
-        options.where = options.where || localStorage[GateOne.prefs.prefix+'selectedWorkspace'];
         var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
@@ -4920,6 +5037,11 @@ GateOne.Base.update(GateOne.Visual, {
                     options['onclose']();
                 }
             };
+        // Sanitize options and apply defaults if necessary
+        options.onopen = options.onopen || null;
+        options.onclose = options.onclose || null;
+        options.onconfig = options.onconfig || null;
+        options.where = options.where || '#'+prefix+'workspace'+localStorage[prefix+'selectedWorkspace'];
         // Keep track of all open widgets so we can determine the foreground order
         if (!v.widgets) {
             v.widgets = [];

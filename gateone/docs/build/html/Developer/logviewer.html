@@ -188,6 +188,66 @@ can be used with grep and similar search/filter tools.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="logviewer.retrieve_first_frame">
+<tt class="descclassname">logviewer.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#logviewer.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.get_log_metadata">
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_log_metadata</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#logviewer.get_log_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the metadata from the log at the given <em>golog_path</em> in the form of
+a dict.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.render_log_frames">
+<tt class="descclassname">logviewer.</tt><tt class="descname">render_log_frames</tt><big>(</big><em>golog_path</em>, <em>rows</em>, <em>cols</em>, <em>limit=None</em><big>)</big><a class="headerlink" href="#logviewer.render_log_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the frames of <em>golog_path</em> as a list of HTML-encoded strings that
+can be used with the playback_log.html template.  It accomplishes this task
+by running the frames through the terminal emulator and capturing the HTML
+output from the <tt class="xref py py-obj docutils literal"><span class="pre">Terminal.dump_html</span></tt> method.</p>
+<p>If <em>limit</em> is given, only return that number of frames (e.g. for preview)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.get_256_colors">
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_256_colors</tt><big>(</big><em>container='gateone'</em><big>)</big><a class="headerlink" href="#logviewer.get_256_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the rendered 256-color CSS.  If <em>container</em> is provided it will be
+used as the <tt class="docutils literal"><span class="pre">{{container}}</span></tt> variable when rendering the template (
+defaults to &quot;gateone&quot;).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.render_html_playback">
+<tt class="descclassname">logviewer.</tt><tt class="descname">render_html_playback</tt><big>(</big><em>golog_path</em>, <em>render_settings=None</em><big>)</big><a class="headerlink" href="#logviewer.render_html_playback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a self-contained HTML playback file from the .golog at the given
+<em>golog_path</em>.  The HTML will be output to stdout.  The optional
+<em>render_settings</em> argument (dict) can include the following options
+to control how the output is rendered:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">prefix:</th><td class="field-body">(Default: <tt class="xref py py-obj docutils literal"><span class="pre">&quot;go_default_&quot;</span></tt>) The GateOne.prefs.prefix to emulate when
+rendering the HTML template.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">container:</th><td class="field-body">(Default: <tt class="xref py py-obj docutils literal"><span class="pre">&quot;gateone&quot;</span></tt>) The name of the #gateone container to emulate
+when rendering the HTML template.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">theme:</th><td class="field-body">(Default: <tt class="xref py py-obj docutils literal"><span class="pre">&quot;black&quot;</span></tt>) The theme to use when rendering the HTML
+template.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">colors:</th><td class="field-body">(Default: <tt class="xref py py-obj docutils literal"><span class="pre">&quot;default&quot;</span></tt>) The text color scheme to use when rendering
+the HTML template.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
 <dt id="logviewer.get_terminal_size">
 <tt class="descclassname">logviewer.</tt><tt class="descname">get_terminal_size</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/logviewer.html#get_terminal_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.get_terminal_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the size of the current terminal in the form of (rows, cols).</p>

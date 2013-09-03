@@ -173,7 +173,7 @@
 <dl class="function">
 <dt id="GateOne.SSH.handleConnect">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">handleConnect</tt><big>(</big><em>connectString</em><big>)</big><a class="headerlink" href="#GateOne.SSH.handleConnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles the 'terminal:sshjs_connect' WebSocket action which should provide an SSH <em>connectString</em> in the form of <a class="reference external" href="mailto:'user&#37;&#52;&#48;host">'user<span>&#64;</span>host</a>:port'.</p>
+<dd><p>Handles the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:sshjs_connect</span></tt> WebSocket action which should provide an SSH <em>connectString</em> in the form of <a class="reference external" href="mailto:'user&#37;&#52;&#48;host">'user<span>&#64;</span>host</a>:port'.</p>
 <p>The <em>connectString</em> will be stored in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]['sshConnectString']</span></tt> which is meant to be used in duplicating terminals (because you can't rely on the title).</p>
 <p>Also requests the host's public SSH key so it can be displayed to the user.</p>
 </dd></dl>
@@ -181,7 +181,7 @@
 <dl class="function">
 <dt id="GateOne.SSH.handleReconnect">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">handleReconnect</tt><big>(</big><em>jsonDoc</em><big>)</big><a class="headerlink" href="#GateOne.SSH.handleReconnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles the 'sshjs_reconnect' WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example <em>jsonDoc</em>:</p>
+<dd><p>Handles the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:sshjs_reconnect</span></tt> WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example <em>jsonDoc</em>:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="p">{</span><span class="mi">1</span><span class="o">:</span> <span class="s1">&#39;user@host1:22&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="o">:</span> <span class="s1">&#39;user@host2:22&#39;</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -453,13 +453,14 @@ proceed with the update.</p>
 <dl class="function">
 <dt id="ssh.get_connect_string">
 <tt class="descclassname">ssh.</tt><tt class="descname">get_connect_string</tt><big>(</big><em>self</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_connect_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_connect_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the connection string associated with <em>term</em> to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+<dd><p>Attached to the (server-side) <tt class="xref py py-obj docutils literal"><span class="pre">terminal:ssh_get_connect_string</span></tt> WebSocket
+action; writes the connection string associated with <em>term</em> to the WebSocket
 like so:</p>
-<div class="highlight-python"><pre>{'sshjs_reconnect': {*term*: &lt;connection string&gt;}}</pre>
+<div class="highlight-python"><pre>{'terminal:sshjs_reconnect': {*term*: &lt;connection string&gt;}}</pre>
 </div>
-<p>In ssh.js we attach an action (aka handler) to <a class="reference internal" href="js_gateone.html#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>
-for 'sshjs_reconnect' messages that attaches the connection string to
-<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[*term*]['sshConnectString']</span></tt></p>
+<p>In ssh.js we attach a WebSocket action to 'terminal:sshjs_reconnect'
+that assigns the connection string sent by this function to
+<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[*term*]['sshConnectString']</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -596,7 +597,7 @@ the specific string which will call this function from a terminal app is:</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler</span></tt> and
-<a class="reference internal" href="terminal.html#terminal.Terminal._opt_handler" title="terminal.Terminal._opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></a></p>
+<tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></p>
 </div>
 </dd></dl>
 

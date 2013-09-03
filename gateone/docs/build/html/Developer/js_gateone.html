@@ -79,7 +79,7 @@
 <li><a class="reference internal" href="#GateOne.i18n" title="GateOne.i18n"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.i18n</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net</span></tt></a></li>
-<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual</span></tt></li>
+<li><a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual</span></tt></a></li>
 <li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User</span></tt></li>
 <li><a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a></li>
 </ul>
@@ -1776,7 +1776,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="init">
 <em class="property">static </em><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the <tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt> action and the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event (which just displays a message to the user indicating as such).</p>
+<dd><p>Adds the <tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">go:locations</span></tt> WebSocket actions as well as the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event (which just displays a message to the user indicating as such).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1976,6 +1976,39 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </div>
 </dd></dl>
 
+<dl class="staticmethod">
+<dt id="getLocations">
+<em class="property">static </em><tt class="descname">getLocations</tt><big>(</big><big>)</big><a class="headerlink" href="#getLocations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks the server to send us a list of locations via the <tt class="xref py py-obj docutils literal"><span class="pre">go:get_locations</span></tt> WebSocket action.  Literally:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nc">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;go:get_locations&#39;</span><span class="o">:</span> <span class="kc">null</span><span class="p">}));</span>
+</pre></div>
+</div>
+<p>This will ultimately result in <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Net.locationsAction()</span></tt> being called.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="locationsAction">
+<em class="property">static </em><tt class="descname">locationsAction</tt><big>(</big><big>)</big><a class="headerlink" href="#locationsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:locations</span></tt> WebSocket action.  Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.locations</span></tt> to <em>locations</em>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="setLocation">
+<em class="property">static </em><tt class="descname">setLocation</tt><big>(</big><em>location</em><big>)</big><a class="headerlink" href="#setLocation" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>location</strong> (<em>string</em>) -- A string containing no spaces.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.location</span></tt> to <em>location</em> and sends a message (the <tt class="xref py py-obj docutils literal"><span class="pre">go:set_location</span></tt> WebSocket action) to the Gate One server telling it to change the current location to <em>location</em>.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="data">
@@ -2020,148 +2053,179 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.newWorkspaceWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">newWorkspaceWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.newWorkspaceWorkspace" title="Permalink to this definition">¶</a></dt>
+<dl class="data">
+<dt id="GateOne.Visual">
+<tt class="descclassname">GateOne.</tt><tt class="descname">Visual</tt><a class="headerlink" href="#GateOne.Visual" title="Permalink to this definition">¶</a></dt>
+<dd><p>This module contains all of Gate One's visual effect functions.  It is just like <a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a> but specific to visual effects and DOM manipulations.</p>
+<dl class="attribute">
+<dt id="GateOne.Visual.goDimensions">
+<em class="property">static </em><tt class="descname">goDimensions</tt><a class="headerlink" href="#GateOne.Visual.goDimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the dimensions of the <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> element in the form of <tt class="docutils literal"><span class="pre">{w:</span> <span class="pre">'800',</span> <span class="pre">h:</span> <span class="pre">'600'}</span></tt> where 'w' and 'h' represent the width and height in pixels.  It is used by several functions in order to calculate how far to slide terminals, how many rows and columns will fit, etc.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><tt class="descname">init</tt><big>(</big><big>)</big></dt>
+<dd><p>Adds the 'grid' icon to <a class="reference internal" href="#GateOne.Icons" title="GateOne.Icons"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Icons</span></tt></a> and adds it to the toolbar for users to click on to bring up/down the grid view.</p>
+<p>Registers the following WebSocket actions:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Action</th>
+<th class="head">Function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt></td>
+<td><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.serverMessageAction()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Registers the following Gate One events:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Event</th>
+<th class="head">Function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:switch_workspace</span></tt></td>
+<td><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:cleanup_workspaces</span></tt></td>
+<td><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.cleanupWorkspaces()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Registers the following DOM events:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="15%" />
+<col width="72%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Element</th>
+<th class="head">Event</th>
+<th class="head">Function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">window</span></tt></td>
+<td><tt class="xref py py-obj docutils literal"><span class="pre">resize</span></tt></td>
+<td><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.updateDimensions()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Registers the following keyboard shortcuts:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="60%" />
+<col width="40%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Function</th>
+<th class="head">Shortcut</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Show Grid</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-G</span></tt></td>
+</tr>
+<tr class="row-odd"><td>Switch to the terminal on the left</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-LeftArrow</span></tt></td>
+</tr>
+<tr class="row-even"><td>Switch to the terminal on the right</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-RightArrow</span></tt></td>
+</tr>
+<tr class="row-odd"><td>Switch to the terminal above</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-UpArrow</span></tt></td>
+</tr>
+<tr class="row-even"><td>Switch to the terminal below</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-DownArrow</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="newWorkspaceWorkspace">
+<em class="property">static </em><tt class="descname">newWorkspaceWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#newWorkspaceWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the new workspace workspace (akin to a browser's &quot;new tab tab&quot;) that allows users to open applications (and possibly other things in the future).</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.updateDimensions">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">updateDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.updateDimensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.goDimensions</span></tt> to the current width/height of <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt> and triggers the &quot;<a class="reference external" href="go:update_dimensions">go:update_dimensions</a>&quot; event.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">applyTransform(obj, transform[, callback1[, callbackN]]</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies the given CSS3 <em>transform</em> to <em>obj</em> for all known vendor prefixes (e.g. -&lt;whatever&gt;-transform).  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(-2%)&#39;</span><span class="p">);</span> <span class="o">//</span> <span class="n">Slide</span> <span class="c">#gateone to the left a little bit</span>
+<dl class="staticmethod">
+<dt id="updateDimensions">
+<em class="property">static </em><tt class="descname">updateDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#updateDimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <a class="reference internal" href="#GateOne.Visual.goDimensions" title="GateOne.Visual.goDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.goDimensions</span></tt></a> to the current width/height of <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>.  Typically called when the browser window is resized.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">updateDimensions</span><span class="p">();</span>
 </pre></div>
 </div>
-<p><em>obj</em> can be a string, a node, an array of nodes, or a NodeList.  In the case that <em>obj</em> is a string, GateOne.Utils.getNode(<em>obj</em>) will be performed under the assumption that the string represents a CSS selector.</p>
-<p>Optionally, any amount of callback functions may be provided which will be called after each transform (aka transition) completes.  These callbacks will be called in a chain with the next callback being called after the previous one is complete.  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="o">//</span> <span class="n">Chain</span> <span class="n">three</span> <span class="n">moves</span> <span class="n">of</span> <span class="c">#gateone; each waiting for the previous transition to complete before continuing in the chain:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(-2%)&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;translateX(2%)&#39;</span><span class="p">)</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">GateOne</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">);</span> <span class="p">},</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span> <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;transition chain complete&#39;</span><span class="p">);</span> <span class="p">});</span>
-</pre></div>
-</div>
-<p><a href="#id38"><span class="problematic" id="id39">*</span></a>/</p>
 </dd></dl>
 
-<dl class="docutils">
-<dt>//         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');</dt>
-<dd><blockquote class="first">
-<div><blockquote>
-<div><dl class="docutils">
-<dt>var transforms = {</dt>
-<dd><blockquote class="first">
-<div>'-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
-'-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
-'-o-transform': '', // Opera
-'-ms-transform': '', // IE9+
-'-khtml-transform': '', // Konqueror
-'transform': '' // Some day this will be all that is necessary</div></blockquote>
-<p>},
-callbacks = Array.prototype.slice.call(arguments, 2).reverse(), // All arguments after the first two
-chain = function(node) {</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>var callback = callbacks.pop(),</dt>
-<dd><dl class="first docutils">
-<dt>next = function() {</dt>
-<dd><p class="first">callback();
-node.removeEventListener(transitionEndName, next, false); // Clean up
-if (callbacks.length) {</p>
-<blockquote>
-<div>// To iterate is human; to recur, divine.
-chain(node);</div></blockquote>
-<p class="last">}</p>
-</dd>
-</dl>
-<p class="last">};</p>
-</dd>
-</dl>
-<p>node.addEventListener(transitionEndName, next, false);</p>
-</div></blockquote>
-<p class="last">};</p>
-</dd>
-<dt>if (go.Utils.isNodeList(obj) || go.Utils.isHTMLCollection(obj) || go.Utils.isArray(obj)) {</dt>
-<dd><dl class="first docutils">
-<dt>go.Utils.toArray(obj).forEach(function(node) {</dt>
-<dd><p class="first">node = go.Utils.getNode(node);
-for (var prefix in transforms) {</p>
-<blockquote>
-<div>node.style[prefix] = transform;</div></blockquote>
-<p>}
-if (node.style.MozTransform != undefined) {</p>
-<blockquote>
-<div>node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason</div></blockquote>
-<p>}
-if (callbacks.length) {</p>
-<blockquote>
-<div>chain(node);</div></blockquote>
-<p class="last">}</p>
-</dd>
-</dl>
-<p class="last">});</p>
-</dd>
-<dt>} else if (typeof(obj) == 'string' || go.Utils.isElement(obj)) {</dt>
-<dd><p class="first">var node = go.Utils.getNode(obj); // Doesn't hurt to pass a node to getNode
-for (var prefix in transforms) {</p>
-<blockquote>
-<div>node.style[prefix] = transform;</div></blockquote>
-<p>}
-if (node.style.MozTransform != undefined) {</p>
-<blockquote>
-<div>node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason</div></blockquote>
-<p>}
-if (callbacks.length) {</p>
-<blockquote>
-<div>chain(node);</div></blockquote>
-<p class="last">}</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
-<p>},
-applyStyle: function (elem, style) {</p>
-<blockquote>
-<div>// A convenience function that allows us to apply multiple style changes in one function
-// Example: applyStyle('somediv', {'opacity': 0.5, 'color': 'black'})</div></blockquote>
-</div></blockquote>
-<p>var node = GateOne.Utils.getNode(elem);
-for (var name in style) {</p>
-<blockquote>
-<div>node.style[name] = style[name];</div></blockquote>
-<dl class="docutils">
-<dt>}</dt>
-<dd>},
-getTransform: function(elem) {</dd>
-</dl>
-<p>// Returns the transform string applied to the style of the given <em>elem</em>
-var node = GateOne.Utils.getNode(elem);
-if (node.style['transform']) {</p>
-<blockquote>
-<div>return node.style['transform'];</div></blockquote>
-<dl class="docutils">
-<dt>} else if (node.style['-webkit-transform']) {</dt>
-<dd>return node.style['-webkit-transform'];</dd>
-<dt>} else if (node.style.MozTransform) {</dt>
-<dd>return node.style.MozTransform;</dd>
-<dt>} else if (node.style['-khtml-transform']) {</dt>
-<dd>return node.style['-khtml-transform'];</dd>
-<dt>} else if (node.style['-ms-transform']) {</dt>
-<dd>return node.style['-ms-transform'];</dd>
-<dt>} else if (node.style['-o-transform']) {</dt>
-<dd>return node.style['-o-transform'];</dd>
-</dl>
-<dl class="docutils">
-<dt>}</dt>
-<dd>},
-togglePanel: function(panel) {</dd>
-</dl>
-<p>/<a href="#id40"><span class="problematic" id="id41">**</span></a>:GateOne.Visual.togglePanel(panel)</p>
-<p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
+<dl class="staticmethod">
+<dt id="applyStyle">
+<em class="property">static </em><tt class="descname">applyStyle</tt><big>(</big><em>elem</em>, <em>style</em><big>)</big><a class="headerlink" href="#applyStyle" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
+<li><strong>style</strong> -- A JavaScript object holding the style that will be applied to <em>elem</em>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A convenience function that allows us to apply multiple style changes in one go.  For example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">applyStyle</span><span class="p">(</span><span class="s1">&#39;#somediv&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;opacity&#39;</span><span class="o">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">});</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="getTransform">
+<em class="property">static </em><tt class="descname">getTransform</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#getTransform" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elem</strong> (<em>number</em>) -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string ID or a DOM node.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns the transform string applied to the style of the given <em>elem</em></p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">getTransform</span><span class="p">(</span><span class="s1">&#39;#go_term1_pre&#39;</span><span class="p">);</span>
+<span class="go">&quot;translateY(-3px)&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="togglePanel">
+<em class="property">static </em><tt class="descname">togglePanel</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#togglePanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
 If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <p>This function also has some events that can be hooked into:</p>
 <blockquote>
@@ -2171,33 +2235,64 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 </ul>
 </div></blockquote>
 <p>You can hook into these events like so:</p>
-<div class="last highlight-js"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:in&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled into view</span>
+<div class="highlight-js"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:in&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled into view</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:out&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled out of view</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<dl class="function">
-<dt id="GateOne.Visual.disableTransitions">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.disableTransitions" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="displayMessage">
+<em class="property">static </em><tt class="descname">displayMessage</tt><big>(</big><em>message</em><span class="optional">[</span>, <em>timeout</em><span class="optional">[</span>, <em>removeTimeout</em><span class="optional">[</span>, <em>id</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#displayMessage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>message</strong> (<em>string</em>) -- The message to display.</li>
+<li><strong>timeout</strong> (<em>integer</em>) -- Milliseconds; How long to display the message before starting the <em>removeTimeout</em> timer.  <strong>Default:</strong> 1000.</li>
+<li><strong>removeTimeout</strong> (<em>integer</em>) -- Milliseconds; How long to delay before calling <tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.removeElement()</span></tt> on the message DIV.  <strong>Default:</strong> 5000.</li>
+<li><strong>id</strong> (<em>string</em>) -- The ID to assign the message DIV.  <strong>Default:</strong> &quot;notice&quot;.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="figure align-right">
+<img alt="../_images/gateone_displaymessage.png" class="portional-screenshot" src="../_images/gateone_displaymessage.png" />
+</div>
+<p>Displays <em>message</em> to the user via a transient pop-up DIV that will appear inside <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>.  How long the message lasts can be controlled via <em>timeout</em> and <em>removeTimeout</em> (which default to 1000 and 5000, respectively).</p>
+<p>If <em>id</em> is given, it will be prefixed with <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.prefix</span></tt> and used as the DIV ID for the pop-up.  i.e. <tt class="docutils literal"><span class="pre">GateOne.prefs.prefix+id</span></tt>.  The default is <tt class="docutils literal"><span class="pre">GateOne.prefs.prefix+&quot;notice&quot;</span></tt>.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayMessage</span><span class="p">(</span><span class="s1">&#39;This is a test.&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The default is to display the message in the lower-right corner of <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> but this can be controlled via CSS.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="disableTransitions">
+<em class="property">static </em><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#disableTransitions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the 'noanimate' class on <em>elem</em> which can be a node or querySelector-like string (e.g. #someid).  This class sets all CSS3 transformations to happen instantly without delay (which would animate).</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.enableTransitions">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.enableTransitions" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="enableTransitions">
+<em class="property">static </em><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#enableTransitions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the 'noanimate' class from <em>elem</em> (if set) which can be a node or querySelector-like string (e.g. #someid).</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.newWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">newWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.newWorkspace" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="newWorkspace">
+<em class="property">static </em><tt class="descname">newWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#newWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new workspace on the grid and returns the DOM node that is the new workspace.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.closeWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">closeWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.closeWorkspace" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="closeWorkspace">
+<em class="property">static </em><tt class="descname">closeWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#closeWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the given <em>workspace</em> from the 'gridwrapper' element and triggers the '<a class="reference external" href="go:workspace_closed">go:workspace_closed</a>' event.</p>
 <p>If <em>message</em> (string) is given it will be displayed to the user when the workspace is closed.</p>
 <div class="admonition note">
@@ -2206,72 +2301,128 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 </div>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.switchWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">switchWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.switchWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Triggers the '<a class="reference external" href="go:switch_workspace">go:switch_workspace</a>' event which by default calls <a class="reference internal" href="#GateOne.Visual.slideToWorkspace" title="GateOne.Visual.slideToWorkspace"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt></a>.</p>
+<dl class="staticmethod">
+<dt id="switchWorkspace">
+<em class="property">static </em><tt class="descname">switchWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#switchWorkspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triggers the '<a class="reference external" href="go:switch_workspace">go:switch_workspace</a>' event which by default calls <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt>.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">If you wish to use your own workspace-switching animation just write your own function to handle it and call <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Events.off('go:switch_workspace',</span> <span class="pre">GateOne.Visual.slideToWorkspace);</span> <span class="pre">GateOne.Events.on('go:switch_workspace',</span> <span class="pre">yourFunction);</span></tt></p>
 </div>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.cleanupWorkspaces">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">cleanupWorkspaces</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.cleanupWorkspaces" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="cleanupWorkspaces">
+<em class="property">static </em><tt class="descname">cleanupWorkspaces</tt><big>(</big><big>)</big><a class="headerlink" href="#cleanupWorkspaces" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets attached to the '<a class="reference external" href="go:cleanup_workspaces">go:cleanup_workspaces</a>' event and should be triggered by any function that may leave a workspace empty.  It walks through all the workspaces and removes any that are empty.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.slideToWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideToWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.slideToWorkspace" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="slideToWorkspace">
+<em class="property">static </em><tt class="descname">slideToWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#slideToWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slides the view to the given <em>workspace</em>.  If <em>GateOne.Visual.noReset</em> is true, don't reset the grid before switching.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.slideLeft">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideLeft</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.slideLeft" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="stopIndicator">
+<em class="property">static </em><tt class="descname">stopIndicator</tt><big>(</big><em>direction</em><big>)</big><a class="headerlink" href="#stopIndicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a visual indicator (appearance determined by theme) that the user cannot slide in given <em>direction</em>.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">stopIndicator</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The given <em>direction</em> may be one of:  <strong>left</strong>, <strong>right</strong>, <strong>up</strong>, <strong>down</strong></p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="slideLeft">
+<em class="property">static </em><tt class="descname">slideLeft</tt><big>(</big><big>)</big><a class="headerlink" href="#slideLeft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slides to the workspace left of the current view.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.slideRight">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideRight</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.slideRight" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="slideRight">
+<em class="property">static </em><tt class="descname">slideRight</tt><big>(</big><big>)</big><a class="headerlink" href="#slideRight" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slides to the workspace right of the current view.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.slideDown">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideDown</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.slideDown" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="slideDown">
+<em class="property">static </em><tt class="descname">slideDown</tt><big>(</big><big>)</big><a class="headerlink" href="#slideDown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slides the view downward one workspace by pushing all the others up.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.slideUp">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideUp</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.slideUp" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="slideUp">
+<em class="property">static </em><tt class="descname">slideUp</tt><big>(</big><big>)</big><a class="headerlink" href="#slideUp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slides the view downward one workspace by pushing all the others down.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.resetGrid">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">resetGrid</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.resetGrid" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="resetGrid">
+<em class="property">static </em><tt class="descname">resetGrid</tt><big>(</big><big>)</big><a class="headerlink" href="#resetGrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Places all workspaces in their proper position in the grid instantly (no animations).</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.toggleGridView">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">toggleGridView</tt><big>(</big><span class="optional">[</span><em>goBack</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.toggleGridView" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="toggleGridView">
+<em class="property">static </em><tt class="descname">toggleGridView</tt><big>(</big><span class="optional">[</span><em>goBack</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#toggleGridView" title="Permalink to this definition">¶</a></dt>
 <dd><p>Brings up the workspace grid view or returns to full-size.</p>
 <p>If <em>goBack</em> is false, don't bother switching back to the previously-selected workspace</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.widget">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">widget</tt><big>(</big><em>title</em>, <em>content</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.widget" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="serverMessageAction">
+<em class="property">static </em><tt class="descname">serverMessageAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#serverMessageAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt> WebSocket action; displays a given <em>message</em> from the Gate One server as a transient pop-up using <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="dialog">
+<em class="property">static </em><tt class="descname">dialog</tt><big>(</big><em>title</em>, <em>content</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an in-page dialog with the given <em>title</em> and <em>content</em>.  Returns a function that will close the dialog when called.</p>
+<p>Dialogs can be moved around and closed at-will by the user with a clearly visible title bar that is always present.</p>
+<p>All dialogs are placed within the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> container but have their position set to 'fixed' so they can be moved anywhere on the page (even outside of the container where Gate One resides).</p>
+<p><em>title</em> - string: Will appear at the top of the dialog.
+<em>content</em> - string or JavaScript DOM node:  The content of the dialog.
+<em>options</em> - An associative array of parameters that change the look and/or behavior of the dialog.  Presently unused.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="alert">
+<em class="property">static </em><tt class="descname">alert</tt><big>(</big><em>title</em>, <em>message</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alert" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>title</strong> (<em>string</em>) -- Title of the dialog that will be displayed.</li>
+<li><strong>message</strong> -- An HTML-formatted string or a DOM node; Main content of the alert dialog.</li>
+<li><strong>callback</strong> (<em>function</em>) -- A function that will be called after the user clicks &quot;OK&quot;.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="figure align-right">
+<img alt="../_images/gateone_alert.png" class="portional-screenshot" src="../_images/gateone_alert.png" />
+</div>
+<p>Displays a dialog using the given <em>title</em> containing the given <em>message</em> along with an OK button.  When the OK button is clicked, <em>callback</em> will be called.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Test Alert&#39;</span><span class="p">,</span> <span class="s1">&#39;This is an alert box.&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is meant to be a less-intrusive form of JavaScript's alert().</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="widget">
+<em class="property">static </em><tt class="descname">widget</tt><big>(</big><em>title</em>, <em>content</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#widget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an on-screen widget with the given <em>title</em> and <em>content</em>.  Returns a function that will remove the widget when called.</p>
 <p>Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).</p>
-<p>Widgets can be attached to a specific element by specifying a DOM object or querySelector string in <a href="#id42"><span class="problematic" id="id43">*</span></a>options*['where'].  Otherwise the widget will be attached to the currently-selected workspace.</p>
-<p>Widgets can be 'global' (attached to document.body) by setting <a href="#id44"><span class="problematic" id="id45">*</span></a>options*['where'] to 'global'.</p>
+<p>Widgets can be attached to a specific element by specifying a DOM object or querySelector string in <a href="#id40"><span class="problematic" id="id41">*</span></a>options*['where'].  Otherwise the widget will be attached to the currently-selected workspace.</p>
+<p>Widgets can be 'global' (attached to document.body) by setting <a href="#id42"><span class="problematic" id="id43">*</span></a>options*['where'] to 'global'.</p>
 <p>By default widgets will appear in the upper-right corner of a given workspace.
 <em>title</em> - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
 <em>content</em> - HTML string or JavaScript DOM node:  The content of the widget.
@@ -2283,9 +2434,9 @@ options['onconfig'] - If a function is assigned to this parameter a gear icon wi
 options['where'] - The node where we'll be attaching this widget or 'global' to add the widget to document.body.</div></blockquote>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.Pane">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">Pane</tt><big>(</big><em>elem</em>, <em>options</em><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="Pane">
+<em class="property">static </em><tt class="descname">Pane</tt><big>(</big><em>elem</em>, <em>options</em><big>)</big><a class="headerlink" href="#Pane" title="Permalink to this definition">¶</a></dt>
 <dd><p>An object that represents a pane on the page.  Options:</p>
 <blockquote>
 <div><table class="docutils field-list" frame="void" rules="none">
@@ -2301,53 +2452,11 @@ options['where'] - The node where we'll be attaching this widget or 'global' to 
 </tbody>
 </table>
 </div></blockquote>
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.split">
-<em class="property">static </em><tt class="descname">split</tt><big>(</big><em>axis</em>, <em>way</em><span class="optional">[</span>, <em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.split" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split this Pane into two.  The <em>axis</em> argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.</p>
-<p>The <em>way</em> argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.</p>
-<p>If provided, the given <em>newNode</em> will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using <tt class="xref py py-obj docutils literal"><span class="pre">cloneNode(false)</span></tt>).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.</p>
-</div>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="vsplit">
-<em class="property">static </em><tt class="descname">vsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#vsplit" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('vertical')</span></tt></p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hsplit">
-<em class="property">static </em><tt class="descname">hsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#hsplit" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('horizontal')</span></tt></p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="relocate">
-<em class="property">static </em><tt class="descname">relocate</tt><big>(</big><em>where</em><big>)</big><a class="headerlink" href="#relocate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Moves the Pane from wherever it currently resides into the element at <em>where</em>.  The <em>splitAxis</em> argument will be used to determine how to split <em>where</em> to accomodate this Pane.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="minimize">
-<em class="property">static </em><tt class="descname">minimize</tt><big>(</big><big>)</big><a class="headerlink" href="#minimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Minimizes the Pane by docking it to the 'top', 'bottom', 'left', or 'right' of the view depending on <em>way</em>.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="remove">
-<em class="property">static </em><tt class="descname">remove</tt><big>(</big><big>)</big><a class="headerlink" href="#remove" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the Pane from the page.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="GateOne.Visual.panel">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">panel</tt><big>(</big><em>title</em>, <em>workspace</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.panel" title="Permalink to this definition">¶</a></dt>
+<dt id="panel">
+<em class="property">static </em><tt class="descname">panel</tt><big>(</big><em>title</em>, <em>workspace</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#panel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new pane element inside of the given <em>workspace</em> and adds a pane object to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.workspaces</span></tt>.  Panes can be docked or undocked (hover/pseudo pop-up) depending on <em>options</em>.  Returns the DOM node that winds up being created.</p>
 <p>Example usage (creates a 4x4 grid):</p>
 <div class="highlight-js"><div class="highlight"><pre>
@@ -2400,24 +2509,118 @@ options['where'] - The node where we'll be attaching this widget or 'global' to 
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.enableOverlay">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableOverlay</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.enableOverlay" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="enableOverlay">
+<em class="property">static </em><tt class="descname">enableOverlay</tt><big>(</big><big>)</big><a class="headerlink" href="#enableOverlay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays an overlay above Gate One on the page that 'greys it out' to indicate it does not have focus.  If the overlay is already present it will be left as-is.</p>
 <p>The state of the overlay is tracked via the <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.overlay</span></tt> variable.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.disableOverlay">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableOverlay</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.disableOverlay" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="disableOverlay">
+<em class="property">static </em><tt class="descname">disableOverlay</tt><big>(</big><big>)</big><a class="headerlink" href="#disableOverlay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the overlay above Gate One (if present).</p>
 <p>The state of the overlay is tracked via the <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.overlay</span></tt> variable.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="GateOne.Visual.nodeThumb">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">nodeThumb</tt><big>(</big><em>elem</em>, <em>scale</em><big>)</big><a class="headerlink" href="#GateOne.Visual.nodeThumb" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="nodeThumb">
+<em class="property">static </em><tt class="descname">nodeThumb</tt><big>(</big><em>elem</em>, <em>scale</em><big>)</big><a class="headerlink" href="#nodeThumb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a miniature clone of the given <em>elem</em> that is reduced in size by the amount given by <em>scale</em> (e.g. 0.25 for 1/4 size).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">applyTransform(obj, transform[, callback1[, callbackN]]</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]]" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param obj:</th><td class="field-body">A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt>, a DOM node, an <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> of DOM nodes, an <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a>, or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">param transform:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">A <a class="reference external" href="http://www.w3schools.com/cssref/css3_pr_transform.asp">CSS3 transform</a> function such as <tt class="docutils literal"><span class="pre">scale()</span></tt> or <tt class="docutils literal"><span class="pre">translate()</span></tt>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">param callbacks:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Any number of functions can be supplied to be called back after the transform is applied.  Each callback will be called after the previous one has completed.  This allows the callbacks to be chained one after the other to create animations. (see below)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>This function is Gate One's bread and butter:  It applies the given CSS3 <em>transform</em> to <em>obj</em>.  <em>obj</em> can be one of the following:</p>
+<ul class="simple">
+<li>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-like string (e.g. &quot;#some_element_id&quot;).</li>
+<li>A DOM node.</li>
+<li>An <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> or an Array-like object containing DOM nodes such as <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a> or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (it will apply the transform to all of them).</li>
+</ul>
+<p>The <em>transform</em> should be <em>just</em> the actual transform function (e.g. <tt class="docutils literal"><span class="pre">scale(0.5)</span></tt>).  <tt class="xref js js-func docutils literal"><span class="pre">applyTransform()</span></tt> will take care of applying the transform according to how each browser implements it.  For example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="s">&#39;#somediv&#39;</span><span class="p">,</span> <span class="s">&#39;translateX(500%)&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>...would result in <tt class="docutils literal"><span class="pre">#somediv</span></tt> getting styles applied to it like this:</p>
+<div class="highlight-css"><div class="highlight"><pre><span class="nf">#somediv</span> <span class="p">{</span>
+    <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span> <span class="o">//</span> <span class="n">Chrome</span><span class="o">/</span><span class="n">Safari</span><span class="o">/</span><span class="n">Webkit</span><span class="o">-</span><span class="n">based</span> <span class="n">stuff</span>
+    <span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>    <span class="o">//</span> <span class="n">Mozilla</span><span class="o">/</span><span class="n">Firefox</span><span class="o">/</span><span class="n">Gecko</span><span class="o">-</span><span class="n">based</span> <span class="n">stuff</span>
+    <span class="o">-</span><span class="n">o</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>      <span class="o">//</span> <span class="n">Opera</span>
+    <span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>     <span class="o">//</span> <span class="n">IE9</span><span class="o">+</span>
+    <span class="o">-</span><span class="n">khtml</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>  <span class="o">//</span> <span class="n">Konqueror</span>
+    <span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>         <span class="o">//</span> <span class="n">Some</span> <span class="n">day</span> <span class="n">this</span> <span class="n">will</span> <span class="n">be</span> <span class="n">all</span> <span class="n">that</span> <span class="n">is</span> <span class="n">necessary</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Optionally, any amount of callback functions may be provided which will be called after each transform (aka transition) completes.  These callbacks will be called in a chain with the next callback being called after the previous one is complete.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Chain three moves of #gateone; each waiting for the previous transition to complete before continuing in the chain:</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">applyTransform</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="s1">&#39;translateX(-2%)&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">applyTransform</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="s1">&#39;translateX(2%)&#39;</span><span class="p">)</span> <span class="p">},</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">applyTransform</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span> <span class="p">},</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;transition chain complete&#39;</span><span class="p">);</span> <span class="p">});</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.split">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">split</tt><big>(</big><em>axis</em>, <em>way</em><span class="optional">[</span>, <em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split this Pane into two.  The <em>axis</em> argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.</p>
+<p>The <em>way</em> argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.</p>
+<p>If provided, the given <em>newNode</em> will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using <tt class="xref py py-obj docutils literal"><span class="pre">cloneNode(false)</span></tt>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.vsplit">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">vsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.vsplit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('vertical')</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.hsplit">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">hsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.hsplit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('horizontal')</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.relocate">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">relocate</tt><big>(</big><em>where</em><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.relocate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the Pane from wherever it currently resides into the element at <em>where</em>.  The <em>splitAxis</em> argument will be used to determine how to split <em>where</em> to accomodate this Pane.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.minimize">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">minimize</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.minimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimizes the Pane by docking it to the 'top', 'bottom', 'left', or 'right' of the view depending on <em>way</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.Pane.remove">
+<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">remove</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the Pane from the page.</p>
 </dd></dl>
 
 <dl class="function">

@@ -450,16 +450,16 @@ def render_html_playback(golog_path, render_settings=None):
     to control how the output is rendered:
 
         :prefix:
-            (Default: "go_default_") The GateOne.prefs.prefix to emulate when
+            (Default: `"go_default_"`) The GateOne.prefs.prefix to emulate when
             rendering the HTML template.
         :container:
-            (Default: "gateone") The name of the #gateone container to emulate
+            (Default: `"gateone"`) The name of the #gateone container to emulate
             when rendering the HTML template.
         :theme:
-            (Default: "black") The theme to use when rendering the HTML
+            (Default: `"black"`) The theme to use when rendering the HTML
             template.
         :colors:
-            (Default: "default") The text color scheme to use when rendering
+            (Default: `"default"`) The text color scheme to use when rendering
             the HTML template.
     """
     # Get the necessary variables out of render_settings
