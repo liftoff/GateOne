@@ -138,7 +138,7 @@
 <span class="c"># TODO: Make it so that equivalent KnownHostsHandler functionality works over the WebSocket.</span>
 
 <span class="c"># Exceptions</span>
-<div class="viewcode-block" id="SSHMultiplexingException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHMultiplexingException">[docs]</a><span class="k">class</span> <span class="nc">SSHMultiplexingException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHMultiplexingException"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.SSHMultiplexingException">[docs]</a><span class="k">class</span> <span class="nc">SSHMultiplexingException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when there&#39;s a failure trying to open a sub-shell via OpenSSH&#39;s</span>
 <span class="sd">    `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_</span>
@@ -146,33 +146,33 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="SSHExecutionException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHExecutionException">[docs]</a><span class="k">class</span> <span class="nc">SSHExecutionException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHExecutionException"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.SSHExecutionException">[docs]</a><span class="k">class</span> <span class="nc">SSHExecutionException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when there&#39;s an error trying to execute a command in the slave.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="SSHKeygenException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHKeygenException">[docs]</a><span class="k">class</span> <span class="nc">SSHKeygenException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHKeygenException"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.SSHKeygenException">[docs]</a><span class="k">class</span> <span class="nc">SSHKeygenException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when there&#39;s an error trying to generate a public/private keypair.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="SSHKeypairException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHKeypairException">[docs]</a><span class="k">class</span> <span class="nc">SSHKeypairException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHKeypairException"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.SSHKeypairException">[docs]</a><span class="k">class</span> <span class="nc">SSHKeypairException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when there&#39;s an error trying to save public/private keypair or</span>
 <span class="sd">    certificate.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="SSHPassphraseException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHPassphraseException">[docs]</a><span class="k">class</span> <span class="nc">SSHPassphraseException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHPassphraseException"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.SSHPassphraseException">[docs]</a><span class="k">class</span> <span class="nc">SSHPassphraseException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when we try to generate/decode something that requires a passphrase</span>
 <span class="sd">    but no passphrase was given.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="get_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">get_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="get_ssh_dir"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">get_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a :class:`gateone.TerminalWebSocket` (*self*) instance, return the</span>
 <span class="sd">    current user&#39;s ssh directory</span>
@@ -193,7 +193,7 @@
                 <span class="s">&quot;Using the .ssh directory.&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">users_ssh_dir</span>
 </div>
-<div class="viewcode-block" id="open_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.open_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">open_sub_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="open_sub_channel"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.open_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">open_sub_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Opens a sub-channel of communication by executing a new shell on the SSH</span>
 <span class="sd">    server using OpenSSH&#39;s `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_</span>
@@ -253,7 +253,7 @@
     <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">033]0;Term </span><span class="si">%s</span><span class="s"> sub-channel</span><span class="se">\\</span><span class="s">007&quot;&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">m</span>
 </div>
-<div class="viewcode-block" id="wait_for_prompt"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.wait_for_prompt">[docs]</a><span class="k">def</span> <span class="nf">wait_for_prompt</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
+<div class="viewcode-block" id="wait_for_prompt"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.wait_for_prompt">[docs]</a><span class="k">def</span> <span class="nf">wait_for_prompt</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called by :func:`termio.Multiplex.expect` inside of :func:`execute_command`,</span>
 <span class="sd">    clears the screen and executes *cmd*.  Also, sets an</span>
@@ -272,7 +272,7 @@
         <span class="s">u&#39;echo -e &quot;{rs}&quot;&#39;</span> <span class="c"># READY_STRING again so we can capture the between</span>
     <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rs</span><span class="o">=</span><span class="n">READY_STRING</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="n">cmd</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="get_cmd_output"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_cmd_output">[docs]</a><span class="k">def</span> <span class="nf">get_cmd_output</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
+<div class="viewcode-block" id="get_cmd_output"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_cmd_output">[docs]</a><span class="k">def</span> <span class="nf">get_cmd_output</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Captures the output of the command executed inside of</span>
 <span class="sd">    :func:`wait_for_prompt` and calls *callback* if it isn&#39;t `None`.</span>
@@ -305,7 +305,7 @@
     <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
         <span class="n">callback</span><span class="p">(</span><span class="n">cmd_out</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="terminate_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.terminate_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
+<div class="viewcode-block" id="terminate_sub_channel"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.terminate_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls `m_instance.terminate()` and deletes it from the OPEN_SUBCHANNELS dict.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -319,7 +319,7 @@
             <span class="c"># This is necessary so the interpreter can properly collect garbage:</span>
             <span class="k">del</span> <span class="n">OPEN_SUBCHANNELS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 </div>
-<div class="viewcode-block" id="timeout_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.timeout_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">timeout_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
+<div class="viewcode-block" id="timeout_sub_channel"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.timeout_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">timeout_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when the sub-channel times out by way of an</span>
 <span class="sd">    :class:`termio.Multiplex.expect` pattern that should never match anything.</span>
@@ -329,7 +329,7 @@
         <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">term_id</span><span class="p">)))</span>
     <span class="n">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="got_error"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.got_error">[docs]</a><span class="k">def</span> <span class="nf">got_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="got_error"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.got_error">[docs]</a><span class="k">def</span> <span class="nf">got_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called if :func:`execute_command` encounters a problem/timeout.</span>
 
@@ -352,7 +352,7 @@
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute the given command (*cmd*) on the given *term* using the existing</span>
 <span class="sd">    SSH tunnel (taking advantage of `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_)</span>
@@ -403,7 +403,7 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Waiting for READY_MATCH inside execute_command()&quot;</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">n</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">READY_STRING</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="send_result"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_result">[docs]</a><span class="k">def</span> <span class="nf">send_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">):</span>
+<div class="viewcode-block" id="send_result"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.send_result">[docs]</a><span class="k">def</span> <span class="nf">send_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called by :func:`ws_exec_command` when the output of the executed command</span>
 <span class="sd">    has been captured successfully.  Writes a message to the client with the</span>
@@ -419,7 +419,7 @@
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ws_exec_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.ws_exec_command">[docs]</a><span class="k">def</span> <span class="nf">ws_exec_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="ws_exec_command"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.ws_exec_command">[docs]</a><span class="k">def</span> <span class="nf">ws_exec_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes the necessary variables from *settings* and calls :func:`execute_command`.</span>
 
@@ -444,13 +444,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c"># Handlers</span></div>
-<div class="viewcode-block" id="KnownHostsHandler"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler">[docs]</a><span class="k">class</span> <span class="nc">KnownHostsHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="KnownHostsHandler"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler">[docs]</a><span class="k">class</span> <span class="nc">KnownHostsHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This handler allows the client to view, edit, and upload the known_hosts</span>
 <span class="sd">    file associated with their user account.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@tornado.web.authenticated</span>
-<div class="viewcode-block" id="KnownHostsHandler.get"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KnownHostsHandler.get"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine what the user is asking for and call the appropriate method.</span>
 <span class="sd">        &quot;&quot;&quot;</span> <span class="c"># NOTE: Just dealing with known_hosts for now but keys are next</span>
@@ -459,7 +459,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_return_known_hosts</span><span class="p">()</span>
 </div>
     <span class="nd">@tornado.web.authenticated</span>
-<div class="viewcode-block" id="KnownHostsHandler.post"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KnownHostsHandler.post"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine what the user is updating by checking the given arguments and</span>
 <span class="sd">        proceed with the update.</span>
@@ -469,7 +469,7 @@
             <span class="n">kh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_save_known_hosts</span><span class="p">(</span><span class="n">kh</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="KnownHostsHandler._return_known_hosts"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler._return_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_return_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KnownHostsHandler._return_known_hosts"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._return_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_return_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the user&#39;s known_hosts file in text/plain format.&quot;&quot;&quot;</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;known_hosts requested by </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
@@ -482,7 +482,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">known_hosts</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="KnownHostsHandler._save_known_hosts"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler._save_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_save_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">known_hosts</span><span class="p">):</span>
+<div class="viewcode-block" id="KnownHostsHandler._save_known_hosts"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._save_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_save_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">known_hosts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the given *known_hosts* file.&quot;&quot;&quot;</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
         <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
@@ -499,7 +499,7 @@
 <span class="sd">------------------</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># WebSocket commands (not the same as handlers)</span>
-<div class="viewcode-block" id="get_connect_string"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_connect_string">[docs]</a><span class="k">def</span> <span class="nf">get_connect_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="get_connect_string"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_connect_string">[docs]</a><span class="k">def</span> <span class="nf">get_connect_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Attached to the (server-side) `terminal:ssh_get_connect_string` WebSocket</span>
 <span class="sd">    action; writes the connection string associated with *term* to the WebSocket</span>
@@ -527,7 +527,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
                 <span class="k">return</span> <span class="c"># All done</span>
 </div>
-<div class="viewcode-block" id="get_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_key">[docs]</a><span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">public</span><span class="p">):</span>
+<div class="viewcode-block" id="get_key"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_key">[docs]</a><span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">public</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the private SSH key associated with *name* to the client.  If</span>
 <span class="sd">    *public* is `True`, returns the public key to the client.</span>
@@ -559,19 +559,19 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_dict</span>
 </div>
-<div class="viewcode-block" id="get_public_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_public_key">[docs]</a><span class="k">def</span> <span class="nf">get_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="get_public_key"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_public_key">[docs]</a><span class="k">def</span> <span class="nf">get_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the user&#39;s public key file named *name*.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="get_private_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_private_key">[docs]</a><span class="k">def</span> <span class="nf">get_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="get_private_key"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_private_key">[docs]</a><span class="k">def</span> <span class="nf">get_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the user&#39;s private key file named *name*.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="get_host_fingerprint"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_host_fingerprint">[docs]</a><span class="k">def</span> <span class="nf">get_host_fingerprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="get_host_fingerprint"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_host_fingerprint">[docs]</a><span class="k">def</span> <span class="nf">get_host_fingerprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a the hash of the given host&#39;s public key by making a remote</span>
 <span class="sd">    connection to the server (not just by looking at known_hosts).</span>
@@ -623,7 +623,7 @@
     <span class="c"># Dropbear output example:</span>
     <span class="c"># (fingerprint md5 fa:a1:5b:4f:e5:ab:fe:e6:1f:1f:74:20:d7:35:67:c2)</span>
 </div>
-<div class="viewcode-block" id="generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="generate_new_keypair"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`openssh_generate_new_keypair` or</span>
 <span class="sd">    :func:`dropbear_generate_new_keypair` depending on what&#39;s available on the</span>
@@ -679,7 +679,7 @@
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-<div class="viewcode-block" id="overwrite"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.overwrite">[docs]</a><span class="k">def</span> <span class="nf">overwrite</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
+<div class="viewcode-block" id="overwrite"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.overwrite">[docs]</a><span class="k">def</span> <span class="nf">overwrite</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called if we get asked to overwrite an existing keypair.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -701,7 +701,7 @@
     <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-<div class="viewcode-block" id="openssh_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+<div class="viewcode-block" id="openssh_generate_new_keypair"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.openssh_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
         <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a new private and public key pair--stored in the user&#39;s directory</span>
@@ -776,14 +776,14 @@
     <span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="dropbear_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.dropbear_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">dropbear_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+<div class="viewcode-block" id="dropbear_generate_new_keypair"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.dropbear_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">dropbear_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
         <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    .. note:: Not implemented yet</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="openssh_generate_public_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_public_key">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="openssh_generate_public_key"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.openssh_generate_public_key">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a public key from the given private key at *path*.  If a</span>
 <span class="sd">    *passphrase* is provided, it will be used to generate the public key (if</span>
@@ -861,7 +861,7 @@
     <span class="c">#Fingerprint: md5 c6:f9:f2:95:b8:40:ac:f3:53:f1:39:e9:57:a0:58:18</span>
 
 <span class="c"># TODO: Get this validating uploaded keys.</span></div>
-<div class="viewcode-block" id="store_id_file"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.store_id_file">[docs]</a><span class="k">def</span> <span class="nf">store_id_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="store_id_file"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.store_id_file">[docs]</a><span class="k">def</span> <span class="nf">store_id_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores the given *settings[&#39;private&#39;]* and/or *settings[&#39;public&#39;]* keypair</span>
 <span class="sd">    in the user&#39;s ssh directory as *settings[&#39;name&#39;]* and/or</span>
@@ -960,7 +960,7 @@
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="delete_identity"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.delete_identity">[docs]</a><span class="k">def</span> <span class="nf">delete_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="delete_identity"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.delete_identity">[docs]</a><span class="k">def</span> <span class="nf">delete_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Removes the identity associated with *name*.  For example if *name* is</span>
 <span class="sd">    &#39;testkey&#39;, &#39;testkey&#39; and &#39;testkey.pub&#39; would be removed from the user&#39;s</span>
@@ -986,7 +986,7 @@
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="get_identities"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_identities">[docs]</a><span class="k">def</span> <span class="nf">get_identities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">anything</span><span class="p">):</span>
+<div class="viewcode-block" id="get_identities"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.get_identities">[docs]</a><span class="k">def</span> <span class="nf">get_identities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">anything</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends a message to the client with a list of the identities stored on the</span>
 <span class="sd">    server for the current user.</span>
@@ -1081,7 +1081,7 @@
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="set_default_identities"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.set_default_identities">[docs]</a><span class="k">def</span> <span class="nf">set_default_identities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identities</span><span class="p">):</span>
+<div class="viewcode-block" id="set_default_identities"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.set_default_identities">[docs]</a><span class="k">def</span> <span class="nf">set_default_identities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identities</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of *identities*, mark them as defaults to use in all outbound</span>
 <span class="sd">    SSH connections by writing them to `&lt;user&#39;s ssh dir&gt;/.default_ids`.  If</span>
@@ -1099,7 +1099,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">identities</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># Need that trailing newline</span>
 
 <span class="c"># Special optional escape sequence handler (see docs on how it works)</span></div>
-<div class="viewcode-block" id="opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<div class="viewcode-block" id="opt_esc_handler"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles text passed from the special optional escape sequance handler.  We</span>
 <span class="sd">    use it to tell ssh.js what the SSH connection string is so it can use that</span>
@@ -1116,7 +1116,7 @@
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To be called by the &#39;Auth&#39; hook that gets called after the user is done</span>
 <span class="sd">    authenticating, ensures that the `&lt;user&#39;s dir&gt;/ssh` directory exists.</span>
@@ -1130,7 +1130,7 @@
     <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Error creating user&#39;s ssh directory: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="send_ssh_css_template"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_ssh_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_ssh_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="send_ssh_css_template"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.send_ssh_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_ssh_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends our ssh.css template to the client using the &#39;load_style&#39;</span>
 <span class="sd">    WebSocket action.  The rendered template will be saved in Gate One&#39;s</span>
@@ -1139,7 +1139,7 @@
     <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;ssh.css&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called inside of :meth:`TerminalApplication.initialize` shortly after the</span>
 <span class="sd">    WebSocket is instantiated.</span>

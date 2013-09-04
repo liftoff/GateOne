@@ -325,7 +325,7 @@
 
 <span class="sd">        self.ws.security.update({&#39;terminal&#39;: terminal_policies})</span>
 
-<span class="sd">    Whenever a function decorated with `@require(policies(&#39;terminal&#39;))` is</span>
+<span class="sd">    Whenever a function decorated with ``@require(policies(&#39;terminal&#39;))`` is</span>
 <span class="sd">    called the registered policy-checking function (e.g.</span>
 <span class="sd">    :func:`app_terminal.terminal_policies`) will be called, passing the current</span>
 <span class="sd">    instance of :class:`policies` as the only argument.</span>
@@ -368,6 +368,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a *user* dict, return a dict containing any additional attributes</span>
 <span class="sd">    defined in Gate One&#39;s attribute repositories.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This function doesn&#39;t actually work yet (support for attribute repos</span>
+<span class="sd">        like LDAP is forthcoming).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Doesn&#39;t do anything yet</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">settings_dir</span><span class="p">:</span>
@@ -583,7 +588,8 @@
 <div class="viewcode-block" id="SSLAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">SSLAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SSL Certificate-based  authentication handler.  Can only be used if the</span>
-<span class="sd">    `ca_certs` is set and `ssl_auth=required` or `ssl_auth=optional`.</span>
+<span class="sd">    ``ca_certs`` option is set along with ``ssl_auth=required`` or</span>
+<span class="sd">    ``ssl_auth=optional``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="SSLAuthHandler.initialize"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

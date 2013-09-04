@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>woff_info &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for woff_info</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">.. _woff_info.py:</span>
+
+<span class="s">Provides a number of functions that can be used to extract the &#39;name&#39; data from</span>
+<span class="s">.woff (web font) files.</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    In most cases .woff files have the metadata stripped (to save space) which</span>
+<span class="s">    is why this module only grabs the &#39;name&#39; records from the snft (font data)</span>
+<span class="s">    tables.</span>
+
+<span class="s">Example::</span>
+
+<span class="s">    &gt;&gt;&gt; from pprint import pprint</span>
+<span class="s">    &gt;&gt;&gt; from woff_info import woff_name_data</span>
+<span class="s">    &gt;&gt;&gt; woff_path = &#39;/opt/gateone/applications/terminal/static/fonts/ubuntumono-normal.woff&#39;</span>
+<span class="s">    &gt;&gt;&gt; pprint(woff_info(woff_path))</span>
+<span class="s">    {&#39;Compatible Full&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="s">    &#39;Copyright&#39;: &#39;Copyright 2011 Canonical Ltd.  Licensed under the Ubuntu Font Licence 1.0&#39;,</span>
+<span class="s">    &#39;Designer&#39;: &#39;Dalton Maag Ltd&#39;,</span>
+<span class="s">    &#39;Designer URL&#39;: &#39;http://www.daltonmaag.com/&#39;,</span>
+<span class="s">    &#39;Font Family&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="s">    &#39;Font Subfamily&#39;: &#39;Regular&#39;,</span>
+<span class="s">    &#39;Full Name&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="s">    &#39;ID&#39;: &#39;Ubuntu Mono Regular Version 0.80&#39;,</span>
+<span class="s">    &#39;Manufacturer&#39;: &#39;Dalton Maag Ltd&#39;,</span>
+<span class="s">    &#39;Postscript Name&#39;: &#39;UbuntuMono-Regular&#39;,</span>
+<span class="s">    &#39;Preferred Family&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="s">    &#39;Preferred Subfamily&#39;: &#39;Regular&#39;,</span>
+<span class="s">    &#39;Trademark&#39;: &#39;Ubuntu and Canonical are registered trademarks of Canonical Ltd.&#39;,</span>
+<span class="s">    &#39;Vendor URL&#39;: &#39;http://www.daltonmaag.com/&#39;,</span>
+<span class="s">    &#39;Version&#39;: &#39;Version 0.80&#39;}</span>
+
+<span class="s">This script can also be executed on the command line to display the name</span>
+<span class="s">information for any given WOFF file:</span>
+
+<span class="s">.. ansi-block::</span>
+
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./woff_info static/fonts/ubuntumono-normal.woff</span>
+<span class="s">    {</span>
+<span class="s">        &quot;Compatible Full&quot;: &quot;Ubuntu Mono&quot;,</span>
+<span class="s">        &quot;Copyright&quot;: &quot;Copyright 2011 Canonical Ltd.  Licensed under the Ubuntu Font Licence 1.0&quot;,</span>
+<span class="s">        &quot;Designer&quot;: &quot;Dalton Maag Ltd&quot;,</span>
+<span class="s">        &quot;Designer URL&quot;: &quot;http://www.daltonmaag.com/&quot;,</span>
+<span class="s">        &quot;Font Family&quot;: &quot;Ubuntu Mono&quot;,</span>
+<span class="s">        &quot;Font Subfamily&quot;: &quot;Regular&quot;,</span>
+<span class="s">        &quot;Full Name&quot;: &quot;Ubuntu Mono&quot;,</span>
+<span class="s">        &quot;ID&quot;: &quot;Ubuntu Mono Regular Version 0.80&quot;,</span>
+<span class="s">        &quot;Manufacturer&quot;: &quot;Dalton Maag Ltd&quot;,</span>
+<span class="s">        &quot;Postscript Name&quot;: &quot;UbuntuMono-Regular&quot;,</span>
+<span class="s">        &quot;Preferred Family&quot;: &quot;Ubuntu Mono&quot;,</span>
+<span class="s">        &quot;Preferred Subfamily&quot;: &quot;Regular&quot;,</span>
+<span class="s">        &quot;Trademark&quot;: &quot;Ubuntu and Canonical are registered trademarks of Canonical Ltd.&quot;,</span>
+<span class="s">        &quot;Vendor URL&quot;: &quot;http://www.daltonmaag.com/&quot;,</span>
+<span class="s">        &quot;Version&quot;: &quot;Version 0.80&quot;</span>
+<span class="s">    }</span>
+
+<span class="s">..note::</span>
+
+<span class="s">    The command line output is JSON so it can be easily used by other programs.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">zlib</span>
+
+<span class="c"># Globals</span>
+<span class="n">ENCODING_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;ascii&#39;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s">&#39;latin-1&#39;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;iso-8859-1&#39;</span>
+<span class="p">}</span>
+
+<span class="n">NAME_ID_MAP</span> <span class="o">=</span> <span class="p">{</span> <span class="c"># For human-readable names</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s">u&quot;Copyright&quot;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s">u&quot;Font Family&quot;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s">u&quot;Font Subfamily&quot;</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="s">u&quot;ID&quot;</span><span class="p">,</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="s">u&quot;Full Name&quot;</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="s">u&quot;Version&quot;</span><span class="p">,</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="s">u&quot;Postscript Name&quot;</span><span class="p">,</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="s">u&quot;Trademark&quot;</span><span class="p">,</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="s">u&quot;Manufacturer&quot;</span><span class="p">,</span>
+    <span class="mi">9</span><span class="p">:</span> <span class="s">u&quot;Designer&quot;</span><span class="p">,</span>
+    <span class="mi">10</span><span class="p">:</span> <span class="s">u&quot;Description&quot;</span><span class="p">,</span>
+    <span class="mi">11</span><span class="p">:</span> <span class="s">u&quot;Vendor URL&quot;</span><span class="p">,</span>
+    <span class="mi">12</span><span class="p">:</span> <span class="s">u&quot;Designer URL&quot;</span><span class="p">,</span>
+    <span class="mi">13</span><span class="p">:</span> <span class="s">u&quot;License Description&quot;</span><span class="p">,</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="s">u&quot;License URL&quot;</span><span class="p">,</span>
+    <span class="mi">15</span><span class="p">:</span> <span class="s">u&quot;Reserved&quot;</span><span class="p">,</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="s">u&quot;Preferred Family&quot;</span><span class="p">,</span>
+    <span class="mi">17</span><span class="p">:</span> <span class="s">u&quot;Preferred Subfamily&quot;</span><span class="p">,</span>
+    <span class="mi">18</span><span class="p">:</span> <span class="s">u&quot;Compatible Full&quot;</span><span class="p">,</span>
+    <span class="mi">19</span><span class="p">:</span> <span class="s">u&quot;Sample Text&quot;</span><span class="p">,</span>
+    <span class="mi">20</span><span class="p">:</span> <span class="s">u&quot;Postscript CID&quot;</span><span class="p">,</span>
+    <span class="mi">21</span><span class="p">:</span> <span class="s">u&quot;WWS Family Name&quot;</span><span class="p">,</span>
+    <span class="mi">22</span><span class="p">:</span> <span class="s">u&quot;WWS Subfamily Name&quot;</span><span class="p">,</span>
+    <span class="c">#200: u&quot;???&quot; # Liberation Mono uses this, &quot;Webfont 1.0&quot; is the value but</span>
+    <span class="c"># what is ID 200 supposed to be?  Webfont version?</span>
+    <span class="c">#201: u&quot;???&quot; # Liberation Mono also uses this.  Looks like a date of some</span>
+    <span class="c"># sort.  Creation date, perhaps?</span>
+<span class="p">}</span>
+
+<span class="n">NAME_HEADER_FORMAT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    format:         H</span>
+<span class="s">    count:          H</span>
+<span class="s">    offset:         H</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">NAME_RECORD_FORMAT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    platform_id:    H</span>
+<span class="s">    encoding:       H</span>
+<span class="s">    language:       H</span>
+<span class="s">    name_id:        H</span>
+<span class="s">    length:         H</span>
+<span class="s">    offset:         H</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">HEADER_FORMAT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    signature:      4s</span>
+<span class="s">    flavor:         4s</span>
+<span class="s">    length:         L</span>
+<span class="s">    numTables:      H</span>
+<span class="s">    reserved:       H</span>
+<span class="s">    totalSfntSize:  L</span>
+<span class="s">    majorVersion:   H</span>
+<span class="s">    minorVersion:   H</span>
+<span class="s">    metaOffset:     L</span>
+<span class="s">    metaLength:     L</span>
+<span class="s">    metaOrigLength: L</span>
+<span class="s">    privOffset:     L</span>
+<span class="s">    privLength:     L</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">DIRECTORY_FORMAT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    tag:            4s</span>
+<span class="s">    offset:         L</span>
+<span class="s">    compLength:     L</span>
+<span class="s">    origLength:     L</span>
+<span class="s">    origChecksum:   L</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BadWoff"><a class="viewcode-back" href="../Applications/terminal/woff_info.html#woff_info.BadWoff">[docs]</a><span class="k">class</span> <span class="nc">BadWoff</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the name data cannot be extracted from a a .woff file (for</span>
+<span class="sd">    whatever reason).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="c"># Much of this code was copied from the W3C WOFF validator.py:</span>
+<span class="c">#   http://dev.w3.org/webfonts/WOFF/tools/validator/</span>
+<span class="c"># ...which is covered by the W3C&#39;s own MIT-like license:</span>
+<span class="c">#   http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231</span>
+
+<span class="c"># This was inspired by Just van Rossum&#39;s sstruct module.</span>
+<span class="c"># http://fonttools.svn.sourceforge.net/svnroot/fonttools/trunk/Lib/sstruct.py</span>
+</div>
+<span class="k">def</span> <span class="nf">struct_unpack</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">keys</span><span class="p">,</span> <span class="n">format_string</span> <span class="o">=</span> <span class="n">_struct_get_format</span><span class="p">(</span><span class="n">format</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">format_string</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">format_string</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="n">size</span><span class="p">])</span>
+    <span class="n">unpacked</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keys</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">unpacked</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">unpacked</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">size</span><span class="p">:]</span>
+
+<span class="k">def</span> <span class="nf">struct_calc_size</span><span class="p">(</span><span class="n">format</span><span class="p">):</span>
+    <span class="n">keys</span><span class="p">,</span> <span class="n">format_string</span> <span class="o">=</span> <span class="n">_struct_get_format</span><span class="p">(</span><span class="n">format</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">format_string</span><span class="p">)</span>
+
+<span class="n">_struct_format_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">def</span> <span class="nf">_struct_get_format</span><span class="p">(</span><span class="n">format</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_struct_format_cache</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">format_string</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;&gt;&quot;</span><span class="p">]</span> <span class="c"># always big endian</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">format</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;#&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">format_char</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">format_char</span> <span class="o">=</span> <span class="n">format_char</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">format_string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">format_char</span><span class="p">)</span>
+        <span class="n">_struct_format_cache</span><span class="p">[</span><span class="n">format</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_string</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">_struct_format_cache</span><span class="p">[</span><span class="n">format</span><span class="p">]</span>
+
+<span class="n">HEADER_SIZE</span> <span class="o">=</span> <span class="n">struct_calc_size</span><span class="p">(</span><span class="n">HEADER_FORMAT</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">unpack_header</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">struct_unpack</span><span class="p">(</span><span class="n">HEADER_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">unpack_directory</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">unpack_header</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">numTables</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s">&quot;numTables&quot;</span><span class="p">]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">HEADER_SIZE</span><span class="p">:]</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numTables</span><span class="p">):</span>
+        <span class="n">table</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">struct_unpack</span><span class="p">(</span><span class="n">DIRECTORY_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">directory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">directory</span>
+
+<span class="k">def</span> <span class="nf">unpack_table_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">unpack_directory</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">directory</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s">&quot;tag&quot;</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s">&quot;offset&quot;</span><span class="p">]</span>
+        <span class="n">origLength</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s">&quot;origLength&quot;</span><span class="p">]</span>
+        <span class="n">compLength</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s">&quot;compLength&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">or</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="n">compLength</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tableData</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">elif</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">compLength</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">tableData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tableData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span><span class="o">+</span><span class="n">compLength</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">compLength</span> <span class="o">&lt;</span> <span class="n">origLength</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">td</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">tableData</span><span class="p">)</span>
+                <span class="n">tableData</span> <span class="o">=</span> <span class="n">td</span>
+            <span class="k">except</span> <span class="n">zlib</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                <span class="n">tableData</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">tables</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">tableData</span>
+    <span class="k">return</span> <span class="n">tables</span>
+
+<span class="k">def</span> <span class="nf">unpack_name_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">header</span><span class="p">,</span> <span class="n">remaining_data</span> <span class="o">=</span> <span class="n">struct_unpack</span><span class="p">(</span><span class="n">NAME_HEADER_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s">&quot;count&quot;</span><span class="p">]</span>
+    <span class="n">storage_offset</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s">&quot;offset&quot;</span><span class="p">]</span>
+    <span class="n">name_records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="n">record</span><span class="p">,</span> <span class="n">remaining_data</span> <span class="o">=</span> <span class="n">struct_unpack</span><span class="p">(</span>
+            <span class="n">NAME_RECORD_FORMAT</span><span class="p">,</span> <span class="n">remaining_data</span><span class="p">)</span>
+        <span class="c"># Add the strings to the table</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">storage_offset</span> <span class="o">+</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;length&#39;</span><span class="p">]</span>
+        <span class="c"># Remove any null chars from the string (they can have lots)</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="c"># Now make sure the string is unicode</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">ENCODING_MAP</span><span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="s">&#39;encoding&#39;</span><span class="p">]]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+            <span class="c"># Sometimes the listed encoding is incorrect.  Fall back to latin-1</span>
+            <span class="c"># (which covers the most common non-ascii characters such as the</span>
+            <span class="c"># copyright symbol: \xa9)</span>
+            <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;latin-1&#39;</span><span class="p">)</span>
+        <span class="n">name_records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_records</span>
+
+<div class="viewcode-block" id="woff_name_data"><a class="viewcode-back" href="../Applications/terminal/woff_info.html#woff_info.woff_name_data">[docs]</a><span class="k">def</span> <span class="nf">woff_name_data</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the &#39;name&#39; table data from the .woff font file at the given *path*.</span>
+
+<span class="sd">    .. note:: Only returns the English language stuff.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">table_data</span> <span class="o">=</span> <span class="n">unpack_table_data</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_data</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BadWoff</span><span class="p">(</span><span class="s">&quot;WOFF file is invalid&quot;</span><span class="p">)</span>
+    <span class="n">name_data</span> <span class="o">=</span> <span class="n">unpack_name_data</span><span class="p">(</span><span class="n">table_data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+    <span class="n">name_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">name_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;language&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c"># English</span>
+            <span class="n">name_id</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;name_id&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;name_id&#39;</span><span class="p">]</span> <span class="c"># To reduce redundancy</span>
+            <span class="n">name_dict</span><span class="p">[</span><span class="n">name_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name_dict</span><span class="p">:</span>
+        <span class="c"># Fallback to using the first language we find</span>
+        <span class="n">language</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">name_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">language</span><span class="p">:</span>
+                <span class="n">language</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;language&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;language&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">language</span><span class="p">:</span>
+                <span class="n">name_id</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;name_id&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;name_id&#39;</span><span class="p">]</span> <span class="c"># To reduce redundancy</span>
+                <span class="n">name_dict</span><span class="p">[</span><span class="n">name_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="k">return</span> <span class="n">name_dict</span>
+</div>
+<div class="viewcode-block" id="woff_info"><a class="viewcode-back" href="../Applications/terminal/woff_info.html#woff_info.woff_info">[docs]</a><span class="k">def</span> <span class="nf">woff_info</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a dictionary containing the English-language name (string) data</span>
+<span class="sd">    from the WOFF file at the given *path*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_dict</span> <span class="o">=</span> <span class="n">woff_name_data</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">human_name_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name_id</span><span class="p">,</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">name_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">human_name</span> <span class="o">=</span> <span class="n">NAME_ID_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_id</span><span class="p">,</span> <span class="s">&#39;Unknown Name ID: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name_id</span><span class="p">)</span>
+        <span class="n">human_name_dict</span><span class="p">[</span><span class="n">human_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">human_name_dict</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Usage: </span><span class="si">%s</span><span class="s"> &lt;woff file&gt;&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">woff_info</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="k">except</span> <span class="n">BadWoff</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Could not decode name table (metadata) from </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

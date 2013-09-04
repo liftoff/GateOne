@@ -5,9 +5,6 @@ Gate One is an open source, web-based terminal emulator with a powerful plugin s
 
 Gate One works in any browser that supports WebSockets.  No browser plugins required!
 
-Topics
-======
-
 .. toctree::
 
     licensing.rst

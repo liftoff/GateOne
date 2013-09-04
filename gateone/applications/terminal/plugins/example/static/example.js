@@ -175,7 +175,7 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
         u.removeElement(go.Example.toptop);
     },
     topTop: function(term) {
-        /**GateOne.Example.topTop(term)
+        /**:GateOne.Example.topTop(term)
 
         Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).
         */
@@ -200,7 +200,7 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
         }, 3000);
     },
     generateAuthObject: function(api_key, secret, upn) {
-        /**GateOne.Example.generateAuthObject(api_key, secret, upn)
+        /**:GateOne.Example.generateAuthObject(api_key, secret, upn)
 
         Returns a properly-constructed authentication object that can be used with Gate One's API authentication mode.  The timestamp, signature, signature_method, and api_version values will be created automatically.
 

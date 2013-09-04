@@ -62,7 +62,7 @@ for app in os.listdir(os.path.abspath('../../applications')):
     app_dir = os.path.abspath('../../applications/%s' % app)
     if not os.path.isdir(app_dir):
         continue
-    #sys.path.append(app_dir)
+    sys.path.append(app_dir)
     # ...and each of the application's plugins (if it has any):
     plugins_dir = os.path.join(app_dir, 'plugins')
     if os.path.exists(plugins_dir):

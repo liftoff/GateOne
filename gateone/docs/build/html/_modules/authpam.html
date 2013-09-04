@@ -119,7 +119,8 @@
 </div>
 <div class="viewcode-block" id="PAMAuthMixin.get_authenticated_user"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin.get_authenticated_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Processes the client&#39;s Authorization header and call `self.auth_basic()`</span>
+<span class="sd">        Processes the client&#39;s Authorization header and call</span>
+<span class="sd">        ``self.auth_basic()``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auth_header</span> <span class="ow">and</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Basic &#39;</span><span class="p">):</span>
@@ -127,7 +128,7 @@
 </div>
 <div class="viewcode-block" id="PAMAuthMixin.auth_basic"><a class="viewcode-back" href="../Developer/authpam.html#authpam.PAMAuthMixin.auth_basic">[docs]</a>    <span class="k">def</span> <span class="nf">auth_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform Basic authentication using `self.settings[&#39;pam_realm&#39;]`.</span>
+<span class="sd">        Perform Basic authentication using ``self.settings[&#39;pam_realm&#39;]``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
         <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

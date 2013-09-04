@@ -9,10 +9,8 @@ __version_info__ = (1, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 
 __doc__ = """\
-.. _gopam.py:
+.. _woff_info.py:
 
-WOFF Information Module for Python
-==================================
 Provides a number of functions that can be used to extract the 'name' data from
 .woff (web font) files.
 

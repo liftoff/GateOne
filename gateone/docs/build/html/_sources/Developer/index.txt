@@ -36,14 +36,9 @@ Gate One comes bundled with a number of plugins which can include any number of 
 
 .. toctree::
 
-    plugin_bookmarks.rst
-    plugin_convenience.rst
-    plugin_example.rst
     plugin_help.rst
-    plugin_logging.rst
-    plugin_notice.rst
-    plugin_playback.rst
-    plugin_ssh.rst
+
+.. note:: The Terminal application has its own plugins.
 
 Developing Plugins
 ------------------

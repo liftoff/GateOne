@@ -133,7 +133,7 @@
     <span class="s">r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
 
 <span class="c"># Helper functions</span>
-<div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the rendered 256-color CSS.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -152,7 +152,7 @@
     <span class="k">return</span> <span class="n">colors_256</span>
 
 <span class="c"># WebSocket commands (not the same as handlers)</span></div>
-<div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it</span>
 <span class="sd">    doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
@@ -235,7 +235,7 @@
     <span class="c"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
     <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="_enumerate_logs"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin._enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">_enumerate_logs</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">users_dir</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="_enumerate_logs"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">_enumerate_logs</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">users_dir</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enumerates all of the user&#39;s logs and sends the client a &quot;logging_logs&quot;</span>
 <span class="sd">    message with the result.</span>
@@ -265,7 +265,7 @@
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s">&#39;complete&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`</span>
 <span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
@@ -317,7 +317,7 @@
     <span class="c"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
     <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="_retrieve_log_flat"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin._retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_flat</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="_retrieve_log_flat"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_flat</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes the given *log_filename* to *queue* in a flat format equivalent to::</span>
 
@@ -378,7 +378,7 @@
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_log_flat&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_playback` via a</span>
 <span class="sd">    :py:class:`multiprocessing.Process` so it doesn&#39;t cause the</span>
@@ -421,7 +421,7 @@
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
     <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="_retrieve_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin._retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="_retrieve_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes a JSON-encoded message to the client containing the log in a</span>
 <span class="sd">    self-contained HTML format similar to::</span>
@@ -511,7 +511,7 @@
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_log_playback&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`</span>
 <span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
@@ -542,7 +542,7 @@
     <span class="n">PROC</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="k">return</span>
 </div>
-<div class="viewcode-block" id="_save_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin._save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_save_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="_save_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_save_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes a JSON-encoded message to the client containing the log in a</span>
 <span class="sd">    self-contained HTML format similar to::</span>
@@ -652,7 +652,7 @@
     <span class="c">#message = {&#39;save_file&#39;: out_dict}</span>
     <span class="c">#self.write_message(message)</span>
 </div>
-<div class="viewcode-block" id="send_logging_css_template"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.send_logging_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_logging_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="send_logging_css_template"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.send_logging_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_logging_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends our logging.css template to the client using the &#39;load_style&#39;</span>
 <span class="sd">    WebSocket action.  The rendered template will be saved in Gate One&#39;s</span>

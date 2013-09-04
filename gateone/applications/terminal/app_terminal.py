@@ -4,11 +4,7 @@
 #
 
 __doc__ = """\
-app_terminal.py - A Gate One Application (GOApplication) that provides a
-terminal emulator.
-
-Docstrings
-----------
+A Gate One Application (`GOApplication`) that provides a terminal emulator.
 """
 
 # Meta information about the plugin.  Your plugin doesn't *have* to have this
@@ -1974,6 +1970,7 @@ class TerminalApplication(GOApplication):
         self.write_message(json_encode(message))
         self.trigger("terminal:list_shared_terminals")
 
+    @require(authenticated(), policies('terminal'))
     def attach_shared_terminal(self, settings):
         """
         Attaches callbacks for the terminals associated with

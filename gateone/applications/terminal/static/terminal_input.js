@@ -1,8 +1,4 @@
-/**:GateOne.Terminal.Input
 
-Terminal-specific keyboard and mouse input stuff.
-
-*/
 (function(window, undefined) {
 "use strict";
 
@@ -23,6 +19,11 @@ var go = GateOne,
 
 
 GateOne.Base.module(GateOne.Terminal, "Input", '1.0');
+/**:GateOne.Terminal.Input
+
+Terminal-specific keyboard and mouse input stuff.
+
+*/
 t.Input.charBuffer = []; // Queue for sending characters to the server
 // F11 toggles fullscreen mode in most browsers.  If F11 is pressed once it will act as a regular F11 keystroke in the terminal.  If it is pressed twice rapidly in succession (within 0.750 seconds) it will execute the regular browser keystroke (enabling or disabling fullscreen mode).
 // Why did I code it this way?  If the user is unaware of this feature when they enter fullscreen mode, they might panic and hit F11 a bunch of times and it's likely they'll break out of fullscreen mode as an instinct :).  The message indicating the behavior will probably help too :D
@@ -36,7 +37,7 @@ t.Input.commandBufferMax = 8192; // Maximum amount of characters to keep in the 
 GateOne.Base.update(GateOne.Terminal.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
     init: function() {
-        /**GateOne.Terminal.Input.init()
+        /**:GateOne.Terminal.Input.init()
 
         Creates GateOne.Terminal.Input.inputNode to capture keys/IME composition and attaches appropriate events.
         */
@@ -103,7 +104,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         return lineno;
     },
     onMouseDown: function(e) {
-        /**GateOne.Terminal.Input.onMouseDown(e)
+        /**:GateOne.Terminal.Input.onMouseDown(e)
 
         Attached to the `mousedown` event on the Terminal application container; performs the following actions based on which mouse button was used:
 
@@ -225,7 +226,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }*/
     },
     onMouseUp: function(e) {
-        /**GateOne.Terminal.Input.onMouseUp(e)
+        /**:GateOne.Terminal.Input.onMouseUp(e)
 
         Attached to the `mouseup` event on the Terminal application container; prevents the pastearea from being shown if text is highlighted in the terminal (so users can right-click to copy).  Also prevents the pastearea from being instantly re-enabled when clicking in order to allow double-click events to pass through to the terminal (to highlight words).
 
@@ -315,7 +316,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         u.showElements('.✈pastearea');
     },
     capture: function() {
-        /**GateOne.Terminal.Input.capture()
+        /**:GateOne.Terminal.Input.capture()
 
         Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).
         */
@@ -344,7 +345,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
     },
     disableCapture: function(e) {
-        /**GateOne.Terminal.Input.disableCapture(e)
+        /**:GateOne.Terminal.Input.disableCapture(e)
 
         Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
@@ -380,7 +381,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         i.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
     },
     onPaste: function(e) {
-        /**GateOne.Terminal.Input.onPaste(e)
+        /**:GateOne.Terminal.Input.onPaste(e)
 
         Attached to the 'paste' event on the terminal application container; converts pasted text to plaintext and sends it to the selected terminal.
         */
@@ -419,7 +420,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
     },
     queue: function(text) {
-        /**GateOne.Terminal.Input.queue(text)
+        /**:GateOne.Terminal.Input.queue(text)
 
         Adds 'text' to the `GateOne.Terminal.Input.charBuffer` Array (to be sent to the server when ready via :meth:`GateOne.Terminal.sendChars`).
         */
@@ -430,14 +431,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.commandBuffer += text;
     },
     bufferEscSeq: function(chars) {
-        /**GateOne.Terminal.Input.queue(cars)
+        /**:GateOne.Terminal.Input.queue(cars)
 
         Prepends the ESC key string (`String.fromCharCode(27)`) to special character sequences (e.g. PgUp, PgDown, Arrow keys, etc) before adding them to the charBuffer
         */
         t.Input.queue(ESC + chars);
     },
     onCompositionStart: function(e) {
-        /**GateOne.Terminal.Input.onCompositionStart(e)
+        /**:GateOne.Terminal.Input.onCompositionStart(e)
 
         Called when we encounter the `compositionstart` event which indicates the use of an `IME <http://en.wikipedia.org/wiki/Input_method>`_.  That would most commonly be a mobile phone software keyboard or foreign language input methods (e.g. Anthy for Japanese, Chinese, etc).
 
@@ -453,7 +454,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.style['left'] = offset.left + "px";
     },
     onCompositionEnd: function(e) {
-        /**GateOne.Terminal.Input.onCompositionEnd(e)
+        /**:GateOne.Terminal.Input.onCompositionEnd(e)
 
         Called when we encounter the `compositionend` event which indicates the `IME <http://en.wikipedia.org/wiki/Input_method>`_ has completed a composition.  Sends what was composed to the server and ensures that `GateOne.Terminal.Input.inputNode` is emptied & hidden.
         */
@@ -471,7 +472,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }, 250);
     },
     onCompositionUpdate: function(e) {
-        /**GateOne.Terminal.Input.onCompositionUpdate(e)
+        /**:GateOne.Terminal.Input.onCompositionUpdate(e)
 
         Called when we encounter the 'compositionupdate' event which indicates incoming characters; sets `GateOne.Terminal.Input.composition`.
         */
@@ -481,7 +482,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
     },
     onKeyUp: function(e) {
-        /**GateOne.Terminal.Input.onKeyUp(e)
+        /**:GateOne.Terminal.Input.onKeyUp(e)
 
         Called when the terminal encounters a `keyup` event; just ensures that `GateOne.Terminal.Input.inputNode` is emptied so we don't accidentally send characters we shouldn't.
         */
@@ -532,7 +533,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {
-        /**GateOne.Terminal.Input.execKeystroke(e)
+        /**:GateOne.Terminal.Input.execKeystroke(e)
 
         For the Terminal application, executes the keystroke or shortcut associated with the given keydown event (*e*).
         */

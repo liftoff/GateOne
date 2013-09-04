@@ -194,15 +194,15 @@ settings (e.g. 50limits.conf).  Here's an example:</p>
 </div>
 <p>That would apply all policies that are configured for the 'terminal'
 application.  It works like this:</p>
-<p>The <tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> application registers its
+<p>The <a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication" title="app_terminal.TerminalApplication"><tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt></a> application registers its
 name and policy-checking function inside of
-<tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt> like so:</p>
+<a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.initialize" title="app_terminal.TerminalApplication.initialize"><tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt></a> like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="n">terminal_policies</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>Whenever a function decorated with <tt class="docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
 called the registered policy-checking function (e.g.
-<tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current
+<a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.terminal_policies" title="app_terminal.terminal_policies"><tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt></a>) will be called, passing the current
 instance of <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
 <p>It is then up to the policy-checking function to make a determination as to
 whether or not the user is allowed to execute the decorated function and

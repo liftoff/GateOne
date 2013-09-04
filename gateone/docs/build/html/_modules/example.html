@@ -111,7 +111,7 @@
 <span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our plugin&#39;s directory</span>
 
 <span class="c"># Traditional web handler</span>
-<div class="viewcode-block" id="ExampleHandler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.ExampleHandler">[docs]</a><span class="k">class</span> <span class="nc">ExampleHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="ExampleHandler"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler">[docs]</a><span class="k">class</span> <span class="nc">ExampleHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is how you add a URL handler to Gate One...  This example attaches</span>
 <span class="sd">    itslef to https://&lt;your Gate One server&gt;/example in the &#39;Web&#39; hook at the</span>
@@ -126,7 +126,7 @@
 <span class="sd">    .. note:: The only reason we use :class:`gateone.BaseHandler` instead of a vanilla :class:`tornado.web.RequestHandler` is so we have access to Gate One&#39;s :func:`gateone.BaseHandler.get_current_user` function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@tornado.web.authenticated</span> <span class="c"># Require the user be authenticated</span>
-<div class="viewcode-block" id="ExampleHandler.get"><a class="viewcode-back" href="../Developer/plugin_example.html#example.ExampleHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ExampleHandler.get"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle an HTTP GET request to this :class:`~tornado.web.RequestHandler`.</span>
 <span class="sd">        Connect to:</span>
@@ -166,7 +166,7 @@
             <span class="n">user</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>   <span class="c"># the keyword arguments passed to self.render()</span>
             <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ExampleHandler.post"><a class="viewcode-back" href="../Developer/plugin_example.html#example.ExampleHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ExampleHandler.post"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example Handler for an `HTTP POST &lt;http://en.wikipedia.org/wiki/POST_(HTTP)&gt;`_</span>
 <span class="sd">        request.  Doesn&#39;t actually do anything.</span>
@@ -185,7 +185,7 @@
         <span class="c"># asynchronous decorator.</span>
 
 <span class="c"># WebSocket actions (aka commands or &quot;functions that are exposed&quot;)</span></div></div>
-<div class="viewcode-block" id="example_websocket_action"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_websocket_action">[docs]</a><span class="k">def</span> <span class="nf">example_websocket_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="example_websocket_action"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_websocket_action">[docs]</a><span class="k">def</span> <span class="nf">example_websocket_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
 <span class="sd">    action gets exposed to the client automatically by way of the &#39;WebSocket&#39;</span>
@@ -241,7 +241,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
 
 <span class="c"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span></div>
-<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gate One includes a mechanism for plugins to send messages from terminal</span>
 <span class="sd">    programs directly to plugins written in Python.  It&#39;s called the &quot;Special</span>
@@ -255,7 +255,7 @@
      <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This demonstrates how to modify Gate One&#39;s configured &#39;command&#39; before it is</span>
 <span class="sd">    executed.  It will replace any occurrance of %EXAMPLE% with &#39;foo&#39;.  So if</span>

@@ -1298,7 +1298,7 @@ go.Base.update(GateOne.Terminal, {
         }
     },
     notifyInactivity: function(term) {
-        /**GateOne.Terminal.notifyInactivity(term)
+        /**:GateOne.Terminal.notifyInactivity(term)
 
             Notifies the user of inactivity in *term*.
         */
@@ -1307,7 +1307,7 @@ go.Base.update(GateOne.Terminal, {
         v.displayMessage(message);
     },
     notifyActivity: function(term) {
-        /**GateOne.Terminal.notifyActivity(term)
+        /**:GateOne.Terminal.notifyActivity(term)
 
             Notifies the user of activity in *term*.
         */
@@ -1892,7 +1892,7 @@ go.Base.update(GateOne.Terminal, {
         }
     },
     printScreen: function(term) {
-        /**GateOne.Terminal.printScreen(term)
+        /**:GateOne.Terminal.printScreen(term)
 
         Prints *just* the screen (no scrollback) of the given *term*.  If *term* is not provided the currently-selected terminal will be used.
         */
@@ -2551,6 +2551,7 @@ go.Base.update(GateOne.Terminal, {
             lines = parseInt(go.Terminal.terminals[term]['rows']);
         u.scrollLines(termNode, lines);
     },
+    // NOTE:  Everything below this point is a work in progress.
     terminalChooser: function() {
         /**:GateOne.Terminal.terminalChooser()
 
@@ -2558,7 +2559,62 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: If the terminal is in a different location the current location will be changed along with all terminals before the switch is made.
         */
-    }
+    },
+    share: function(term, /*opt*/permissions, /*opt*/password) {
+        /**:GateOne.Terminal.share(term[, permissions[, password]])
+
+        :param number term: The terminal to share.
+        :param permissions: An object containing "read" and/or "write" keys/values which must contain strings or arrays of strings that enumerate who may read/write to this terminal.  Defaults to ``"read": "AUTHENTICATED"`` and ``"write": null`` if not provided.  May also contain a "broadcast" key (see below)
+        :param string password: An optional password that will be required in order to read/write to the shared terminal.
+
+        Shares the given *term* with the users specified by *permissions*.  If *permissions* is not given the terminal will be shared (read-only) with all authenticated users.  That is, all authenticated users will be able to view it if they choose to do so.
+
+        To share a terminal with the world (broadcast) set *permissions["read"]* to "ANONYMOUS".  This is the default if the server is not using authentication.
+
+        If a *password* is given only users that know it will be able to connect to the shared terminal--even if they've explicitly been granted read/write permission.  This allows one to share a terminal with an invdividual that does not have an account on the Gate One server (if sharing with "ANONYMOUS").
+
+        Controlling permissions:
+
+            :read:  A string or array containing a list of users to whom this terminal will be shared.  Can be "AUTHENTICATED", "ANONYMOUS", or an array of users.
+            :write:  A string or array containing a list of users which will be granted write access to this terminal.  Can be "AUTHENTICATED", "ANONYMOUS", or an array of users.
+            :broadcast:  A boolean that controls whether or not anonymous users will be allowed to connect and view the terminal.
+
+        .. warning:: If ``permissions["broadcast"]`` is ``true`` unauthenticated clients will be allowed to connect and view a shared terminal even if server requires authentication.
+        */
+        var settings = {
+            "term": term,
+            "read": permissions['read'] || "AUTHENTICATED",
+            "write": permissions['write'] || null,
+            "password": password || false
+        };
+        go.ws.send(JSON.stringify({"terminal:share_terminal": settings}));
+    },
+    unshare: function(term) {
+        /**:GateOne.Terminal.unshare(term)
+
+        Stops sharing the given *term*.
+        */
+        go.ws.send(JSON.stringify({"terminal:unshare_terminal": term}));
+    },
+    sharePermissions: function(term, permissions) {
+        /**:GateOne.Terminal.sharePermissions(term, permissions)
+
+        Sets the sharing *permissions* of the given *term*.  The *permissions* must be an object that contains one or both of the following:
+
+            :read: An array of users that will be given read-only access to the given *term*.
+            :write: An array of users that will be given write access to the given *term*.
+
+        .. note:: *read* and *write* may be given as a string if only one user's permissions are being modified.
+
+        Example:
+
+            >>> GateOne.Terminal.sharePermissions(1, {'read': 'AUTHENTICATED', 'write': ["bob@company", "joe@company"]);
+
+        .. note:: If a user is granted write permission to a terminal they will automatically be granted read permission.
+        */
+        var settings = {'term': term, 'read': permissions['read'], 'write': permissions['write']};
+        go.ws.send(JSON.stringify({"terminal:set_sharing_permissions": settings}));
+    },
 });
 
 })(window);
