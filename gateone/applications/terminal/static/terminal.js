@@ -1699,7 +1699,11 @@ go.Base.update(GateOne.Terminal, {
         }
         setTimeout(function() {
             go.Terminal.alignTerminal(term);
-        }, 500);
+        }, 100);
+        // Do it again a bit later just in case the user is on a slow system:
+        setTimeout(function() {
+            go.Terminal.alignTerminal(term);
+        }, 1000);
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message, /*opt*/sendKill) {
