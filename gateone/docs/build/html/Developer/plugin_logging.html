@@ -166,7 +166,7 @@
 <dd><p>Tells the server to open <em>logFile</em> rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).</p>
 </dd></dl>
 
-<dl class="data">
+<dl class="attribute">
 <dt id="GateOne.TermLogging.sortFunctions">
 <tt class="descclassname">GateOne.TermLogging.</tt><tt class="descname">sortFunctions</tt><a class="headerlink" href="#GateOne.TermLogging.sortFunctions" title="Permalink to this definition">¶</a></dt>
 <dd><p>An associative array of functions that are used to sort logs.  When the user clicks on one of the sorting options it assigns one of these functions to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.TermLogging.sortfunc()</span></tt> which is then applied like so:</p>
@@ -175,19 +175,19 @@
 </div>
 <dl class="staticmethod">
 <dt id="GateOne.TermLogging.sortFunctions.alphabetical">
-<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.TermLogging.sortFunctions.</tt><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts logs alphabetically using the title (connect_string).</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="alphabetical">
-<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#alphabetical" title="Permalink to this definition">¶</a></dt>
+<dt>
+<tt class="descclassname">GateOne.TermLogging.sortFunctions.</tt><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big></dt>
 <dd><p>Sorts logs according to their size.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="date">
-<em class="property">static </em><tt class="descname">date</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#date" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.TermLogging.sortFunctions.date">
+<tt class="descclassname">GateOne.TermLogging.sortFunctions.</tt><tt class="descname">date</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sortFunctions.date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts logs by date (start_date) followed by alphabetical order of the title (connect_string).</p>
 </dd></dl>
 

@@ -1747,7 +1747,7 @@ go.Base.update(GateOne.Bookmarks, {
     getDateTag: function(dateObj) {
         /**:GateOne.Bookmarks.getDateTag(dateObj)
 
-        Given a `Date` object, returns a string such as "<7 days".  Suitable for use as an autotag.
+        Given a ``Date`` object, returns a string such as "<7 days".  Suitable for use as an autotag.
         */
         var dt = new Date();
         // Substract 7 days from today's date

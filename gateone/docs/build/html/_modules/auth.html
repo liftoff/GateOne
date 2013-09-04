@@ -62,7 +62,7 @@
   <h1>Source code for auth</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c">#</span>
-<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
 <span class="c">#</span>
 
 <span class="c"># Meta</span>
@@ -72,6 +72,8 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">.. _auth.py:</span>
+
 <span class="s">Authentication</span>
 <span class="s">==============</span>
 <span class="s">This module contains Gate One&#39;s authentication classes.  They map to Gate One&#39;s</span>
@@ -140,6 +142,7 @@
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">noop</span><span class="p">,</span> <span class="n">RUDict</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">memoize</span>
+<span class="kn">from</span> <span class="nn">golog</span> <span class="kn">import</span> <span class="n">go_logger</span>
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
@@ -153,6 +156,8 @@
 <span class="n">GATEONE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
 <span class="n">SETTINGS_CACHE</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Lists of settings files and their modification times</span>
 <span class="c"># The security stuff below is a work-in-progress.  Likely to change all around.</span>
+
+<span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
 
 <span class="c"># Authorization stuff</span>
 <span class="nd">@memoize</span>
@@ -226,19 +231,25 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">condition</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
                     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;current_user&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
                         <span class="k">if</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
-                            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                                <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -&gt; </span><span class="si">%s</span><span class="s"> failed requirement: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                                <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} </span><span class="si">%s</span><span class="s"> -&gt; </span><span class="si">%s</span><span class="s"> &#39;</span>
+                                <span class="s">&#39;failed requirement: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
                                 <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;unknown user -&gt; </span><span class="si">%s</span><span class="s"> failed requirement: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                            <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))))</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">condition</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;send_message&#39;</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;ws&#39;</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                            <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} unknown user -&gt; </span><span class="si">%s</span><span class="s"> &#39;</span>
+                            <span class="s">&#39;failed requirement: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))</span>
+                        <span class="p">))</span>
+                    <span class="c"># Try to notify the client of their failings</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_connection</span><span class="p">:</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">condition</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;send_message&#39;</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;ws&#39;</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">noop</span>
             <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrapped_f</span>

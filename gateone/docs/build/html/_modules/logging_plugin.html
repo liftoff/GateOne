@@ -109,7 +109,7 @@
 
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
-<span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span><span class="p">,</span> <span class="n">get_frames</span>
+<span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span><span class="p">,</span> <span class="n">render_log_frames</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
 
@@ -133,39 +133,6 @@
     <span class="s">r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
 
 <span class="c"># Helper functions</span>
-<div class="viewcode-block" id="retrieve_log_frames"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_frames">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the frames of *golog_path* as a list that can be used with the</span>
-<span class="sd">    playback_log.html template.</span>
-
-<span class="sd">    If *limit* is given, only return that number of frames (e.g. for preview)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">out_frames</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span>
-    <span class="n">terminal_emulator</span> <span class="o">=</span> <span class="n">Terminal</span>
-    <span class="n">term</span> <span class="o">=</span> <span class="n">terminal_emulator</span><span class="p">(</span>
-        <span class="c"># 14/7 for the em_height should be OK for most browsers to ensure that</span>
-        <span class="c"># images don&#39;t always wind up at the bottom of the screen.</span>
-        <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;height&#39;</span><span class="p">:</span><span class="mi">14</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">})</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">get_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">limit</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">14</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="s">&#39;{&#39;</span><span class="p">:</span>
-                <span class="c"># This is just the metadata frame.  Skip it</span>
-                <span class="k">continue</span>
-            <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]))</span>
-            <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
-            <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_screen</span><span class="p">)</span>
-            <span class="c"># Ensure we&#39;re not in the middle of capturing a file.  Otherwise</span>
-            <span class="c"># it might get cut off and result in no image being shown.</span>
-            <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
-            <span class="n">out_frames</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;screen&#39;</span><span class="p">:</span> <span class="n">screen</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">:</span> <span class="n">frame_time</span><span class="p">})</span>
-    <span class="k">del</span> <span class="n">term</span> <span class="c"># Ensures any file capture fds are cleaned up</span>
-    <span class="k">return</span> <span class="n">out_frames</span> <span class="c"># Skip the first frame which is the metadata</span>
-</div>
 <div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the rendered 256-color CSS.</span>
@@ -422,7 +389,6 @@
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
@@ -495,7 +461,6 @@
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span>
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span>
-    <span class="n">url_prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;log_filename&#39;</span><span class="p">]</span>
     <span class="c"># Important paths</span>
     <span class="c"># NOTE: Using os.path.join() in case Gate One can actually run on Windows</span>
@@ -526,9 +491,9 @@
         <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;false&#39;</span>
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;where&#39;</span><span class="p">]:</span>
             <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;true&#39;</span>
-            <span class="n">recording</span> <span class="o">=</span> <span class="n">retrieve_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">recording</span> <span class="o">=</span> <span class="n">retrieve_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+            <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
         <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
             <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
@@ -536,8 +501,7 @@
             <span class="n">colors</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;colors_css&#39;</span><span class="p">],</span>
             <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">],</span>
             <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span>
-            <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">),</span>
-            <span class="n">url_prefix</span><span class="o">=</span><span class="n">url_prefix</span>
+            <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_html</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
@@ -557,7 +521,6 @@
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROC</span>
@@ -618,7 +581,6 @@
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span>
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span>
-    <span class="n">url_prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;log_filename&#39;</span><span class="p">]</span>
     <span class="n">short_logname</span> <span class="o">=</span> <span class="n">log_filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.golog&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="n">short_logname</span>
@@ -651,7 +613,7 @@
         <span class="c"># errors trying to do it the other way :)</span>
         <span class="n">loader</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
         <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;playback_log.html&#39;</span><span class="p">)</span>
-        <span class="n">recording</span> <span class="o">=</span> <span class="n">retrieve_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
         <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;false&#39;</span>
         <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
@@ -661,7 +623,6 @@
             <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">],</span>
             <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span>
             <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">),</span>
-            <span class="n">url_prefix</span><span class="o">=</span><span class="n">url_prefix</span>
         <span class="p">)</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">playback_html</span>
     <span class="k">else</span><span class="p">:</span>

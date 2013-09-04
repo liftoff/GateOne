@@ -69,67 +69,67 @@
             
   <div class="section" id="the-convenience-plugin">
 <span id="convenience-plugin"></span><h1>The Convenience Plugin<a class="headerlink" href="#the-convenience-plugin" title="Permalink to this headline">¶</a></h1>
-<dl class="data">
+<dl class="attribute">
 <dt id="GateOne.Convenience">
 <tt class="descclassname">GateOne.</tt><tt class="descname">Convenience</tt><a class="headerlink" href="#GateOne.Convenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides numerous syntax highlighting functions and conveniences to provide quick and useful information to the user.</p>
 <dl class="staticmethod">
 <dt id="GateOne.Convenience.IPInfo">
-<em class="property">static </em><tt class="descname">IPInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.IPInfo" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">IPInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.IPInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.SSH.execRemoteCmd(term,</span> <span class="pre">'host</span> <span class="pre">'</span> <span class="pre">+</span> <span class="pre">elem.innerHTML)</span></tt>.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="addPrefs">
-<em class="property">static </em><tt class="descname">addPrefs</tt><big>(</big><big>)</big><a class="headerlink" href="#addPrefs" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.addPrefs">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">addPrefs</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.addPrefs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a number of configurable elements to Gate One's preferences panel.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="displayGroupInfo">
-<em class="property">static </em><tt class="descname">displayGroupInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#displayGroupInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.displayGroupInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">displayGroupInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.displayGroupInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a message conaining all of the group's information using GateOne.Convenience.groupTemp and by parsing the output of the <tt class="xref py py-obj docutils literal"><span class="pre">getent</span> <span class="pre">passwd</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">...</span></tt> command.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="displayIPInfo">
-<em class="property">static </em><tt class="descname">displayIPInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#displayIPInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.displayIPInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">displayIPInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.displayIPInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the result of <tt class="xref py py-obj docutils literal"><span class="pre">host</span></tt>.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="displayUserInfo">
-<em class="property">static </em><tt class="descname">displayUserInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#displayUserInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.displayUserInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">displayUserInfo</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.displayUserInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses the output of the 'getent passwd &lt;user&gt;' command and displays it in an easy-to-read format.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="groupInfo">
-<em class="property">static </em><tt class="descname">groupInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#groupInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.groupInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">groupInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.groupInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls 'getent group ' + elem.innerHTML on the server using GateOne.SSH.execRemoteCmd().  The result will be handled by <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Convenience.displayGroupInfo()</span></tt></p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="groupInfo2">
-<em class="property">static </em><tt class="descname">groupInfo2</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#groupInfo2" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.groupInfo2">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">groupInfo2</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.groupInfo2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses the output of the <tt class="xref py py-obj docutils literal"><span class="pre">getent</span> <span class="pre">group</span></tt> command, saves the details as HTML in GateOne.Convenience.groupTemp, then calls <tt class="xref py py-obj docutils literal"><span class="pre">getent</span> <span class="pre">passwd</span></tt> looking for all the users that have the given group as their primary GID.  The final output will be displayed via GateOne.Convenience.displayGroupInfo().</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="groupInfoError">
-<em class="property">static </em><tt class="descname">groupInfoError</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#groupInfoError" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.groupInfoError">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">groupInfoError</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.groupInfoError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a message indicating there was an error getting info on the group.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="init">
-<em class="property">static </em><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.init">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets up all our conveniences.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="permissionsBitmask">
-<em class="property">static </em><tt class="descname">permissionsBitmask</tt><big>(</big><em>elemOrString</em><big>)</big><a class="headerlink" href="#permissionsBitmask" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.permissionsBitmask">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">permissionsBitmask</tt><big>(</big><em>elemOrString</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.permissionsBitmask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the bitmask (i.e. chmod &lt;bitmask&gt;) to a file/directory's permissions.  For example:</p>
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">someElement</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s1">&#39;drwxrwxr-x&#39;</span><span class="p">;</span>
 <span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Convenience</span><span class="p">.</span><span class="nx">permissionsBitmask</span><span class="p">(</span><span class="nx">someElement</span><span class="p">);</span>
@@ -139,80 +139,80 @@
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="permissionsInfo">
-<em class="property">static </em><tt class="descname">permissionsInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#permissionsInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.permissionsInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">permissionsInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.permissionsInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays information about the 'ls -l' permissions contained within <em>elem</em>.  elem.innerHTMl <strong>must</strong> be something like 'drwxrwxr-x'.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="registerIPConvenience">
-<em class="property">static </em><tt class="descname">registerIPConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#registerIPConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.registerIPConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">registerIPConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.registerIPConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Registers a text transform that makes IPv4 addresses into spans that will execute <tt class="xref py py-obj docutils literal"><span class="pre">host</span></tt> when clicked.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt>
-<em class="property">static </em><tt class="descname">registerIPConvenience</tt><big>(</big><big>)</big></dt>
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">registerIPConvenience</tt><big>(</big><big>)</big></dt>
 <dd><p>Removes all the text transforms that apply to IP addresses.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="registerLSConvenience">
-<em class="property">static </em><tt class="descname">registerLSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#registerLSConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.registerLSConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">registerLSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.registerLSConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Registers a number of text transforms to add conveniences to the output of 'ls -l'.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="registerPSConvenience">
-<em class="property">static </em><tt class="descname">registerPSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#registerPSConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.registerPSConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">registerPSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.registerPSConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Registers a text transform that adds syntax highlighting to the output of 'ps'.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="registerSyslogConvenience">
-<em class="property">static </em><tt class="descname">registerSyslogConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#registerSyslogConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.registerSyslogConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">registerSyslogConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.registerSyslogConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Registers a text transform that makes standard syslog output easier on the eyes.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="savePrefsCallback">
-<em class="property">static </em><tt class="descname">savePrefsCallback</tt><big>(</big><big>)</big><a class="headerlink" href="#savePrefsCallback" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.savePrefsCallback">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">savePrefsCallback</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.savePrefsCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the user clicks the &quot;Save&quot; button in the prefs panel.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="toggleBackground">
-<em class="property">static </em><tt class="descname">toggleBackground</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#toggleBackground" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.toggleBackground">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">toggleBackground</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.toggleBackground" title="Permalink to this definition">¶</a></dt>
 <dd><p>Toggles a background color on and off for the given <em>elem</em> by adding or removing the 'selectedrow' class.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="unregisterLSConvenience">
-<em class="property">static </em><tt class="descname">unregisterLSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#unregisterLSConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.unregisterLSConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">unregisterLSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.unregisterLSConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all of the text transforms that apply to the output of 'ls -l'</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="unregisterPSConvenience">
-<em class="property">static </em><tt class="descname">unregisterPSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#unregisterPSConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.unregisterPSConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">unregisterPSConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.unregisterPSConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all the text transforms associated with ps output.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="unregisterSyslogConvenience">
-<em class="property">static </em><tt class="descname">unregisterSyslogConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#unregisterSyslogConvenience" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.unregisterSyslogConvenience">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">unregisterSyslogConvenience</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Convenience.unregisterSyslogConvenience" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all the text transforms associated with syslog output.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="userInfo">
-<em class="property">static </em><tt class="descname">userInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#userInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.userInfo">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">userInfo</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.userInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls 'getent passwd ' + elem.innerHTML on the server using GateOne.SSH.execRemoteCmd().  The result will be handled by <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Convenience.displayUserInfo()</span></tt></p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="userInfoError">
-<em class="property">static </em><tt class="descname">userInfoError</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#userInfoError" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Convenience.userInfoError">
+<tt class="descclassname">GateOne.Convenience.</tt><tt class="descname">userInfoError</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Convenience.userInfoError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a message indicating there was an error getting info on the user.</p>
 </dd></dl>
 

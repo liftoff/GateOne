@@ -71,23 +71,23 @@
 <h1>The Help Plugin<a class="headerlink" href="#the-help-plugin" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="javascript">
 <h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
-<dl class="data">
+<dl class="attribute">
 <dt id="GateOne.Help">
 <tt class="descclassname">GateOne.</tt><tt class="descname">Help</tt><a class="headerlink" href="#GateOne.Help" title="Permalink to this definition">¶</a></dt>
 <dd><p>A global Gate One plugin for providing helpful/useful information to the user.</p>
 <dl class="staticmethod">
 <dt id="GateOne.Help.aboutGateOne">
-<em class="property">static </em><tt class="descname">aboutGateOne</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">aboutGateOne</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the Gate One version/credits.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="addHelpSection">
-<em class="property">static </em><tt class="descname">addHelpSection</tt><big>(</big><em>section</em>, <em>title</em>, <em>action</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#addHelpSection" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Help.addHelpSection">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">addHelpSection</tt><big>(</big><em>section</em>, <em>title</em>, <em>action</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.addHelpSection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds help to the Help panel under the given <em>section</em> using the given <em>title</em>.  The <em>title</em> will be a link that performs one of the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li>If <em>action</em> is a URL, <tt class="xref js js-meth docutils literal"><span class="pre">showHelpSection()</span></tt> will be called to load the content at that URL.</li>
+<li>If <em>action</em> is a URL, <a class="reference internal" href="#GateOne.Help.showHelpSection" title="GateOne.Help.showHelpSection"><tt class="xref js js-meth docutils literal"><span class="pre">showHelpSection()</span></tt></a> will be called to load the content at that URL.</li>
 <li>If <em>action</em> is a DOM node it will be displayed to the user (in the help panel).</li>
 </ul>
 </div></blockquote>
@@ -99,26 +99,26 @@
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="init">
-<em class="property">static </em><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Help.init">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the help panel and registers the <tt class="kbd docutils literal"><span class="pre">Shift-F1</span></tt> (show help) and <tt class="kbd docutils literal"><span class="pre">Ctrl-S</span></tt> (displays helpful message about suspended terminal output) keyboard shortcuts.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="showFirstTimeDialog">
-<em class="property">static </em><tt class="descname">showFirstTimeDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Help.showFirstTimeDialog">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showFirstTimeDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pops up a dialog for first-time users that shows them the basics of Gate One.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="showHelp">
-<em class="property">static </em><tt class="descname">showHelp</tt><big>(</big><big>)</big><a class="headerlink" href="#showHelp" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Help.showHelp">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelp</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showHelp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the help panel.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="showHelpSection">
-<em class="property">static </em><tt class="descname">showHelpSection</tt><big>(</big><em>helpURL</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#showHelpSection" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Help.showHelpSection">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelpSection</tt><big>(</big><em>helpURL</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.showHelpSection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows the given help information (<em>helpURL</em>) by sliding out whatever is in the help panel and sliding in the new help text.</p>
 <p>If <em>callback</em> is given it will be called after the content is loaded.</p>
 </dd></dl>

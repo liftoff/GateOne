@@ -38,7 +38,7 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="gopam.py - PAM Authentication Module" href="gopam.html" />
+    <link rel="next" title="golog.py - Gate One Logging Module" href="golog.html" />
     <link rel="prev" title="authpam.py - A PAM Authentication Module" href="authpam.html" /> 
   </head>
   <body>
@@ -52,7 +52,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="gopam.html" title="gopam.py - PAM Authentication Module"
+          <a href="golog.html" title="golog.py - Gate One Logging Module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="authpam.html" title="authpam.py - A PAM Authentication Module"
@@ -94,7 +94,7 @@ functionality:</p>
 <li><a class="reference external" href="http://pypi.python.org/pypi/kerberos">kerberos</a> 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</li>
 <li><a class="reference external" href="http://packages.debian.org/lenny/python-pam">python-pam</a> 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.</li>
 <li><a class="reference external" href="http://www.pythonware.com/products/pil/">PIL (Python Imaging Library)</a> 1.1.7+ - A Python module for manipulating images.  <strong>Alternative:</strong> <a class="reference external" href="https://github.com/python-imaging/Pillow">Pillow</a> 2.0+ - A &quot;friendly fork&quot; of PIL that works with Python 3.</li>
-<li><a class="reference external" href="https://code.google.com/p/mutagen/">mutagen</a> 1.21+ - A Python module to handle audio metadata.  Makes it so that if you <tt class="xref py py-obj docutils literal"><span class="pre">cat</span> <span class="pre">music_file.ogg</span></tt> in a terminal you'll get useful track/tag information.</li>
+<li><a class="reference external" href="https://code.google.com/p/mutagen/">mutagen</a> 1.21+ - A Python module to handle audio metadata.  Makes it so that if you <tt class="docutils literal"><span class="pre">cat</span> <span class="pre">music_file.ogg</span></tt> in a terminal you'll get useful track/tag information.</li>
 </ul>
 </div></blockquote>
 <p>With the exception of python-pam, all required and optional modules can usually be installed via one of these commands:</p>
@@ -219,7 +219,7 @@ class.</p>
 </div>
 <p>There are a few important differences between the configuration file and
 command line switches in regards to boolean values (True/False).  A switch such
-as <tt class="xref py py-obj docutils literal"><span class="pre">--debug</span></tt> is equivalent to '&quot;debug&quot; = true' in the 10.server.conf:</p>
+as <tt class="xref py py-obj docutils literal"><span class="pre">--debug</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">&quot;debug&quot;</span> <span class="pre">=</span> <span class="pre">true</span></tt> in 10server.conf:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;debug&quot;</span> <span class="o">=</span> <span class="kc">true</span> <span class="c1">// Booleans are all lower case (not in quotes)</span>
 </pre></div>
 </div>
@@ -851,7 +851,7 @@ the file at <em>path</em> is modified.</p>
 <dd><p>Called when there's an update to the <tt class="xref py py-obj docutils literal"><span class="pre">broadcast_file</span></tt> (e.g.
 <tt class="xref py py-obj docutils literal"><span class="pre">&lt;session_dir&gt;/broadcast</span></tt>); broadcasts its contents to all connected
 users.  The message will be displayed via the
-<tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt> function at the client and can
+<a class="reference internal" href="js_gateone.html#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a> function at the client and can
 be formatted with HTML.  For this reason it is important to strictly
 control write access to the broadcast file.</p>
 <div class="admonition note">
@@ -1319,8 +1319,8 @@ format.</p>
   <p class="topless"><a href="authpam.html"
                         title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="gopam.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">gopam.py</span></tt> - PAM Authentication Module</a></p>
+  <p class="topless"><a href="golog.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">golog.py</span></tt> - Gate One Logging Module</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/gateone.txt"
@@ -1353,7 +1353,7 @@ format.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="gopam.html" title="gopam.py - PAM Authentication Module"
+          <a href="golog.html" title="golog.py - Gate One Logging Module"
              >next</a> |</li>
         <li class="right" >
           <a href="authpam.html" title="authpam.py - A PAM Authentication Module"

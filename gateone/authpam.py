@@ -57,7 +57,8 @@ class PAMAuthMixin(tornado.web.RequestHandler):
 
     def get_authenticated_user(self, callback):
         """
-        Processes the client's Authorization header and call `self.auth_basic()`
+        Processes the client's Authorization header and call
+        ``self.auth_basic()``
         """
         auth_header = self.request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Basic '):
@@ -65,7 +66,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
 
     def auth_basic(self, auth_header, callback):
         """
-        Perform Basic authentication using `self.settings['pam_realm']`.
+        Perform Basic authentication using ``self.settings['pam_realm']``.
         """
         auth_decoded = base64.decodestring(auth_header[6:].encode('ascii'))
         username, password = auth_decoded.decode('utf-8').split(':', 1)

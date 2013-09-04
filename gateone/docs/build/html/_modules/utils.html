@@ -62,7 +62,7 @@
   <h1>Source code for utils</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c">#</span>
-<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
 <span class="c">#</span>
 <span class="c"># For license information see LICENSE.txt</span>
 
@@ -101,6 +101,7 @@
 
 <span class="c"># Import 3rd party stuff</span>
 <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">locale</span>
+<span class="kn">import</span> <span class="nn">tornado.template</span>
 <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span> <span class="k">as</span> <span class="n">_json_encode</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
@@ -821,14 +822,15 @@
     <span class="n">walk_pids</span><span class="p">(</span><span class="n">pidmap</span><span class="p">,</span> <span class="n">parent_pid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
 </div>
-<div class="viewcode-block" id="kill_dtached_proc"><a class="viewcode-back" href="../Developer/utils.html#utils.kill_dtached_proc">[docs]</a><span class="k">def</span> <span class="nf">kill_dtached_proc</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="kill_dtached_proc"><a class="viewcode-back" href="../Developer/utils.html#utils.kill_dtached_proc">[docs]</a><span class="k">def</span> <span class="nf">kill_dtached_proc</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Kills the dtach processes associated with the given *term* and all its</span>
-<span class="sd">    sub-processes.  Requires *session* so it can figure out the right</span>
-<span class="sd">    processess to kill.</span>
+<span class="sd">    Kills the dtach processes associated with the given *session* that matches</span>
+<span class="sd">    the given *location* and *term*.  All the dtach&#39;d sub-processes will be</span>
+<span class="sd">    killed as well.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_dtached_proc(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">))</span>
-    <span class="n">dtach_socket_name</span> <span class="o">=</span> <span class="s">&#39;dtach_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">term</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_dtached_proc(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">term</span><span class="p">))</span>
+    <span class="n">dtach_socket_name</span> <span class="o">=</span> <span class="s">&#39;dtach_{location}_{term}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">)</span>
     <span class="n">to_kill</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">):</span>
         <span class="n">pid_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
@@ -854,7 +856,7 @@
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
                 <span class="k">pass</span> <span class="c"># Process already died.  Not a problem.</span>
 </div>
-<div class="viewcode-block" id="kill_dtached_proc_bsd"><a class="viewcode-back" href="../Developer/utils.html#utils.kill_dtached_proc_bsd">[docs]</a><span class="k">def</span> <span class="nf">kill_dtached_proc_bsd</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="kill_dtached_proc_bsd"><a class="viewcode-back" href="../Developer/utils.html#utils.kill_dtached_proc_bsd">[docs]</a><span class="k">def</span> <span class="nf">kill_dtached_proc_bsd</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A BSD-specific implementation of `kill_dtached_proc` since Macs don&#39;t have</span>
 <span class="sd">    /proc.  Seems simpler than :func:`kill_dtached_proc` but actually having to</span>
@@ -869,9 +871,9 @@
         <span class="n">psopts</span> <span class="o">=</span> <span class="s">&quot;-aux&quot;</span>
     <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> | &quot;</span>
-        <span class="s">&quot;grep </span><span class="si">%s</span><span class="s">/dtach_</span><span class="si">%s</span><span class="s"> | &quot;</span> <span class="c"># Limit to those matching our session/term combo</span>
+        <span class="s">&quot;grep </span><span class="si">%s</span><span class="s">/dtach_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s"> | &quot;</span> <span class="c"># Match our session/location/term combo</span>
         <span class="s">&quot;grep -v grep | &quot;</span> <span class="c"># Get rid of grep from the results (if present)</span>
-        <span class="s">&quot;awk &#39;{print $2}&#39; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">psopts</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span> <span class="c"># Just the PID please</span>
+        <span class="s">&quot;awk &#39;{print $2}&#39; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">psopts</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span> <span class="c"># Just PID</span>
     <span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill cmd: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">)</span>
     <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
@@ -1257,14 +1259,15 @@
         <span class="k">raise</span> <span class="n">UnknownFacility</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s"> does not match a known syslog facility&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">facility</span><span class="p">)))</span>
 </div>
-<div class="viewcode-block" id="create_data_uri"><a class="viewcode-back" href="../Developer/utils.html#utils.create_data_uri">[docs]</a><span class="k">def</span> <span class="nf">create_data_uri</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="create_data_uri"><a class="viewcode-back" href="../Developer/utils.html#utils.create_data_uri">[docs]</a><span class="k">def</span> <span class="nf">create_data_uri</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a file at *filepath*, return that file as a data URI.</span>
 
 <span class="sd">    Raises a `MimeTypeFail` exception if the mimetype could not be guessed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">base64</span>
-    <span class="n">mimetype</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filepath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mimetype</span><span class="p">:</span>
+        <span class="n">mimetype</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filepath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">mimetype</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">MimeTypeFail</span><span class="p">(</span><span class="s">&quot;Could not guess mime type of: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -1890,7 +1893,7 @@
                                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">js_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">+</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="combine_css"><a class="viewcode-back" href="../Developer/utils.html#utils.combine_css">[docs]</a><span class="k">def</span> <span class="nf">combine_css</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">settings_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="combine_css"><a class="viewcode-back" href="../Developer/utils.html#utils.combine_css">[docs]</a><span class="k">def</span> <span class="nf">combine_css</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">settings_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combines all application and plugin .css template files into one big one;</span>
 <span class="sd">    saved to the given *path*.  Templates will be rendered using the given</span>
@@ -1898,30 +1901,44 @@
 
 <span class="sd">    If given, *settings_dir* will be used to determine which applications and</span>
 <span class="sd">    plugins should be included in the dump based on what is enabled.</span>
+
+<span class="sd">    If *log* is ``False`` messages indicating where the files</span>
+<span class="sd">    have been saved will not be logged (useful when rendering CSS for</span>
+<span class="sd">    programatic use).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">container</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span> <span class="c"># This is just in case (don&#39;t want ##gateone)</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">settings_dir</span><span class="p">:</span>
         <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;settings&#39;</span><span class="p">)</span>
     <span class="n">all_settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">)</span>
     <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">enabled_applications</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">url_prefix</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span>
     <span class="k">if</span> <span class="s">&#39;gateone&#39;</span> <span class="ow">in</span> <span class="n">all_settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">]:</span>
         <span class="c"># The check above will fail in first-run situations</span>
         <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="n">all_settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">enabled_applications</span> <span class="o">=</span> <span class="n">all_settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s">&#39;enabled_applications&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">embedded</span> <span class="o">=</span> <span class="n">all_settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;embedded&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">url_prefix</span> <span class="o">=</span> <span class="n">all_settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;url_prefix&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">plugins_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">)</span>
     <span class="n">pluginslist</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugins_dir</span><span class="p">)</span>
     <span class="n">pluginslist</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
     <span class="n">applications_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;applications&#39;</span><span class="p">)</span>
     <span class="n">appslist</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">applications_dir</span><span class="p">)</span>
     <span class="n">appslist</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">themes</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;themes&#39;</span><span class="p">))</span>
+    <span class="n">global_themes_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;themes&#39;</span><span class="p">)</span>
+    <span class="n">themes</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">global_themes_dir</span><span class="p">)</span>
     <span class="n">theme_writers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">theme</span> <span class="ow">in</span> <span class="n">themes</span><span class="p">:</span>
         <span class="n">combined_theme_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">_theme_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">theme</span><span class="p">)</span>
         <span class="n">theme_writers</span><span class="p">[</span><span class="n">theme</span><span class="p">]</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">combined_theme_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">themepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">global_themes_dir</span><span class="p">,</span> <span class="n">theme</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">themepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">css_file</span><span class="p">:</span>
+            <span class="n">theme_writers</span><span class="p">[</span><span class="n">theme</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">css_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
     <span class="c"># NOTE: We skip gateone.css because that isn&#39;t used when embedding</span>
     <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="c"># Gate One plugins</span>
@@ -2023,28 +2040,37 @@
     <span class="k">for</span> <span class="n">writer</span> <span class="ow">in</span> <span class="n">theme_writers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="c"># Now perform a replacement of the {{container}} variable</span>
-    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">css_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="n">css_data</span> <span class="o">=</span> <span class="n">css_data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-            <span class="s">&#39;#{{container}}&#39;</span><span class="p">,</span> <span class="n">container</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="c"># Now render the templates</span>
+    <span class="n">asis</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="c"># Used to disable autoescape</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">autoescape</span><span class="o">=</span><span class="s">&quot;asis&quot;</span><span class="p">)</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">css_data</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+        <span class="n">asis</span><span class="o">=</span><span class="n">asis</span><span class="p">,</span>
+        <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+        <span class="n">url_prefix</span><span class="o">=</span><span class="n">url_prefix</span><span class="p">,</span>
+        <span class="n">embedded</span><span class="o">=</span><span class="n">embedded</span><span class="p">)</span>
+    <span class="c"># Overwrite it with the rendered version</span>
+    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">css_data</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-        <span class="s">&quot;Non-theme CSS has been combined and saved to: </span><span class="si">%s</span><span class="s">&quot;</span>
-        <span class="o">%</span> <span class="n">path</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;Non-theme CSS has been combined and saved to: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">theme</span> <span class="ow">in</span> <span class="n">theme_writers</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">combined_theme_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">_theme_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">theme</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">combined_theme_path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">css_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-            <span class="n">css_data</span> <span class="o">=</span> <span class="n">css_data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-                <span class="s">&#39;#{{container}}&#39;</span><span class="p">,</span> <span class="n">container</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">combined_theme_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">combined_theme_path</span><span class="p">)</span>
+        <span class="n">css_data</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+            <span class="n">asis</span><span class="o">=</span><span class="n">asis</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="n">url_prefix</span><span class="p">,</span>
+            <span class="n">embedded</span><span class="o">=</span><span class="n">embedded</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">combined_theme_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">css_data</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;The </span><span class="si">%s</span><span class="s"> theme CSS has been combined and saved to: </span><span class="si">%s</span><span class="s">&quot;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">theme</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">combined_theme_path</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;The </span><span class="si">%s</span><span class="s"> theme CSS has been combined and saved to: </span><span class="si">%s</span><span class="s">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">theme</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">combined_theme_path</span><span class="p">)))</span>
+
 <span class="c"># Misc</span></div>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">MACOS</span> <span class="ow">or</span> <span class="n">OPENBSD</span><span class="p">:</span> <span class="c"># Apply BSD-specific stuff</span>

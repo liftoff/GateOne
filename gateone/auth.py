@@ -10,6 +10,8 @@ __version_info__ = (1.2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
+.. _auth.py:
+
 Authentication
 ==============
 This module contains Gate One's authentication classes.  They map to Gate One's
@@ -261,7 +263,7 @@ class policies(object):
 
         self.ws.security.update({'terminal': terminal_policies})
 
-    Whenever a function decorated with `@require(policies('terminal'))` is
+    Whenever a function decorated with ``@require(policies('terminal'))`` is
     called the registered policy-checking function (e.g.
     :func:`app_terminal.terminal_policies`) will be called, passing the current
     instance of :class:`policies` as the only argument.
@@ -304,6 +306,11 @@ def additional_attributes(user, settings_dir=None):
     """
     Given a *user* dict, return a dict containing any additional attributes
     defined in Gate One's attribute repositories.
+
+    .. note::
+
+        This function doesn't actually work yet (support for attribute repos
+        like LDAP is forthcoming).
     """
     # Doesn't do anything yet
     if not settings_dir:
@@ -519,7 +526,8 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
 class SSLAuthHandler(BaseAuthHandler):
     """
     SSL Certificate-based  authentication handler.  Can only be used if the
-    `ca_certs` is set and `ssl_auth=required` or `ssl_auth=optional`.
+    ``ca_certs`` option is set along with ``ssl_auth=required`` or
+    ``ssl_auth=optional``.
     """
     def initialize(self):
         """

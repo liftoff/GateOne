@@ -102,7 +102,7 @@
 <dd><p>Returns an array of all the tags in <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'bookmarks']</span></tt> ordered alphabetically.</p>
 </dd></dl>
 
-<dl class="data">
+<dl class="attribute">
 <dt id="GateOne.Bookmarks.bookmarks">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">bookmarks</tt><a class="headerlink" href="#GateOne.Bookmarks.bookmarks" title="Permalink to this definition">¶</a></dt>
 <dd><p>All the user's bookmarks are stored in this array which is stored/loaded from <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'bookmarks']</span></tt>.  Each bookmark consists of the following data structure:</p>
@@ -232,7 +232,7 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.getDateTag">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getDateTag</tt><big>(</big><em>dateObj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getDateTag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <tt class="xref py py-obj docutils literal"><span class="pre">Date</span></tt> object, returns a string such as &quot;&lt;7 days&quot;.  Suitable for use as an autotag.</p>
+<dd><p>Given a <tt class="docutils literal"><span class="pre">Date</span></tt> object, returns a string such as &quot;&lt;7 days&quot;.  Suitable for use as an autotag.</p>
 </dd></dl>
 
 <dl class="function">
@@ -376,7 +376,7 @@
 <dd><p>Renames the tag matching <em>oldName</em> to be <em>newName</em> for all bookmarks that have it.</p>
 </dd></dl>
 
-<dl class="data">
+<dl class="attribute">
 <dt id="GateOne.Bookmarks.sortFunctions">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">sortFunctions</tt><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions" title="Permalink to this definition">¶</a></dt>
 <dd><p>An associative array of functions that are used to sort bookmarks.  When the user clicks on one of the sorting options it assigns one of these functions to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.sortfunc()</span></tt> which is then applied like so:</p>
@@ -385,19 +385,19 @@
 </div>
 <dl class="staticmethod">
 <dt id="GateOne.Bookmarks.sortFunctions.alphabetical">
-<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts bookmarks alphabetically.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="created">
-<em class="property">static </em><tt class="descname">created</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#created" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Bookmarks.sortFunctions.created">
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">created</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.created" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts bookmarks by date modified followed by alphabetical.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="visits">
-<em class="property">static </em><tt class="descname">visits</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#visits" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Bookmarks.sortFunctions.visits">
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">visits</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.visits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sorts bookmarks according to the number of visits followed by alphabetical.</p>
 </dd></dl>
 

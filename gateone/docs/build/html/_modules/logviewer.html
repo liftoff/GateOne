@@ -63,7 +63,7 @@
 <span class="c">#!/usr/bin/env python</span>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c">#</span>
-<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
 <span class="c">#</span>
 
 <span class="c"># Meta</span>
@@ -73,17 +73,19 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># Import stdlib stuff</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">fcntl</span><span class="o">,</span> <span class="nn">termios</span><span class="o">,</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">fcntl</span><span class="o">,</span> <span class="nn">termios</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
 
 <span class="c"># Import our own stuff</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span>
+<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span><span class="p">,</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">PLUGINS</span>
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
+<span class="kn">import</span> <span class="nn">tornado.template</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">.. _log_viewer:</span>
@@ -181,11 +183,15 @@
             <span class="n">split_frames</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
             <span class="n">next_frame</span> <span class="o">=</span> <span class="n">split_frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">fr</span> <span class="ow">in</span> <span class="n">split_frames</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="c"># Undo extra CRs caused by capturing shell output on top of</span>
+                <span class="c"># shell output</span>
+                <span class="n">fr</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">fr</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">next_frame</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
             <span class="c"># Write last frame</span>
             <span class="k">if</span> <span class="n">frame</span><span class="p">:</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">frame</span>
             <span class="k">break</span>
 </div>
@@ -401,6 +407,173 @@
         <span class="n">file_like</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="k">del</span> <span class="n">term</span>
 </div>
+<div class="viewcode-block" id="retrieve_first_frame"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.retrieve_first_frame">[docs]</a><span class="k">def</span> <span class="nf">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the first frame from the given *golog_path*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">found_first_frame</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c"># One byte at a time</span>
+        <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
+            <span class="c"># That&#39;s it; wrap this up</span>
+            <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">),</span> <span class="n">distance</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_log_metadata"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_log_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_log_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the metadata from the log at the given *golog_path* in the form of</span>
+<span class="sd">    a dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span> <span class="c"># 0 bytes</span>
+        <span class="k">return</span> <span class="n">metadata</span> <span class="c"># Nothing to do</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">first_frame</span><span class="p">,</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="c"># Something wrong with the log...  Probably still being written to</span>
+        <span class="k">return</span> <span class="n">metadata</span>
+    <span class="k">if</span> <span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">):</span>
+        <span class="c"># This is JSON, capture metadata</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="n">metadata</span> <span class="c"># All done</span>
+</div>
+<div class="viewcode-block" id="render_log_frames"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.render_log_frames">[docs]</a><span class="k">def</span> <span class="nf">render_log_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the frames of *golog_path* as a list of HTML-encoded strings that</span>
+<span class="sd">    can be used with the playback_log.html template.  It accomplishes this task</span>
+<span class="sd">    by running the frames through the terminal emulator and capturing the HTML</span>
+<span class="sd">    output from the `Terminal.dump_html` method.</span>
+
+<span class="sd">    If *limit* is given, only return that number of frames (e.g. for preview)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_frames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span>
+        <span class="c"># 14/7 for the em_height should be OK for most browsers to ensure that</span>
+        <span class="c"># images don&#39;t always wind up at the bottom of the screen.</span>
+        <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;height&#39;</span><span class="p">:</span><span class="mi">14</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">})</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">get_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">limit</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">14</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="s">&#39;{&#39;</span><span class="p">:</span>
+                <span class="c"># This is just the metadata frame.  Skip it</span>
+                <span class="k">continue</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]))</span>
+            <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
+            <span class="c"># Emulate how a real shell would output newlines:</span>
+            <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame_screen</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_screen</span><span class="p">)</span>
+            <span class="c"># Ensure we&#39;re not in the middle of capturing a file.  Otherwise</span>
+            <span class="c"># it might get cut off and result in no image being shown.</span>
+            <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
+            <span class="n">out_frames</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;screen&#39;</span><span class="p">:</span> <span class="n">screen</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">:</span> <span class="n">frame_time</span><span class="p">})</span>
+    <span class="k">del</span> <span class="n">term</span> <span class="c"># Ensures any file capture file descriptors are cleaned up</span>
+    <span class="k">return</span> <span class="n">out_frames</span> <span class="c"># Skip the first frame which is the metadata</span>
+</div>
+<div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="s">&quot;gateone&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the rendered 256-color CSS.  If *container* is provided it will be</span>
+<span class="sd">    used as the ``{{container}}`` variable when rendering the template (</span>
+<span class="sd">    defaults to &quot;gateone&quot;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">terminal_app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;applications&#39;</span><span class="p">,</span> <span class="s">&#39;terminal&#39;</span><span class="p">)</span>
+    <span class="n">colors_json_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">terminal_app_path</span><span class="p">,</span> <span class="s">&#39;256colors.json&#39;</span><span class="p">)</span>
+    <span class="c"># Using get_settings() as a cool hack to get the color data as a nice dict:</span>
+    <span class="n">color_map</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">colors_json_path</span><span class="p">,</span> <span class="n">add_default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c"># Setup our 256-color support CSS:</span>
+    <span class="n">colors_256</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">256</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">fg</span> <span class="o">=</span> <span class="s">u&quot;#</span><span class="si">%s</span><span class="s"> span.✈fx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="s">u&quot;#</span><span class="si">%s</span><span class="s"> span.✈bx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">fg_rev</span> <span class="o">=</span><span class="p">(</span>
+            <span class="s">u&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.fx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">; color: &quot;</span>
+            <span class="s">u&quot;inherit;}&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="n">bg_rev</span> <span class="o">=</span><span class="p">(</span>
+            <span class="s">u&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.bx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">; background-color: &quot;</span>
+            <span class="s">u&quot;inherit;} &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg_rev</span><span class="p">,</span> <span class="n">bg_rev</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">colors_256</span>
+</div>
+<div class="viewcode-block" id="render_html_playback"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.render_html_playback">[docs]</a><span class="k">def</span> <span class="nf">render_html_playback</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">render_settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a self-contained HTML playback file from the .golog at the given</span>
+<span class="sd">    *golog_path*.  The HTML will be output to stdout.  The optional</span>
+<span class="sd">    *render_settings* argument (dict) can include the following options</span>
+<span class="sd">    to control how the output is rendered:</span>
+
+<span class="sd">        :prefix:</span>
+<span class="sd">            (Default: `&quot;go_default_&quot;`) The GateOne.prefs.prefix to emulate when</span>
+<span class="sd">            rendering the HTML template.</span>
+<span class="sd">        :container:</span>
+<span class="sd">            (Default: `&quot;gateone&quot;`) The name of the #gateone container to emulate</span>
+<span class="sd">            when rendering the HTML template.</span>
+<span class="sd">        :theme:</span>
+<span class="sd">            (Default: `&quot;black&quot;`) The theme to use when rendering the HTML</span>
+<span class="sd">            template.</span>
+<span class="sd">        :colors:</span>
+<span class="sd">            (Default: `&quot;default&quot;`) The text color scheme to use when rendering</span>
+<span class="sd">            the HTML template.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Get the necessary variables out of render_settings</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">render_settings</span><span class="p">:</span>
+        <span class="n">render_settings</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">terminal_app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;applications&#39;</span><span class="p">,</span> <span class="s">&#39;terminal&#39;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">render_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="s">&#39;go_default_&#39;</span><span class="p">)</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">render_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="s">&#39;gateone&#39;</span><span class="p">)</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">render_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;colors&#39;</span><span class="p">,</span> <span class="s">&#39;default&#39;</span><span class="p">)</span>
+    <span class="n">theme</span> <span class="o">=</span> <span class="n">render_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;theme&#39;</span><span class="p">,</span> <span class="s">&#39;black&#39;</span><span class="p">)</span>
+    <span class="n">temploc</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;logviewer&#39;</span><span class="p">)</span> <span class="c"># stores rendered CSS</span>
+    <span class="c"># This function renders all themes</span>
+    <span class="n">combine_css</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">temploc</span><span class="p">,</span> <span class="s">&#39;gateone.css&#39;</span><span class="p">),</span> <span class="n">container</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">theme_css_file</span> <span class="o">=</span> <span class="s">&quot;gateone_theme_{theme}.css&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="n">theme</span><span class="p">)</span>
+    <span class="n">theme_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temploc</span><span class="p">,</span> <span class="n">theme_css_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">theme_css_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">theme_css</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="c"># Cleanup the CSS files since we&#39;re now down with them</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">temploc</span><span class="p">)</span>
+    <span class="c"># Colors are easiest since they don&#39;t need to be rendered</span>
+    <span class="n">colors_css_file</span> <span class="o">=</span> <span class="s">&quot;{0}.css&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+    <span class="n">colors_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">terminal_app_path</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">,</span> <span class="n">colors_css_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">colors_css_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">colors_css</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">terminal_app_path</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">,</span> <span class="s">&#39;logging&#39;</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
+    <span class="n">asis</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="c"># Used to disable autoescape</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="n">autoescape</span><span class="o">=</span><span class="s">&quot;asis&quot;</span><span class="p">)</span>
+    <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;playback_log.html&#39;</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_log_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;rows&#39;</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;columns&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span><span class="p">:</span>
+        <span class="c"># Try the old metadata format which used &#39;cols&#39;:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cols&#39;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+    <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+        <span class="n">asis</span><span class="o">=</span><span class="n">asis</span><span class="p">,</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+        <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+        <span class="n">theme</span><span class="o">=</span><span class="n">theme_css</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors_css</span><span class="p">,</span>
+        <span class="n">colors_256</span><span class="o">=</span><span class="n">get_256_colors</span><span class="p">(</span><span class="n">container</span><span class="p">),</span>
+        <span class="n">preview</span><span class="o">=</span><span class="s">&quot;false&quot;</span><span class="p">,</span> <span class="c"># Only used by the logging plugin</span>
+        <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_html</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">playback_html</span>
+</div>
 <div class="viewcode-block" id="get_terminal_size"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_terminal_size">[docs]</a><span class="k">def</span> <span class="nf">get_terminal_size</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the size of the current terminal in the form of (rows, cols).</span>
@@ -459,6 +632,14 @@
         <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s">&quot;Display control characters and escape sequences when viewing.&quot;</span>
     <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--html&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;html&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s">&quot;Render a given .golog as a self-contained HTML playback file &quot;</span>
+            <span class="s">&quot;(to stdout).&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: You must specify a log file to view.&quot;</span><span class="p">)</span>
@@ -475,9 +656,12 @@
                 <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
                 <span class="n">preserve_renditions</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">pretty</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">html</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">render_html_playback</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
         <span class="c"># Move the cursor to the bottom of the screen to ensure it isn&#39;t in the</span>
         <span class="c"># middle of the log playback output</span>
         <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">get_terminal_size</span><span class="p">()</span>

@@ -189,20 +189,20 @@ can be used with grep and similar search/filter tools.</p>
 
 <dl class="function">
 <dt id="logviewer.retrieve_first_frame">
-<tt class="descclassname">logviewer.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#logviewer.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="logviewer.get_log_metadata">
-<tt class="descclassname">logviewer.</tt><tt class="descname">get_log_metadata</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#logviewer.get_log_metadata" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_log_metadata</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#get_log_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.get_log_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the metadata from the log at the given <em>golog_path</em> in the form of
 a dict.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="logviewer.render_log_frames">
-<tt class="descclassname">logviewer.</tt><tt class="descname">render_log_frames</tt><big>(</big><em>golog_path</em>, <em>rows</em>, <em>cols</em>, <em>limit=None</em><big>)</big><a class="headerlink" href="#logviewer.render_log_frames" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">render_log_frames</tt><big>(</big><em>golog_path</em>, <em>rows</em>, <em>cols</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#render_log_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.render_log_frames" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the frames of <em>golog_path</em> as a list of HTML-encoded strings that
 can be used with the playback_log.html template.  It accomplishes this task
 by running the frames through the terminal emulator and capturing the HTML
@@ -212,7 +212,7 @@ output from the <tt class="xref py py-obj docutils literal"><span class="pre">Te
 
 <dl class="function">
 <dt id="logviewer.get_256_colors">
-<tt class="descclassname">logviewer.</tt><tt class="descname">get_256_colors</tt><big>(</big><em>container='gateone'</em><big>)</big><a class="headerlink" href="#logviewer.get_256_colors" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_256_colors</tt><big>(</big><em>container='gateone'</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#get_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.get_256_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the rendered 256-color CSS.  If <em>container</em> is provided it will be
 used as the <tt class="docutils literal"><span class="pre">{{container}}</span></tt> variable when rendering the template (
 defaults to &quot;gateone&quot;).</p>
@@ -220,7 +220,7 @@ defaults to &quot;gateone&quot;).</p>
 
 <dl class="function">
 <dt id="logviewer.render_html_playback">
-<tt class="descclassname">logviewer.</tt><tt class="descname">render_html_playback</tt><big>(</big><em>golog_path</em>, <em>render_settings=None</em><big>)</big><a class="headerlink" href="#logviewer.render_html_playback" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">render_html_playback</tt><big>(</big><em>golog_path</em>, <em>render_settings=None</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#render_html_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.render_html_playback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a self-contained HTML playback file from the .golog at the given
 <em>golog_path</em>.  The HTML will be output to stdout.  The optional
 <em>render_settings</em> argument (dict) can include the following options

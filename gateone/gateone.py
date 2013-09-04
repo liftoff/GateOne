@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130902133443" # Gets replaced by git (holds the date/time)
+__commit__ = "20130903085826" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -39,7 +39,7 @@ functionality:
  * `kerberos <http://pypi.python.org/pypi/kerberos>`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.
  * `python-pam <http://packages.debian.org/lenny/python-pam>`_ 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.
  * `PIL (Python Imaging Library) <http://www.pythonware.com/products/pil/>`_ 1.1.7+ - A Python module for manipulating images.  **Alternative:** `Pillow <https://github.com/python-imaging/Pillow>`_ 2.0+ - A "friendly fork" of PIL that works with Python 3.
- * `mutagen <https://code.google.com/p/mutagen/>`_ 1.21+ - A Python module to handle audio metadata.  Makes it so that if you `cat music_file.ogg` in a terminal you'll get useful track/tag information.
+ * `mutagen <https://code.google.com/p/mutagen/>`_ 1.21+ - A Python module to handle audio metadata.  Makes it so that if you ``cat music_file.ogg`` in a terminal you'll get useful track/tag information.
 
 With the exception of python-pam, all required and optional modules can usually be installed via one of these commands:
 
@@ -170,7 +170,7 @@ If Gate One loaded the above example .conf files the resulting dict would be:
 
 There are a few important differences between the configuration file and
 command line switches in regards to boolean values (True/False).  A switch such
-as `--debug` is equivalent to '"debug" = true' in the 10.server.conf:
+as `--debug` is equivalent to ``"debug" = true`` in 10server.conf:
 
 .. code-block:: javascript
 

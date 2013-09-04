@@ -94,7 +94,7 @@
 <dl class="function">
 <dt id="GateOne.Example.toggleLoadGraph">
 <tt class="descclassname">GateOne.Example.</tt><tt class="descname">toggleLoadGraph</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Example.toggleLoadGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt>).</p>
+<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <a class="reference internal" href="js_gateone.html#GateOne.Visual.widget" title="GateOne.Visual.widget"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="function">
@@ -218,7 +218,7 @@ plugin's 'static' dir).</p>
 programs directly to plugins written in Python.  It's called the &quot;Special
 Optional Escape Sequence Handler&quot; or SOESH for short.  Here's how it works:
 Whenever a terminal program emits, &quot;x1b]_;&quot; it gets detected by Gate One's
-<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt></a> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will
+<tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will
 execute whatever callback is registered for SOESH.  Inside of Gate One this
 callback will always be <tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt>.</p>
 </dd></dl>

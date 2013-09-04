@@ -1,7 +1,3 @@
-/**:GateOne.Convenience
-
-Provides numerous syntax highlighting functions and conveniences to provide quick and useful information to the user.
-*/
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
@@ -31,6 +27,10 @@ if (typeof(go.prefs.disableIPConvenience) == "undefined") {
 
 // GateOne.Convenience (adds convenient stuff to Gate One)
 GateOne.Base.module(GateOne, "Convenience", "1.2", ['Base']);
+/**:GateOne.Convenience
+
+Provides numerous syntax highlighting functions and conveniences to provide quick and useful information to the user.
+*/
 GateOne.Convenience.groupTemp = {}; // Used to pass group information around before a final message is displayed
 GateOne.Base.update(GateOne.Convenience, {
     init: function() {

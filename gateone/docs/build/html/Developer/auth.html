@@ -70,7 +70,7 @@
   <div class="section" id="module-auth">
 <span id="auth-py-authentication-classes"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes<a class="headerlink" href="#module-auth" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="authentication">
-<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
+<span id="auth-py"></span><h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
 <p>This module contains Gate One's authentication classes.  They map to Gate One's
 --auth configuration option like so:</p>
 <table border="1" class="docutils">
@@ -200,7 +200,7 @@ name and policy-checking function inside of
 <div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="n">terminal_policies</span><span class="p">})</span>
 </pre></div>
 </div>
-<p>Whenever a function decorated with <tt class="xref py py-obj docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
+<p>Whenever a function decorated with <tt class="docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
 called the registered policy-checking function (e.g.
 <tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current
 instance of <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
@@ -223,6 +223,11 @@ do this with the <tt class="xref py py-meth docutils literal"><span class="pre">
 <tt class="descclassname">auth.</tt><tt class="descname">additional_attributes</tt><big>(</big><em>user</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/auth.html#additional_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.additional_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>user</em> dict, return a dict containing any additional attributes
 defined in Gate One's attribute repositories.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function doesn't actually work yet (support for attribute repos
+like LDAP is forthcoming).</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -317,7 +322,8 @@ actually sets the cookie).</p>
 <dt id="auth.SSLAuthHandler">
 <em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">SSLAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>SSL Certificate-based  authentication handler.  Can only be used if the
-<tt class="xref py py-obj docutils literal"><span class="pre">ca_certs</span></tt> is set and <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=required</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=optional</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">ca_certs</span></tt> option is set along with <tt class="docutils literal"><span class="pre">ssl_auth=required</span></tt> or
+<tt class="docutils literal"><span class="pre">ssl_auth=optional</span></tt>.</p>
 <dl class="method">
 <dt id="auth.SSLAuthHandler.initialize">
 <tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>

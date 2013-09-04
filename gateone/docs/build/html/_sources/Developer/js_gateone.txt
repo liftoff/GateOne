@@ -10,6 +10,7 @@ Gate One's JavaScript (`source <https://github.com/liftoff/GateOne/blob/master/g
     * :js:attr:`GateOne.i18n`
     * :js:attr:`GateOne.Input`
     * :js:attr:`GateOne.Net`
+    * :js:attr:`GateOne.Storage`
     * :js:attr:`GateOne.Visual`
     * :js:attr:`GateOne.User`
     * :js:attr:`GateOne.Utils`
@@ -18,5 +19,5 @@ The properties and functions of each respective module are outlined below.
 
 .. autojs:: ../static/gateone.js
     :member-order: bysource
-    :members: GateOne.init, GateOne.initialize, GateOne.Base, GateOne.prefs, GateOne.Logging, GateOne.noSavePrefs, GateOne.Events, GateOne.i18n, GateOne.Icons, GateOne.Input, GateOne.Net, GateOne.Visual, GateOne.User, GateOne.Utils
+    :members: GateOne.init, GateOne.initialize, GateOne.Base, GateOne.prefs, GateOne.Logging, GateOne.noSavePrefs, GateOne.Events, GateOne.i18n, GateOne.Icons, GateOne.Input, GateOne.Net, GateOne.Storage, GateOne.Visual, GateOne.User, GateOne.Utils
 

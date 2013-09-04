@@ -501,14 +501,15 @@
 <span class="c"># WebSocket commands (not the same as handlers)</span>
 <div class="viewcode-block" id="get_connect_string"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_connect_string">[docs]</a><span class="k">def</span> <span class="nf">get_connect_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes the connection string associated with *term* to the `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
+<span class="sd">    Attached to the (server-side) `terminal:ssh_get_connect_string` WebSocket</span>
+<span class="sd">    action; writes the connection string associated with *term* to the WebSocket</span>
 <span class="sd">    like so::</span>
 
-<span class="sd">        {&#39;sshjs_reconnect&#39;: {*term*: &lt;connection string&gt;}}</span>
+<span class="sd">        {&#39;terminal:sshjs_reconnect&#39;: {*term*: &lt;connection string&gt;}}</span>
 
-<span class="sd">    In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`</span>
-<span class="sd">    for &#39;sshjs_reconnect&#39; messages that attaches the connection string to</span>
-<span class="sd">    `GateOne.Terminal.terminals[*term*][&#39;sshConnectString&#39;]`</span>
+<span class="sd">    In ssh.js we attach a WebSocket action to &#39;terminal:sshjs_reconnect&#39;</span>
+<span class="sd">    that assigns the connection string sent by this function to</span>
+<span class="sd">    `GateOne.Terminal.terminals[*term*][&#39;sshConnectString&#39;]`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;get_connect_string() term: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">session</span>
