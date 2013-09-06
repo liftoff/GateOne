@@ -270,6 +270,7 @@ class SharedTermHandler(BaseHandler):
     def get(self):
         hostname = os.uname()[1]
         prefs = self.get_argument("prefs", None)
+        share_id = self.get_argument("share_id")
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
@@ -281,6 +282,7 @@ class SharedTermHandler(BaseHandler):
         index_path = os.path.join(template_path, 'shared.html')
         self.render(
             index_path,
+            share_id=share_id,
             hostname=hostname,
             gateone_js=gateone_js,
             url_prefix=self.settings['url_prefix'],
@@ -1793,29 +1795,34 @@ class TerminalApplication(GOApplication):
             self.ws.persist['terminal']['shared'] = {}
         shared_terms = self.ws.persist['terminal']['shared']
         term_obj = self.loc_terms[term]
-        read = settings.get('read', 'ANONYMOUS') # List of who to share with
-        #write = settings.get('write', list()) # List of who can write
+        read = settings.get('read', 'AUTHENTICATED') # List of who to share with
+        if not isinstance(read, (list, tuple)):
+            read = [read]
+        write = settings.get('write', []) # Who can write (implies read access)
+        if not isinstance(write, (list, tuple)):
+            write = [write]
         # "broadcast" mode allows anonymous access without a password
-        broadcast = settings.get('broadcast', False)
+        #broadcast = settings.get('broadcast', False)
         # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
         out_dict.update({
             'term': term,
             'read': read,
-            'broadcast': broadcast
+            'write': write,
+            #'broadcast': broadcast
         })
         share_dict.update({
             'user': self.current_user,
             'term': term,
             'term_obj': term_obj,
             'read': read,
-            'write': [], # Populated on-demand by the sharing user
-            'broadcast': broadcast
+            'write': write, # Populated on-demand by the sharing user
+            #'broadcast': broadcast
         })
         password = settings.get('password', False)
-        if read == 'ANONYMOUS':
-            if not broadcast:
-                # This situation *requires* a password
-                password = settings.get('password', generate_session_id()[:8])
+        #if read == 'ANONYMOUS':
+            #if not broadcast:
+                ## This situation *requires* a password
+                #password = settings.get('password', generate_session_id()[:8])
         out_dict['password'] = password
         share_dict['password'] = password
         url_prefix = self.ws.settings['url_prefix']
@@ -1862,7 +1869,7 @@ class TerminalApplication(GOApplication):
         self.write_message(json_encode(message))
         # TODO: Write logic here that kills the terminal of each viewer and sends them a message indicating that the sharing has ended.
         message = {'terminal:term_ended': term}
-        # TODO: Per the above TODO, this needs to be changed to notify each user:
+        # TODO: Per the above TODO, this needs to be changed to notify each user (connected to the terminal):
         self.ws.send_message(message, upn=self.current_user['upn'])
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
@@ -1884,7 +1891,9 @@ class TerminalApplication(GOApplication):
                 "read": "AUTHENTICATED",
                 "write": ['bob@somehost', 'joe@somehost']
             }
-            GateOne.ws.send(JSON.stringify({"terminal:set_sharing_permissions": settings}));
+            GateOne.ws.send(JSON.stringify({
+                "terminal:set_sharing_permissions": settings
+            }));
         """
         if 'shared' not in self.ws.persist['terminal']:
             error_msg = _("Error: Invalid share ID.")
@@ -1907,6 +1916,35 @@ class TerminalApplication(GOApplication):
         self.trigger("terminal:set_sharing_permissions", settings)
 
     @require(authenticated(), policies('terminal'))
+    def get_sharing_permissions(self, term):
+        """
+        Sends the client an object representing the permissions of the given
+        *term*.  Example JavaScript:
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({
+                "terminal:get_sharing_permissions": 1
+            }));
+        """
+        if 'shared' not in self.ws.persist['terminal']:
+            error_msg = _("Error: Invalid share ID.")
+            self.ws.send_message(error_msg)
+            return
+        out_dict = {'result': 'Success'}
+        term_obj = self.loc_terms[term]
+        shared_terms = self.ws.persist['terminal']['shared']
+        for share_id, share_dict in shared_terms.items():
+            if share_dict['term_obj'] == term_obj:
+                out_dict['write'] = share_dict['write']
+                out_dict['read'] = share_dict['read']
+                out_dict['share_id'] = share_id
+                break
+        message = {'terminal:sharing_permissions': out_dict}
+        self.write_message(json_encode(message))
+        self.trigger("terminal:get_sharing_permissions", term)
+
+    @require(authenticated(), policies('terminal'))
     def share_user_list(self, share_id):
         """
         Sends the client a dict of users that are currently viewing the terminal
@@ -1917,7 +1955,9 @@ class TerminalApplication(GOApplication):
         .. code-block:: javascript
 
             var shareID = "YzUxNzNkNjliMDQ4NDU21DliM3EwZTAwODVhNGY5MjNhM";
-            GateOne.ws.send(JSON.stringify({"terminal:share_user_list": shareID}));
+            GateOne.ws.send(JSON.stringify({
+                "terminal:share_user_list": shareID
+            }));
         """
         out_dict = {'viewers': [], 'write': []}
         message = {'terminal:share_user_list': out_dict}
@@ -1951,7 +1991,12 @@ class TerminalApplication(GOApplication):
 
         .. code-block:: javascript
 
-            GateOne.ws.send(JSON.stringify({"terminal:list_shared_terminals": null}));
+            GateOne.ws.send(JSON.stringify({
+                "terminal:list_shared_terminals": null
+            }));
+
+        The client will be sent the list of shared terminals via the
+        `terminal:shared_terminals` WebSocket action.
         """
         out_dict = {'terminals': {}, 'result': 'Success'}
         shared_terms = self.ws.persist['terminal'].get('shared', {})
@@ -1970,7 +2015,8 @@ class TerminalApplication(GOApplication):
         self.write_message(json_encode(message))
         self.trigger("terminal:list_shared_terminals")
 
-    @require(authenticated(), policies('terminal'))
+    # NOTE: This doesn't require authenticated() so anonymous sharing can work
+    @require(policies('terminal'))
     def attach_shared_terminal(self, settings):
         """
         Attaches callbacks for the terminals associated with
@@ -1983,9 +2029,16 @@ class TerminalApplication(GOApplication):
 
             settings = {
                 "share_id": "ZWVjNGRiZTA0OTllNDJiODkwOGZjNDA2ZWNkNGU4Y2UwM",
-                "password": "password here" // This line is only necessary if the shared terminal requires a password
+                "password": "password here"
             }
-            GateOne.ws.send(JSON.stringify({"terminal:attach_shared_terminal": settings}));
+            GateOne.ws.send(JSON.stringify({
+                "terminal:attach_shared_terminal": settings
+            }));
+
+        .. note::
+
+            Providing a password is only necessary if the shared terminal
+            requires it.
         """
         logging.debug("attach_shared_terminal(%s)" % settings)
         shared_terms = self.ws.persist['terminal']['shared']
@@ -2000,6 +2053,10 @@ class TerminalApplication(GOApplication):
                 break # This is the share_dict we want
         if not share_obj:
             self.ws.send_message(_("Requested shared terminal does not exist."))
+            return
+        if self.current_user['upn'] not in share_obj['read']:
+            self.ws.send_message(_(
+                "You are not authorized to view this terminal"))
             return
         if share_obj['password'] and password != share_obj['password']:
             self.ws.send_message(_("Invalid password."))

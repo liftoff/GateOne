@@ -72,3 +72,12 @@ span.✈f0.✈b0 { color: #444; background-color: transparent; } /* Black on Bla
     background-color: #45BAE7;
     color: black;
 }
+.✈share_dialog {
+    min-width: 20em;
+    max-height: 50%;
+    margin-right: 1em;
+}
+.✈share_users {
+    margin: 0 auto;
+    width: 100%;
+}

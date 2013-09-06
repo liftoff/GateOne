@@ -526,7 +526,7 @@ potential conflicts with other classes that may be on the page.
 .✈sub1 li:before {
     content: "⏋ ";
 }
-#{{container}} form { margin: 0 0 1em; }
+#{{container}} form { margin: 0 1em 1em 0; }
 #{{container}} label {
     display: block;
     font-weight: bold;
@@ -641,7 +641,7 @@ potential conflicts with other classes that may be on the page.
     color: #000;
     position: relative;
     display: block;
-    width: 99%;
+    width: 98%;
 }
 .✈dialogcontainer label {
     font-size: 1.2em;

@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130904191920";
+GateOne.__commit__ = "20130904192634";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1510,7 +1510,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         // Calculate the rows and columns:
         var rows = (elementDimensions.h / textDimensions.h),
-            cols = (elementDimensions.w / textDimensions.w);
+            cols = (elementDimensions.w / Math.round(textDimensions.w));
         var dimensionsObj = {'rows': rows, 'columns': cols};
         return dimensionsObj;
     },
@@ -5777,6 +5777,7 @@ GateOne.Base.update(GateOne.User, {
             `go:gateone_user`    :js:func:`GateOne.User.storeSessionAction`
             `go:set_username`    :js:func:`GateOne.User.setUsernameAction`
             `go:applications`    :js:func:`GateOne.User.applicationsAction`
+            `go:user_list`       :js:func:`GateOne.User.userListAction`
             ===================  ==========================================
         */
         // prefix gets changed inside of GateOne.initialize() so we need to reset it
@@ -5802,6 +5803,7 @@ GateOne.Base.update(GateOne.User, {
         go.Net.addAction('go:gateone_user', go.User.storeSessionAction);
         go.Net.addAction('go:set_username', go.User.setUsernameAction);
         go.Net.addAction('go:applications', go.User.applicationsAction);
+        go.Net.addAction('go:user_list', go.User.userListAction);
     },
     setUsernameAction: function(username) {
         /**:GateOne.User.setUsernameAction(username)
@@ -5951,6 +5953,21 @@ GateOne.Base.update(GateOne.User, {
         if (callback) {
             E.on("go:save_prefs", callback);
         }
+    },
+    listUsers: function() {
+        /**:GateOne.User.listUsers()
+
+        Sends the `terminal:list_users` WebSocket action to the server which will reply with the `go:user_list` WebSocket action containing a list of all users that are currently connected.  Only users which are allowed to list users via the "list_users" policy will be able to perform this action.
+        */
+        go.ws.send(JSON.stringify({"go:list_users": null}));
+    },
+    userListAction: function(userList) {
+        /**:GateOne.User.userListAction()
+
+        Attached to the `go:user_list` WebSocket action; sets `GateOne.User.userList` and triggers the `go:user_list` event passing the list of users as the only argument.
+        */
+        go.User.userList = userList;
+        go.Events.trigger("go:user_list", userList);
     }
 });
 

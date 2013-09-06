@@ -70,3 +70,12 @@ span.✈reverse { background-color: #aaa; color: #fff; }
     background-color: #45BAE7;
     color: black;
 }
+.✈share_dialog {
+    min-width: 20em;
+    max-height: 50%;
+    margin-right: 1em;
+}
+.✈share_users {
+    margin: 0 auto;
+    width: 100%;
+}

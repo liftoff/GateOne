@@ -38,6 +38,7 @@ var go = GateOne,
     v = go.Visual,
     E = go.Events,
     I = go.Input,
+    gettext = GateOne.i18n.gettext,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -427,6 +428,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:load_bell', go.Terminal.loadBell);
         go.Net.addAction('terminal:encoding', go.Terminal.termEncodingAction);
         go.Net.addAction('terminal:keyboard_mode', go.Terminal.termKeyboardModeAction);
+        go.Net.addAction('terminal:shared_terminals', go.Terminal.sharedTerminalsAction);
         go.Terminal.createPrefsPanel();
         go.Events.on("go:panel_toggle:in", updatePrefsfunc);
         E.on("go:save_prefs", function() {
@@ -701,19 +703,25 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.sendDimensions(termNum);
                 }
             };
-            var parentHeight = termPre.parentNode.clientHeight;
-            if (parentHeight) {
-                termPre.style.height = parentHeight + 'px';
-            } else {
-                termPre.style.height = "100%";
+            if (go.prefs.scrollback != 0) {
+                var parentHeight = termPre.parentNode.clientHeight;
+                if (parentHeight) {
+                    termPre.style.height = parentHeight + 'px';
+                } else {
+                    termPre.style.height = "100%";
+                }
             }
             // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
             u.scrollToBottom(termPre);
             // Make sure the terminal is in alignment
             E.once("terminal:term_updated", function() {
-                setTimeout(function() {
+                if (go.Terminal.alignTimer) {
+                    clearTimeout(go.Terminal.alignTimer);
+                    go.Terminal.alignTimer = null;
+                }
+                go.Terminal.alignTimer = setTimeout(function() {
                     go.Terminal.alignTerminal(term);
-                }, 100);
+                }, 100); // Just enough to debounce
             });
         }
     },
@@ -1028,7 +1036,7 @@ go.Base.update(GateOne.Terminal, {
             return; // Can happen for the same reason as above
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-        var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
+        var emDimensions = u.getEmDimensions(termPre, termPre.parentNode.parentNode);
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
@@ -1594,6 +1602,12 @@ go.Base.update(GateOne.Terminal, {
                 v.switchWorkspace(workspaceNum);
             }
         }
+        pastearea = go.Terminal.newPastearea(term);
+        terminal.appendChild(pastearea);
+        go.Terminal.terminals[term]['pasteNode'] = pastearea;
+        termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+        terminal.appendChild(termPre);
+        go.Terminal.terminals[term]['node'] = termPre; // For faster access
         if (where.classList.contains('✈terminal')) {
             terminal = where;
             terminal.id = currentTerm;
@@ -1629,9 +1643,6 @@ go.Base.update(GateOne.Terminal, {
                 termSettings['command'] = go.Terminal.defaultCommand;
             }
         }
-        pastearea = go.Terminal.newPastearea(term);
-        terminal.appendChild(pastearea);
-        go.Terminal.terminals[term]['pasteNode'] = pastearea;
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { termSettings.columns = go.prefs.columns };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
@@ -1650,13 +1661,11 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
         }
         go.Terminal.terminals[term]['screenNode'] = screenSpan;
-        termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
         }
         termPre.appendChild(screenSpan);
-        terminal.appendChild(termPre);
         u.scrollToBottom(termPre);
         termPre.oncopy = function(e) {
             // Convert to plaintext before copying
@@ -1677,7 +1686,6 @@ go.Base.update(GateOne.Terminal, {
             }, 100);
             return true;
         }
-        go.Terminal.terminals[term]['node'] = termPre; // For faster access
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
@@ -1697,13 +1705,6 @@ go.Base.update(GateOne.Terminal, {
         if (go.Terminal.terminals[term]) {
             E.trigger("terminal:new_terminal", term, termUndefined);
         }
-        setTimeout(function() {
-            go.Terminal.alignTerminal(term);
-        }, 100);
-        // Do it again a bit later just in case the user is on a slow system:
-        setTimeout(function() {
-            go.Terminal.alignTerminal(term);
-        }, 1000);
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message, /*opt*/sendKill) {
@@ -2556,8 +2557,8 @@ go.Base.update(GateOne.Terminal, {
         u.scrollLines(termNode, lines);
     },
     // NOTE:  Everything below this point is a work in progress.
-    terminalChooser: function() {
-        /**:GateOne.Terminal.terminalChooser()
+    chooser: function() {
+        /**:GateOne.Terminal.chooser()
 
         Pops up a dialog where the user can immediately switch to any terminal in any 'location'.
 
@@ -2585,6 +2586,7 @@ go.Base.update(GateOne.Terminal, {
 
         .. warning:: If ``permissions["broadcast"]`` is ``true`` unauthenticated clients will be allowed to connect and view a shared terminal even if server requires authentication.
         */
+        permissions = permissions || {};
         var settings = {
             "term": term,
             "read": permissions['read'] || "AUTHENTICATED",
@@ -2618,7 +2620,150 @@ go.Base.update(GateOne.Terminal, {
         */
         var settings = {'term': term, 'read': permissions['read'], 'write': permissions['write']};
         go.ws.send(JSON.stringify({"terminal:set_sharing_permissions": settings}));
+        E.trigger("terminal:set_sharing_permissions", settings);
     },
+    shareDialog: function(term) {
+        /**:GateOne.Terminal.shareDialog(term)
+
+        Opens a dialog where the user can share a terminal or modify the permissions on a terminal that is already shared.
+        */
+        var closeDialog, // Filled out below
+            anonDesc = gettext('Anonymous Users (Broadcast)'),
+            authenticatedDesc = gettext('Authenticated Users'),
+            tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
+            td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
+            container = u.createElement('div', {'class': '✈share_dialog'}),
+            tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight/3) + 'px'}}),
+            users = u.createElement('table', {'class': '✈share_users'}),
+            tbody = u.createElement('tbody'),
+            passwordLabel = u.createElement('label'),
+            password = u.createElement('input', {'type': 'text', 'id': 'share_password', 'placeholder': 'Optional: Password-protect this shared terminal'}),
+            save = u.createElement('button', {'id': 'save', 'type': 'submit', 'value': 'Save', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            addUsers = function(userList) {
+                // Add the "Authenticated Users" and "Anonymous" rows first
+                var anonUsers = {'upn': anonDesc};
+                userList.unshift(anonUsers);
+                var authenticatedUsers = {'upn': authenticatedDesc};
+                userList.unshift(authenticatedUsers);
+                for (var user in userList) {
+                    var upn = userList[user]['upn'],
+                        row = tr(),
+                        userTD = u.createElement('td', {'class': '✈table_cell ✈user'}),
+                        readTD = td(),
+                        readCheck = u.createElement('input', {'type': 'checkbox', 'name': 'read'}),
+                        writeTD = td(),
+                        writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
+                    if (upn == GateOne.User.username) {
+                        continue; // Don't need to share with ourself
+                    } else if (upn == anonDesc) { // So we know which are
+                        userTD.setAttribute('data-user', 'ANONYMOUS');
+                    } else if (upn == authenticatedDesc) {
+                        userTD.setAttribute('data-user', 'AUTHENTICATED');
+                    } else {
+                        userTD.setAttribute('data-user', upn);
+                    }
+                    writeCheck.addEventListener('click', function() {
+                        var read = this.parentNode.parentNode.querySelector('input[name="read"]');
+                        if (this.checked) {
+                            read.checked = true;
+                        }
+                    }, false);
+                    readCheck.addEventListener('click', function() {
+                        var write = this.parentNode.parentNode.querySelector('input[name="write"]');
+                        if (!this.checked) {
+                            write.checked = false;
+                        }
+                    }, false);
+                    userTD.addEventListener('click', function() {
+                        var read = this.parentNode.querySelector('input[name="read"]'),
+                            write = this.parentNode.querySelector('input[name="write"]');
+                        if (read.checked) {
+                            if (!write.checked) {
+                                write.checked = true;
+                            } else {
+                                read.checked = false;
+                                write.checked = false;
+                            }
+                        } else {
+                            read.checked = true;
+                        }
+                    }, false);
+                    userTD.innerHTML = upn;
+                    readTD.appendChild(readCheck);
+                    writeTD.appendChild(writeCheck);
+                    row.appendChild(userTD);
+                    row.appendChild(readTD);
+                    row.appendChild(writeTD);
+                    tbody.appendChild(row);
+                }
+                closeDialog = v.dialog(gettext("Terminal Sharing: ") + term, container);
+                cancel.onclick = closeDialog;
+            },
+            saveFunc = function() {
+                var permissions = {"read": [], "write": []},
+                    rows = u.toArray(u.getNodes('.✈share_dialog tbody tr'));
+                rows.forEach(function(row) {
+                    var user = row.querySelector('.✈user').getAttribute('data-user'),
+                        read = row.querySelector('input[name="read"').checked,
+                        write = row.querySelector('input[name="write"]').checked;
+                    if (read) {
+                        permissions["read"].push(user);
+                    }
+                    if (write) {
+                        permissions["write"].push(user);
+                    }
+                });
+                go.Terminal.sharePermissions(permissions);
+            };
+        passwordLabel.innerHTML = "Password:";
+        passwordLabel.htmlFor = prefix+"share_password";
+        save.innerHTML = "Save";
+        cancel.innerHTML = "Cancel";
+        save.addEventListener('click', saveFunc, false);
+        users.innerHTML = "<thead><tr class='✈table_row'><th>User</th><th>Read</th><th>Write</th></tr></thead>";
+        users.appendChild(tbody);
+        container.innerHTML = "<p style='width: 18em;'>Please select which users you wish to share this terminal with.</p>";
+        tableContainer.appendChild(users);
+        container.appendChild(tableContainer);
+        container.appendChild(passwordLabel);
+        container.appendChild(password);
+        container.appendChild(save);
+        container.appendChild(cancel);
+        E.once("go:user_list", addUsers);
+        go.User.listUsers();
+    },
+    attachSharedTerminal: function(shareID, /*opt*/password) {
+        /**:GateOne.Terminal.attachSharedTerminal(shareID[, password])
+
+        Opens the terminal associated with the given *shareID*.
+        */
+        var settings = {
+            "share_id": shareID,
+            "password": password || null
+        };
+        go.ws.send(JSON.stringify({
+            "terminal:attach_shared_terminal": settings
+        }));
+    },
+    listSharedTerminals: function() {
+        /**:GateOne.Terminal.listSharedTerminals()
+
+        Sens the `terminal:list_shared_terminals` WebSocket action to the server which will reply with the `terminal:shared_terminals` WebSocket action (if the user is allowed to list shared terminals).
+        */
+        go.ws.send(JSON.stringify({"terminal:list_shared_terminals": null}));
+    },
+    sharedTerminalsAction: function(message) {
+        /**:GateOne.Terminal.sharedTerminalsAction(message)
+
+        Attached to the `terminal:shared_terminals` WebSocket action; stores the list of terminals that have been shared with the user in `GateOne.Terminal.sharedTerminals` and triggers the `terminal:shared_terminals` event.
+        */
+        console.log(message);
+        if (message['result'] == 'Success') {
+            go.Terminal.sharedTerminals = message['terminals'];
+            E.trigger("terminal:shared_terminals", message['terminals']);
+        }
+    }
 });
 
 })(window);

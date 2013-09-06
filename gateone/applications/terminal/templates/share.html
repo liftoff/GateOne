@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=0">
+    <title>Gate One - {{share_id}}</title>
+    <link rel="stylesheet" href="{{url_prefix}}static/gateone.css" type="text/css" media="screen" />
+    <link rel="shortcut icon" href="{{url_prefix}}static/favicon.ico" />
+    {% raw head %}
+</head>
+<body>
+{% raw body %}
+<script type="text/javascript" src="{{gateone_js}}"></script>
+<div id="gateone"></div>
+<script>
+window.onload = function() {
+    // Initialize Gate One using defaults:
+    GateOne.location = '{{share_id}}';
+{% if prefs %}
+    var urlPrefs = {% raw prefs %};
+    for (var pref in urlPrefs) {
+        GateOne.prefs[pref] = urlPrefs[pref];
+    }
+    // Also remove the long obtrusive query string from the URL
+    GateOne.Utils.removeQueryVariable('prefs');
+{% end %}
+    GateOne.init({'embedded': true});
+}
+</script>
+</body>
+</html>
