@@ -65,6 +65,8 @@ Put that somewhere in your `window.onload` function and you should see something
 
 .. todo:: Put an example image here and finish this tutorial to be like hello_embedded
 
+.. _api-auth:
+
 API Authentication
 ------------------
 Gate One includes an authentication API that can be used when embedded into other applications.  It allows the application embedding Gate One to pre-authenticate users so they won't have to re-authenticate when their browser connects to the Gate One server.  Here's how it works:

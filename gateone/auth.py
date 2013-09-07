@@ -320,6 +320,9 @@ def additional_attributes(user, settings_dir=None):
 # Authentication stuff
 class BaseAuthHandler(tornado.web.RequestHandler):
     """The base class for all Gate One authentication handlers."""
+    def set_default_headers(self):
+        self.set_header('Server', 'GateOne')
+
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
         user_json = self.get_secure_cookie("gateone_user")

@@ -611,8 +611,8 @@ class TerminalApplication(GOApplication):
                     "font_weight": "normal", # Ditto
                     "locals": "",
                     "url": (
-                        "{url_prefix}terminal/static/fonts/{font}".format(
-                            url_prefix=self.settings['url_prefix'],
+                        "{server_url}terminal/static/fonts/{font}".format(
+                            server_url=self.ws.base_url,
                             font=font)
                     )
                 }
@@ -993,10 +993,8 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(m.term.temppath):
                 os.mkdir(m.term.temppath)
             # Tell it how to serve them up (origin ensures correct link)
-            m.term.linkpath = "{protocol}://{host}{url_prefix}downloads".format(
-                protocol=self.request.protocol,
-                host=self.request.host,
-                url_prefix=self.settings['url_prefix'])
+            m.term.linkpath = "{server_url}downloads".format(
+                server_url=self.ws.base_url)
             # Make sure it can generate pretty icons for file downloads
             m.term.icondir = os.path.join(GATEONE_DIR, 'static', 'icons')
             if resumed_dtach:
@@ -1023,6 +1021,7 @@ class TerminalApplication(GOApplication):
         # Setup callbacks so that everything gets called when it should
         self.add_terminal_callbacks(
             term, term_obj['multiplex'], self.callback_id)
+        self.set_title(term, force=True)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -1707,7 +1706,6 @@ class TerminalApplication(GOApplication):
             if terms:
                 term_locations[location] = terms.keys()
         message = {'terminal:term_locations': term_locations}
-        print("term_locations: %s" % message)
         self.write_message(json_encode(message))
         self.trigger("terminal:term_locations", term_locations)
 

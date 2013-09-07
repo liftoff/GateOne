@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130904192634" # Gets replaced by git (holds the date/time)
+__commit__ = "20130906085437" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -827,19 +827,6 @@ def timeout_sessions():
         traceback.print_exc(file=sys.stdout)
 
 # Classes
-class HTTPSRedirectHandler(tornado.web.RequestHandler):
-    """
-    A handler to redirect clients from HTTP to HTTPS.  Only used if
-    `https_redirect` is True in Gate One's settings.
-    """
-    def get(self):
-        """Just redirects the client from HTTP to HTTPS"""
-        port = self.settings['port']
-        url_prefix = self.settings['url_prefix']
-        host = self.request.headers.get('Host', 'localhost')
-        self.redirect(
-            'https://%s:%s%s' % (host, port, url_prefix))
-
 class StaticHandler(tornado.web.StaticFileHandler):
     """
     An override of :class:`tornado.web.StaticFileHandler` to ensure that the
@@ -864,15 +851,43 @@ class StaticHandler(tornado.web.StaticFileHandler):
         into standards mode when content is loaded from intranet sites.
         """
         self.set_header('X-UA-Compatible', 'IE=edge')
+        # Allow access to our static content from any page:
         self.set_header('Access-Control-Allow-Origin', '*')
+        self.set_header('Server', 'GateOne')
+
+    def options(self, path=None):
+        """
+        Replies to OPTIONS requests with the usual stuff (200 status, Allow
+        header, etc).  Since this is just the static file handler we don't
+        include any extra information.
+        """
+        self.set_status(200)
+        self.set_header('Access-Control-Allow-Origin', '*')
+        self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
+        self.set_header('Server', 'GateOne')
 
 class BaseHandler(tornado.web.RequestHandler):
     """
     A base handler that all Gate One RequestHandlers will inherit methods from.
 
-    Provides the :meth:`get_current_user` method.
+    Provides the :meth:`get_current_user` method, sets default headers, and
+    provides a default :meth:`options` method that can be used for monitoring
+    purposes and also for enumerating useful information about this Gate One
+    server (see below for more info).
     """
-    # Right now it's just the one function...
+    def set_default_headers(self):
+        """
+        An override of :meth:`tornado.web.RequestHandler.set_default_headers`
+        (which is how Tornado wants you to set default headers) that
+        adds/overrides the following headers:
+
+            :Server: 'GateOne'
+            :X-UA-Compatible: 'IE=edge' (forces IE 10+ into Standards mode)
+        """
+        # Force IE 10 into Standards Mode:
+        self.set_header('X-UA-Compatible', 'IE=edge')
+        self.set_header('Server', 'GateOne')
+
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
         # NOTE: self.current_user is actually an @property that calls
@@ -884,7 +899,79 @@ class BaseHandler(tornado.web.RequestHandler):
             if user and 'upn' not in user:
                 return None
             return user
-    # More may be added in the future
+
+    def options(self, path=None):
+        """
+        Replies to OPTIONS requests with the usual stuff (200 status, Allow
+        header, etc) but also includes some useful information in the response
+        body that lists which authentication API features we support in
+        addition to which applications are installed.  The response body is
+        conveniently JSON-encoded:
+
+        .. ansi-block::
+
+            \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m curl -k \
+            -X OPTIONS https://gateone.company.com/ | python -mjson.tool
+              % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                             Dload  Upload   Total   Spent    Left  Speed
+            100   158  100   158    0     0   6793      0 --:--:-- --:--:-- --:--:--  7181
+            {
+                "applications": [
+                    "File Transfer",
+                    "Terminal",
+                    "X11"
+                ],
+                "auth_api": {
+                    "hmacs": [
+                        "HMAC-SHA1",
+                        "HMAC-SHA256",
+                        "HMAC-SHA384",
+                        "HMAC-SHA512"
+                    ],
+                    "versions": [
+                        "1.0"
+                    ]
+                }
+            }
+
+        .. note::
+
+            The 'Server' header does not supply the version information.  This
+            is intentional as it amounts to an unnecessary information
+            disclosure.  We don't need to make an attacker's job any easier.
+        """
+        settings = get_settings(options.settings_dir)
+        enabled_applications = settings['*']['gateone'].get(
+            'enabled_applications', [])
+        if not enabled_applications:
+            # List all installed apps
+            for app in APPLICATIONS:
+                enabled_applications.append(app.name)
+        self.set_status(200)
+        self.set_header('Access-Control-Allow-Origin', '*')
+        self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
+        features_dict = {
+            "auth_api": {
+                'versions': ['1.0'],
+                'hmacs': [
+                    'HMAC-SHA1', 'HMAC-SHA256', 'HMAC-SHA384', 'HMAC-SHA512']
+            },
+            "applications": enabled_applications
+        }
+        self.write(features_dict)
+
+class HTTPSRedirectHandler(BaseHandler):
+    """
+    A handler to redirect clients from HTTP to HTTPS.  Only used if
+    `https_redirect` is True in Gate One's settings.
+    """
+    def get(self):
+        """Just redirects the client from HTTP to HTTPS"""
+        port = self.settings['port']
+        url_prefix = self.settings['url_prefix']
+        host = self.request.headers.get('Host', 'localhost')
+        self.redirect(
+            'https://%s:%s%s' % (host, port, url_prefix))
 
 class DownloadHandler(BaseHandler):
     """
@@ -922,6 +1009,8 @@ class DownloadHandler(BaseHandler):
         # Set the Cache-Control header to private since this file is not meant
         # to be public.
         self.set_header("Cache-Control", "private")
+        # Add some additional headers
+        self.set_header('Access-Control-Allow-Origin', '*')
         # Check the If-Modified-Since, and don't send the result if the
         # content has not been modified
         ims_value = self.request.headers.get("If-Modified-Since")
@@ -971,8 +1060,7 @@ class MainHandler(BaseHandler):
     @tornado.web.addslash
     # TODO: Get this auto-minifying gateone.js
     def get(self):
-        # Force IE 10 into Standard Mode:
-        self.set_header('X-UA-Compatible', 'IE=edge')
+        # Set our server header so it doesn't say TornadoServer/<version>
         hostname = os.uname()[1]
         location = self.get_argument("location", "default")
         prefs = self.get_argument("prefs", None)
@@ -1170,6 +1258,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.apps = [] # Gets filled up by self.initialize()
         # The security dict stores applications' various policy functions
         self.security = {}
+        self.container = ""
+        self.prefix = ""
         WebSocketHandler.__init__(self, application, request, **kwargs)
 
     @classmethod
@@ -1405,28 +1495,38 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     " the 'origin' option in your settings.  See the docs "
                     "for details.") % origin)
                 self.close()
+                return
         self.origin_denied = False
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
+        self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
+            protocol=self.request.protocol,
+            host=self.request.host,
+            port=self.settings['port'],
+            url_prefix=self.settings['url_prefix'])
         user = self.current_user
-        # NOTE: self.current_user will call self.get_current_user() the first
-        # time it is used.
+        # NOTE: self.current_user will call self.get_current_user() and set
+        # self._current_user the first time it is used.
+        metadata = {'ip_address': client_address}
         if user and 'upn' in user:
             # Update our loggers to include the user metadata
-            metadata = {'upn': user['upn'], 'ip_address': user['ip_address']}
-            self.logger = go_logger(None, **metadata)
-            self.auth_log = go_logger('gateone.auth', **metadata)
-            self.msg_log = go_logger('gateone.message', **metadata)
+            metadata['upn'] = user['upn']
+            # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.info( # Use global auth_log so we're not redundant
                 _("WebSocket opened (%s %s) via origin %s.") % (
                     user['upn'], client_address, origin))
         else:
+            # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.info(_(
                 '{"ip_address": "%s"} WebSocket opened (unknown user).')
             % client_address)
+        self.logger = go_logger(None, **metadata)
+        self.auth_log = go_logger('gateone.auth', **metadata)
+        self.msg_log = go_logger('gateone.message', **metadata)
         if user and 'upn' not in user: # Invalid user info
+            # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.error(_(
                 '{"ip_address": "%s"} Unauthenticated WebSocket attempt.'
                 ) % client_address)
@@ -1539,6 +1639,181 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:pong': timestamp}
         self.write_message(json_encode(message))
 
+    def api_auth(self, auth_obj):
+        """
+        If the *auth_obj* dict validates, returns the user dict and sets
+        ``self.current_user``.  If it doesn't validate, returns ``False``.
+
+        This function also takes care of creating the user's directory if it
+        does not exist and creating/updating the user's 'session' file (which
+        just stores metadata related to their session).
+
+        Example usage::
+
+            auth_obj = {
+                'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
+                'upn': 'joe@company.com',
+                'timestamp': '1323391717238',
+                'signature': <gibberish>,
+                'signature_method': 'HMAC-SHA1',
+                'api_version': '1.0'
+            }
+            result = self.api_auth(auth_obj)
+
+        .. seealso:: :ref:`api-auth` documentation.
+
+        Here's a rundown of the required *auth_obj* parameters:
+
+            :api_key:
+                The first half of what gets generated when you run
+                ``./gateone.py --new_api_key`` (the other half is the secret).
+            :upn:
+                The userPrincipalName (aka username) of the user being
+                authenticated.
+            :timestamp:
+                A 13-digit "time since the epoch" JavaScript-style timestamp.
+                Both integers and strings are accepted.
+                Example JavaScript: ``var timestamp = new Date().getTime()``
+            :signature:
+                The HMAC signature of the combined *api_key*, *upn*, and
+                *timestamp*; hashed using the secret associated with the given
+                *api_key*.
+            :signature_method:
+                The hashing algorithm used to create the *signature*.  Currently
+                this must be one of "HMAC-SHA1", "HMAC-SHA256", "HMAC-SHA384",
+                or "HMAC-SHA512"
+            :api_version:
+                Which version of the authentication API to use when performing
+                authentication.  Currently the only supported version is '1.0'.
+
+        .. note::
+
+            Any additional key/value pairs that are included in the *auth_obj*
+            will be assigned to the ``self.current_user`` object.  So if you're
+            embedding Gate One and wish to associate extra metadata with the
+            user you may do so via the API authentication process.
+        """
+        from utils import create_signature
+        api_key = auth_obj.get('api_key', None)
+        if not api_key:
+            self.auth_log.error(_(
+                'API AUTH: Invalid API authentication object (missing api_key).'
+            ))
+            self.write_message(json_encode(reauth))
+            return False
+        upn = auth_obj['upn']
+        timestamp = str(auth_obj['timestamp']) # str in case integer
+        signature = auth_obj['signature']
+        signature_method = auth_obj['signature_method']
+        api_version = auth_obj['api_version']
+        supported_hmacs = {
+            'HMAC-SHA1': hashlib.sha1,
+            'HMAC-SHA256': hashlib.sha256,
+            'HMAC-SHA384': hashlib.sha384,
+            'HMAC-SHA512': hashlib.sha512,
+        }
+        if signature_method not in supported_hmacs:
+            self.auth_log.error(_(
+                    'API AUTH: Unsupported API auth '
+                    'signature method: %s' % signature_method))
+            self.write_message(json_encode(reauth))
+            return False
+        hmac_algo = supported_hmacs[signature_method]
+        if api_version != "1.0":
+            self.auth_log.error(_(
+                    'API AUTH: Unsupported API version:'
+                    '%s' % api_version))
+            self.write_message(json_encode(reauth))
+            return False
+        try:
+            secret = self.settings['api_keys'][api_key]
+        except KeyError:
+            self.auth_log.error(_(
+                'API AUTH: API Key not found.'))
+            self.write_message(json_encode(reauth))
+            return False
+# TODO: Make API version 1.1 that signs *all* attributes--not just the known ones
+        # Check the signature against existing API keys
+        sig_check = create_signature(
+            secret, api_key, upn, timestamp, hmac_algo=hmac_algo)
+        if sig_check != signature:
+            self.auth_log.error(_('API AUTH: Signature check failed.'))
+            self.write_message(json_encode(reauth))
+            return False
+        # Everything matches (great!) so now we do due diligence
+        # by checking the timestamp against the
+        # api_timestamp_window setting and whether or not we've
+        # already used it (to prevent replay attacks).
+        if signature in self.prev_signatures:
+            self.auth_log.error(_(
+                "API AUTH: replay attack detected!  User: "
+                "%s, Remote IP: %s, Origin: %s" % (
+                upn, self.request.remote_ip, self.origin)))
+            message = {'go:notice': _(
+                'API AUTH: Replay attack detected!  This '
+                'event has been logged.')}
+            self.write_message(json_encode(message))
+            return
+        window = self.settings['api_timestamp_window']
+        then = datetime.fromtimestamp(int(timestamp)/1000)
+        time_diff = datetime.now() - then
+        if time_diff > window:
+            self.auth_log.error(_(
+                "API AUTH: Authentication failed due to an expired auth "
+                "object.  If you just restarted the server this is "
+                "normal (users just need to reload the page).  If "
+                " this problem persists it could be a problem with "
+                "the server's clock (either this server or the "
+                "server(s) embedding Gate One)."
+            ))
+            message = {'go:notice': _(
+                'AUTH FAILED: Authentication object timed out. '
+                'Try reloading this page (F5).')}
+            self.write_message(json_encode(message))
+            message = {'go:notice': _(
+                'AUTH FAILED: If the problem persists after '
+                'reloading this page please contact your server'
+                ' administrator to notify them of the issue.')}
+            self.write_message(json_encode(message))
+            return False
+        logging.debug(_("API Authentication Successful"))
+        self.prev_signatures.append(signature) # Prevent replays
+        # Attach any additional provided keys/values to the user
+        # object so applications embedding Gate One can use
+        # them in their own plugins and whatnot.
+        user = {}
+        known_params = [
+            'api_key',
+            'api_version',
+            'timestamp',
+            'signature',
+            'signature_method'
+        ]
+        for key, value in auth_obj.items():
+            if key not in known_params:
+                user[key] = value
+        # user dicts need a little extra attention for IPs...
+        user['ip_address'] = self.request.remote_ip
+        # Force-set the current user:
+        self._current_user = user
+        # Make a directory to store this user's settings/files/logs/etc
+        user_dir = os.path.join(self.settings['user_dir'], user['upn'])
+        if not os.path.exists(user_dir):
+            self.logger.info(_("Creating user directory: %s" % user_dir))
+            mkdir_p(user_dir)
+            os.chmod(user_dir, 0o770)
+        session_file = os.path.join(user_dir, 'session')
+        if os.path.exists(session_file):
+            session_data = io.open(session_file).read()
+            user['session'] = json_decode(session_data)['session']
+        else:
+            user['session'] = generate_session_id()
+            session_info_json = json_encode(user)
+            with io.open(session_file, 'w') as f:
+                # Save it so we can keep track across multiple clients
+                f.write(session_info_json)
+        return user
+
     def authenticate(self, settings):
         """
         Authenticates the client by first trying to use the 'gateone_user'
@@ -1565,9 +1840,23 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
         reauth = {'go:reauthenticate': True}
-        if self.settings['auth'] and self.settings['auth'] != 'api':
+        user = self.current_user # Just a shortcut to keep lines short
+        auth_method = self.settings.get('auth', None)
+        if auth_method and auth_method != 'api':
+            # Regular, non-API authentication
+            if settings['auth']:
+                # Try authenticating with the given (encrypted) 'auth' value
+                auth_data = self.get_secure_cookie(
+                    'gateone_user', value=settings['auth'])
+                # NOTE:  This will override whatever is in the cookie.
+                # Why?  Because we'll eventually transition to not using cookies
+                if auth_data:
+                    # Force-set the current user
+                    self._current_user = json_decode(auth_data)
+                    # Add/update the user's IP address
+                    self._current_user['ip_address'] = self.request.remote_ip
+                    user = self.current_user
             try:
-                user = self.current_user
                 if not user:
                     self.auth_log.error(_("Unauthenticated WebSocket attempt."))
                     # This usually happens when the cookie_secret gets changed
@@ -1585,175 +1874,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             except KeyError: # 'upn' wasn't in user
                 # Force them to authenticate
                 self.write_message(json_encode(reauth))
-                self.close() # Close the WebSocket
-        elif self.settings['auth'] and self.settings['auth'] == 'api':
+                #self.close() # Close the WebSocket
+        elif auth_method and auth_method == 'api':
             if 'auth' in settings.keys():
-                # 'auth' message should look like this:
-                # {
-                #    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
-                #    'upn': 'joe@company.com',
-                #    'timestamp': '1323391717238',
-                #    'signature': <gibberish>,
-                #    'signature_method': 'HMAC-SHA1',
-                #    'api_version': '1.0'
-                # }
-                #
-                # *api_key* is the first half of what gets generated when you
-                #   run ./gateone --new_api_key.
-                # *upn* is the User Principal Name of the user.  This is
-                #   typically something like "joe@company.com".
-                # *timestamp* is a JavaScript Date() object converted into an
-                #   "time since the epoch" (int or string is OK):
-                #       var timestamp = new Date().getTime()
-                # *signature* is an HMAC signature of the previous three
-                #   variables that was created using the given API key's secret.
-                # *signature_method* is the HMAC hashing algorithm to use for
-                #   the signature.  Only HMAC-SHA1 is supported for now.
-                # *api_version* is the auth API version.  Always "1.0" for now.
-                #
-                # For reference, here's how to make a signature using PHP:
-                # $authobj = array('api_key' => 'M2I1MzJmZjk4MTEwNDk2Zjk4MjMwNmMwMTVkODQzMTEyO', 'upn' => $_SERVER['REMOTE_USER'], 'timestamp' => time() . '0000', 'signature_method' => 'HMAC-SHA1', 'api_version' => '1.0');
-                # $authobj['signature'] = hash_hmac('sha1', $authobj['api_key'] . $authobj['upn'] . $authobj['timestamp'], '<secret>');
-                # Note that the order matters:  api_key -> upn -> timestamp
-                auth_obj = settings['auth']
-                from utils import create_signature
-                if 'api_key' in auth_obj:
-                    # Assume everything else is present if the api_key is there
-                    api_key = auth_obj['api_key']
-                    upn = auth_obj['upn']
-                    timestamp = str(auth_obj['timestamp']) # str in case integer
-                    signature = auth_obj['signature']
-                    signature_method = auth_obj['signature_method']
-                    api_version = auth_obj['api_version']
-                    supported_hmacs = {
-                        'HMAC-SHA1': hashlib.sha1,
-                        'HMAC-SHA256': hashlib.sha256,
-                        'HMAC-SHA384': hashlib.sha384,
-                        'HMAC-SHA512': hashlib.sha512,
-                    }
-                    if signature_method not in supported_hmacs:
-                        self.auth_log.error(_(
-                                'AUTHENTICATION ERROR: Unsupported API auth '
-                                'signature method: %s' % signature_method))
-                        self.write_message(json_encode(reauth))
-                        return
-                    hmac_algo = supported_hmacs[signature_method]
-                    if api_version != "1.0":
-                        self.auth_log.error(_(
-                                'AUTHENTICATION ERROR: Unsupported API version:'
-                                '%s' % api_version))
-                        self.write_message(json_encode(reauth))
-                        return
-                    try:
-                        secret = self.settings['api_keys'][api_key]
-                    except KeyError:
-                        self.auth_log.error(_(
-                            'AUTHENTICATION ERROR: API Key not found.'))
-                        self.write_message(json_encode(reauth))
-                        return
-                    # TODO: Make API version 1.1 that signs *all* attributes--not just the known ones
-                    # Check the signature against existing API keys
-                    sig_check = create_signature(
-                        secret, api_key, upn, timestamp, hmac_algo=hmac_algo)
-                    if sig_check == signature:
-                        # Everything matches (great!) so now we do due diligence
-                        # by checking the timestamp against the
-                        # api_timestamp_window setting and whether or not we've
-                        # already used it (to prevent replay attacks).
-                        if signature in self.prev_signatures:
-                            self.auth_log.error(_(
-                            "API authentication replay attack detected!  User: "
-                            "%s, Remote IP: %s, Origin: %s" % (
-                                upn, self.request.remote_ip, self.origin)))
-                            message = {'go:notice': _(
-                                'AUTH FAILED: Replay attack detected!  This '
-                                'event has been logged.')}
-                            self.write_message(json_encode(message))
-                            self.close()
-                            return
-                        window = self.settings['api_timestamp_window']
-                        then = datetime.fromtimestamp(int(timestamp)/1000)
-                        time_diff = datetime.now() - then
-                        if time_diff > window:
-                            self.auth_log.error(_(
-                            "API authentication failed due to an expired auth "
-                            "object.  If you just restarted the server this is "
-                            "normal (users just need to reload the page).  If "
-                            " this problem persists it could be a problem with "
-                            "the server's clock (either this server or the "
-                            "server(s) embedding Gate One)."
-                            ))
-                            message = {'go:notice': _(
-                                'AUTH FAILED: Authentication object timed out. '
-                                'Try reloading this page (F5).')}
-                            self.write_message(json_encode(message))
-                            message = {'go:notice': _(
-                                'AUTH FAILED: If the problem persists after '
-                                'reloading this page please contact your server'
-                                ' administrator to notify them of the issue.')}
-                            self.write_message(json_encode(message))
-                            self.close()
-                            return
-                        logging.debug(_("API Authentication Successful"))
-                        self.prev_signatures.append(signature) # Prevent replays
-                # Make a directory to store this user's settings/files/logs/etc
-                        user_dir = os.path.join(self.settings['user_dir'], upn)
-                        if not os.path.exists(user_dir):
-                            self.logger.info(
-                                _("Creating user directory: %s" % user_dir))
-                            mkdir_p(user_dir)
-                            os.chmod(user_dir, 0o770)
-                        session_file = os.path.join(user_dir, 'session')
-                        if os.path.exists(session_file):
-                            session_data = io.open(session_file).read()
-                            self.user = json_decode(session_data)
-                        else:
-                            with io.open(session_file, 'w') as f:
-                        # Save it so we can keep track across multiple clients
-                                self.user = {
-                                    'upn': upn, # FYI: UPN == userPrincipalName
-                                    'session': generate_session_id()
-                                }
-                                session_info_json = json_encode(self.user)
-                                f.write(session_info_json)
-                        # Attach any additional provided keys/values to the user
-                        # object so applications embedding Gate One can use
-                        # them in their own plugins and whatnot.
-                        known_params = [
-                            'api_key',
-                            'api_version',
-                            'timestamp',
-                            'upn',
-                            'signature',
-                            'signature_method'
-                        ]
-                        for key, value in auth_obj.items():
-                            if key not in known_params:
-                                self.user[key] = value
-                        # user dicts need a little extra attention for IPs...
-                        self.user['ip_address'] = self.request.remote_ip
-                        # Force-set the current user:
-                        self._current_user = self.user
-                        # Update our loggers to include the user metadata
-                        metadata = {
-                            'upn': self.user['upn'],
-                            'ip_address': self.user['ip_address']
-                        }
-                        self.logger = go_logger(None, **metadata)
-                        self.auth_log = go_logger('gateone.auth', **metadata)
-                        self.msg_log = go_logger('gateone.message', **metadata)
-                    else:
-                        self.auth_log.error(_(
-                            "WebSocket auth failed signature check."))
-                        message = {'go:reauthenticate': True}
-                        self.write_message(json_encode(message))
-                        return
-            else:
-                self.auth_log.error(_(
-                    "Missing API Key in authentication object"))
-                message = {'go:reauthenticate': True}
-                self.write_message(json_encode(message))
-                return
+                if not isinstance(settings['auth'], dict):
+                    settings['auth'] = json_decode(settings['auth'])
+                user = self.api_auth(settings['auth'])
+                if not user:
+                    # The api_auth() function takes care of logging/notification
+                    return
         else: # Anonymous auth
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
@@ -1775,43 +1904,46 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     self.auth_log.error(_(
                         "Client tried to use API-based authentication but this "
                         "server is configured with 'auth = \"{0}\"'.  Did you "
-                        "forget to set 'auth = \"api\" in your settings?"
+                        "forget to set '\"auth\": \"api\"' in the settings?"
                         ).format(self.settings['auth']))
                     message = {'go:notice': _(
                         "AUTHENTICATION ERROR: Server is not configured to "
                         "perform API-based authentication.  Did someone forget "
-                        "to set 'auth = \"api\" in the settings?")}
+                        "to set '\"auth\": \"api\"' in the settings?")}
                     self.write_message(json_encode(message))
                     return
                 if cookie_data:
-                    self.user = json_decode(cookie_data)
-            if not self.user:
+                    user = json_decode(cookie_data)
+            if not user:
                 # Generate a new session/anon user
-                self.user = self.current_user
                 # Also store/update their session info in localStorage
+                user = {
+                    'upn': 'ANONYMOUS',
+                    'session': generate_session_id()
+                }
                 encoded_user = self.create_signed_value(
-                    'gateone_user', tornado.escape.json_encode(self.user))
+                    'gateone_user', tornado.escape.json_encode(user))
                 session_message = {'go:gateone_user': encoded_user}
                 self.write_message(json_encode(session_message))
-            if self.user['upn'] != 'ANONYMOUS':
+                self._current_user['ip_address'] = self.request.remote_ip
+                self._current_user = user
+            if user['upn'] != 'ANONYMOUS':
                 # Gate One server's auth config probably changed
-                message = {'go:reauthenticate': True}
-                self.write_message(json_encode(message))
-                #self.close() # Close the WebSocket
+                self.write_message(json_encode(reauth))
                 return
-        try:
-            user = self.current_user
-            if user and 'session' in user:
-                self.session = user['session']
-            else:
-                self.auth_log.error(_("Authentication failed for unknown user"))
-                message = {'go:notice': _('AUTHENTICATION ERROR: User unknown')}
-                self.write_message(json_encode(message))
-                return
-        except Exception as e:
-            self.logger.error(_(
-                "Exception encountered trying to authenticate: %s" % e))
+        #try:
+        if self.current_user and 'session' in self.current_user:
+            self.session = self.current_user['session']
+        else:
+            self.auth_log.error(_("Authentication failed for unknown user"))
+            message = {'go:notice': _('AUTHENTICATION ERROR: User unknown')}
+            self.write_message(json_encode(message))
+            self.write_message(json_encode(reauth))
             return
+        #except Exception as e:
+            #self.logger.error(_(
+                #"Exception encountered trying to authenticate: %s" % e))
+            #return
         try:
             # Execute any post-authentication hooks that plugins have registered
             if PLUGIN_AUTH_HOOKS:
@@ -1819,15 +1951,20 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     auth_hook(self, self.current_user, self.settings)
         except Exception as e:
             self.logger.error(_("Exception in registered Auth hook: %s" % e))
+        # Update our loggers to include the user metadata
+        metadata = {
+            'upn': user['upn'],
+            'ip_address': self.request.remote_ip
+        }
+        self.logger = go_logger(None, **metadata)
+        self.auth_log = go_logger('gateone.auth', **metadata)
+        self.msg_log = go_logger('gateone.message', **metadata)
         # Apply the container/prefix settings (if present)
-        if 'container' in settings:
-            self.container = settings['container']
-        if 'prefix' in settings:
-            self.prefix = settings['prefix']
+        self.container = settings.get('container', self.container)
+        self.prefix = settings.get('prefix', self.prefix)
         # Locations are used to differentiate between different tabs/windows
-        self.location = 'default'
-        if 'location' in settings:
-            self.location = settings['location']
+        self.location = settings.get('location', 'default')
+        # NOTE: NOT using self.auth_log() here on purpose:
         auth_log.info(
             _("User {upn} authenticated successfully via origin {origin}"
               " (location: {location}).").format(
@@ -1849,7 +1986,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             SESSIONS[self.session]['last_seen'] = 'connected'
             if self.location not in SESSIONS[self.session]['locations']:
                 SESSIONS[self.session]['locations'][self.location] = {}
-        # A shortcut for SESSIONS[self.session]['locations']:
+        # A shortcut:
         self.locations = SESSIONS[self.session]['locations']
         # Call applications' authenticate() functions (if any)
         for app in self.apps:
@@ -2892,6 +3029,7 @@ class ErrorHandler(tornado.web.RequestHandler):
         self.set_status(status_code)
 
     def get_error_html(self, status_code, **kwargs):
+        self.set_header('Server', 'GateOne')
         self.require_setting("static_url")
         if status_code in [404, 500, 503, 403]:
             filename = os.path.join(

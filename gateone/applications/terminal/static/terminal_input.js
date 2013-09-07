@@ -120,6 +120,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             selectedPastearea = null,
             selectedText = u.getSelText(),
             elementUnder = document.elementFromPoint(e.clientX, e.clientY);
+        t.Input.mouseDown = true;
         if (t.terminals[selectedTerm] && t.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = t.terminals[selectedTerm]['pasteNode'];
         }
@@ -185,7 +186,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 go.Terminal.sendString(ESC+'[M'+button+X+Y);
             }
         }
-        t.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
         // However, we only want this when the user is actually bringing up the context menu because
         // having it enabled slows down screen updates by a non-trivial amount.

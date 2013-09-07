@@ -573,6 +573,7 @@ potential conflicts with other classes that may be on the page.
 .✈user_info {
     font-size: 0.8em;
     padding-bottom: 0.25em;
+    margin-right: 1.5em;
     text-align: right;
 }
 .✈user_info a:hover {

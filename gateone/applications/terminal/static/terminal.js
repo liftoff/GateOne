@@ -481,6 +481,8 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.setActive();
                 });
             }
+            go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
+            go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
     },
@@ -912,7 +914,6 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.terminals[term]['X11Title'] = title;
         go.Terminal.terminals[term]['title'] = title;
         sideinfo.innerHTML = term + ": " + title;
-//         sideinfo.style.right = scrollbarAdjust + 'px';
         // Also update the info panel
         termTitle.innerHTML = term+': '+title;
         // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
@@ -1382,7 +1383,7 @@ go.Base.update(GateOne.Terminal, {
                 count = 0,
                 X = e.clientX,
                 Y = e.clientY,
-                timeout = 200;
+                timeout = 500;
             if (pastearea.style.display != 'none') {
                 u.hideElement(pastearea);
                 go.Terminal.Input.pasteareaTemp = pastearea.onmousemove;

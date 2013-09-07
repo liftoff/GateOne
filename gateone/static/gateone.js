@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130904192634";
+GateOne.__commit__ = "20130906085437";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2401,7 +2401,7 @@ GateOne.Base.update(GateOne.Logging, {
         if (typeof(GateOne.prefs.logLevel) == "undefined") {
             GateOne.prefs.logLevel = 'INFO';
         }
-        GateOne.Logging.level = GateOne.prefs.logLevel.toUpperCase(); // This allows it to be adjusted at the client
+        GateOne.Logging.setLevel(GateOne.prefs.logLevel);
         // Initialize the logger
         if (typeof(GateOne.Logging.level) == 'string') {
             // Convert to integer
@@ -2418,7 +2418,7 @@ GateOne.Base.update(GateOne.Logging, {
         */
         var l = GateOne.Logging,
             levelStr = null;
-        if (level === parseInt(level,10)) { // It's an integer, set it as-is
+        if (level === parseInt(level, 10)) { // It's an integer, set it as-is
             l.level = level;
         } else { // It's a string, convert it first
             levelStr = level.toUpperCase();
@@ -2737,11 +2737,11 @@ GateOne.Base.update(GateOne.Net, {
         }
         go.Net.logLatency = logLatency; // So pong() will know what to do
         go.ws.send(JSON.stringify({'go:ping': timestamp}));
-        if (go.Utils.pingTimeout) {
-            clearTimeout(go.Utils.pingTimeout);
-            go.Utils.pingTimeout = null;
+        if (go.Net.pingTimeout) {
+            clearTimeout(go.Net.pingTimeout);
+            go.Net.pingTimeout = null;
         }
-        go.Utils.pingTimeout = setTimeout(function() {
+        go.Net.pingTimeout = setTimeout(function() {
             logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
             go.ws.close();
             go.Events.trigger('go:ping_timeout');
@@ -2760,9 +2760,9 @@ GateOne.Base.update(GateOne.Net, {
         if (go.Net.logLatency) {
             logInfo('PONG: Gate One server round-trip latency: ' + latency + 'ms');
         }
-        if (go.Utils.pingTimeout) {
-            clearTimeout(go.Utils.pingTimeout);
-            go.Utils.pingTimeout = null;
+        if (go.Net.pingTimeout) {
+            clearTimeout(go.Net.pingTimeout);
+            go.Net.pingTimeout = null;
         }
         return latency;
     },
@@ -2826,6 +2826,9 @@ GateOne.Base.update(GateOne.Net, {
         go.Net.connectionProblem = true;
         // Stop trying to ping the server since we're no longer connected
         clearInterval(go.Net.keepalivePing);
+        go.Net.keepalivePing = null;
+        clearTimeout(go.Net.pingTimeout);
+        go.Net.pingTimeout = null;
         var u = go.Utils,
             v = go.Visual,
             errorElem = u.createElement('div', {'id': 'error_message'}),
@@ -5759,7 +5762,7 @@ var logFatal = go.Logging.logFatal,
     logInfo = go.Logging.logInfo,
     logDebug = go.Logging.logDebug;
 
-GateOne.Base.module(GateOne, "User", "1.1", ['Base', 'Utils', 'Visual']);
+GateOne.Base.module(GateOne, "User", "1.2", ['Base', 'Utils', 'Visual']);
 /**:GateOne.User
 
 The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.
@@ -5781,6 +5784,7 @@ GateOne.Base.update(GateOne.User, {
             ===================  ==========================================
         */
         // prefix gets changed inside of GateOne.initialize() so we need to reset it
+        prefix = go.prefs.prefix;
         var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
             prefsPanelUserInfo = u.createElement('div', {'id': 'user_info', 'class': '✈user_info'}),
@@ -5814,7 +5818,7 @@ GateOne.Base.update(GateOne.User, {
         */
         // NOTE:  Primarily here to present something more easy to understand than the session ID :)
         var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
-        logDebug("setUsernameAction(" + username + ")");
+        logInfo("setUsernameAction(" + username + ")");
         go.User.username = username;
         if (prefsPanelUserID) {
             prefsPanelUserID.innerHTML = username + " ";

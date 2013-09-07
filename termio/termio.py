@@ -1326,11 +1326,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
             attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
             termios.tcsetattr(stdin, termios.TCSANOW, attrs)
-            # The sleep statement below ensures we capture all output from the
-            # fd before it is closed...  It turns out that IOLoop's response to
-            # changes in the fd is so fast that it can result in the fd being
-            # closed the very moment the Python interpreter is reading from it.
-            cmd = ['/bin/sh', '-c', self.cmd + '; sleep .1']
+            # The sleep statements below do two things:
+            #   1) Ensures all the callbacks have time to be attached before
+            #      the command is executed (so we can handle things like
+            #      setting the title when the command first runs).
+            #   2) Ensures we capture all output from the fd before it gets
+            #      closed.
+            cmd = ['/bin/sh', '-c', 'sleep .1; ' + self.cmd + '; sleep .1']
             os.dup2(stderr, stdout) # Copy stderr to stdout (equivalent to 2>&1)
             os.execvpe(cmd[0], cmd, env)
             os._exit(0)

@@ -660,19 +660,6 @@ the <em>session_timeout</em> value.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="gateone.HTTPSRedirectHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">HTTPSRedirectHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#HTTPSRedirectHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.HTTPSRedirectHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>A handler to redirect clients from HTTP to HTTPS.  Only used if
-<tt class="xref py py-obj docutils literal"><span class="pre">https_redirect</span></tt> is True in Gate One's settings.</p>
-<dl class="method">
-<dt id="gateone.HTTPSRedirectHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#HTTPSRedirectHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.HTTPSRedirectHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Just redirects the client from HTTP to HTTPS</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="gateone.StaticHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StaticHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StaticHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StaticHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>An override of <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.StaticFileHandler</span></tt> to ensure that the
@@ -694,17 +681,102 @@ from different origins.</p>
 into standards mode when content is loaded from intranet sites.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="gateone.StaticHandler.options">
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="headerlink" href="#gateone.StaticHandler.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
+header, etc).  Since this is just the static file handler we don't
+include any extra information.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="gateone.BaseHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A base handler that all Gate One RequestHandlers will inherit methods from.</p>
-<p>Provides the <a class="reference internal" href="#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-meth docutils literal"><span class="pre">get_current_user()</span></tt></a> method.</p>
+<p>Provides the <a class="reference internal" href="#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-meth docutils literal"><span class="pre">get_current_user()</span></tt></a> method, sets default headers, and
+provides a default <a class="reference internal" href="#gateone.BaseHandler.options" title="gateone.BaseHandler.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a> method that can be used for monitoring
+purposes and also for enumerating useful information about this Gate One
+server (see below for more info).</p>
+<dl class="method">
+<dt id="gateone.BaseHandler.set_default_headers">
+<tt class="descname">set_default_headers</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.BaseHandler.set_default_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of <tt class="xref py py-meth docutils literal"><span class="pre">tornado.web.RequestHandler.set_default_headers()</span></tt>
+(which is how Tornado wants you to set default headers) that
+adds/overrides the following headers:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Server:</th><td class="field-body">'GateOne'</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">X-UA-Compatible:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">'IE=edge' (forces IE 10+ into Standards mode)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
 <dl class="method">
 <dt id="gateone.BaseHandler.get_current_user">
 <tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tornado standard method--implemented our way.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.BaseHandler.options">
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="headerlink" href="#gateone.BaseHandler.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
+header, etc) but also includes some useful information in the response
+body that lists which authentication API features we support in
+addition to which applications are installed.  The response body is
+conveniently JSON-encoded:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> curl -k             -X OPTIONS https://gateone.company.com/ | python -mjson.tool
+&nbsp;&nbsp;% Total&nbsp;&nbsp;&nbsp;&nbsp;% Received % Xferd&nbsp;&nbsp;Average Speed&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;Current
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dload&nbsp;&nbsp;Upload&nbsp;&nbsp;&nbsp;Total&nbsp;&nbsp;&nbsp;Spent&nbsp;&nbsp;&nbsp;&nbsp;Left&nbsp;&nbsp;Speed
+100&nbsp;&nbsp;&nbsp;158&nbsp;&nbsp;100&nbsp;&nbsp;&nbsp;158&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;6793&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0 --:--:-- --:--:-- --:--:--&nbsp;&nbsp;7181
+{
+&nbsp;&nbsp;&nbsp;&nbsp;&quot;applications&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;File Transfer&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Terminal&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;X11&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;],
+&nbsp;&nbsp;&nbsp;&nbsp;&quot;auth_api&quot;: {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;hmacs&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA1&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA256&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA384&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA512&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;versions&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;1.0&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The 'Server' header does not supply the version information.  This
+is intentional as it amounts to an unnecessary information
+disclosure.  We don't need to make an attacker's job any easier.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.HTTPSRedirectHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">HTTPSRedirectHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#HTTPSRedirectHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.HTTPSRedirectHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A handler to redirect clients from HTTP to HTTPS.  Only used if
+<tt class="xref py py-obj docutils literal"><span class="pre">https_redirect</span></tt> is True in Gate One's settings.</p>
+<dl class="method">
+<dt id="gateone.HTTPSRedirectHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#HTTPSRedirectHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.HTTPSRedirectHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just redirects the client from HTTP to HTTPS</p>
 </dd></dl>
 
 </dd></dl>
@@ -954,6 +1026,69 @@ contents.</p>
 <tt class="descname">pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.pong" title="Permalink to this definition">¶</a></dt>
 <dd><p>Responds to a client 'ping' request...  Just returns the given
 timestamp back to the client so it can measure round-trip time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.api_auth">
+<tt class="descname">api_auth</tt><big>(</big><em>auth_obj</em><big>)</big><a class="headerlink" href="#gateone.ApplicationWebSocket.api_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the <em>auth_obj</em> dict validates, returns the user dict and sets
+<tt class="docutils literal"><span class="pre">self.current_user</span></tt>.  If it doesn't validate, returns <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+<p>This function also takes care of creating the user's directory if it
+does not exist and creating/updating the user's 'session' file (which
+just stores metadata related to their session).</p>
+<p>Example usage:</p>
+<div class="highlight-python"><pre>auth_obj = {
+    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
+    'upn': 'joe@company.com',
+    'timestamp': '1323391717238',
+    'signature': &lt;gibberish&gt;,
+    'signature_method': 'HMAC-SHA1',
+    'api_version': '1.0'
+}
+result = self.api_auth(auth_obj)</pre>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="embedding.html#api-auth"><em>API Authentication</em></a> documentation.</p>
+</div>
+<p>Here's a rundown of the required <em>auth_obj</em> parameters:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">api_key:</th><td class="field-body">The first half of what gets generated when you run
+<tt class="docutils literal"><span class="pre">./gateone.py</span> <span class="pre">--new_api_key</span></tt> (the other half is the secret).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">upn:</th><td class="field-body">The userPrincipalName (aka username) of the user being
+authenticated.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">timestamp:</th><td class="field-body">A 13-digit &quot;time since the epoch&quot; JavaScript-style timestamp.
+Both integers and strings are accepted.
+Example JavaScript: <tt class="docutils literal"><span class="pre">var</span> <span class="pre">timestamp</span> <span class="pre">=</span> <span class="pre">new</span> <span class="pre">Date().getTime()</span></tt></td>
+</tr>
+<tr class="field-even field"><th class="field-name">signature:</th><td class="field-body">The HMAC signature of the combined <em>api_key</em>, <em>upn</em>, and
+<em>timestamp</em>; hashed using the secret associated with the given
+<em>api_key</em>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">signature_method:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">The hashing algorithm used to create the <em>signature</em>.  Currently
+this must be one of &quot;HMAC-SHA1&quot;, &quot;HMAC-SHA256&quot;, &quot;HMAC-SHA384&quot;,
+or &quot;HMAC-SHA512&quot;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">api_version:</th><td class="field-body">Which version of the authentication API to use when performing
+authentication.  Currently the only supported version is '1.0'.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Any additional key/value pairs that are included in the <em>auth_obj</em>
+will be assigned to the <tt class="docutils literal"><span class="pre">self.current_user</span></tt> object.  So if you're
+embedding Gate One and wish to associate extra metadata with the
+user you may do so via the API authentication process.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
