@@ -115,11 +115,13 @@ settings_files = walk_data_files(settings_dir)
 # Detect appropriate init script and make sure it is put in the right place
 init_script = []
 conf_file = [] # Only used on Gentoo
+upstart_file = [] # Only used on Ubuntu (I think)
 debian_script = os.path.join(setup_dir, 'scripts/init/gateone-debian.sh')
 redhat_script = os.path.join(setup_dir, 'scripts/init/gateone-redhat.sh')
 gentoo_script = os.path.join(setup_dir, 'scripts/init/gateone-gentoo.sh')
+upstart_script = os.path.join(setup_dir, 'scripts/init/gateone.conf')
 temp_script_path = os.path.join(setup_dir, 'build/gateone')
-temp_confd_path = os.path.join(setup_dir, 'build/gateone')
+upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
 if os.path.exists('/etc/debian_version'):
     shutil.copy(debian_script, temp_script_path)
 elif os.path.exists('/etc/redhat-release'):
@@ -129,11 +131,13 @@ elif os.path.exists('/etc/gentoo-release'):
     conf_file = [('/etc/conf.d', [
         os.path.join(setup_dir, 'scripts/conf/gateone')
     ])]
+# Handle the upstart script (Ubuntu only as far as I know)
+if os.path.isdir('/etc/init'):
+    shutil.copy(upstart_script, upstart_temp_path)
+    upstart_file = [('/etc/init', [upstart_temp_path])]
 
 if os.path.exists(temp_script_path):
-    init_script = [('/etc/init.d', [
-        temp_script_path
-    ])]
+    init_script = [('/etc/init.d', [temp_script_path])]
 
 # Put it all together
 data_files = (
@@ -147,7 +151,8 @@ data_files = (
     i18n_files +
     settings_files +
     init_script +
-    conf_file
+    conf_file +
+    upstart_file
 )
 
 # In the newer version of Gate One these plugins were moved under the terminal
