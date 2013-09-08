@@ -90,7 +90,7 @@ GateOne.Terminal.terminals = { // For keeping track of running terminals
 }
 // These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
 go.Terminal.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
-go.Terminal.rowAdjust = 1; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
+go.Terminal.rowAdjust = 0; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 go.Terminal.updateTermCallbacks = []; // DEPRECATED
@@ -867,12 +867,25 @@ go.Base.update(GateOne.Terminal, {
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             emDimensions = u.getEmDimensions(termNode, termNode.parentNode.parentNode),
             dimensions = u.getRowsAndColumns(termNode),
+            rowsValue = (dimensions.rows - rowAdjust),
+            colsValue = Math.round(dimensions.columns - colAdjust),
             prefs = {
                 'term': term,
-                'rows': Math.ceil(dimensions.rows - rowAdjust),
-                'columns': Math.ceil(dimensions.columns - colAdjust),
+               // rows are set below...
+                'columns': colsValue,
                 'em_dimensions': emDimensions
-            }
+            };
+        // Explanation of below:  If the difference between the calculated value and the floor() of that value is greater than 0.8
+        // it means that the 'fit' of the total rows--if we round() them--will be awfully tight.  Too tight, in fact.  I know this
+        // because even though the math adds up the browsers pull crap like, "the child <pre> offsetHeight is greater than it's
+        // parent's clientHeight" which is supposed to be impossible.  So I've defined the 'fit' to be 'too tight' if the there's
+        // > 20% of a character (height-wise) of "wiggle room" between what is *supposed* to fit in the element and what the
+        // browser tells us will fit (it lies--the top gets cut off!).
+        if ((rowsValue - Math.floor(rowsValue)) > 0.8) {
+            prefs['rows'] = Math.ceil(rowsValue);
+        } else {
+            prefs['rows'] = Math.floor(rowsValue);
+        }
         if (!emDimensions || !dimensions) {
             return; // Nothing to do
         }
@@ -1665,6 +1678,7 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
+            termPre.style.height = "100%"; // Ensures the top doesn't get cut off
         }
         termPre.appendChild(screenSpan);
         u.scrollToBottom(termPre);

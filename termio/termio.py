@@ -1332,7 +1332,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             #      setting the title when the command first runs).
             #   2) Ensures we capture all output from the fd before it gets
             #      closed.
-            cmd = ['/bin/sh', '-c', 'sleep .1; ' + self.cmd + '; sleep .1']
+            cmd = ['/bin/sh', '-c', self.cmd + '; sleep .1']
             os.dup2(stderr, stdout) # Copy stderr to stdout (equivalent to 2>&1)
             os.execvpe(cmd[0], cmd, env)
             os._exit(0)

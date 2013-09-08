@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130906085437";
+GateOne.__commit__ = "20130907133545";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1415,10 +1415,11 @@ GateOne.Base.update(GateOne.Utils, {
             }
             node.className = "✈noanimate ✈terminal";
             // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
-            for (var i=0; i <= 63; i++) {
+            for (var i=0; i <= 1023; i++) {
                 fillerX += "M";
             }
-            for (var i=0; i <= 63; i++) {
+            fillerY.push(fillerX);
+            for (var i=0; i <= 255; i++) {
                 fillerY.push(fillerX);
             }
             sizingPre.innerHTML = fillerY.join('\n');
@@ -1442,8 +1443,8 @@ GateOne.Base.update(GateOne.Utils, {
             node.appendChild(sizingPre);
             var nodeHeight = sizingPre.getClientRects()[0].height,
                 nodeWidth = sizingPre.getClientRects()[0].width;
-            nodeHeight = parseInt(nodeHeight)/64;
-            nodeWidth = parseInt(nodeWidth)/64;
+            nodeHeight = parseInt(nodeHeight)/256;
+            nodeWidth = parseInt(nodeWidth)/1024;
             // Clean up, clean up
             node.removeChild(sizingPre);
             if (where) {
@@ -1510,7 +1511,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         // Calculate the rows and columns:
         var rows = (elementDimensions.h / textDimensions.h),
-            cols = (elementDimensions.w / Math.round(textDimensions.w));
+            cols = (elementDimensions.w / textDimensions.w);
         var dimensionsObj = {'rows': rows, 'columns': cols};
         return dimensionsObj;
     },
@@ -4019,7 +4020,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. note:: The default is to display the message in the lower-right corner of :js:attr:`GateOne.prefs.goDiv` but this can be controlled via CSS.
         */
-        logInfo('displayMessage(): ' + message); // Useful for looking at previous messages
+        logInfo('Message: ' + message); // Useful for looking at previous messages
         if (!id) {
             id = 'notice';
         }
@@ -4167,12 +4168,11 @@ GateOne.Base.update(GateOne.Visual, {
             if (!go.prefs.embedded) {
                 if (go.ws.readyState == 1) {
                     // There are no other workspaces and we're still connected.  Open a new one...
-//                     v.newTerminal();
                     // This is coming soon:
                     if (go.User.applications.length > 1) {
                         v.newWorkspaceWorkspace();
                     } else {
-                        // Just launch the default application
+                        // Just launch the default application (for now)
                         go.applicationModules[go.User.applications[0]].__new__();
                     }
                 }
@@ -5818,7 +5818,7 @@ GateOne.Base.update(GateOne.User, {
         */
         // NOTE:  Primarily here to present something more easy to understand than the session ID :)
         var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
-        logInfo("setUsernameAction(" + username + ")");
+        logDebug("setUsernameAction(" + username + ")");
         go.User.username = username;
         if (prefsPanelUserID) {
             prefsPanelUserID.innerHTML = username + " ";
