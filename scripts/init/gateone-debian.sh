@@ -20,14 +20,12 @@ GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 # clear conflicting settings from the environment
 unset TMPDIR
 
-case 'Ubuntu' in
-    Ubuntu)
-    # The init.d script is only for chroots.
-    if [ -e /etc/init/gateone.conf ] && ! ischroot; then
+# Prefer the Upstart script if using Upstart
+if [ -d /etc/init ]; then
+    if [ -e /etc/init/gateone.conf ]; then
         exec /lib/init/upstart-job gateone "$@"
     fi
-    ;;
-esac
+fi
 
 # Make sure gateone.py is available and executable
 test -x ${GATEONE_DIR}/gateone.py || exit 0
