@@ -246,7 +246,7 @@ def unpack_name_data(data):
         offset = storage_offset + record['offset']
         end = offset + record['length']
         # Remove any null chars from the string (they can have lots)
-        record['string'] = data[offset:end].replace('\x00', '')
+        record['string'] = data[offset:end].replace(b'\x00', b'')
         # Now make sure the string is unicode
         encoding = ENCODING_MAP[record['encoding']]
         try:
@@ -265,11 +265,11 @@ def woff_name_data(path):
 
     .. note:: Only returns the English language stuff.
     """
-    with open(path) as f:
+    with open(path, 'rb') as f:
         table_data = unpack_table_data(f.read())
-    if 'name' not in table_data:
+    if b'name' not in table_data:
         raise BadWoff("WOFF file is invalid")
-    name_data = unpack_name_data(table_data['name'])
+    name_data = unpack_name_data(table_data[b'name'])
     name_dict = {}
     for record in name_data:
         if record['language'] == 0: # English

@@ -1064,7 +1064,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         } else {
-            // Feel free to attach something like this to the "term_updated" event if you want.
+            // Feel free to attach something like this to the "terminal:term_updated" event if you want.
             if (u.isVisible(termPre)) {
                 var originalHeight = termPre.style.height;
                 go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
@@ -1082,7 +1082,7 @@ go.Base.update(GateOne.Terminal, {
     termUpdateFromWorker: function(e) {
         /**:GateOne.Terminal.termUpdateFromWorker(e)
 
-        This function gets assigned to the :js:meth:`termUpdatesWorker.onmessage` event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the "terminal:term_updated" event.
+        This function gets assigned to the :js:meth:`termUpdatesWorker.onmessage` event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the "terminal:term_updated" event passing the terminal number as the only argument.
         */
         var data = e.data,
             term = data.term,
@@ -2477,6 +2477,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not provided the currently-selected terminal will be used.
         */
+        console.log('text: ' + text + ', term: ' + term);
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
@@ -2537,6 +2538,82 @@ go.Base.update(GateOne.Terminal, {
         u.toArray(u.getNodes('.✈highlight')).forEach(function(elem) {
             elem.className = "";
         });
+    },
+    // NOTE:  highlightTexts and highlightDialog are works-in-progress.
+    highlightTexts: {},
+        /**:GateOne.Terminal.highlightTexts
+
+        An object that holds all the words the user wishes to stay persistently highlighted (even after screen updates and whatnot) across all terminals.
+
+        .. note:: Word highlighting that is specific to individual terminals is stored in `GateOne.Terminal.terminals[term]`.
+        */
+    highlightDialog: function() {
+        /**:GateOne.Terminal.highlightDialog()
+
+        Opens a dialog where users can add/remove text they would like to be highlighted on a semi-permanent basis (e.g. even after a screen update).
+        */
+        var closeDialog, // Filled out below
+            highlightDesc = gettext('<p style="width: 18em;">Words or phrases you would like to remain persistently highlighted in terminals</p>'),
+            tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
+            td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
+            container = u.createElement('div', {'class': '✈highlight_dialog'}),
+            tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight/3) + 'px'}}),
+            highlightTable = u.createElement('table', {'class': '✈highlight_words'}),
+            tbody = u.createElement('tbody'),
+            save = u.createElement('button', {'id': 'save', 'type': 'submit', 'value': 'Save', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            addWords = function(highlightObj) {
+                for (var word in highlightObj) {
+                    var term = highlightObj[word]['term'],
+                        globalVal = highlightObj[word]['global'],
+                        row = tr(),
+                        textTD = u.createElement('td', {'class': '✈table_cell ✈highlight_word'}),
+                        termTD = td(),
+                        termInput = u.createElement('input', {'type': 'text', 'name': 'term'});
+                        globalTD = td(),
+                        deleteTD = td(),
+                        globalCheck = u.createElement('input', {'type': 'checkbox', 'name': 'global'});
+                    textTD.innerHTML = upn;
+                    termInput.value = term;
+                    deleteTD.innerHTML = gettext('<a onclick="GateOne.Terminal.unhighlightWord();">Remove</a>')
+                    row.appendChild(textTD);
+                    row.appendChild(termTD);
+                    globalTD.appendChild(globalCheck);
+                    row.appendChild(globalTD);
+                    row.appendChild(deleteTD);
+                    tbody.appendChild(row);
+                }
+                closeDialog = v.dialog(gettext("Word Highlighting ") + "(Terminal " + term + ")", container);
+                cancel.onclick = closeDialog;
+            },
+            saveFunc = function() {
+                var rows = u.toArray(u.getNodes('.✈highlight_dialog tbody tr'));
+                rows.forEach(function(row) {
+                    var text = row.querySelector('.✈highlight_word').innerHTML,
+                        term = row.querySelector('input[name="term"]').value;
+                        global = row.querySelector('input[name="global"]').checked;
+                    if (global) {
+                        // Clear any existing matching global higlight text
+                        E.off("terminal:term_updated", null, 'global_highlight:' + text); // Using a string as the context (aka 'this') is a cool hack :)
+                        E.on("terminal:term_updated", u.partial(go.Terminal.highlight, text), 'global_highlight:' + text);
+                    } else {
+                        var context = 'highlight:' +term + ":" + text;
+                        // Clear any existing matching highlight for the current terminal
+                        E.off("terminal:term_updated", null, context);
+                        E.on("terminal:term_updated", u.partial(go.Terminal.highlight, text), context);
+                    }
+                });
+            };
+        save.innerHTML = "Save";
+        cancel.innerHTML = "Cancel";
+        save.addEventListener('click', saveFunc, false);
+        highlightTable.innerHTML = "<thead><tr class='✈table_row'><th>Word</th><th>Global</th><th>Remove</th></tr></thead>";
+        highlightTable.appendChild(tbody);
+        container.innerHTML = highlightDesc;
+        tableContainer.appendChild(highlightTable);
+        container.appendChild(tableContainer);
+        container.appendChild(save);
+        container.appendChild(cancel);
     },
     showSuspended: function() {
         /**:GateOne.Terminal.showSuspended()
@@ -2736,9 +2813,9 @@ go.Base.update(GateOne.Terminal, {
         save.innerHTML = "Save";
         cancel.innerHTML = "Cancel";
         save.addEventListener('click', saveFunc, false);
-        users.innerHTML = "<thead><tr class='✈table_row'><th>User</th><th>Read</th><th>Write</th></tr></thead>";
+        users.innerHTML = gettext("<thead><tr class='✈table_row'><th>User</th><th>Read</th><th>Write</th></tr></thead>");
         users.appendChild(tbody);
-        container.innerHTML = "<p style='width: 18em;'>Please select which users you wish to share this terminal with.</p>";
+        container.innerHTML = gettext("<p style='width: 18em;'>Please select which users you wish to share this terminal with.</p>");
         tableContainer.appendChild(users);
         container.appendChild(tableContainer);
         container.appendChild(passwordLabel);

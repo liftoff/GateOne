@@ -21,7 +21,7 @@ GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 unset TMPDIR
 
 # Prefer the Upstart script if using Upstart
-if [ -d /etc/init ]; then
+if [ -d /lib/init/upstart-job ]; then
     if [ -e /etc/init/gateone.conf ]; then
         exec /lib/init/upstart-job gateone "$@"
     fi

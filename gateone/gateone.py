@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130908214346" # Gets replaced by git (holds the date/time)
+__commit__ = "20130908215445" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -650,7 +650,7 @@ def cleanup_user_logs():
         user_dir = options.user_dir
     default = "30d"
     max_age_str = settings['*']['gateone'].get('user_logs_max_age', default)
-    if 'user_logs_max_age' in options._options.keys():
+    if 'user_logs_max_age' in list(options._options.keys()):
         max_age_str = options.user_logs_max_age
     max_age = convert_to_timedelta(max_age_str)
     def descend(path):
@@ -756,7 +756,7 @@ def kill_all_sessions():
     Calls all 'timeout_callbacks' attached to all `SESSIONS`.
     """
     logging.debug(_("Killing all sessions..."))
-    for session in SESSIONS.keys():
+    for session in list(SESSIONS.keys()):
         if "timeout_callbacks" in SESSIONS[session]:
             if SESSIONS[session]["timeout_callbacks"]:
                 for callback in SESSIONS[session]["timeout_callbacks"]:
@@ -1501,11 +1501,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
-        self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
+        self.base_url = "{protocol}://{host}{url_prefix}".format(
             protocol=self.request.protocol,
             host=self.request.host,
             port=self.settings['port'],
             url_prefix=self.settings['url_prefix'])
+        print("base_url: %s" % self.base_url)
         user = self.current_user
         # NOTE: self.current_user will call self.get_current_user() and set
         # self._current_user the first time it is used.
@@ -1876,7 +1877,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 self.write_message(json_encode(reauth))
                 #self.close() # Close the WebSocket
         elif auth_method and auth_method == 'api':
-            if 'auth' in settings.keys():
+            if 'auth' in list(settings.keys()):
                 if not isinstance(settings['auth'], dict):
                     settings['auth'] = json_decode(settings['auth'])
                 user = self.api_auth(settings['auth'])
@@ -2195,7 +2196,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         the client (via the `go:locations` WebSocket action) with a list of all
         the locations associated with the connected user.
         """
-        locations = self.locations.keys()
+        # NOTE: The list() wrap below is because the dict.keys() method returns
+        # a dict_keys (view) object in Python 3 and the JSON encoder doesn't
+        # know how to serialize that.
+        locations = list(self.locations.keys())
         message = {'go:locations': locations}
         self.write_message(message)
         self.trigger("go:get_locations")
@@ -2410,7 +2414,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     if f.endswith('.js'):
                         js_file_path = os.path.join(plugin_static_path, f)
                         js_files.update({f: js_file_path})
-        if filename in js_files.keys():
+        if filename in list(js_files.keys()):
             with io.open(js_files[filename]) as f:
                 out_dict['data'] = f.read()
         message = {'go:load_js': out_dict}
@@ -3771,7 +3775,7 @@ def apply_cli_overrides(go_settings):
     for argument in arguments:
         if argument in non_options:
             continue
-        if argument in options._options.keys():
+        if argument in list(options._options.keys()):
             go_settings[argument] = options._options[argument].value()
     # Update Tornado's options from our settings.
     # NOTE: For options given on the command line this step should be redundant.
@@ -4104,7 +4108,7 @@ def main():
     else:
         proto = "https://"
     # Fill out our settings with command line args if any are missing
-    for option in options._options.keys():
+    for option in list(options._options.keys()):
         if option in non_options:
             continue # These don't belong
         if option not in go_settings:

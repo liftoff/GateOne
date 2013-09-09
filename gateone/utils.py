@@ -482,6 +482,8 @@ def gen_self_signed_openssl(path=None):
     command) saving the result as 'certificate.pem' and 'keyfile.pem' to *path*.
     If *path* is not given the result will be saved in the current working
     directory.  The certificate will be valid for 10 years.
+
+    .. note:: The self-signed certificate will utilize 4096-bit RSA encryption.
     """
     if not path:
         path = os.path.abspath(os.curdir)
@@ -556,7 +558,6 @@ def gen_self_signed_openssl(path=None):
     os.remove('%s.tmp' % keyfile_path)
     os.remove('temp.csr')
 
-
 def gen_self_signed_pyopenssl(notAfter=None, path=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
@@ -570,6 +571,8 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
 
         >>> gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate
         >>> gen_self_signed_ssl() # 10-year certificate
+
+    .. note:: The self-signed certificate will utilize 4096-bit RSA encryption.
     """
     try:
         import OpenSSL
@@ -1429,9 +1432,6 @@ def minify(path_or_fileobj, kind):
         logging.warning(_(
             "cssmin module not found.  CSS will not be minified."))
         logging.info(_("To install cssmin:  sudo pip install cssmin"))
-    # Temporarily disabled:
-    slimit = None
-    cssmin = None
     if isinstance(path_or_fileobj, basestring):
         filename = os.path.split(path_or_fileobj)[1]
         with io.open(path_or_fileobj, mode='r', encoding='utf-8') as f:

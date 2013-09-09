@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130908214346";
+GateOne.__commit__ = "20130908215445";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -810,13 +810,21 @@ GateOne.Base.update(GateOne.Utils, {
 
         .. note:: This function can also be useful to simply save yourself a lot of typing.  If you're planning on calling a function with the same parameters a number of times it is a good idea to use :js:meth:`~GateOne.Utils.partial` to create a new function with all the parameters pre-applied.  Can make code easier to read too.
         */
-        var args = Array.prototype.slice.call(arguments);
-        args.shift();
+        var args = Array.prototype.slice.call(arguments, 1);
         return function() {
-            var new_args = Array.prototype.slice.call(arguments);
-            args = args.concat(new_args);
-            return fn.apply(window, args);
+            return fn.apply(this, args.concat(Array.prototype.slice.call(arguments)));
+        };
+    },
+    keys: function (obj) {
+        /**:GateOne.Utils.keys(obj)
+
+        Returns an Array containing the keys (attributes) of the given *obj*
+        */
+        var keyList = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) { keyList.push(i); }
         }
+        return keyList;
     },
     items: function(obj) {
         /**:GateOne.Utils.items(obj)
@@ -6117,7 +6125,7 @@ GateOne.Base.update(GateOne.Events, {
         if (!arguments.length) {
             E.callbacks = {}; // Clear all events/callbacks
         } else {
-            eventList = events ? events.split(/\s+/) : keys(E.callbacks);
+            eventList = events ? events.split(/\s+/) : u.keys(E.callbacks);
             for (var i in eventList) {
                 var event = eventList[i],
                     callList = E.callbacks[event];
@@ -6140,8 +6148,8 @@ GateOne.Base.update(GateOne.Events, {
                             newList.push(callList[n]);
                         }
                     }
+                    E.callbacks[event] = newList;
                 }
-                E.callbacks[event] = newList;
             }
         }
         return this;
