@@ -3214,9 +3214,11 @@ class Terminal(object):
         if self.double_width_right:
             self.double_width_right = False
             return
-        #self.cursorX += n
-        self.cursorX = min(self.rows - 1, self.cursorX + 1)
-        char = self.screen[self.cursorY][self.cursorX]
+        self.cursorX += n
+        try:
+            char = self.screen[self.cursorY][self.cursorX]
+        except IndexError: # Cursor is past the right-edge of the screen; ignore
+            char = u' ' # This is a safe default/fallback
         if unicodedata.east_asian_width(char) == 'W':
             # This lets us skip the next call (get called 2x for 2x width)
             self.double_width_right = True

@@ -225,7 +225,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     while len(log_data) < max_data:
         try:
             chunk = golog.read(chunk_size)
-        except IOError:
+        except (IOError, EOFError):
             return # Something wrong with the file
         total_frames += chunk.count(encoded_separator)
         log_data += chunk
