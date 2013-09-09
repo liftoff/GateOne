@@ -16,6 +16,11 @@ from time import sleep
 from datetime import datetime
 from optparse import OptionParser
 
+try:
+    import curses
+except ImportError:
+    curses = None
+
 # Import our own stuff
 from gateone import GATEONE_DIR
 from utils import raw, get_settings, combine_css
@@ -133,6 +138,40 @@ def get_frames(golog_path, chunk_size=131072):
                 yield frame
             break
 
+def retrieve_first_frame(golog_path):
+    """
+    Retrieves the first frame from the given *golog_path*.
+    """
+    found_first_frame = None
+    frame = b""
+    f = gzip.open(golog_path)
+    while not found_first_frame:
+        frame += f.read(1) # One byte at a time
+        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
+            # That's it; wrap this up
+            found_first_frame = True
+    distance = f.tell()
+    f.close()
+    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
+
+def get_log_metadata(golog_path):
+    """
+    Returns the metadata from the log at the given *golog_path* in the form of
+    a dict.
+    """
+    metadata = {}
+    if not os.path.getsize(golog_path): # 0 bytes
+        return metadata # Nothing to do
+    try:
+        first_frame, distance = retrieve_first_frame(golog_path)
+    except IOError:
+        # Something wrong with the log...  Probably still being written to
+        return metadata
+    if first_frame[14:].startswith('{'):
+        # This is JSON, capture metadata
+        metadata = json_decode(first_frame[14:])
+    return metadata # All done
+
 def playback_log(log_path, file_like, show_esc=False):
     """
     Plays back the log file at *log_path* by way of timely output to *file_like*
@@ -219,6 +258,10 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
                 csi_type = match_obj.group(2)
                 if csi_type == 'm' and preserve_renditions: # mmmmmm!
                     out += esc_buffer # Ooh, naked viewing of pretty things!
+                elif csi_type == 'C': # Move cursor right (we want to do this)
+                    # Will be something like this: \x1b[208C
+                    spaces = int(match_obj.group(1))
+                    out += u' ' * spaces # Add an equivalent amount of spaces
                 esc_buffer = u'' # Make room for more!
                 continue
     if rstrip:
@@ -242,12 +285,20 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
     visible in the output.  Trailing whitespace and escape sequences will not be
     removed.
 
-    NOTE: Converts our standard recording-based log format into something that
-    can be used with grep and similar search/filter tools.
+    ..note::
+
+        Converts our standard recording-based log format into something that
+        can be used with grep and similar search/filter tools.
     """
     import gzip
     from terminal import Terminal, SPECIAL
-    term = Terminal(rows=100, cols=300, em_dimensions=0)
+    metadata = get_log_metadata(log_path)
+    rows = metadata.get('rows', 24)
+    cols = metadata.get('columns', None)
+    if not cols:
+        # Try the old metadata format which used 'cols':
+        cols = metadata.get('cols', 80)
+    term = Terminal(rows=rows, cols=cols, em_dimensions=0)
     encoded_separator = SEPARATOR.encode('UTF-8')
     out_line = u""
     cr = False
@@ -286,9 +337,10 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                             del captured_file
                             term.clear_screen()
                             term.close_captured_fds() # Instant cleanup
-                            #term = Terminal(rows=100, cols=300, em_dimensions=0)
                     else:
                         out_line += char
+            if not out_line:
+                continue
             adjusted = frame_time + u' %s\n' % out_line.strip()
             file_like.write(adjusted.encode('utf-8'))
             out_line = u""
@@ -315,6 +367,9 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                     adjusted = raw(out_line)
                 else:
                     adjusted = escape_escape_seq(out_line, rstrip=True)
+                if not adjusted:
+                    out_line = u"" # Skip empty lines
+                    continue
                 adjusted = frame_time + u' %s\n' % adjusted
                 file_like.write(adjusted.encode('utf-8'))
                 out_line = u""
@@ -344,40 +399,6 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                 cr = False
         file_like.flush()
     del term
-
-def retrieve_first_frame(golog_path):
-    """
-    Retrieves the first frame from the given *golog_path*.
-    """
-    found_first_frame = None
-    frame = b""
-    f = gzip.open(golog_path)
-    while not found_first_frame:
-        frame += f.read(1) # One byte at a time
-        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
-            # That's it; wrap this up
-            found_first_frame = True
-    distance = f.tell()
-    f.close()
-    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
-
-def get_log_metadata(golog_path):
-    """
-    Returns the metadata from the log at the given *golog_path* in the form of
-    a dict.
-    """
-    metadata = {}
-    if not os.path.getsize(golog_path): # 0 bytes
-        return metadata # Nothing to do
-    try:
-        first_frame, distance = retrieve_first_frame(golog_path)
-    except IOError:
-        # Something wrong with the log...  Probably still being written to
-        return metadata
-    if first_frame[14:].startswith('{'):
-        # This is JSON, capture metadata
-        metadata = json_decode(first_frame[14:])
-    return metadata # All done
 
 def render_log_frames(golog_path, rows, cols, limit=None):
     """
@@ -578,6 +599,12 @@ if __name__ == "__main__":
             "Render a given .golog as a self-contained HTML playback file "
             "(to stdout).")
     )
+    parser.add_option("--metadata",
+        dest="metadata",
+        default=False,
+        action="store_true",
+        help=( "Prints (to stdout) the metadata of the given .golog")
+    )
     (options, args) = parser.parse_args()
     if len(args) < 1:
         print("ERROR: You must specify a log file to view.")
@@ -588,12 +615,20 @@ if __name__ == "__main__":
         print("ERROR: %s does not exist" % log_path)
         sys.exit(1)
     try:
-        if options.flat:
-            result = flatten_log(
+        if options.metadata:
+            import json
+            if curses and sys.stderr.isatty():
+                try:
+                    curses.setupterm()
+                    print(json.dumps(get_log_metadata(log_path), indent=4))
+                except Exception:
+                    print(json.dumps(get_log_metadata(log_path)))
+            sys.exit(0)
+        elif options.flat:
+            flatten_log(
                 log_path,
                 sys.stdout,
                 preserve_renditions=options.pretty, show_esc=options.raw)
-            print(result)
         elif options.html:
             result = render_html_playback(log_path)
             print(result)

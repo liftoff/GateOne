@@ -2474,6 +2474,7 @@ class Terminal(object):
                         import traceback, sys
                         traceback.print_exc(file=sys.stdout)
                 self.cursorX += 1
+                #self.cursor_right()
             self.prev_char = char
         if changed:
             self.modified = True
@@ -3189,8 +3190,11 @@ class Terminal(object):
         if self.double_width_left:
             self.double_width_left = False
             return
-        self.cursorX = max(0, self.cursorX - n)
-        char = self.screen[self.cursorY][self.cursorX]
+        self.cursorX = max(0, self.cursorX - n) # Ensures positive value
+        try:
+            char = self.screen[self.cursorY][self.cursorX]
+        except IndexError: # Cursor is past the right-edge of the screen; ignore
+            char = u' ' # This is a safe default/fallback
         if unicodedata.east_asian_width(char) == 'W':
             # This lets us skip the next call (get called 2x for 2x width)
             self.double_width_left = True
@@ -3210,7 +3214,8 @@ class Terminal(object):
         if self.double_width_right:
             self.double_width_right = False
             return
-        self.cursorX += n
+        #self.cursorX += n
+        self.cursorX = min(self.rows - 1, self.cursorX + 1)
         char = self.screen[self.cursorY][self.cursorX]
         if unicodedata.east_asian_width(char) == 'W':
             # This lets us skip the next call (get called 2x for 2x width)
