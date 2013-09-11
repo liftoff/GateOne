@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130909200139" # Gets replaced by git (holds the date/time)
+__commit__ = "20130910210534" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1246,8 +1246,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Setup some instance-specific loggers that we can later update with
         # more metadata
         self.logger = go_logger(None)
-        self.msg_log = go_logger('gateone.auth')
-        self.auth_log = go_logger('gateone.message')
+        self.msg_log = go_logger('gateone.message')
+        self.auth_log = go_logger('gateone.auth')
         self._events = {}
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
