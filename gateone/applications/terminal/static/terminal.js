@@ -1463,7 +1463,6 @@ go.Base.update(GateOne.Terminal, {
                 X = e.clientX,
                 Y = e.clientY,
                 selectedTerm = (this.id + '').split('pastearea')[1];
-//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
             if (localStorage[prefix+'selectedTerminal'] != selectedTerm) {
                 // Switch terminals
                 go.Terminal.switchTerminal(selectedTerm);
@@ -2477,7 +2476,6 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not provided the currently-selected terminal will be used.
         */
-        console.log('text: ' + text + ', term: ' + term);
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
@@ -2516,10 +2514,7 @@ go.Base.update(GateOne.Terminal, {
                     if (!elementContainsSelection(node)) {
                         var replaced = node.nodeValue.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl);
                         if (node.nodeValue != replaced) {
-                            // Only update the innerHTML of elements that actually contain the text
-                            var newNode = u.createElement('span');
-                            newNode.innerHTML = replaced;
-                            node.parentNode.replaceChild(newNode, node);
+                            node.parentNode.innerHTML = node.parentNode.innerHTML.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl)
                         }
                     }
                 } else {
@@ -2536,7 +2531,12 @@ go.Base.update(GateOne.Terminal, {
         Undoes the results of :js:meth:`GateOne.Terminal.highlight`.
         */
         u.toArray(u.getNodes('.✈highlight')).forEach(function(elem) {
-            elem.className = "";
+            if (elem) {
+                var parent = elem.parentNode,
+                    textNode = document.createTextNode(elem.innerHTML);
+                parent.replaceChild(textNode, elem);
+                parent.normalize(); // Join text nodes together so subsequent highlights work
+            }
         });
     },
     // NOTE:  highlightTexts and highlightDialog are works-in-progress.

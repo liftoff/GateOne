@@ -885,6 +885,8 @@ class TerminalApplication(GOApplication):
             # Fall back to a standard default
             rows = 24
             cols = 80
+        default_env = {"TERM": 'xterm-256color'} # Only one default
+        environment_vars = self.policy.get('environment_vars', default_env)
         default_encoding = self.policy.get('default_encoding', 'utf-8')
         encoding = settings.get('encoding', default_encoding)
         # NOTE: 'command' here is actually just the short name of the command.
@@ -984,6 +986,7 @@ class TerminalApplication(GOApplication):
                 'GO_SESSION': self.ws.session,
                 'GO_SESSION_DIR': session_dir
             }
+            env.update(environment_vars) # Apply policy-based environment
             if self.plugin_env_hooks:
                 # This allows plugins to add/override environment variables
                 env.update(self.plugin_env_hooks)
@@ -2267,7 +2270,10 @@ def init(settings):
                 'commands': {
                     'SSH': default_command
                 },
-                'default_command': 'SSH'
+                'default_command': 'SSH',
+                'environment_vars': {
+                    'TERM': 'xterm-256color'
+                }
             })
             new_term_settings = settings_template(
                 template_path, settings=settings['*']['terminal'])

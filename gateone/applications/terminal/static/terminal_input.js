@@ -327,17 +327,20 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
         }
-        t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
-        t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
-        go.node.addEventListener('keydown', t.Input.onKeyDown, true);
-        go.node.addEventListener('keyup', t.Input.onKeyUp, true);
-        t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
-        terms.forEach(function(termNode) {
-            termNode.addEventListener('paste', t.Input.onPaste, false);
-            termNode.addEventListener('mousedown', t.Input.onMouseDown, false);
-            termNode.addEventListener('mouseup', t.Input.onMouseUp, false);
-            termNode.addEventListener('copy', t.Input.onCopy, false);
-        });
+        if (!t.Input.addedEventListeners) {
+            t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
+            t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
+            go.node.addEventListener('keydown', t.Input.onKeyDown, true);
+            go.node.addEventListener('keyup', t.Input.onKeyUp, true);
+            t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
+            terms.forEach(function(termNode) {
+                termNode.addEventListener('paste', t.Input.onPaste, false);
+                termNode.addEventListener('mousedown', t.Input.onMouseDown, false);
+                termNode.addEventListener('mouseup', t.Input.onMouseUp, false);
+                termNode.addEventListener('copy', t.Input.onCopy, false);
+            });
+        }
+        t.Input.addedEventListeners = true;
         if (document.activeElement != t.Input.inputNode) {
             if (!selectedText) {
                 t.Input.inputNode.focus();
@@ -377,6 +380,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 termNode.classList.add('✈inactive');
             }
         });
+        t.Input.addedEventListeners = false;
         // TODO: Check to see if this should stay in GateOne.Input:
         i.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
     },

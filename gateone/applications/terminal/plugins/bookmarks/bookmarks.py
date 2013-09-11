@@ -600,7 +600,7 @@ class ImportHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def post(self):
         html = self.request.body
-        if html.startswith('{'): # This is a JSON file
+        if html.startswith(b'{'): # This is a JSON file
             bookmarks = parse_bookmarks_json(html)
         else:
             bookmarks = parse_bookmarks_html(html)

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130909195720" # Gets replaced by git (holds the date/time)
+__commit__ = "20130909200139" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1931,7 +1931,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 # Gate One server's auth config probably changed
                 self.write_message(json_encode(reauth))
                 return
-        #try:
         if self.current_user and 'session' in self.current_user:
             self.session = self.current_user['session']
         else:
@@ -1940,10 +1939,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.write_message(json_encode(message))
             self.write_message(json_encode(reauth))
             return
-        #except Exception as e:
-            #self.logger.error(_(
-                #"Exception encountered trying to authenticate: %s" % e))
-            #return
         try:
             # Execute any post-authentication hooks that plugins have registered
             if PLUGIN_AUTH_HOOKS:

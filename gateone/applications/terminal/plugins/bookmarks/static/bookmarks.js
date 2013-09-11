@@ -142,13 +142,13 @@ go.Base.update(GateOne.Bookmarks, {
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
         }
-        // Setup a callback that synchronizes the user's bookmarks after they login
-        go.Events.on("go:user_login", b.userLoginSync);
+        // Setup a callback that synchronizes the user's bookmarks everything is done loading
+        go.Events.on("go:js_loaded", b.userLoginSync);
     },
     panelToggleIn: function(panel) {
         /**:GateOne.Bookmarks.panelToggleIn(panel)
 
-        Called when 'panel_toggle:in' event is triggered, calls :js:meth:`GateOne.Bookmarks.createPanel` if *panel* is the Bookmarks panel.
+        Called when `panel_toggle:in` event is triggered, calls :js:meth:`GateOne.Bookmarks.createPanel` if *panel* is the Bookmarks panel.
         */
         if (panel.id == go.prefs.prefix+'panel_bookmarks') {
             go.Bookmarks.createPanel();
@@ -157,7 +157,7 @@ go.Base.update(GateOne.Bookmarks, {
     userLoginSync: function(username) {
         /**:GateOne.Bookmarks.userLoginSync(username)
 
-        This gets attached to the "user_login" event.  Calls the server-side 'bookmarks_get' WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.
+        This gets attached to the `go:js_loaded` event.  Calls the server-side `terminal:bookmarks_get` WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.
         */
         var USN = localStorage[prefix+'USN'] || 0;
         go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
@@ -2060,7 +2060,6 @@ go.Base.update(GateOne.Bookmarks, {
             localStorage[prefix+'bookmarks'] = JSON.stringify(b.bookmarks);
             // Keep everything sync'd up.
             go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
-//             u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
             setTimeout(function() {
                 u.removeElement(obj.parentNode.parentNode);
             }, 1000);

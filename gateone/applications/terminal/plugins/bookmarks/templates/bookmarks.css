@@ -11,9 +11,7 @@
     -moz-transition: -moz-transform 1s ease-in-out;
     -moz-transform-origin: center center;
     /* Opera */
-    -o-transition-property: -o-transform;
-    -o-transition-duration: 1s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: -moz-transform 1s ease-in-out;
     -o-transform-origin: center center;
     /* IE 9+ */
     -ms-transform-origin: center center;
@@ -31,10 +29,8 @@
     -moz-transition: -moz-transform 1s ease-in-out;
     -moz-transform-origin: center right;
     /* Opera */
-    -o-transition-property: -o-transform;
-    -o-transition-duration: 1s;
-    -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: center center;
+    -o-transition: -moz-transform 1s ease-in-out;
+    -o-transform-origin: center right;
     /* IE 9+ */
     -ms-transform-origin: center right;
     -ms-transition: all 1s ease-in-out;
@@ -73,13 +69,13 @@
     font-size: 0.9em;
     line-height: 1;
     /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
-   /* IE 10+ */
-   background: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
+    background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* Safari 5.1+, Chrome 10+ */
+    background-image: -webkit-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* Opera 11.10+ */
+    background-image: -o-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* IE 10+ */
+    background-image: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
 }
 .✈bookmark.✈over {
    border: 0.1em red solid;
@@ -196,7 +192,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     margin-top: .1em;
     bottom: 0;
     padding-left: 0.2em;
-    background: url('data:image/svg+xml;utf8,<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="100%" width="100%" viewBox="0 0 17 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop stop-color="#fff" offset="0"/><stop stop-color="#ccc" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="100%" width="100%" viewBox="0 0 17 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop stop-color="#fff" offset="0"/><stop stop-color="#ccc" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>');
     background-repeat: no-repeat;
     background-origin: padding-box;
     background-position: 0 0;
@@ -264,9 +260,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     cursor: move;
     -webkit-transition: -webkit-transform 0s ease-in-out;
     -moz-transition: -webkit-transform 0s ease-in-out;
-    -o-transition-property: all;
-    -o-transition-duration: 0s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: -webkit-transform 0s ease-in-out;
     -ms-transition: -webkit-transform 0s ease-in-out;
     transition: -webkit-transform 0s ease-in-out;
 }
@@ -426,9 +420,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     margin-left: 0.5em;
     -webkit-transition: -webkit-transform 0.5s ease-in-out;
     -moz-transition: -webkit-transform 0.5s ease-in-out;
-    -o-transition-property: all;
-    -o-transition-duration: 0.5s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: -webkit-transform 0.5s ease-in-out;
     -ms-transition: -webkit-transform 0.5s ease-in-out;
     transition: -webkit-transform 0.5s ease-in-out;
     cursor: pointer;
@@ -439,7 +431,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
 .✈bm_search {
     position: absolute;
     top: 0;
-    right: 1.5em;
+    right: 2.5em;
     font-size: 0.7em;
     margin-right: 0;
 }
@@ -452,9 +444,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
 .✈bm_new:hover {
     -webkit-transition: -webkit-transform 0.1s ease-in-out;
     -moz-transition: -webkit-transform 0.1s ease-in-out;
-    -o-transition-property: all;
-    -o-transition-duration: 0.1s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: -webkit-transform 0.1s ease-in-out;
     -ms-transition: -webkit-transform 0.1s ease-in-out;
     transition: -webkit-transform 0.1s ease-in-out;
 }
@@ -494,9 +484,9 @@ ul.✈bm_taglist li.bm_autotag:hover {
     width: 29%;
     float: right;
     display: block;
-    font-size: 0.8em;
+    font-size: 1em;
     clear: right;
-    margin-top: -1.2em;
+    margin-top: -1em;
 }
 .✈bm_pagination ul {
     border: 0;
@@ -538,7 +528,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     border: solid 1px #1F5470;
 }
 .✈bm_pagination .✈active {
-    background: #1F5470;
+    background-color: #1F5470;
     color: #FFF;
 }
 .✈bm_pagination .✈inactive a {
@@ -559,9 +549,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     /* Firefox */
     -moz-transition: all 5s ease-in-out;
     /* Opera */
-    -o-transition-property: all;
-    -o-transition-duration: 5s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: all 5s ease-in-out;
     /* IE 9+ */
     -ms-transition: all 5s ease-in-out;
     /* Future CSS3 standard */
@@ -581,9 +569,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
     /* Firefox */
     -moz-transition: all 5s ease-in-out;
     /* Opera */
-    -o-transition-property: all;
-    -o-transition-duration: 5s;
-    -o-transition-timing-function: ease-in-out;
+    -o-transition: all 5s ease-in-out;
     /* IE 9+ */
     -ms-transition: all 5s ease-in-out;
     /* Future CSS3 standard */
@@ -617,12 +603,10 @@ div.✈bookmark:hover {
     -webkit-transition: all 0.05s ease-in-out;
     -moz-transition: all 0.05s ease-in-out;
     -moz-transform-origin: center center;
-    -o-transition-property: all;
-    -o-transition-duration: 0.05s;
-    -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: center center;
     -ms-transform-origin: center center;
     -ms-transition: all 0.05s ease-in-out;
+    -o-transition: all 0.05s ease-in-out;
+    -o-transform-origin: center center;
     transform-origin: top left;
     transition: all 0.05s ease-in-out;
 }
@@ -633,12 +617,10 @@ div.✈bmfocus {
     -webkit-transition: all 0.05s ease-in-out;
     -moz-transition: all 0.05s ease-in-out;
     -moz-transform-origin: center center;
-    -o-transition-property: all;
-    -o-transition-duration: 0.05s;
-    -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: center center;
     -ms-transform-origin: center center;
     -ms-transition: all 0.05s ease-in-out;
+    -o-transition: all 0.05s ease-in-out;
+    -o-transform-origin: center center;
     transform-origin: top left;
     transition: all 0.05s ease-in-out;
     -webkit-transform: translateX(2%);

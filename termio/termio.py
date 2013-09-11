@@ -105,6 +105,7 @@ from json import loads as json_decode
 from json import dumps as json_encode
 
 # Inernationalization support
+_ = str # So pylint doesn't show a zillion errors about a missing _() function
 import gettext
 gettext.install('termio')
 
@@ -120,6 +121,7 @@ RE_OPT_SSH_SEQ = re.compile(
 # Matches an xterm title sequence
 RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
+EXTRA_DEBUG = False # For those times when you need to get dirty
 
 # Helper functions
 def debug_expect(m_instance, match, pattern):
@@ -254,7 +256,6 @@ def get_or_update_metadata(golog_path, user, force_update=False):
             # The split() here is an attempt to remove the tail end of
             # titles like this:  'someuser@somehost: ~'
             connect_string = match_obj.group(1)
-    # TODO: Add some hooks here for plugins to add their own metadata
     metadata.update({
         u'user': user,
         u'start_date': start_date,
@@ -326,9 +327,9 @@ class Pattern(object):
 
     :pattern: A regular expression or iterable of regular expressions that will be checked against the output stream.
 
-    :callback: A function that will be called when the pattern is matched.  Callbacks are called like so:
+    :callback: A function that will be called when the pattern is matched.  Callbacks are called like so::
 
-        >>> callback(m_instance, matched_string)
+        callback(m_instance, matched_string)
 
         .. tip:: If you provide a string instead of a function for your *callback* it will automatically be converted into a function that writes the string to the child process.  Example::
 
@@ -338,9 +339,9 @@ class Pattern(object):
 
     :sticky: Indicates that the pattern will not time out and won't be automatically removed from self._patterns when it is matched.
 
-    :errorback: A function to call in the event of a timeout or if an exception is encountered.  Errorback functions are called like so:
+    :errorback: A function to call in the event of a timeout or if an exception is encountered.  Errorback functions are called like so::
 
-        >>> errorback(m_instance)
+        errorback(m_instance)
 
     :preprocess: Indicates that this pattern is to be checked against the incoming stream before it is processed by the terminal emulator.  Useful if you need to match non-printable characters like control codes and escape sequences.
 
@@ -520,9 +521,9 @@ class BaseMultiplex(object):
     def remove_callback(self, event, identifier):
         """
         Removes the callback referenced by *identifier* that is attached to the
-        given *event*.  Example:
+        given *event*.  Example::
 
-            >>> m.remove_callback(m.CALLBACK_UPDATE, "myref")
+            m.remove_callback(m.CALLBACK_UPDATE, "myref")
 
         """
         try:
@@ -934,7 +935,7 @@ class BaseMultiplex(object):
             >>> ref1 = m.expect('(?i)Are you sure.*\(yes/no\)\?', handle_accepting_ssh_key, optional=True)
             >>> def send_password(m_instance, matched):
             ...    m_instance.unexpect(ref1)
-            ...    self.writeline('somepassword')
+            ...    m_instance.writeline('somepassword')
             >>> ref2 = m.expect('(?i)password:', send_password)
             >>> # spawn() and/or await() and do stuff...
 
@@ -967,7 +968,7 @@ class BaseMultiplex(object):
         look for something inside of 50 lines of text you need to make sure that
         when you call `spawn` you specify at least `rows = 50`.  Example::
 
-            >>> def handle_long_search(m_instance, matched)
+            >>> def handle_long_search(m_instance, matched):
             ...     do_stuff(matched)
             >>> m = Multiplex('someCommandWithLotsOfOutput.sh')
             >>> # 'begin', at least one non-newline char, 50 newlines, at least one char, then 'end':
@@ -985,7 +986,7 @@ class BaseMultiplex(object):
         and the pattern will be checked against the incoming stream before it is
         processed by the terminal emulator.  Example::
 
-            >>> def handle_xterm_title(m_instance, matched)
+            >>> def handle_xterm_title(m_instance, matched):
             ...     print("Caught title: %s" % matched)
             >>> m = Multiplex('echo -e "\\033]0;Some Title\\007"')
             >>> title_seq_regex = re.compile(r'\\x1b\\][0-2]\;(.*?)(\\x07|\\x1b\\\\)')
@@ -1103,9 +1104,8 @@ class BaseMultiplex(object):
         remaining_patterns = True
         # This starts up the scheduler that constantly checks patterns
         output = self.read() # Remember:  read() is non-blocking
-        # TODO: Add an extra "too much" debug option for "those times"...
-        #if output and self.debug:
-            #print("await: %s" % repr(output))
+        if output and self.debug and EXTRA_DEBUG:
+            print("await: %s" % repr(output))
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
@@ -1125,9 +1125,8 @@ class BaseMultiplex(object):
                 raise Timeout("Lingered longer than %s" % timeout.seconds)
             # Lastly we perform a read() to ensure the output is processed
             output = self.read() # Remember:  read() is non-blocking
-            # TODO: Add this to the "too much" debug option
-            #if output and self.debug:
-                #print("await: %s" % repr(output))
+            if output and self.debug and EXTRA_DEBUG:
+                print("await: %s" % repr(output))
             time.sleep(0.01) # So we don't eat up all the CPU
         return True
 
@@ -1296,9 +1295,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 pass
             if not env:
                 env = {}
+            print("env: %s" % env)
             env["COLUMNS"] = str(cols)
             env["LINES"] = str(rows)
-            env["TERM"] = "xterm-256color" # TODO: Needs to be configurable
+            env["TERM"] = env.get("TERM", "xterm-256color")
             env["PATH"] = os.environ['PATH']
             env["LANG"] = os.environ.get('LANG', 'en_US.UTF-8')
             env["PYTHONIOENCODING"] = "utf_8"
@@ -1572,7 +1572,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                         # If the user pressed Ctrl-C and the ratelimiter was
                         # engaged then we'd best discard the (possibly huge)
                         # buffer so we don't waste CPU cyles processing it.
-                        discard = reader.read(-1)
+                        reader.read(-1)
                         self.ctrl_c_pressed = False
                         return u'^C\n' # Let the user know what happened
                     if self.restore_rate:
@@ -1770,9 +1770,9 @@ def spawn(cmd, rows=24, cols=80, env=None, em_dimensions=None, *args, **kwargs):
     """
     A shortcut to::
 
-        >>> m = Multiplex(cmd, *args, **kwargs)
-        >>> m.spawn(rows, cols, env)
-        >>> return m
+        m = Multiplex(cmd, *args, **kwargs)
+        m.spawn(rows, cols, env)
+        return m
     """
     m = Multiplex(cmd, *args, **kwargs)
     m.spawn(rows, cols, env, em_dimensions=em_dimensions)
