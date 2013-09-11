@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Copyright 2011 Liftoff Software Corporation
+#       Copyright 2013 Liftoff Software Corporation
 #
-# NOTE:  Named logging_plugin.py instead of "logging.py" to avoid conflics with the existing logging module
+# NOTE:  Named logging_plugin.py instead of "logging.py" to avoid conflicts
+#        with the existing logging module
 
 # TODO: Fix the flat log viewing format.  Doesn't look quite right.
 # TODO: Write search functions.
@@ -10,7 +11,8 @@
 # TODO: Write a handler that displays a page where users can drag & drop .golog files to have them played back in their browser.
 
 __doc__ = """\
-logging.py - A plugin for Gate One that provides logging-related functionality.
+logging_plugin.py - A plugin for Gate One that provides logging-related
+functionality.
 
 Hooks
 -----

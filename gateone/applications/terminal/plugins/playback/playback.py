@@ -61,7 +61,7 @@ def save_recording(self, settings):
     Handles uploads of session recordings and returns them to the client in a
     self-contained HTML file that will auto-start playback.
 
-    NOTE: The real crux of the code that handles this is in the template.
+    ..note:: The real crux of the code that handles this is in the template.
     """
     import tornado.template
     from datetime import datetime

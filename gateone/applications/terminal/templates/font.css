@@ -20,8 +20,15 @@
 }
 {% end %}
 {% except %}
+{% try %}
 .✈terminal pre {
     font-family: monospace !important;
     font-size: {{font_size}};
 }
+{% except %}
+.✈terminal pre {
+    font-family: monospace !important;
+    font-size: 0.9em;
+}
+{% end %}
 {% end %}

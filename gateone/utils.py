@@ -834,6 +834,9 @@ def killall(session_dir, pid_file):
     :session_dir: The path to Gate One's session directory.
     :pid_file: The path to Gate One's PID file
     """
+    if not os.path.exists(session_dir):
+        logging.info("No lieutenant, your processes are already dead.")
+        return # Nothing to do
     sessions = os.listdir(session_dir)
     for f in os.listdir('/proc'):
         pid_dir = os.path.join('/proc', f)

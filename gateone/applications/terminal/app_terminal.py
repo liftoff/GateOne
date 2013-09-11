@@ -15,7 +15,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # I like to start my files with imports from Python's standard library...
-import os, sys, logging, time, io
+import os, sys, time, io
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -27,6 +27,7 @@ from utils import cmd_var_swap, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
 from utils import which, get_translation
+from golog import go_logger
 import terminal
 
 # 3rd party imports
@@ -41,6 +42,7 @@ SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
 web_handlers = [] # Assigned in init()
+term_log = go_logger("gateone.terminal")
 
 # Localization support
 _ = get_translation()
@@ -79,7 +81,7 @@ def kill_session(session, kill_dtach=False):
 
     .. note:: This function gets appended to the `SESSIONS[session]["terminal_callbacks"]` list inside of :meth:`TerminalApplication.authenticate`.
     """
-    logging.debug('kill_session(%s)' % session)
+    term_log.debug('kill_session(%s)' % session)
     if kill_dtach:
         from utils import kill_dtached_proc
     for location, apps in list(SESSIONS[session]['locations'].items()):
@@ -135,7 +137,7 @@ def policy_new_terminal(cls, policy):
         max_rows = policy['max_dimensions']['rows']
     if max_terms:
         if open_terminals >= max_terms:
-            logging.error(_(
+            term_log.error(_(
                 "%s denied opening new terminal.  The 'max_terms' policy limit "
                 "(%s) has been reached for this user." % (
                 user['upn'], max_terms)))
@@ -253,7 +255,7 @@ def terminal_policies(cls):
     # Start by determining if the user can even login to the terminal app
     if 'allow' in policy:
         if not policy['allow']:
-            logging.error(_(
+            term_log.error(_(
                 "%s denied access to the Terminal application by policy."
                 % user['upn']))
             return False
@@ -313,7 +315,7 @@ class TerminalApplication(GOApplication):
     icon = os.path.join(APPLICATION_PATH, "static", "icons", "terminal.svg")
     about = "Open terminals running any number of configured applications."
     def __init__(self, ws):
-        logging.debug("TerminalApplication.__init__(%s)" % ws)
+        term_log.debug("TerminalApplication.__init__(%s)" % ws)
         self.policy = {} # Gets set in authenticate() below
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
@@ -327,7 +329,7 @@ class TerminalApplication(GOApplication):
         Called when the WebSocket is instantiated, sets up our WebSocket
         actions, security policies, and attaches all of our plugin hooks/events.
         """
-        logging.debug("TerminalApplication.initialize()")
+        term_log.debug("TerminalApplication.initialize()")
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
         # Register our WebSocket actions
@@ -378,7 +380,7 @@ class TerminalApplication(GOApplication):
                 css_plugins.append(i.split('/')[1])
         plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        logging.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
+        term_log.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
         # Setup some events
         terminals_func = partial(self.terminals, self)
         self.ws.on("go:set_location", terminals_func)
@@ -449,7 +451,7 @@ class TerminalApplication(GOApplication):
         This gets called at the end of :meth:`ApplicationWebSocket.open` when
         the WebSocket is opened.
         """
-        logging.debug('TerminalApplication.open()')
+        term_log.debug('TerminalApplication.open()')
         self.callback_id = "%s;%s;%s" % (
             self.ws.client_id, self.request.host, self.request.remote_ip)
         self.trigger("terminal:open")
@@ -461,7 +463,12 @@ class TerminalApplication(GOApplication):
         Sends all plugin JavaScript files to the client and triggers the
         'terminal:authenticate' event.
         """
-        logging.debug('TerminalApplication.authenticate()')
+        term_log.debug('TerminalApplication.authenticate()')
+        self.log_metadata = {
+            'upn': self.current_user['upn'],
+            'ip_address': self.ws.request.remote_ip
+        }
+        self.term_log = go_logger("gateone.terminal", **self.log_metadata)
         # Get our user-specific settings/policies for quick reference
         self.policy = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
@@ -470,7 +477,7 @@ class TerminalApplication(GOApplication):
             if not self.policy['allow']:
                 # User is not allowed to access the terminal application.  Don't
                 # bother sending them any static files and whatnot.
-                logging.debug(_(
+                self.term_log.debug(_(
                     "User is not allowed to use the Terminal application.  "
                     "Skipping post-authentication functions."))
                 return
@@ -658,7 +665,7 @@ class TerminalApplication(GOApplication):
         """
         # Note: *args and **kwargs are present so we can attach this to a go:
         # event and just ignore the provided arguments.
-        logging.debug('terminals()')
+        self.term_log.debug('terminals()')
         terminals = []
         # Create an application-specific storage space in the locations dict
         if 'terminal' not in self.ws.locations[self.ws.location]:
@@ -692,6 +699,12 @@ class TerminalApplication(GOApplication):
         Sends the 'term_ended' message to the client letting it know that the
         given *term* is no more.
         """
+        metadata = {
+            "term": term,
+            "command": self.loc_terms[term]["command"]
+        }
+        self.term_log.info(
+            "Terminal Closed: %s" % term, metadata=metadata)
         message = {'terminal:term_ended': term}
         if term in self.loc_terms:
             timediff = datetime.now() - self.loc_terms[term]['created']
@@ -711,7 +724,7 @@ class TerminalApplication(GOApplication):
                         "check your server settings."
                     ))
                     cmd = self.loc_terms[term]['multiplex'].cmd
-                    logging.warning(_(
+                    self.term_log.warning(_(
                         "Terminals are closing too quickly after being opened "
                         "(command: %s).  Please check your 'commands' (usually "
                         "in settings/50terminal.conf)." % repr(cmd)))
@@ -787,11 +800,20 @@ class TerminalApplication(GOApplication):
         Returns a new instance of :py:class:`termio.Multiplex` with the proper
         global and client-specific settings.
 
-            * *cmd* - The command to execute inside of Multiplex.
-            * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
-            * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
-            * *encoding* - The default encoding that will be used when reading or writing to the Multiplex instance.
-            * *debug* - If True, will enable debugging on the created Multiplex instance.
+            :cmd:
+                The command to execute inside of Multiplex.
+            :term_id:
+                The terminal to associate with this Multiplex or a descriptive
+                identifier (it's only used for logging purposes).
+            :logging:
+                If ``False``, logging will be disabled for this instance of
+                Multiplex (even if it would otherwise be enabled).
+            :encoding:
+                The default encoding that will be used when reading or writing
+                to the Multiplex instance.
+            :debug:
+                If ``True``, will enable debugging on the created Multiplex
+                instance.
         """
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
@@ -875,8 +897,6 @@ class TerminalApplication(GOApplication):
         without having to worry about figuring out if a new terminal already
         exists or not).
         """
-        logging.debug("%s new_terminal(): %s" % (
-            self.current_user['upn'], settings))
         term = int(settings['term'])
         # TODO: Make these specific to each terminal:
         rows = settings['rows']
@@ -898,7 +918,7 @@ class TerminalApplication(GOApplication):
             try:
                 command = self.policy['default_command']
             except KeyError:
-                logging.error(_(
+                self.term_log.error(_(
                    "You are missing a 'default_command' in your terminal "
                    "settings (usually 50terminal.conf in %s)"
                    % self.ws.settings['settings_dir']))
@@ -908,10 +928,20 @@ class TerminalApplication(GOApplication):
             full_command = self.policy['commands'][command]
         except KeyError:
             # The given command isn't an option
-            logging.error(_("%s: Attempted to execute invalid command (%s)." % (
+            self.term_log.error(_(
+                "%s: Attempted to execute invalid command (%s)." % (
                 self.current_user['upn'], command)))
             self.ws.send_message(_("Terminal: Invalid command: %s" % command))
             return
+        # Make a nice, useful logging line with extra metadata
+        metadata = {
+            "rows": settings["rows"],
+            "columns": settings["columns"],
+            "term": term,
+            "command": command
+        }
+        self.term_log.info("New Terminal: %s" % term, metadata=metadata)
+        # Now remove the new-term-specific metadata
         if 'em_dimensions' in settings:
             self.em_dimensions = {
                 'height': settings['em_dimensions']['h'],
@@ -923,6 +953,7 @@ class TerminalApplication(GOApplication):
             self.loc_terms[term] = {
                 'last_activity': datetime.now(),
                 'title': 'Gate One',
+                'command': command,
                 'manual_title': False,
                 # This is needed by the terminal sharing policies:
                 'user': self.current_user # So we can determine the owner
@@ -972,7 +1003,7 @@ class TerminalApplication(GOApplication):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            logging.debug(_("new_terminal cmd: %s" % cmd))
+            self.term_log.debug(_("new_terminal cmd: %s" % cmd))
             m = term_obj['multiplex'] = self.new_multiplex(
                 cmd, term, encoding=encoding)
             # Set some environment variables so the programs we execute can use
@@ -1108,7 +1139,7 @@ class TerminalApplication(GOApplication):
 
         If the given location dict doesn't exist (yet) it will be created.
         """
-        logging.debug("move_terminal(%s)" % settings)
+        self.term_log.debug("move_terminal(%s)" % settings)
         new_location_exists = True
         term = existing_term = int(settings['term'])
         new_location = settings['location']
@@ -1186,7 +1217,12 @@ class TerminalApplication(GOApplication):
         """
         Kills *term* and any associated processes.
         """
-        logging.debug("killing terminal: %s" % term)
+        metadata = {
+            "term": term,
+            "command": self.loc_terms[term]["command"]
+        }
+        self.term_log.info(
+            "Terminal Killed: %s" % term, metadata=metadata)
         term = int(term)
         if term not in self.loc_terms:
             return # Nothing to do
@@ -1234,7 +1270,7 @@ class TerminalApplication(GOApplication):
         emulator (among other things) to return the terminal to a sane state in
         the event that something went wrong (bad escape sequence).
         """
-        logging.debug('reset_terminal(%s)' % term)
+        self.term_log.debug('reset_terminal(%s)' % term)
         term = int(term)
         # This re-creates all the tabstops:
         tabs = u'\x1bH        ' * 22
@@ -1263,7 +1299,7 @@ class TerminalApplication(GOApplication):
 
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
-        logging.debug("set_title(%s, %s)" % (term, force))
+        self.term_log.debug("set_title(%s, %s)" % (term, force))
         term = int(term)
         term_obj = self.loc_terms[term]
         if term_obj['manual_title']:
@@ -1289,7 +1325,7 @@ class TerminalApplication(GOApplication):
         from :func:`set_title` in that this is an action that gets called by the
         client when the user sets a terminal title manually.
         """
-        logging.debug("manual_title: %s" % settings)
+        self.term_log.debug("manual_title: %s" % settings)
         term = int(settings['term'])
         title = settings['title']
         term_obj = self.loc_terms[term]
@@ -1329,7 +1365,7 @@ class TerminalApplication(GOApplication):
                 }
             }
         """
-        logging.debug(
+        self.term_log.debug(
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
         term_obj = self.loc_terms[term]
@@ -1390,7 +1426,7 @@ class TerminalApplication(GOApplication):
             try:
                 self.write_message(json_encode(output_dict))
             except IOError: # Socket was just closed, no biggie
-                logging.info(
+                self.term_log.info(
                     _("WebSocket closed (%s)") % self.current_user['upn'])
                 multiplex = term_obj['multiplex']
                 multiplex.remove_callback( # Stop trying to write
@@ -1410,7 +1446,7 @@ class TerminalApplication(GOApplication):
         """
         # Commented this out because it was getting annoying.
         # Note to self: add more levels of debugging beyond just "debug".
-        #logging.debug(
+        #self.term_log.debug(
             #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
         if term:
             term = int(term)
@@ -1446,7 +1482,7 @@ class TerminalApplication(GOApplication):
                 client_dict['refresh_timeout'] = multiplex.io_loop.add_timeout(
                     msec, refresh)
         except KeyError as e: # Session died (i.e. command ended).
-            logging.debug(_("KeyError in refresh_screen: %s" % e))
+            self.term_log.debug(_("KeyError in refresh_screen: %s" % e))
         self.trigger("terminal:refresh_screen", term)
 
     @require(authenticated())
@@ -1455,7 +1491,7 @@ class TerminalApplication(GOApplication):
         try:
             term = int(term)
         except ValueError:
-            logging.debug(_(
+            self.term_log.debug(_(
                 "Invalid terminal number given to full_refresh(): %s" % term))
         self.refresh_screen(term, full=True)
         self.trigger("terminal:full_refresh", term)
@@ -1469,7 +1505,7 @@ class TerminalApplication(GOApplication):
 
             {'rows': 24, 'columns': 80}
         """
-        logging.debug("resize(%s)" % repr(resize_obj))
+        self.term_log.debug("resize(%s)" % repr(resize_obj))
         term = None
         if 'term' in resize_obj:
             try:
@@ -1520,7 +1556,7 @@ class TerminalApplication(GOApplication):
         Writes *chars* (string) to *term*.  If *term* is not provided the
         characters will be sent to the currently-selected terminal.
         """
-        logging.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
+        self.term_log.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
         if not term:
             term = self.current_term
         term = int(term) # Just in case it was sent as a string
@@ -1548,7 +1584,7 @@ class TerminalApplication(GOApplication):
         Writes *message['chars']* to *message['term']*.  If *message['term']*
         is not present, *self.current_term* will be used.
         """
-        #logging.debug('write_chars(%s)' % message)
+        #self.term_log.debug('write_chars(%s)' % message)
         if 'chars' not in message:
             return # Invalid message
         if 'term' not in message:
@@ -1557,10 +1593,10 @@ class TerminalApplication(GOApplication):
             self.char_handler(message['chars'], message['term'])
         except Exception as e:
             # Term is closed or invalid
-            logging.error(_(
+            self.term_log.error(_(
                 "Got exception trying to write_chars() to terminal %s"
                 % message['term']))
-            logging.error(str(e))
+            self.term_log.error(str(e))
             import traceback
             traceback.print_exc(file=sys.stdout)
 
@@ -1582,23 +1618,25 @@ class TerminalApplication(GOApplication):
 
         .. ansi-block::
 
-            $ echo -e "\033[_;somename|Text passed to some_function()\007"
+            $ echo -e "\033]_;somename|Text passed to some_function()\007"
 
         Which would result in :func:`some_function` being called like so::
 
             some_function(self, "Text passed to some_function()")
         """
-        logging.debug("opt_esc_handler(%s)" % repr(chars))
+        self.term_log.debug("opt_esc_handler(%s)" % repr(chars))
         plugin_name, text = process_opt_esc_sequence(chars)
         if plugin_name:
             try:
                 self.trigger(
                     "terminal:opt_esc_handler:%s" % plugin_name, text)
             except Exception as e:
-                logging.error(_(
+                self.term_log.error(_(
                     "Got exception trying to execute plugin's optional ESC "
                     "sequence handler..."))
-                logging.error(str(e))
+                self.term_log.error(str(e))
+                import traceback
+                traceback.print_exc(file=sys.stdout)
 
     def get_bell(self):
         """
@@ -1646,11 +1684,11 @@ class TerminalApplication(GOApplication):
             * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
             * **colors** - The name of the CSS text color scheme to be retrieved.
         """
-        logging.debug('get_colors(%s)' % settings)
+        self.term_log.debug('get_colors(%s)' % settings)
         send_css = self.ws.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
             if not hasattr('logged_css_message', self):
-                logging.info(_(
+                self.term_log.info(_(
                     "send_css is false; will not send JavaScript."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
@@ -1787,7 +1825,7 @@ class TerminalApplication(GOApplication):
             *settings['read']* is "AUTHENTICATED" all users will be able to view
             the shared terminal without having to enter a password.
         """
-        logging.debug("share_terminal(%s)" % settings)
+        self.term_log.debug("share_terminal(%s)" % settings)
         from utils import generate_session_id
         out_dict = {'result': 'Success'}
         share_dict = {}
@@ -1847,7 +1885,7 @@ class TerminalApplication(GOApplication):
         shared_terms[share_id] = share_dict
         term_obj['share_id'] = share_id # So we can quickly tell it's shared
         # Make a note of this shared terminal in the logs
-        logging.info(_(
+        self.term_log.info(_(
             "%s shared terminal %s (%s)" % (
                 self.current_user['upn'], term, term_obj['title'])))
         message = {'terminal:term_shared': out_dict}
@@ -2041,10 +2079,10 @@ class TerminalApplication(GOApplication):
             Providing a password is only necessary if the shared terminal
             requires it.
         """
-        logging.debug("attach_shared_terminal(%s)" % settings)
+        self.term_log.debug("attach_shared_terminal(%s)" % settings)
         shared_terms = self.ws.persist['terminal']['shared']
         if 'share_id' not in settings:
-            logging.error(_("Invalid share_id."))
+            self.term_log.error(_("Invalid share_id."))
             return
         password = settings.get('password', None)
         share_obj = None
@@ -2095,7 +2133,7 @@ class TerminalApplication(GOApplication):
         # Tell the client about this terminal's title
         self.set_title(term, force=True)
         # Make a note of this connection in the logs
-        logging.info(_(
+        self.term_log.info(_(
             "%s connected to terminal shared by %s " % (
             self.current_user['upn'], term_obj['user']['upn'])))
         # Add this user to the list of viewers
@@ -2293,12 +2331,12 @@ def init(settings):
         shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
         sys.exit(0)
     if not which('dtach'):
-        logging.warning(
+        term_log.warning(
             _("dtach command not found.  dtach support has been disabled."))
     # Fix the path to known_hosts if using the old default command
     for name, command in term_settings['commands'].items():
         if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:
-            logging.warning(_(
+            term_log.warning(_(
                 "The default path to known_hosts has been changed.  Please "
                 "update your settings to use '/.ssh/known_hosts' instead of "
                 "'/ssh/known_hosts'.  Applying a termporary fix..."))

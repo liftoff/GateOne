@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130910210534" # Gets replaced by git (holds the date/time)
+__commit__ = "20130911084113" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -551,6 +551,7 @@ from golog import go_logger
 logger = go_logger(None)
 auth_log = go_logger('gateone.auth')
 msg_log = go_logger('gateone.message')
+client_log = go_logger('gateone.client')
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -1230,6 +1231,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.user = None
         self.actions = {
             'go:ping': self.pong,
+            'go:log': self.log_message,
             'go:authenticate': self.authenticate,
             'go:get_theme': self.get_theme,
             'go:get_js': self.get_js,
@@ -1248,6 +1250,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.logger = go_logger(None)
         self.msg_log = go_logger('gateone.message')
         self.auth_log = go_logger('gateone.auth')
+        self.client_log = go_logger('gateone.client')
         self._events = {}
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
@@ -1522,9 +1525,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             auth_log.info(_(
                 '{"ip_address": "%s"} WebSocket opened (unknown user).')
             % client_address)
+        # NOTE: These get updated with more metadata inside of authenticate():
         self.logger = go_logger(None, **metadata)
         self.auth_log = go_logger('gateone.auth', **metadata)
         self.msg_log = go_logger('gateone.message', **metadata)
+        self.client_log = go_logger('gateone.client', **metadata)
         if user and 'upn' not in user: # Invalid user info
             # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.error(_(
@@ -1638,6 +1643,42 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         message = {'go:pong': timestamp}
         self.write_message(json_encode(message))
+
+    @require(authenticated(), policies('gateone'))
+    def log_message(self, log_obj):
+        """
+        Attached to the `go:log` WebSocket action; logs the given *log_obj* via
+        :meth:`ApplicationWebSocket.client_log`.  The *log_obj* should be a
+        dict (JSON object, really) in the following format::
+
+            {
+                "level": "info", # Optional
+                "message": "Actual log message here"
+            }
+
+        If a "level" is not given the "info" level will be used.
+
+        *Supported Levels:* "info", "error", "warning", "debug", "fatal",
+        "critical".
+
+        .. note::
+
+            The "critical" and "fatal" log levels both use the
+            `logging.Logger.critical` method.
+        """
+        if "message" not in log_obj:
+            return # Nothing to do
+        log_obj["level"] = log_obj.get("level", "info") # Default to "info"
+        loggers = {
+            "info": self.client_log.info,
+            "warning": self.client_log.warning,
+            "error": self.client_log.error,
+            "debug": self.client_log.debug,
+            "fatal": self.client_log.critical, # Python doesn't use "fatal"
+            "critical": self.client_log.critical,
+        }
+        loggers[log_obj["level"].lower()](
+            "Client Logging: %s" % log_obj["message"])
 
     def api_auth(self, auth_obj):
         """
@@ -1954,6 +1995,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.logger = go_logger(None, **metadata)
         self.auth_log = go_logger('gateone.auth', **metadata)
         self.msg_log = go_logger('gateone.message', **metadata)
+        self.client_log = go_logger('gateone.client', **metadata)
         # Apply the container/prefix settings (if present)
         self.container = settings.get('container', self.container)
         self.prefix = settings.get('prefix', self.prefix)
@@ -3791,9 +3833,6 @@ def main():
     global _
     global PLUGINS
     global APPLICATIONS
-    global logger
-    global auth_log
-    global msg_log
     define_options()
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.
@@ -4108,10 +4147,15 @@ def main():
         if option not in go_settings:
             go_settings[option] = options._options[option].value()
     tornado.log.enable_pretty_logging(options=options)
-    # Assign our logging globals
-    logger = go_logger(None)
-    auth_log = go_logger('gateone.auth')
-    msg_log = go_logger('gateone.message')
+    ## Assign our logging globals
+    #global logger
+    #global auth_log
+    #global msg_log
+    #global client_log
+    #logger = go_logger(None)
+    #auth_log = go_logger('gateone.auth')
+    #msg_log = go_logger('gateone.message')
+    #client_log = go_logger('gateone.client')
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)

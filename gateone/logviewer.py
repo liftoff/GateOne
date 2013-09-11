@@ -128,13 +128,13 @@ def get_frames(golog_path, chunk_size=131072):
             for fr in split_frames[:-1]:
                 # Undo extra CRs caused by capturing shell output on top of
                 # shell output
-                fr = fr.replace('\r\n', '\n')
+                fr = fr.replace(b'\r\n', b'\n')
                 yield fr
             frame = next_frame
         if len(chunk) < chunk_size:
             # Write last frame
             if frame:
-                frame = frame.replace('\r\n', '\n')
+                frame = frame.replace(b'\r\n', b'\n')
                 yield frame
             break
 
@@ -425,7 +425,7 @@ def render_log_frames(golog_path, rows, cols, limit=None):
             frame_time = int(float(frame[:13]))
             frame_screen = frame[14:] # Skips the colon
             # Emulate how a real shell would output newlines:
-            frame_screen = frame_screen.replace('\n', '\r\n')
+            frame_screen = frame_screen.replace(b'\n', b'\r\n')
             term.write(frame_screen)
             # Ensure we're not in the middle of capturing a file.  Otherwise
             # it might get cut off and result in no image being shown.

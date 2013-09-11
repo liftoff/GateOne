@@ -49,8 +49,11 @@ class JSONAdapter(logging.LoggerAdapter):
     entries.  Expects the passed in dict-like object which will be included.
     """
     def process(self, msg, kwargs):
+        extra = self.extra.copy()
+        if 'metadata' in kwargs:
+            extra.update(kwargs.pop('metadata'))
         return ('{json_data} {msg}'.format(
-            json_data=json.dumps(self.extra, sort_keys=True), msg=msg),
+            json_data=json.dumps(extra, sort_keys=True), msg=msg),
             kwargs)
 
 def go_logger(name, **kwargs):

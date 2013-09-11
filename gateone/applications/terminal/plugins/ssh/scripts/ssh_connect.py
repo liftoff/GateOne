@@ -365,7 +365,7 @@ def openssh_connect(
         # Create a temporary script to use with SSH_ASKPASS
         temp = tempfile.NamedTemporaryFile(delete=False)
         os.chmod(temp.name, 0o700)
-        temp.write('#!/bin/sh\necho "%s"\n' % password)
+        temp.write(('#!/bin/sh\necho "{0}"\n'.format(password)).encode('utf-8'))
         temp.close()
         env['SSH_ASKPASS'] = temp.name
         env['DISPLAY'] = ':9999'
@@ -400,10 +400,12 @@ def openssh_connect(
     os.chmod(script_path, 0o700) # 0700 for good security practices
     if password:
         # SSH_ASKPASS needs some special handling
+        # Detach from parent process.
         os.setsid() # This is the key
     # Execute then immediately quit so we don't use up any more memory than we
     # need.
-    os.execvpe('/bin/sh', ['-c', script_path, '&&', 'rm', '-f', script_path], env)
+    os.execvpe('/bin/sh', [
+        '-c', script_path, '&&', 'rm', '-f', script_path], env)
     os._exit(0)
 
 def telnet_connect(user, host, port=23, env=None):

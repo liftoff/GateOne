@@ -2514,7 +2514,7 @@ go.Base.update(GateOne.Terminal, {
                     if (!elementContainsSelection(node)) {
                         var replaced = node.nodeValue.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl);
                         if (node.nodeValue != replaced) {
-                            node.parentNode.innerHTML = node.parentNode.innerHTML.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl)
+                            node.parentNode.innerHTML = node.parentNode.innerHTML.replace(pattern, repl);
                         }
                     }
                 } else {

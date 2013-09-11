@@ -1363,7 +1363,8 @@ class Terminal(object):
     }
 
     RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9>;@:\!]*)([A-Za-z@_])')
-    RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
+    RE_ESC_SEQ = re.compile(
+        r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
     RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*?)(\x07|\x1b\\)')
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
@@ -3653,7 +3654,12 @@ class Terminal(object):
 
         Applications can then do what they wish with *chars*.
 
-        .. note:: I added this functionality so that plugin authors would have a mechanism to communicate with terminal applications.  See the SSH plugin for an example of how this can be done (there's channels of communication amongst ssh_connect.py, ssh.js, and ssh.py).
+        .. note::
+
+            I added this functionality so that plugin authors would have a
+            mechanism to communicate with terminal applications.  See the SSH
+            plugin for an example of how this can be done (there's channels of
+            communication amongst ssh_connect.py, ssh.js, and ssh.py).
         """
         try:
             for callback in self.callbacks[CALLBACK_OPT].values():

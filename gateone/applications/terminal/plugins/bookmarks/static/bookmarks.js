@@ -330,7 +330,7 @@ go.Base.update(GateOne.Bookmarks, {
     syncBookmarks: function(response) {
         /**:GateOne.Bookmarks.syncBookmarks(response)
 
-        Called when the 'bookmarks_updated' WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.
+        Called when the `terminal:bookmarks_updated` WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.
         */
         logDebug('syncBookmarks() response: ' + response + ', response.length: ' + response.length);
         var go = GateOne,

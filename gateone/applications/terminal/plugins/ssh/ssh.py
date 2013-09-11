@@ -43,7 +43,7 @@ __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, logging, re
+import os, re
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -51,6 +51,7 @@ from functools import partial
 from gateone import BaseHandler
 from utils import get_translation, mkdir_p, shell_command, which, json_encode
 from utils import noop, bind
+from golog import go_logger
 
 _ = get_translation()
 
@@ -59,6 +60,7 @@ import tornado.web
 import tornado.ioloop
 
 # Globals
+term_log = go_logger("gateone.terminal")
 OPENSSH_VERSION = None
 DROPBEAR_VERSION = None
 PLUGIN_PATH = os.path.split(__file__)[0] # Path to this plugin's directory
@@ -123,10 +125,11 @@ def get_ssh_dir(self):
     users_ssh_dir = os.path.join(users_dir, '.ssh')
     if os.path.exists(old_ssh_dir):
         if not os.path.exists(users_ssh_dir):
-            logging.info(_("Renaming %s's 'ssh' directory to '.ssh'." % user))
+            self.term_log.info(_(
+                "Renaming %s's 'ssh' directory to '.ssh'." % user))
             os.rename(old_ssh_dir, users_ssh_dir)
         else:
-            logging.warning(_(
+            self.term_log.warning(_(
                 "Both an 'ssh' and '.ssh' directory exist for user %s.  "
                 "Using the .ssh directory." % user))
     return users_ssh_dir
@@ -139,7 +142,7 @@ def open_sub_channel(self, term):
     :class:`termio.Multiplex` instance.  If a slave has already been opened for
     this purpose it will re-use the existing channel.
     """
-    logging.debug("open_sub_channel() term: %s" % term)
+    self.term_log.debug("open_sub_channel() term: %s" % term)
     global OPEN_SUBCHANNELS
     if term in OPEN_SUBCHANNELS and OPEN_SUBCHANNELS[term].isalive():
         # Use existing sub-channel (much faster this way)
@@ -198,7 +201,7 @@ def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
     :func:`~termio.Multiplex.expect` to call :func:`get_cmd_output` when the
     end of the command output is detected.
     """
-    logging.debug('wait_for_prompt()')
+    term_log.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
     getoutput = partial(get_cmd_output, term, errorback, callback)
     m_instance.expect(OUTPUT_MATCH,
@@ -215,7 +218,7 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
     Captures the output of the command executed inside of
     :func:`wait_for_prompt` and calls *callback* if it isn't `None`.
     """
-    logging.debug('get_cmd_output()')
+    term_log.debug('get_cmd_output()')
     cmd_out = [a.rstrip() for a in m_instance.dump() if a.rstrip()]
     capture = False
     out = []
@@ -247,7 +250,7 @@ def terminate_sub_channel(m_instance):
     """
     Calls `m_instance.terminate()` and deletes it from the OPEN_SUBCHANNELS dict.
     """
-    logging.debug("terminate_sub_channel()")
+    term_log.debug("terminate_sub_channel()")
     global OPEN_SUBCHANNELS
     m_instance.terminate()
     # Find the Multiplex object inside of OPEN_SUBCHANNELS and remove it
@@ -262,7 +265,7 @@ def timeout_sub_channel(m_instance):
     Called when the sub-channel times out by way of an
     :class:`termio.Multiplex.expect` pattern that should never match anything.
     """
-    logging.debug(_(
+    term_log.debug(_(
         "Sub-channel on term %s closed due to inactivity."
         % repr(m_instance.term_id)))
     terminate_sub_channel(m_instance)
@@ -273,10 +276,10 @@ def got_error(self, m_instance, match=None, term=None, cmd=None):
 
     *match* is here in case we want to use it for a positive match of an error.
     """
-    logging.error(_(
+    self.term_log.error(_(
         "%s: Got an error trying to capture output inside of "
         "execute_command() running: %s" % (m_instance.user, m_instance.cmd)))
-    logging.debug("output before error: %s" % m_instance.dump())
+    self.term_log.debug("output before error: %s" % m_instance.dump())
     terminate_sub_channel(m_instance)
     if self:
         message = {
@@ -304,12 +307,12 @@ def execute_command(self, term, cmd, callback=None):
 
     .. note:: This will not result in a new terminal being opened on the client--it simply executes a command and returns the result using the existing SSH tunnel.
     """
-    logging.debug(
+    self.term_log.debug(
         "execute_command(): term: %s, cmd: %s" % (term, cmd))
     try:
         m = open_sub_channel(self, term)
     except SSHMultiplexingException as e:
-        logging.error(_(
+        self.term_log.error(_(
             "%s: Got an error trying to open sub-channel on term %s..." %
             (self.current_user['upn'], term)))
         # Try to send an error response to the client
@@ -338,7 +341,7 @@ def execute_command(self, term, cmd, callback=None):
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
     m.expect(READY_MATCH,
         callback=wait, errorback=errorback, preprocess=False, timeout=10)
-    logging.debug("Waiting for READY_MATCH inside execute_command()")
+    self.term_log.debug("Waiting for READY_MATCH inside execute_command()")
     m.writeline(u'echo -e "\\n%s"' % READY_STRING)
 
 def send_result(self, term, cmd, output, m_instance):
@@ -410,7 +413,7 @@ class KnownHostsHandler(BaseHandler):
     def _return_known_hosts(self):
         """Returns the user's known_hosts file in text/plain format."""
         user = self.current_user['upn']
-        logging.debug("known_hosts requested by %s" % user)
+        self.term_log.debug("known_hosts requested by %s" % user)
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
         users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')
@@ -449,7 +452,7 @@ def get_connect_string(self, term):
     that assigns the connection string sent by this function to
     `GateOne.Terminal.terminals[*term*]['sshConnectString']`.
     """
-    logging.debug("get_connect_string() term: %s" % term)
+    self.term_log.debug("get_connect_string() term: %s" % term)
     session = self.ws.session
     session_dir = self.ws.settings['session_dir']
     for f in os.listdir(os.path.join(session_dir, session)):
@@ -525,7 +528,7 @@ def get_host_fingerprint(self, settings):
         self.write_message(message)
     else:
         host = settings['host']
-    logging.debug("get_host_fingerprint(%s:%s)" % (host, port))
+    self.term_log.debug("get_host_fingerprint(%s:%s)" % (host, port))
     out_dict.update({
         'result': 'Success',
         'host': host,
@@ -567,7 +570,7 @@ def generate_new_keypair(self, settings):
     :func:`dropbear_generate_new_keypair` depending on what's available on the
     system.
     """
-    logging.debug('generate_new_keypair()')
+    self.term_log.debug('generate_new_keypair()')
     users_ssh_dir = get_ssh_dir(self)
     name = 'id_ecdsa'
     keytype = None
@@ -606,7 +609,7 @@ def generate_new_keypair(self, settings):
             comment=comment)
 
 def errorback(self, m_instance):
-    logging.debug("keygen errorback()")
+    self.term_log.debug("keygen errorback()")
     print(m_instance.dump())
     m_instance.terminate()
     message = {
@@ -621,15 +624,15 @@ def overwrite(m_instance, match):
     """
     Called if we get asked to overwrite an existing keypair.
     """
-    logging.debug('overwrite()')
+    term_log.debug('overwrite()')
     m_instance.writeline('y')
 
 def enter_passphrase(passphrase, m_instance, match):
-    logging.debug("entering passphrase...")
+    term_log.debug("entering passphrase...")
     m_instance.writeline('%s' % passphrase)
 
 def finished(self, m_instance, fingerprint):
-    logging.debug("keygen finished.  fingerprint: %s" % fingerprint)
+    self.term_log.debug("keygen finished.  fingerprint: %s" % fingerprint)
     message = {
         'terminal:sshjs_keygen_complete': {
             'result': 'Success',
@@ -651,7 +654,7 @@ def openssh_generate_new_keypair(self, name, path,
 
     .. note:: Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+. Otherwise a 2048-bit rsa key will be used.
     """
-    logging.debug('openssh_generate_new_keypair()')
+    self.term_log.debug('openssh_generate_new_keypair()')
     openssh_version = shell_command('ssh -V')[1]
     ssh_major_version = int(
         openssh_version.split()[0].split('_')[1].split('.')[0])
@@ -686,7 +689,7 @@ def openssh_generate_new_keypair(self, name, path,
         "-f '%s'"   # Key path
         % (ssh_keygen_path, bits, keytype, comment, key_path)
     )
-    logging.debug("Keygen command: %s" % command)
+    self.term_log.debug("Keygen command: %s" % command)
     m = self.new_multiplex(command, "gen_ssh_keypair")
     call_errorback = partial(errorback, self)
     m.expect('^Overwrite.*',
@@ -727,7 +730,7 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
     *passphrase* is provided, it will be used to generate the public key (if
     necessary).
     """
-    logging.debug('openssh_generate_public_key()')
+    self.term_log.debug('openssh_generate_public_key()')
     ssh_keygen_path = which('ssh-keygen')
     pubkey_path = "%s.pub" % path
     command = (
@@ -815,7 +818,7 @@ def store_id_file(self, settings):
 
     .. tip:: Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.
     """
-    logging.debug('store_id_file()')
+    self.term_log.debug('store_id_file()')
     out_dict = {'result': 'Success'}
     name, private, public, certificate = None, None, None, None
     passphrase = None
@@ -865,7 +868,7 @@ def store_id_file(self, settings):
             # Now remove the timer that will generate the public key from the
             # private key if it is set.
             if TIMER:
-                logging.debug(_(
+                self.term_log.debug(_(
                     "Got public key, cancelling public key generation timer."))
                 io_loop = tornado.ioloop.IOLoop.instance()
                 io_loop.remove_timeout(TIMER)
@@ -874,7 +877,7 @@ def store_id_file(self, settings):
             # Only generate a new public key if one isn't uploaded within 2
             # seconds (should be plenty of time since they're typically sent
             # simultaneously but inside different WebSocket messages).
-            logging.debug(_(
+            self.term_log.debug(_(
                 "Only received a private key.  Setting timeout to generate the "
                 "public key if not received within 3 seconds."))
             io_loop = tornado.ioloop.IOLoop.instance()
@@ -904,7 +907,7 @@ def delete_identity(self, name):
     'testkey', 'testkey' and 'testkey.pub' would be removed from the user's
     ssh directory (and 'testkey-cert.pub' if present).
     """
-    logging.debug('delete_identity()')
+    self.term_log.debug('delete_identity()')
     out_dict = {'result': 'Success'}
     users_ssh_dir = get_ssh_dir(self)
     private_key_path = os.path.join(users_ssh_dir, name)
@@ -932,7 +935,7 @@ def get_identities(self, anything):
     *anything* is just there because the client needs to send *something* along
     with the 'action'.
     """
-    logging.debug('get_identities()')
+    self.term_log.debug('get_identities()')
     out_dict = {'result': 'Success'}
     users_ssh_dir = get_ssh_dir(self)
     out_dict['identities'] = []
@@ -1012,7 +1015,7 @@ def get_identities(self, anything):
                     out_dict['identities'][i]['default'] = False
     except Exception as e:
         error_msg = _("Error getting identities: %s" % e)
-        logging.error(error_msg)
+        self.term_log.error(error_msg)
         out_dict['result'] = error_msg
     message = {
         'terminal:sshjs_identities_list': out_dict
@@ -1059,14 +1062,14 @@ def create_user_ssh_dir(self):
     To be called by the 'Auth' hook that gets called after the user is done
     authenticating, ensures that the `<user's dir>/ssh` directory exists.
     """
-    logging.debug("create_user_ssh_dir()")
+    self.term_log.debug("create_user_ssh_dir()")
     user = self.current_user['upn']
     users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     ssh_dir = os.path.join(users_dir, '.ssh')
     try:
         mkdir_p(ssh_dir)
     except OSError as e:
-        logging.error(_("Error creating user's ssh directory: %s\n" % e))
+        self.term_log.error(_("Error creating user's ssh directory: %s\n" % e))
 
 def send_ssh_css_template(self):
     """

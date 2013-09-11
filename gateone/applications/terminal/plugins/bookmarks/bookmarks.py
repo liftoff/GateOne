@@ -38,7 +38,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, logging, time, json, socket
+import os, sys, time, json, socket
 from functools import partial
 
 # Our stuff
@@ -690,7 +690,7 @@ def delete_bookmarks(self, deleted_bookmarks):
             bookmarks_db.delete_bookmark(bookmark)
         out_dict['result'] = "Success"
     except Exception as e: # TODO: Make this more specific
-        logging.error("delete_bookmarks error: %s" % e)
+        self.term_log.error("delete_bookmarks error: %s" % e)
         import traceback
         traceback.print_exc(file=sys.stdout)
         out_dict['result'] = "Errors"

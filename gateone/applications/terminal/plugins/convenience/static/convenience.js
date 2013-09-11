@@ -39,18 +39,20 @@ GateOne.Base.update(GateOne.Convenience, {
         Sets up all our conveniences.
         */
         go.Convenience.addPrefs();
-        if (!go.prefs.disableLSConvenience) {
-            go.Convenience.registerLSConvenience();
-        }
-        if (!go.prefs.disableSyslogConvenience) {
-            go.Convenience.registerSyslogConvenience();
-        }
-        if (!go.prefs.disableIPConvenience) {
-            go.Convenience.registerIPConvenience();
-        }
-        if (!go.prefs.disablePSConvenience) {
-            go.Convenience.registerPSConvenience();
-        }
+        E.on("go:js_loaded", function() {
+            if (!go.prefs.disableLSConvenience) {
+                go.Convenience.registerLSConvenience();
+            }
+            if (!go.prefs.disableSyslogConvenience) {
+                go.Convenience.registerSyslogConvenience();
+            }
+            if (!go.prefs.disableIPConvenience) {
+                go.Convenience.registerIPConvenience();
+            }
+            if (!go.prefs.disablePSConvenience) {
+                go.Convenience.registerPSConvenience();
+            }
+        });
     },
     addPrefs: function() {
         /**:GateOne.Convenience.addPrefs()
@@ -135,12 +137,14 @@ GateOne.Base.update(GateOne.Convenience, {
         var bytesPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+[A-Za-z0-9\-._@]+\s+)([0-9]+(?![0-9,.KMGTP]))/g,
             bytesReplacementString = "$1<span class='✈clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes is \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
         t.registerTextTransform("ls-lbytes", bytesPattern, bytesReplacementString);
-        var groupPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
-            groupReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.groupInfo(this)'>$2</span>";
-        t.registerTextTransform("ls-lgroup", groupPattern, groupReplacementString);
-        var userPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
-            userReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
-        t.registerTextTransform("ls-luser", userPattern, userReplacementString);
+        if (go.SSH) {
+            var groupPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
+                groupReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.groupInfo(this)'>$2</span>";
+            t.registerTextTransform("ls-lgroup", groupPattern, groupReplacementString);
+            var userPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
+                userReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
+            t.registerTextTransform("ls-luser", userPattern, userReplacementString);
+        }
         var permissionsPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?) /mg,
             permissionsReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span> ";
         t.registerTextTransform("ls-lperms", permissionsPattern, permissionsReplacementString);
@@ -159,14 +163,19 @@ GateOne.Base.update(GateOne.Convenience, {
         /**:GateOne.Convenience.registerIPConvenience()
 
         Registers a text transform that makes IPv4 addresses into spans that will execute `host <IP address>` when clicked.
+
+        .. note:: This feeature will disable itself if the SSH plugin is disabled/missing.
         */
-        var IPv4Pattern = /(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b)(?!([\.\w-_]|.*a\>))/g,
-            IPv4ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
-        t.registerTextTransform("IPv4", IPv4Pattern, IPv4ReplacementString);
-        // Just a little regex to capture IPv6...
-        var IPv6Pattern = /(\b((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\b)(?!([\:]|.*a\>))/g,
-            IPv6ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
-        t.registerTextTransform("IPv6", IPv6Pattern, IPv6ReplacementString);
+        // This feature requires the SSH plugin to work properly
+        if (go.SSH) {
+            var IPv4Pattern = /(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b)(?!([\.\w-_]|.*a\>))/g,
+                IPv4ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
+            t.registerTextTransform("IPv4", IPv4Pattern, IPv4ReplacementString);
+            // Just a little regex to capture IPv6...
+            var IPv6Pattern = /(\b((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\b)(?!([\:]|.*a\>))/g,
+                IPv6ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
+            t.registerTextTransform("IPv6", IPv6Pattern, IPv6ReplacementString);
+        }
     },
     unregisterIPConvenience: function() {
         /**:GateOne.Convenience.registerIPConvenience()

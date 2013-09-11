@@ -34,14 +34,31 @@ __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
+from golog import go_logger
+
 # Special optional escape sequence handler (see docs on how it works)
 def notice_esc_seq_handler(self, message):
     """
     Handles text passed from the special optional escape sequance handler to
-    display a *message* to the connected client (browser).
+    display a *message* to the connected client (browser).  It can be invoked
+    like so:
 
-    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
+    .. ansi-block::
+
+        $ echo -e "\033]_;notice|Text passed to some_function()\007"
+
+    .. seealso::
+
+        :class:`app_terminal.TerminalApplication.opt_esc_handler` and
+        :func:`terminal.Terminal._opt_handler`
     """
+    if not hasattr(self, 'notice_log'):
+        metadata = {
+            'upn': self.ws.current_user["upn"],
+            'ip_address': self.ws.request.remote_ip
+        }
+        self.notice_log = go_logger('gateone.notice', **metadata)
+    self.notice_log.info("Notice Plugin: %s" % message)
     message = {'go:notice': message}
     self.write_message(message)
 

@@ -1295,7 +1295,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 pass
             if not env:
                 env = {}
-            print("env: %s" % env)
             env["COLUMNS"] = str(cols)
             env["LINES"] = str(rows)
             env["TERM"] = env.get("TERM", "xterm-256color")
@@ -1469,10 +1468,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # collection.
         del self.scheduler
         try:
-            # TODO: Make this walk the series from SIGINT to SIGKILL
-            #os.kill(self.pid, signal.SIGINT)
             os.kill(self.pid, signal.SIGTERM)
-            #os.kill(self.pid, signal.SIGKILL)
+            def recheck_kill():
+                if self.isalive():
+                    os.kill(self.pid, signal.SIGKILL)
+            # NOTE: This will delay calling of this Multiplex instance's
+            #       __del__() method by the same number of seconds...
+            self.io_loop.add_timeout(timedelta(seconds=3), recheck_kill)
         except OSError:
             # The process is already dead--great.
             pass

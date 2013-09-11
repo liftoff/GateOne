@@ -16,7 +16,7 @@ http://www.gosquared.com/liquidicity/archives/122
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
-// TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).
+// TODO: This is a big one:  Support multiple simultaneous Gate One server connections/instances.
 
 // This detects the proper transitionend event name:
 var transitionEndSupported = false,
@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130909200139";
+GateOne.__commit__ = "20130911084113";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -347,8 +347,8 @@ var go = GateOne.Base.update(GateOne, {
         // Capabilities Notifications
         if (!go.prefs.skipChecks) {
             if (!WebSocket) {
-                logError('Browser failed WebSocket support check.');
-                missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
+                logError(gettext('Browser failed WebSocket support check.'));
+                missingCapabilities.push(gettext("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server."));
                 criticalFailure = true;
             }
             if (Blob) {
@@ -365,7 +365,7 @@ var go = GateOne.Base.update(GateOne, {
             //  Need either BlobBuilder (deprecated) or Blob support to save files
             if (!BlobBuilder) {
                 if (!Blob) {
-                    logError('Browser failed Blob support check.');
+                    logError(gettext('Browser failed Blob support check.'));
                     missingCapabilities.push("Your browser does not appear to support the HTML5 File API (<a href='https://developer.mozilla.org/en-US/docs/DOM/Blob'>Blob objects</a>, specifically).  Some features related to saving files will not work.");
                 }
             }
@@ -2392,7 +2392,7 @@ It is recommended that you assign these shortcuts at the top of your code like s
 That way you can just type "logDebug()" anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).
 */
 GateOne.Logging.levels = {
-    // Forward and backward
+    // Forward and backward for ease of use
     50: 'FATAL',
     40: 'ERROR',
     30: 'WARNING',
@@ -2404,17 +2404,27 @@ GateOne.Logging.levels = {
     'INFO': 20,
     'DEBUG': 10
 };
+GateOne.prefs.logToServer = true; // Log to the server by default
 GateOne.noSavePrefs['logLevel'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
+GateOne.noSavePrefs['logToServer'] = null; // This isn't a user pref
 GateOne.Base.update(GateOne.Logging, {
     init: function() {
-        if (typeof(GateOne.prefs.logLevel) == "undefined") {
-            GateOne.prefs.logLevel = 'INFO';
+        /**:GateOne.Logging.init()
+
+        Initializes logging by setting :js:attr:`GateOne.Logging.level` using the value provided by :js:attr:`GateOne.prefs.logLevel`.  :js:attr:`GateOne.prefs.logLevel` may be given as a case-insensitive string or an integer.
+
+        Also, if :js:attr:`GateOne.prefs.logToServer` is ``false`` :js:meth:`GateOne.Logging.logToConsole` will be removed from :js:attr:`GateOne.Logging.destinations`.
+        */
+        var go = GateOne;
+        if (typeof(go.prefs.logLevel) == "undefined") {
+            go.prefs.logLevel = 'INFO';
         }
-        GateOne.Logging.setLevel(GateOne.prefs.logLevel);
         // Initialize the logger
-        if (typeof(GateOne.Logging.level) == 'string') {
-            // Convert to integer
-            GateOne.Logging.level = GateOne.Logging.levels[GateOne.Logging.level.toUpperCase()];
+        go.Logging.setLevel(go.prefs.logLevel);
+        // The default is to send all client-side log messages to the server but this can be disabled by setting `GateOne.prefs.logToServer = false`
+        if (!go.prefs.logToServer) {
+            // Remove the logToServer destination
+            go.Logging.removeDestination('server');
         }
     },
     setLevel: function(level) {
@@ -2433,6 +2443,56 @@ GateOne.Base.update(GateOne.Logging, {
             levelStr = level.toUpperCase();
             level = l.levels[levelStr]; // Get integer
             l.level = level;
+        }
+    },
+    log: function(msg, level, destination) {
+        /**:GateOne.Logging.log(msg[, level[, destination]])
+
+        Logs the given *msg* using all of the functions in `GateOne.Logging.destinations` after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") if *level* is determined to be greater than the value of `GateOne.Logging.level`.  If the given *level* is not greater than `GateOne.Logging.level` *msg* will be discarded (noop).
+
+        *level* can be provided as a string, an integer, null, or be left undefined:
+
+            * If an integer, an attempt will be made to convert it to a string using `GateOne.Logging.levels` but if this fails it will use "lvl:<integer>" as the level string.
+            * If a string, an attempt will be made to obtain an integer value using `GateOne.Logging.levels` otherwise `GateOne.Logging.level` will be used (to determine whether or not the message should actually be logged).
+            * If undefined, the level will be set to `GateOne.Logging.level`.
+            * If ``null`` (as opposed to undefined), level info will not be included in the log message.
+
+        If *destination* is given (must be a function) it will be used to log messages like so: ``destination(message, levelStr)``.  The usual conversion of *msg* to *message* will apply.
+        */
+        var l = GateOne.Logging,
+            now = new Date(),
+            message = "",
+            levelStr = null;
+        if (typeof(level) == 'undefined') {
+            level = l.level;
+        }
+        if (level === parseInt(level, 10)) { // It's an integer
+            if (l.levels[level]) {
+                levelStr = l.levels[level]; // Get string
+            } else {
+                levelStr = "lvl:" + level;
+            }
+        } else if (typeof(level) == "string") { // It's a string
+            levelStr = level;
+            if (l.levels[levelStr]) {
+                level = l.levels[levelStr]; // Get integer
+            } else {
+                level = l.level;
+            }
+        }
+        if (level == null) {
+            message = l.dateFormatter(now) + " " + msg;
+        } else if (level >= l.level) {
+            message = l.dateFormatter(now) + ' ' + levelStr + " " + msg;
+        }
+        if (message) {
+            if (!destination) {
+                for (var dest in l.destinations) {
+                    l.destinations[dest](message, levelStr);
+                }
+            } else {
+                destination(message, levelStr);
+            }
         }
     },
     logToConsole: function (msg, /*opt*/level) {
@@ -2485,54 +2545,17 @@ GateOne.Base.update(GateOne.Logging, {
             debug.trace(msg);
         }
     },
-    log: function(msg, level, destination) {
-        /**:GateOne.Logging.log(msg[, level[, destination]])
+    logToServer: function(msg, /*opt*/level) {
+        /**:GateOne.Logging.logToServer(msg[, level])
 
-        Logs the given *msg* using all of the functions in `GateOne.Logging.destinations` after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") if *level* is determined to be greater than the value of `GateOne.Logging.level`.  If the given *level* is not greater than `GateOne.Logging.level` *msg* will be discarded (noop).
-
-        *level* can be provided as a string, an integer, null, or be left undefined:
-
-            * If an integer, an attempt will be made to convert it to a string using `GateOne.Logging.levels` but if this fails it will use "lvl:<integer>" as the level string.
-            * If a string, an attempt will be made to obtain an integer value using `GateOne.Logging.levels` otherwise `GateOne.Logging.level` will be used (to determine whether or not the message should actually be logged).
-            * If undefined, the level will be set to `GateOne.Logging.level`.
-            * If ``null`` (as opposed to undefined), level info will not be included in the log message.
-
-        If *destination* is given (must be a function) it will be used to log messages like so: ``destination(message, levelStr)``.  The usual conversion of *msg* to *message* will apply.
+        Sends the given log *msg* to the Gate One server.  Such messages will end up in 'logs/gateone-client.log'.
         */
-        var l = GateOne.Logging,
-            now = new Date(),
-            message = "",
-            levelStr = null;
-        if (typeof(level) == 'undefined') {
-            level = l.level;
-        }
-        if (level === parseInt(level, 10)) { // It's an integer
-            if (l.levels[level]) {
-                levelStr = l.levels[level]; // Get string
-            } else {
-                levelStr = "lvl:" + level;
-            }
-        } else if (typeof(level) == "string") { // It's a string
-            levelStr = level;
-            if (l.levels[levelStr]) {
-                level = l.levels[levelStr]; // Get integer
-            } else {
-                level = l.level;
-            }
-        }
-        if (level == null) {
-            message = l.dateFormatter(now) + " " + msg;
-        } else if (level >= l.level) {
-            message = l.dateFormatter(now) + ' ' + levelStr + " " + msg;
-        }
-        if (message) {
-            if (!destination) {
-                for (var dest in l.destinations) {
-                    l.destinations[dest](message, levelStr);
-                }
-            } else {
-                destination(message, levelStr);
-            }
+        var message = {
+            "message": msg,
+            "level": level || "info"
+        };
+        if (GateOne.ws.readyState == 1) {
+            GateOne.ws.send(JSON.stringify({"go:log": message}));
         }
     },
     // Shortcuts for each log level
@@ -2605,7 +2628,8 @@ GateOne.Base.update(GateOne.Logging, {
 });
 
 GateOne.Logging.destinations = { // Default to console logging.
-    'console': GateOne.Logging.logToConsole // Can be added to or replaced/removed
+    'console': GateOne.Logging.logToConsole, // Can be added to or replaced/removed
+    'server': GateOne.Logging.logToServer // Sends log messages to the server to be saved/recored in logs/gateone-client.log
     // If anyone has any cool ideas for log destinations please let us know!
 }
 
@@ -2752,7 +2776,8 @@ GateOne.Base.update(GateOne.Net, {
         }
         go.Net.pingTimeout = setTimeout(function() {
             logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
-            go.ws.close();
+            if (go.ws.readyState == 1) { go.ws.close(); }
+            go.Net.connectionProblem = true;
             go.Events.trigger('go:ping_timeout');
         }, timeout);
     },
@@ -2911,14 +2936,11 @@ GateOne.Base.update(GateOne.Net, {
         go.ws.onopen = function(evt) {
             go.Net.onOpen(callback);
         }
-        go.ws.onclose = function(evt) {
-            // Connection to the server was lost
-            logDebug("WebSocket Closed");
-            go.Net.connectionError();
-        }
+        go.ws.onclose = go.Net.onClose;
         go.ws.onerror = function(evt) {
             // Something went wrong with the WebSocket (who knows?)
-            logError("ERROR on WebSocket");
+            logError(gettext("Could not communicate with the Gate One server via the WebSocket"));
+            go.Net.connectionProblem = true;
         }
         go.ws.onmessage = go.Net.onMessage;
         // Assume SSL connect failure if readyState doesn't change from 3 within 5 seconds
@@ -2929,6 +2951,39 @@ GateOne.Base.update(GateOne.Net, {
             }, 5000);
         }
         return go.ws;
+    },
+    onClose: function(evt) {
+        /**:GateOne.Net.onClose(evt)
+
+        Attached to :js:meth:`GateOne.ws.onclose`; called when the WebSocket is closed.
+
+        If :js:attr:`GateOne.Net.connectionProblem` is ``true`` :js:meth:`GateOne.Net.connectionError` will be called.
+        */
+        console.log(evt);
+        logDebug(gettext("WebSocket Closed"));
+        if (go.Net.connectionProblem) {
+            go.Net.connectionError();
+        }
+        go.Events.trigger("go:disconnected");
+    },
+    disconnect: function(/*opt*/reason) {
+        /**:GateOne.Net.disconnect([reason])
+
+        Closes the WebSocket and clears all processes (timeouts/keepalives) that watch the state of the connection.
+
+        If a *reason* is given it will be passed to the WebSocket's ``close()`` function as the only argument.
+
+        .. note:: The *reason* feature of WebSockets does not appear to be implemented in any browsers (yet).
+        */
+        clearTimeout(go.Net.sslErrorTimeout);
+        go.Net.sslErrorTimeout = null;
+        // Stop trying to ping the server since we're no longer connected
+        clearInterval(go.Net.keepalivePing);
+        go.Net.keepalivePing = null;
+        clearTimeout(go.Net.pingTimeout);
+        go.Net.pingTimeout = null;
+        // Close the WebSocket
+        go.ws.close(3000, reason); // Why 3000?  Why not!
     },
     onOpen: function(/*opt*/callback) {
         /**:GateOne.Net.onOpen([callback])
@@ -4028,7 +4083,6 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. note:: The default is to display the message in the lower-right corner of :js:attr:`GateOne.prefs.goDiv` but this can be controlled via CSS.
         */
-        logInfo('Message: ' + message); // Useful for looking at previous messages
         if (!id) {
             id = 'notice';
         }
@@ -4042,6 +4096,7 @@ GateOne.Base.update(GateOne.Visual, {
             messageSpan = u.createElement('span'),
             closeX = u.createElement('span', {'class': '✈close_notice'}),
             unique = u.randomPrime(),
+            logTemp = u.createElement('div'), // Used to strip HTML from messages before we log them (because they're hard to read otherwise)
             removeFunc = function(now) {
                 v.noticeTimers[unique] = setTimeout(function() {
                     go.Visual.applyStyle(notice, {'opacity': 0});
@@ -4057,12 +4112,10 @@ GateOne.Base.update(GateOne.Visual, {
                 return;
             }
         }
-        if (!timeout) {
-            timeout = 1000;
-        }
-        if (!removeTimeout) {
-            removeTimeout = 5000;
-        }
+        logTemp.innerHTML = message; // So we can strip the HTML
+        logInfo('Message: ' + logTemp.textContent); // Useful for looking at previous messages
+        timeout = timeout || 1000;
+        removeTimeout = removeTimeout || 5000;
         if (!noticeContainer) {
             // Use a fallback (Gate One probably hasn't loaded yet; error situation)
             var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'z-index': 999999}}); // Have to use 'style' since CSS may not have been loaded

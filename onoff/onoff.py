@@ -136,6 +136,8 @@ class OnOffMixin(object):
         # Make sure our _on_off_events dict is present (if first invokation)
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
+        if not hasattr(self, 'exc_info'):
+            self.exc_info = None
         logging.debug(
             "OnOffMixin.triggering event(s): %s (args: %s, kwargs: %s)"
             % (events, args, kwargs))
@@ -146,15 +148,24 @@ class OnOffMixin(object):
                 for callback_obj in self._on_off_events[event]:
                     try:
                         callback_obj['callback'](*args, **kwargs)
-                    except TypeError:
-                        logging.warning(
-                            "trigger() failed trying to call %s.  Attempting to"
-                            " call with automatic 'self' applied..." %
-                            callback_obj['callback'].__name__)
-                        callback_obj['callback'](self, *args, **kwargs)
-                        logging.warning(
-                            "You probably want to update your code to bind "
-                            "'self' to that function using functools.partial()")
+                    except TypeError as e:
+                        self.exc_info = sys.exc_info() # Save it just in case
+                        if hasattr(callback_obj['callback'], '__name__'):
+                            logging.warning(
+                                "trigger() failed trying to call %s.  "
+                                "Attempting to call with automatic 'self' "
+                                "applied..." %
+                                callback_obj['callback'].__name__)
+                        try:
+                            callback_obj['callback'](self, *args, **kwargs)
+                            logging.warning(
+                                "You probably want to update your code to bind "
+                                "'self' to that function using "
+                                "functools.partial()")
+                        except TypeError as ee:
+                            # The callback in question had its own TypeError
+                            # Pass it on...
+                            raise self.exc_info[1], None, self.exc_info[2]
                     callback_obj['calls'] += 1
                     if callback_obj['calls'] == callback_obj['times']:
                         self.off(event, callback_obj['callback'])
