@@ -1702,20 +1702,12 @@ class TerminalApplication(GOApplication):
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'
-        container = settings["container"]
-        prefix = settings["prefix"]
         colors = settings["colors"]
-        template_args = dict(
-            container=container,
-            prefix=prefix,
-            url_prefix=go_url
-        )
-        #out_dict = {'files': []}
         colors_filename = "%s.css" % colors
         colors_path = os.path.join(term_colors_path, colors_filename)
         filename = "term_colors.css" # Make sure it's the same every time
         self.render_and_send_css(colors_path,
-            element_id="text_colors", filename=filename, **template_args)
+            element_id="text_colors", filename=filename)
 
     @require(authenticated(), policies('terminal'))
     def get_locations(self):
