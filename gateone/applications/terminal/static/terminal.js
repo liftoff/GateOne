@@ -1753,7 +1753,7 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
         var lastTerm = null,
-            termNode = go.Terminal.terminals['terminal'];
+            termNode = go.Terminal.terminals[term]['terminal'];
         if (message === undefined) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
