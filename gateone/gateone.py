@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130912214405" # Gets replaced by git (holds the date/time)
+__commit__ = "20130912223528" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1244,6 +1244,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:get_locations': self.get_locations,
             'go:set_location': self.set_location,
             'go:set_locale': self.set_locale,
+            'go:debug': self.debug,
         }
         # Setup some instance-specific loggers that we can later update with
         # more metadata
@@ -1488,6 +1489,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         cls = ApplicationWebSocket
         cls.instances.add(self)
+        if hasattr(self, 'set_nodelay'):
+            # New feature of Tornado 3.1 that can reduce latency:
+            self.set_nodelay(True)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
             origin = self.request.headers['Origin']
@@ -1575,6 +1579,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
+        self.ping(bytes(int(time.time() * 1000)))
         self.trigger("go:open")
 
     def on_message(self, message):
@@ -1649,10 +1654,29 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 app.on_close()
         self.trigger("go:close")
 
+    def on_pong(self, timestamp):
+        """
+        Records the latency of clients (from the server's perspective) via a
+        log message.
+
+        .. note::
+
+            This is the ``pong`` specified in the WebSocket protocol itself.
+            The `pong` method is a Gate One-specific implementation.
+        """
+        latency = int(time.time() * 1000) - int(timestamp)
+        print("latency: %s" % latency)
+        self.logger.info(_("WebSocket Latency: {0}ms").format(latency))
+
     def pong(self, timestamp):
         """
-        Responds to a client 'ping' request...  Just returns the given
-        timestamp back to the client so it can measure round-trip time.
+        Attached to the `go:ping` WebSocket action; responds to a client's
+        ``ping`` by returning the value (*timestamp*) that was sent.  This
+        allows the client to measure the round-trip time of the WebSocket.
+
+        .. note::
+
+            This is a WebSocket action specific to Gate One. It
         """
         message = {'go:pong': timestamp}
         self.write_message(json_encode(message))
@@ -2695,6 +2719,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     'mtime': mtime,
                     'kind': kind,
                     'requires': requires,
+                    'element_id': element_id,
                     'media': media # NOTE: Ignored if JS
                 })
             if use_client_cache:
@@ -2743,6 +2768,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'mtime': mtime,
             'kind': kind,
             'requires': requires,
+            'element_id': element_id,
             'media': media # NOTE: Ignored if JS
         }]}
         if use_client_cache:
@@ -3096,6 +3122,34 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             except AttributeError:
                 continue
         return tuple(out)
+
+    @require(authenticated(), policies('gateone'))
+    def debug(self, term):
+        """
+        Imports Python's Garbage Collection module (gc) and displays various
+        information about the current state of things inside of Gate One.
+
+        .. note:: Can only be called from a JavaScript console like so...
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({'go:debug': null}));
+        """
+        import gc
+        #gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
+        gc.set_debug(
+            gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
+        from pprint import pprint
+        pprint(gc.garbage)
+        print("gc.collect(): %s" % gc.collect())
+        pprint(gc.garbage)
+        print("SESSIONS:")
+        pprint(SESSIONS)
+        try:
+            from pympler import asizeof
+            print("Size of SESSIONS dict: %s" % asizeof.asizeof(SESSIONS))
+        except ImportError:
+            pass # No biggie
 
 class ErrorHandler(tornado.web.RequestHandler):
     """

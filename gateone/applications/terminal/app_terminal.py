@@ -1710,28 +1710,12 @@ class TerminalApplication(GOApplication):
             prefix=prefix,
             url_prefix=go_url
         )
-        out_dict = {'files': []}
+        #out_dict = {'files': []}
         colors_filename = "%s.css" % colors
         colors_path = os.path.join(term_colors_path, colors_filename)
-        rendered_path = self.render_style(colors_path, **template_args)
         filename = "term_colors.css" # Make sure it's the same every time
-        mtime = os.stat(rendered_path).st_mtime
-        kind = 'css'
-        out_dict['files'].append({
-            'filename': filename,
-            'mtime': mtime,
-            'kind': kind,
-            'element_id': 'text_colors' # To ensure the filename isn't used
-        })
-        self.ws.file_cache[filename] = {
-            'filename': filename,
-            'kind': kind,
-            'path': rendered_path,
-            'mtime': mtime,
-            'element_id': 'text_colors'
-        }
-        message = {'go:file_sync': out_dict}
-        self.write_message(message)
+        self.render_and_send_css(colors_path,
+            element_id="text_colors", filename=filename, **template_args)
 
     @require(authenticated(), policies('terminal'))
     def get_locations(self):
@@ -2235,15 +2219,6 @@ class TerminalApplication(GOApplication):
             line = [a for a in line if len(a) == 1]
             print("%s:%s" % (i, "".join(line)))
             print(renditions[i])
-        # Also check if there's anything that's uncollectable
-        import gc
-        gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
-        from pprint import pprint
-        pprint(gc.garbage)
-        print("gc.collect(): %s" % gc.collect())
-        pprint(gc.garbage)
-        print("SESSIONS...")
-        pprint(SESSIONS)
         try:
             from pympler import asizeof
             print("screen size: %s" % asizeof.asizeof(screen))
@@ -2251,6 +2226,7 @@ class TerminalApplication(GOApplication):
             print("Total term object size: %s" % asizeof.asizeof(term_obj))
         except ImportError:
             pass # No biggie
+        self.ws.debug() # Do regular debugging as well
 
 def init(settings):
     """
