@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130911084113";
+GateOne.__commit__ = "20130911181115";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -492,8 +492,6 @@ var go = GateOne.Base.update(GateOne, {
             toolbar = u.createElement('div', {'id': 'toolbar', 'class': '✈toolbar_container'}),
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'✈toolbar', 'title': gettext("Preferences")}),
             panels = u.getNodes('.✈panel'),
-            // Firefox doesn't support 'mousewheel'
-//             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'✈sideinfo'}),
             updateCSSfunc = function(panelNode) {
                 if (panelNode.id == prefix+'panel_prefs') {
@@ -578,6 +576,7 @@ var go = GateOne.Base.update(GateOne, {
                 }
                 go.prefs.disableTransitions = false;
             }
+            go.Visual.updateDimensions();
             E.trigger("go:save_prefs");
             // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("go:save_prefs", yourFunc) instead
             if (go.savePrefsCallbacks.length) {
@@ -1375,7 +1374,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return txt.toString();
     },
-    prevEmDimensions: {'w': 7, 'h': 13}, // Used if something goes wrong doing the calculation.  These are just reasonable defaults that will be overwritten
+    prevEmDimensions: {'w': 7, 'h': 14}, // Used if something goes wrong doing the calculation.  These are just reasonable defaults that will be overwritten
     getEmDimensions: function(elem, /*opt*/where) {
         /**:GateOne.Utils.getEmDimensions(elem[, where])
 
@@ -1398,9 +1397,7 @@ GateOne.Base.update(GateOne.Utils, {
         */
 //         logDebug('getEmDimensions('+elem+', id: '+elem.id+')');
         var u = GateOne.Utils,
-            node = u.getNode(elem),
-            parent = node.parentNode,
-            node = node.cloneNode(false), // Work on a clone so we can leave the original alone
+            node = u.getNode(elem).cloneNode(false), // Work on a clone so we can leave the original alone
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
@@ -1439,6 +1436,7 @@ GateOne.Base.update(GateOne.Utils, {
             node.style.right = 'auto';
             node.style.width = 'auto';
             node.style.height = 'auto';
+            node.style.display = 'block';
             sizingPre.style.position = 'absolute';
             sizingPre.style.top = 0;
             sizingPre.style.left = 0;
@@ -1446,11 +1444,13 @@ GateOne.Base.update(GateOne.Utils, {
             sizingPre.style.right = 'auto';
             sizingPre.style.width = 'auto';
             sizingPre.style.height = 'auto';
+            sizingPre.style.display = 'block';
             sizingPre.style['white-space'] = 'pre'; // Without this the size calculation will be off
+            sizingPre.style['word-wrap'] = 'normal';
             // Add in our sizingDiv and grab its height
             node.appendChild(sizingPre);
-            var nodeHeight = sizingPre.getClientRects()[0].height,
-                nodeWidth = sizingPre.getClientRects()[0].width;
+            var nodeHeight = sizingPre.scrollHeight,
+                nodeWidth = sizingPre.scrollWidth;
             nodeHeight = parseInt(nodeHeight)/256;
             nodeWidth = parseInt(nodeWidth)/1024;
             // Clean up, clean up
@@ -1472,8 +1472,8 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return u.prevEmDimensions;
     },
-    getRowsAndColumns: function(elem) {
-        /**:GateOne.Utils.getRowsAndColumns(elem)
+    getRowsAndColumns: function(elem, /*opt*/where) {
+        /**:GateOne.Utils.getRowsAndColumns(elem[, where])
 
         Calculates and returns the number of text rows and colunmns that will fit in the given element (*elem*) as an object like so:
 
@@ -1482,6 +1482,7 @@ GateOne.Base.update(GateOne.Utils, {
             {'cols': 165, 'rows': 45}
 
         :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+        :param where: An optional location to please a cloned node of the given *elem* before performing calculations.
         :returns: An object with obj.cols and obj.rows representing the maximum number of columns and rows of text that will fit inside *elem*.
 
         .. warning:: *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
@@ -1494,25 +1495,26 @@ GateOne.Base.update(GateOne.Utils, {
             {'cols': 165, 'rows': 45}
         */
 //         logDebug('getRowsAndColumns('+elem+')');
+        where = where || go.node;
         var u = go.Utils,
             node = u.getNode(elem),
             elementDimensions = {
                 h: node.clientHeight,
                 w: node.clientWidth
             },
-            textDimensions = u.getEmDimensions(elem, go.node);
+            textDimensions = u.getEmDimensions(elem, where);
         if (!u.isVisible(node)) {
             node = node.cloneNode(false); // Work on a clone so we can leave the original alone
             // Reset so it is visible
             node.style.display = '';
             node.style.opacity = 1;
-            go.node.appendChild(node, true);
+            where.appendChild(node, true);
             elementDimensions = {
                 h: node.clientHeight,
                 w: node.clientWidth
             },
-            textDimensions = u.getEmDimensions(elem, go.node);
-            go.node.removeChild(node);
+            textDimensions = u.getEmDimensions(elem, where);
+            where.removeChild(node);
         }
         if (!textDimensions) {
             return; // Nothing to do
@@ -1694,6 +1696,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
                 go.Visual.updateDimensions(); // In case the styles changed the size of text
                 go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
+                go.Events.trigger("go:css_loaded");
             };
         if (message['result'] == 'Success') {
             // This is for handling any given CSS file
@@ -1703,6 +1706,7 @@ GateOne.Base.update(GateOne.Utils, {
                         media = message['media'] || 'screen';
                     if (message['element_id']) {
                         // Use the element ID that was provided
+                        message['element_id'] = message['element_id'].replace(/\./g, '_'); // IDs with dots are a no-no
                         existing = u.getNode('#'+prefix+message['element_id']);
                         stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     } else {
@@ -1717,6 +1721,9 @@ GateOne.Base.update(GateOne.Utils, {
                     }
                 }
             }
+        } else {
+            logError(gettext("Error loading stylesheet: " + JSON.stringify(message)));
+            return;
         }
         delete message['result'];
         if (noCache === undefined && message['cache'] != false) {
@@ -1726,11 +1733,20 @@ GateOne.Base.update(GateOne.Utils, {
             go.Storage.uncacheStyle(message, message['kind']);
         }
         go.Storage.loadedFiles[message['filename']] = true;
-        go.node.addEventListener(transitionEndName, transitionEndFunc, false);
-        go.Utils.loadStyleTimer = setTimeout(function() {
-            // This should only get called if the transitionend event never fires
-            transitionEndFunc();
-        }, 1500);
+        // Don't trigger the "go:css_loaded" event until everything is done loading
+        if (u.cssLoadedDebounce) {
+            clearTimeout(u.cssLoadedDebounce);
+            u.cssLoadedDebounce = null;
+        }
+        u.cssLoadedDebounce = setTimeout(function() {
+            go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
+            go.node.addEventListener(transitionEndName, transitionEndFunc, false);
+            clearTimeout(go.Utils.loadStyleTimer);
+            go.Utils.loadStyleTimer = setTimeout(function() {
+                // This should only get called if the transitionend event never fires
+                transitionEndFunc();
+            }, 1000);
+        }, 100);
     },
     loadCSS: function(url, id){
         /**:GateOne.Utils.loadCSS(url, id)
@@ -2651,6 +2667,7 @@ This is where all of Gate One's `WebSocket <https://developer.mozilla.org/en/Web
     `go:load_style`      :js:func:`GateOne.Utils.loadStyleAction`
     `go:log`             :js:func:`GateOne.Net.log`
     `go:notice`          :js:func:`GateOne.Visual.serverMessageAction`
+    `go:user_message`    :js:func:`GateOne.Visual.userMessageAction`
     `go:ping`            :js:func:`GateOne.Net.ping`
     `go:pong`            :js:func:`GateOne.Net.pong`
     `go:reauthenticate`  :js:func:`GateOne.Net.reauthenticate`
@@ -2769,7 +2786,13 @@ GateOne.Base.update(GateOne.Net, {
             logLatency = true;
         }
         go.Net.logLatency = logLatency; // So pong() will know what to do
-        go.ws.send(JSON.stringify({'go:ping': timestamp}));
+        if (go.ws.readyState == 1) {
+            go.ws.send(JSON.stringify({'go:ping': timestamp}));
+        } else {
+            go.Net.connectionProblem = true;
+            go.Net.disconnect();
+            go.Net.connectionError();
+        }
         if (go.Net.pingTimeout) {
             clearTimeout(go.Net.pingTimeout);
             go.Net.pingTimeout = null;
@@ -2865,19 +2888,17 @@ GateOne.Base.update(GateOne.Net, {
         go.Net.pingTimeout = null;
         var u = go.Utils,
             v = go.Visual,
-            errorElem = u.createElement('div', {'id': 'error_message'}),
-            workspaces = u.toArray(u.getNodes('.✈workspace')),
-            message = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
-        logError("Error communicating with server... ");
-        workspaces.forEach(function(wsObj) {
-            v.closeWorkspace(wsObj.id.split('workspace')[1]);
-        });
-        v.lastWorkspaceNumber = 0; // Reset it (applications will create their own workspaces)
+//             workspaces = u.toArray(u.getNodes('.✈workspace')),
+            message = gettext("Attempting to connect to the Gate One server...");
+//         workspaces.forEach(function(wsObj) {
+//             v.closeWorkspace(wsObj.id.split('workspace')[1]);
+//         });
+//         v.lastWorkspaceNumber = 0; // Reset it (applications will create their own workspaces)
+        v.enableOverlay(); // So it is obvious that we're disconnected
         if (msg) {
             message = "<p>" + msg + "</p>";
         }
-        errorElem.innerHTML = message;
-        go.node.appendChild(errorElem);
+        go.Visual.displayMessage(message);
         // Fire a connection_error event.  DEVELOPERS: It's a good event to attach to in order to grab a new/valid API authentication object.
         // For reference, to reset the auth object just assign it:  GateOne.prefs.auth = <your auth object>
         go.Events.trigger("go:connection_error");
@@ -2939,7 +2960,6 @@ GateOne.Base.update(GateOne.Net, {
         go.ws.onclose = go.Net.onClose;
         go.ws.onerror = function(evt) {
             // Something went wrong with the WebSocket (who knows?)
-            logError(gettext("Could not communicate with the Gate One server via the WebSocket"));
             go.Net.connectionProblem = true;
         }
         go.ws.onmessage = go.Net.onMessage;
@@ -2959,7 +2979,6 @@ GateOne.Base.update(GateOne.Net, {
 
         If :js:attr:`GateOne.Net.connectionProblem` is ``true`` :js:meth:`GateOne.Net.connectionError` will be called.
         */
-        console.log(evt);
         logDebug(gettext("WebSocket Closed"));
         if (go.Net.connectionProblem) {
             go.Net.connectionError();
@@ -2984,6 +3003,7 @@ GateOne.Base.update(GateOne.Net, {
         go.Net.pingTimeout = null;
         // Close the WebSocket
         go.ws.close(3000, reason); // Why 3000?  Why not!
+        go.Visual.displayMessage(gettext("The WebSocket has been disconnected."));
     },
     onOpen: function(/*opt*/callback) {
         /**:GateOne.Net.onOpen([callback])
@@ -2994,13 +3014,21 @@ GateOne.Base.update(GateOne.Net, {
         */
         logDebug("onOpen()");
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix, 'location': go.location};
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
+        // Close any open workspaces/apps (they'll be immediately re-created with the latest & greatest data from the server)
+        workspaces.forEach(function(wsObj) {
+            v.closeWorkspace(wsObj.id.split('workspace')[1]);
+        });
+        v.lastWorkspaceNumber = 0; // Reset it (applications will create their own workspaces)
         // Set connectionSuccess so we don't do an SSL check if the server goes down for a while.
         go.Net.connectionSuccess = true;
+        v.disableOverlay(); // Just in case we're re-connecting
         // When we fail an origin check we'll get an error within a split second of onOpen() being called so we need to check for that and stop loading stuff if we're not truly connected.
         if (!go.Net.connectionProblem) {
             setTimeout(function() {
@@ -3028,7 +3056,9 @@ GateOne.Base.update(GateOne.Net, {
                     }
                 }
                 go.ws.send(JSON.stringify({'go:authenticate': settings}));
-                // NOTE: This event can't be used by applications (and their plugins) since their JS won't have been loaded yet:
+                // NOTE: The "go:connnection_established" event is only useful to plugins/applications in *reconnect* situations.
+                // Why?  Because it gets fired before plugin/application JS gets downloaded on initial page load.
+                // So the only time a plugin/application can use it is when the connection to the server is re-established.
                 go.Events.trigger("go:connnection_established");
                 go.initialize();
                 if (callback) {
@@ -3681,6 +3711,7 @@ GateOne.Base.update(GateOne.Visual, {
             Action               Function
             ===================  ==============================================
             `go:notice`          :js:meth:`GateOne.Visual.serverMessageAction`
+            `go:user_message`    :js:meth:`GateOne.Visual.userMessageAction`
             ===================  ==============================================
 
         Registers the following Gate One events:
@@ -3739,6 +3770,7 @@ GateOne.Base.update(GateOne.Visual, {
             go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
         }
         go.Net.addAction('go:notice', v.serverMessageAction);
+        go.Net.addAction('go:user_message', v.userMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
         go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
@@ -4182,26 +4214,30 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             v = go.Visual,
-            workspace = 0,
             prefix = go.prefs.prefix,
+            workspace = 0,
+            workspaceNode,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
-            gridwrapper = u.getNode('#'+prefix+'gridwrapper');
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
+            workspaceObj = {created: new Date()};
         if (!v.lastWorkspaceNumber) {
             v.lastWorkspaceNumber = 0; // Start at 0 so the first increment will be 1
         }
         v.lastWorkspaceNumber = v.lastWorkspaceNumber + 1;
         workspace = v.lastWorkspaceNumber;
-        currentWorkspace = prefix+'workspace' + v.lastWorkspaceNumber;
+        currentWorkspace = prefix+'workspace'+v.lastWorkspaceNumber;
         if (!go.prefs.embedded) {
             // Prepare the workspace div for the grid
-            workspace = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
+            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
         } else {
-            workspace = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
+            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
         }
-        gridwrapper.appendChild(workspace);
-        workspace.focus();
+        workspaceObj['node'] = workspaceNode;
+        go.workspaces[workspace] = workspaceObj;
+        gridwrapper.appendChild(workspaceNode);
+        workspaceNode.focus();
         go.Events.trigger('go:new_workspace', workspace);
-        return workspace;
+        return workspaceNode;
     },
     closeWorkspace: function(workspace, /*opt*/message) {
         /**:GateOne.Visual.closeWorkspace(workspace)
@@ -4656,6 +4692,15 @@ GateOne.Base.update(GateOne.Visual, {
         /**:GateOne.Visual.serverMessageAction(message)
 
         Attached to the `go:notice` WebSocket action; displays a given *message* from the Gate One server as a transient pop-up using :js:meth:`GateOne.Visual.displayMessage`.
+        */
+        GateOne.Visual.displayMessage(message);
+    },
+    userMessageAction: function(message) {
+        /**:GateOne.Visual.userMessageAction(message)
+
+        Attached to the `go:user_message` WebSocket action; displays a given *message* as a transient pop-up using :js:meth:`GateOne.Visual.displayMessage`.
+
+        .. note:: This will likely change to include/use additional metadata in the future (such as: from, to, etc)
         */
         GateOne.Visual.displayMessage(message);
     },
@@ -5260,11 +5305,11 @@ GateOne.Base.update(GateOne.Visual, {
         if (existingOverlay) {
             return true;
         } else {
-            overlay.onmousedown = function(e) {
-                // NOTE: Do not set 'onmousedown = go.Input.capture' as this will trigger capture() into thinking it was called via an onblur event.
-                u.removeElement(overlay);
-                v.overlay = false;
-            }
+//             overlay.onmousedown = function(e) {
+//                 // NOTE: Do not set 'onmousedown = go.Input.capture' as this will trigger capture() into thinking it was called via an onblur event.
+//                 u.removeElement(overlay);
+//                 v.overlay = false;
+//             }
             go.node.appendChild(overlay);
             v.overlay = true;
             go.Events.trigger('go:overlay_enabled');
@@ -5290,22 +5335,22 @@ GateOne.Base.update(GateOne.Visual, {
         }
     },
     // NOTE: Below is a work in progress.  Not used by anything yet.
-    fitWindow: function(elem, parent) {
-        // Scales the given *elem* to fit within the given *parent*.
-        // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
-        var termPre = GateOne.Terminal.terminals[term].node,
-            screenSpan = GateOne.Terminal.terminals[term].screenNode;
-        if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-            var nodeHeight = screenSpan.offsetHeight;
-            if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
-                var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
-                    transform = "scale(" + scale + ", " + scale + ")";
-                GateOne.Visual.applyTransform(termPre, transform);
-            } else if (nodeHeight > document.documentElement.clientHeight) { // Shrink to fit
-
-            }
-        }
-    },
+//     fitWindow: function(elem, parent) {
+//         // Scales the given *elem* to fit within the given *parent*.
+//         // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
+//         var termPre = GateOne.Terminal.terminals[term].node,
+//             screenSpan = GateOne.Terminal.terminals[term].screenNode;
+//         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+//             var nodeHeight = screenSpan.offsetHeight;
+//             if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
+//                 var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
+//                     transform = "scale(" + scale + ", " + scale + ")";
+//                 GateOne.Visual.applyTransform(termPre, transform);
+//             } else if (nodeHeight > document.documentElement.clientHeight) { // Shrink to fit
+//
+//             }
+//         }
+//     },
     nodeThumb: function(elem, scale) {
         /**:GateOne.Visual.nodeThumb(elem, scale)
 
@@ -5580,7 +5625,7 @@ GateOne.Base.update(GateOne.Storage, {
                     // NOTE:  Using "!=" below instead of ">" so that debugging works properly
                     if (remoteFileObj['mtime'] != localFileObj['mtime']) {
                         logDebug(remoteFileObj['filename'] + " is cached but is older than what's on the server.  Requesting an updated version...");
-                        go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['filename']}));
+                        go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['hash']}));
                         // Even though filenames are hashes they will always remain the same.  The new file will overwrite the old entry in the cache.
                     } else {
                         // Load the local copy
@@ -5606,24 +5651,24 @@ GateOne.Base.update(GateOne.Storage, {
                                 } else {
                                     logDebug("Dependency loaded!");
                                     // Emulate an incoming message from the server to load this JS
-                                    var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                                    var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
                                     u.loadJSAction(messageObj, true); // true here indicates "don't cache" (already cached)
                                 }
                             } else {
                                 // Emulate an incoming message from the server to load this JS
-                                var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                                var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
                                 u.loadJSAction(messageObj, true); // true here indicates "don't cache" (already cached)
                             }
                         } else if (remoteFileObj['kind'] == 'css') {
                             // Emulate an incoming message from the server to load this CSS
-                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'data': localFileObj['data'],  'element_id': remoteFileObj['element_id'], 'media': localFileObj['media']};
+                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'],  'element_id': remoteFileObj['element_id'], 'media': localFileObj['media']};
                             u.loadStyleAction(messageObj, true); // true here indicates "don't cache" (already cached)
                         }
                     }
                 } else {
                     // File isn't cached; tell the server to send it
                     logDebug(remoteFileObj['filename'] + " is not cached.  Requesting...");
-                    go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['filename']}));
+                    go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['hash']}));
                 }
             };
         remoteFiles.forEach(function(file) {
@@ -5637,7 +5682,7 @@ GateOne.Base.update(GateOne.Storage, {
             logDebug('cleanupFiles()');
             var filenames = [];
             objects.forEach(function(jsObj) {
-                filenames.push(jsObj['filename']);
+                filenames.push(jsObj['hash']); // The filenames are actually the hashes of their names
             });
             if (filenames.length) {
                 go.ws.send(JSON.stringify({'go:cache_cleanup': {'filenames': filenames, 'kind': kind}}));

@@ -112,8 +112,7 @@ def go_logger(name, **kwargs):
             backupCount=options.log_file_num_backups)
         channel.setFormatter(LogFormatter(color=False))
         logger.addHandler(channel)
-    if kwargs:
-        logger = JSONAdapter(logger, kwargs)
+    logger = JSONAdapter(logger, kwargs)
     return logger
 
 go_log = go_logger('gateone')

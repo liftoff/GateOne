@@ -116,7 +116,6 @@ go.Base.update(GateOne.Playback, {
         logDebug("GateOne.Playback.newTerminalCallback("+term+")");
         var p = go.Playback,
             termPre, screenSpan,
-            emDimensions = u.getEmDimensions(go.prefs.goDiv),
             extraSpace = u.createElement('span', {'class': '✈playback_spacer'}); // This goes at the bottom of terminals to fill the space where the playback controls go
         if (t.terminals[term]) {
             termPre = t.terminals[term]['node'];

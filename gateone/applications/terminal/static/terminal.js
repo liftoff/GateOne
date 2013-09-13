@@ -105,7 +105,7 @@ go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into cli
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
 go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
-go.Terminal.outputSuspended = "Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.";
+go.Terminal.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
@@ -430,18 +430,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:keyboard_mode', go.Terminal.termKeyboardModeAction);
         go.Net.addAction('terminal:shared_terminals', go.Terminal.sharedTerminalsAction);
         go.Terminal.createPrefsPanel();
-        go.Events.on("go:panel_toggle:in", updatePrefsfunc);
-        E.on("go:save_prefs", function() {
-            // In case the user changed the rows/columns or the font/size changed:
-            setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-//                 go.Visual.updateDimensions();
-                for (var termObj in GateOne.Terminal.terminals) {
-                    if (termObj % 1 === 0) { // Actual terminal objects are integers
-                        go.Terminal.sendDimensions(termObj);
-                    }
-                };
-            }, 3000);
-        });
+        E.on("go:panel_toggle:in", updatePrefsfunc);
         E.on("go:restore_defaults", function() {
             go.prefs['colors'] = "default";
             go.prefs['disableTermTransitions'] = false;
@@ -455,7 +444,6 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("terminal:switch_terminal", go.Terminal.switchTerminalEvent);
         E.on("go:switch_workspace", go.Terminal.switchWorkspaceEvent);
-        E.on("go:connection_error", go.Terminal.connectionError);
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
             // Ensure any scaled terminals are un-scaled so there's no overlap:
@@ -467,7 +455,7 @@ go.Base.update(GateOne.Terminal, {
             u.showElements('.✈pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
-        E.on("go:timeout", go.Terminal.timeoutEvent);
+        E.on("go:connnection_established", go.Terminal.reconnectEvent);
         go.Terminal.loadFont();
         go.Terminal.loadTextColors();
         E.on("go:js_loaded", function() {
@@ -491,6 +479,7 @@ go.Base.update(GateOne.Terminal, {
 
         Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
         */
+        logInfo("GateOne.Terminal.__new__(" + settings + ")");
         var command = settings['command'];
         go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
         // TODO: Make this take settings like "command", rows/columns, and *where*.
@@ -690,7 +679,7 @@ go.Base.update(GateOne.Terminal, {
     onResizeEvent: function(e) {
         /**:GateOne.Terminal.onResizeEvent()
 
-        Attached to the "go:update_dimensions" event; calls :js:meth:`GateOne.Terminal.sendDimensions` for all terminals to ensure the new dimensions get applied.
+        Attached to the `go:update_dimensions` event; calls :js:meth:`GateOne.Terminal.sendDimensions` for all terminals to ensure the new dimensions get applied.
         */
         logDebug('GateOne.Terminal.onResizeEvent()');
         var term = localStorage[prefix+'selectedTerminal'],
@@ -699,55 +688,53 @@ go.Base.update(GateOne.Terminal, {
             return; // Nothing to do (terminal not open yet or was already removed)
         }
         var termPre = terminalObj['node'];
-        if (u.isVisible(termPre)) {
-            for (var termNum in go.Terminal.terminals) {
-                if (termNum % 1 === 0) { // Actual terminal objects are integers
-                    go.Terminal.sendDimensions(termNum);
-                }
-            };
+        if (u.isVisible(termPre)) { // Only if terminal is visible
+//             for (var termNum in go.Terminal.terminals) {
+//                 if (termNum % 1 === 0) { // Actual terminal objects are integers
+//                     if (termNum == term) {
+//                         // Send the currently-selected term's dimensions right away
+//                         go.Terminal.sendDimensions(termNum);
+//                     }
+//                 }
+//             };
+            go.Terminal.sendDimensions();
             if (go.prefs.scrollback != 0) {
                 var parentHeight = termPre.parentNode.clientHeight;
                 if (parentHeight) {
                     termPre.style.height = parentHeight + 'px';
-                } else {
-                    termPre.style.height = "100%";
                 }
             }
             // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
             u.scrollToBottom(termPre);
             // Make sure the terminal is in alignment
             E.once("terminal:term_updated", function() {
-                if (go.Terminal.alignTimer) {
-                    clearTimeout(go.Terminal.alignTimer);
-                    go.Terminal.alignTimer = null;
-                }
-                go.Terminal.alignTimer = setTimeout(function() {
-                    go.Terminal.alignTerminal(term);
-                }, 100); // Just enough to debounce
+                go.Terminal.alignTerminal(term);
             });
         }
     },
-    timeoutEvent: function() {
-        /**:GateOne.Terminal.timeoutEvent()
+    reconnectEvent: function() {
+        /**:GateOne.Terminal.reconnectEvent()
 
-        Attached to the 'go:timeout' event; closes all open terminals when the user's session has timed out.
+        Attached to the `go:connnection_established` event; closes all open terminals so that :js:meth:`GateOne.Terminal.reattachTerminalsAction` can do its thing.
         */
-        var terms = u.toArray(u.getNodes('.✈terminal'));
-        terms.forEach(function(termObj) {
-            // Passing 'true' here to keep the stuff in localStorage for this term.
-            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
-        });
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                // The "true, '', false" below tells closeTerminal() to leave the localStorage alone, don't display a close message, and don't tell the server to kill it.
+                go.Terminal.closeTerminal(term, true, "", false);
+            }
+        }
     },
     connectionError: function() {
         /**:GateOne.Terminal.connectionError()
 
         This function gets attached to the "go:connection_error" event; closes all open terminals.
         */
-        var terms = u.toArray(u.getNodes('.✈terminal'));
-        terms.forEach(function(termObj) {
-            // Passing 'true' here to keep the stuff in localStorage for this term.
-            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
-        });
+//         var terms = u.toArray(u.getNodes('.✈terminal'));
+//         terms.forEach(function(termObj) {
+//             // Passing 'true' here to keep the stuff in localStorage for this term.
+//             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
+//         });
     },
     getOpenTerminals: function() {
         /**:GateOne.Terminal.getOpenTerminals()
@@ -844,15 +831,19 @@ go.Base.update(GateOne.Terminal, {
             }, 1000);
         }, 1000);
     },
-    sendDimensions: function(term, /*opt*/ctrl_l) {
-        /**:GateOne.Terminal.sendDimensions(term[, ctrl_l])
+    sendDimensions: function(/*opt*/term, /*opt*/ctrl_l) {
+        /**:GateOne.Terminal.sendDimensions([term[, ctrl_l]])
 
-        Detects and sends the current terminal's dimensions (rows/columns) to the server.
+        Detects and sends the given term's dimensions (rows/columns) to the server.
+
+        If no *term* is given it will send the dimensions of the currently-selected terminal to the server which will be applied to all terminals.
         */
         logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
-        var prevRows = go.prefs.rows,
-            prevCols = go.prefs.columns;
+        var prevRows = go.Terminal.prevRows,
+            prevCols = go.Terminal.prevCols,
+            noTerm;
         if (!term) {
+            noTerm = true;
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
         if (typeof(ctrl_l) == 'undefined') {
@@ -863,12 +854,13 @@ go.Base.update(GateOne.Terminal, {
             return; // Nothing to do (terminal has not been created yet or was just closed)
         }
         var termNode = termObj['terminal'],
+            where = termObj['where'],
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-            emDimensions = u.getEmDimensions(termNode, termNode.parentNode.parentNode),
-            dimensions = u.getRowsAndColumns(termNode),
+            emDimensions = u.getEmDimensions(termNode, where),
+            dimensions = u.getRowsAndColumns(termNode, where),
             rowsValue = (dimensions.rows - rowAdjust),
-            colsValue = Math.round(dimensions.columns - colAdjust),
+            colsValue = Math.ceil(dimensions.columns - colAdjust),
             prefs = {
                 'term': term,
                // rows are set below...
@@ -886,8 +878,11 @@ go.Base.update(GateOne.Terminal, {
         } else {
             prefs['rows'] = Math.floor(rowsValue);
         }
-        if (!emDimensions || !dimensions) {
+        if (!emDimensions.h || !emDimensions.w) {
             return; // Nothing to do
+        }
+        if (!prefs.rows || !prefs.columns) {
+            return; // Something went wrong
         }
         if (prefs.rows < 2 || prefs.columns < 2) {
             return; // Something went wrong; ignore
@@ -895,9 +890,14 @@ go.Base.update(GateOne.Terminal, {
         if (prevRows == prefs.rows && prevCols == prefs.columns) {
             return; // Nothing to do
         }
+        if (noTerm) {
+            delete prefs["term"]; // This tells the server to apply these dimensions to all open terminals
+        }
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { prefs.columns = go.prefs.columns };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
+        go.Terminal.prevCols = prefs['columns'];
+        go.Terminal.prevRows = prefs['rows'];
         // Execute any sendDimensionsCallbacks
         E.trigger("terminal:send_dimensions", term);
         if (GateOne.Net.sendDimensionsCallbacks.length) {
@@ -941,7 +941,7 @@ go.Base.update(GateOne.Terminal, {
     resizeAction: function(message) {
         /**:GateOne.Terminal.resizeAction(message)
 
-        Called when the server sends the "terminal:resize" WebSocket action.  Sets the 'rows' and 'columns' values inside `GateOne.Terminal.terminals[message['term']]` and sets the same values inside the Info & Tools panel.
+        Called when the server sends the `terminal:resize` WebSocket action.  Sets the 'rows' and 'columns' values inside `GateOne.Terminal.terminals[message['term']]` and sets the same values inside the Info & Tools panel.
         */
         var term = message['term'],
             rows = message['rows'],
@@ -1045,15 +1045,17 @@ go.Base.update(GateOne.Terminal, {
             return; // Don't bother if scrollback has been disabled
         }
         var termPre = go.Terminal.terminals[term]['node'],
-            screenSpan = go.Terminal.terminals[term]['screenNode'];
+            screenSpan = go.Terminal.terminals[term]['screenNode'],
+            where = go.Terminal.terminals[term]['terminal'],
+            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust;
         if (!termPre) {
             return; // Can happen for the same reason as above
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-        var emDimensions = u.getEmDimensions(termPre, termPre.parentNode.parentNode);
+        var emDimensions = u.getEmDimensions(screenSpan, where);
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
-                var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
+                var nodeHeight = screenSpan.offsetHeight + (emDimensions.h * rowAdjust), // The +em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
                 if (nodeHeight < go.node.offsetHeight) { // Resize to fit
                     var scaleY = go.node.offsetHeight / nodeHeight,
@@ -1066,15 +1068,15 @@ go.Base.update(GateOne.Terminal, {
         } else {
             // Feel free to attach something like this to the "terminal:term_updated" event if you want.
             if (u.isVisible(termPre)) {
-                var originalHeight = termPre.style.height;
-                go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
-                termPre.style.height = ''; // Reset it (important for the distance calculation below)
+//                 var originalHeight = termPre.style.height;
+//                 go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
+//                 termPre.style.height = ''; // Reset it (important for the distance calculation below)
                 // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
-                var distance = go.node.clientHeight - termPre.offsetHeight,
+                var distance = go.node.clientHeight - (screenSpan.offsetHeight + Math.floor(emDimensions.h * rowAdjust)),
                     transform = "translateY(-" + distance + "px)";
                 v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                termPre.style.height = originalHeight; // Put it back to what it was
-                go.Terminal.enableScrollback(term); // Turn it back on
+//                 termPre.style.height = originalHeight; // Put it back to what it was
+//                 go.Terminal.enableScrollback(term); // Turn it back on
             }
         }
     },
@@ -1386,10 +1388,10 @@ go.Base.update(GateOne.Terminal, {
                 pastearea.value = ''; // Empty it out to ensure there's no leftovers in subsequent pastes
             }, 1);
         }
-        pastearea.oncontextmenu = function(e) {
+        pastearea.addEventListener('contextmenu', function(e) {
             pastearea.focus();
-        }
-        pastearea.onmousemove = function(e) {
+        }, false);
+        pastearea.addEventListener('mousemove', function(e) {
             var termline = null,
                 elem = null,
                 maxRecursion = 10,
@@ -1448,7 +1450,7 @@ go.Base.update(GateOne.Terminal, {
                     u.showElement(pastearea);
                 }
             }, timeout);
-        }
+        }, false);
         pastearea.addEventListener('mousedown', function(e) {
             // When the user left-clicks assume they're trying to highlight text
             // so bring the terminal to the front and try to emulate normal
@@ -1467,6 +1469,7 @@ go.Base.update(GateOne.Terminal, {
                 // Switch terminals
                 go.Terminal.switchTerminal(selectedTerm);
             }
+            go.Terminal.setActive(selectedTerm);
             if (m.button.left) { // Left button depressed
                 u.hideElement(pastearea);
                 if (go.Terminal.pasteAreaTimer) {
@@ -1521,9 +1524,15 @@ go.Base.update(GateOne.Terminal, {
 
         Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         */
-        // TODO: Finish supporting terminal types.
-        // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
         logDebug("newTerminal(" + term + ")");
+        if (!go.Storage.loadedFiles['font.css']) {
+            // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
+            setTimeout(function() {
+                // Retry in a few ms
+                go.Terminal.newTerminal(term, settings, where);
+            }, 50);
+            return;
+        }
         var t = go.Terminal,
             currentTerm, terminal, emDimensions, dimensions, rows, columns, pastearea, switchTermFunc,
             termUndefined = false,
@@ -1576,25 +1585,30 @@ go.Base.update(GateOne.Terminal, {
                 where.innerHTML = ""; // Empty it out before we use it
                 workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
             } else {
-                where = go.prefs.goDiv;
+                where = go.node;
             }
+        } else {
+            where = u.getNode(where);
         }
         // Create the terminal record scaffold
-        go.Terminal.terminals[term] = {
-            created: new Date(), // So we can keep track of how long it has been open
-            mode: 'default', // e.g. 'appmode', 'default', etc
-            keyboard: 'default', // e.g. 'default', 'xterm', 'sco'
-            backspace: String.fromCharCode(127), // ^?
-            encoding: 'utf-8',  // Just a default--will get overridden if provided via settings['encoding']
-            screen: [],
-            prevScreen: [],
-            lineCache: [],
-            title: 'Gate One',
-            scrollback: [],
-            scrollbackTimer: null, // Controls re-adding scrollback buffer
-            where: where,
-            workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
-        };
+        if (!go.Terminal.terminals[term]) {
+            // Why the above check?  In case we're resuming from being disconnected
+            go.Terminal.terminals[term] = {
+                created: new Date(), // So we can keep track of how long it has been open
+                mode: 'default', // e.g. 'appmode', 'default', etc
+                keyboard: 'default', // e.g. 'default', 'xterm', 'sco'
+                backspace: String.fromCharCode(127), // ^?
+                encoding: 'utf-8',  // Just a default--will get overridden if provided via settings['encoding']
+                screen: [],
+                prevScreen: [],
+                lineCache: [],
+                title: 'Gate One',
+                scrollback: [],
+                scrollbackTimer: null, // Controls re-adding scrollback buffer
+                where: where,
+                workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
+            }
+        }
         for (var pref in settings) {
             go.Terminal.terminals[term][pref] = settings[pref];
         }
@@ -1627,16 +1641,19 @@ go.Base.update(GateOne.Terminal, {
         } else {
             u.getNode(where).appendChild(terminal);
         }
-        dimensions = u.getRowsAndColumns(terminal);
-        rows = Math.ceil(dimensions.rows - rowAdjust);
+        dimensions = u.getRowsAndColumns(terminal, where);
+        rows = (dimensions.rows - rowAdjust);
+        if ((rows - Math.floor(rows)) > 0.8) {
+            rows = Math.ceil(rows);
+        } else {
+            rows = Math.floor(rows);
+        }
         columns = Math.ceil(dimensions.columns - colAdjust);
         go.Terminal.terminals[term]['rows'] = rows;
         go.Terminal.terminals[term]['columns'] = columns;
         go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
-        for (var i=0; i<dimensions.rows; i++) {
-            // Fill out prevScreen with spaces
-            go.Terminal.terminals[term]['prevScreen'].push(' ');
-        }
+        go.Terminal.prevCols = columns; // So sendDimensions() will know if we are already set to this size
+        go.Terminal.prevRows = rows;    // Ditto
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
         terminal.addEventListener('click', switchTermFunc, false);
         // Get any previous term's dimensions so we can use them for the new terminal
@@ -1663,11 +1680,13 @@ go.Base.update(GateOne.Terminal, {
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
         screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'})
         // Add the scaffold of the screen
-        for (var i=0; i < rows; i++) {
+        for (var i=0; i<rows; i++) {
             var classes = '✈termline ' + prefix + 'line_' + i,
                 lineSpan = u.createElement('span', {'class': classes});
             lineSpan.innerHTML = ' ';
             screenSpan.appendChild(lineSpan);
+            // Fill out prevScreen with spaces
+            go.Terminal.terminals[term]['prevScreen'][i] = ' ';
             // Update the existing screen array in-place to cut down on GC
             go.Terminal.terminals[term]['screen'][i] = ' ';
             // Update the lineCache too
@@ -1677,7 +1696,7 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
-            termPre.style.height = "100%"; // Ensures the top doesn't get cut off
+//             termPre.style.height = "100%"; // Ensures the top doesn't get cut off
         }
         termPre.appendChild(screenSpan);
         u.scrollToBottom(termPre);
@@ -1705,7 +1724,8 @@ go.Base.update(GateOne.Terminal, {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
             setTimeout(slide, 100);
         }
-        termSettings['em_dimensions'] = u.getEmDimensions(terminal, terminal.parentNode.parentNode);
+        termSettings['em_dimensions'] = u.getEmDimensions(terminal, where);
+        go.Terminal.alignTerminal(term);
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
@@ -1731,8 +1751,9 @@ go.Base.update(GateOne.Terminal, {
 
         Closes the given terminal (*term*) and tells the server to end its running process.
         */
-        logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill);
-        var lastTerm = null;
+        logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
+        var lastTerm = null,
+            termNode = go.Terminal.terminals['terminal'];
         if (message === undefined) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
@@ -1745,7 +1766,9 @@ go.Base.update(GateOne.Terminal, {
             delete localStorage[prefix+'scrollback'+term];
         }
         // Remove the terminal from the page
-        u.removeElement('#'+prefix+'term' + term);
+        if (termNode) {
+            u.removeElement(termNode);
+        }
         // Also remove it from working memory
         delete go.Terminal.terminals[term];
         // Now find out what the previous terminal was and move to it
@@ -1883,7 +1906,7 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.alignTimer = setTimeout(function() {
             go.Terminal.alignTerminal(term);
-        }, 100); // Just enough to debounce
+        }, 1050); // Just enough to debounce
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Terminal.switchWorkspaceEvent(workspace)
@@ -2088,9 +2111,9 @@ go.Base.update(GateOne.Terminal, {
             // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
             if (parentHeight) {
                 termPre.style.height = parentHeight + 'px';
-            } else {
+            }/* else {
                 termPre.style.height = "100%"; // This ensures there's a scrollbar
-            }
+            }*/
             termPre.style['overflow-y'] = ""; // Allow the class to control this (will be auto)
             if (termScrollback) {
                 var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
@@ -2270,7 +2293,7 @@ go.Base.update(GateOne.Terminal, {
     reattachTerminalsAction: function(terminals) {
         /**:GateOne.Terminal.reattachTerminalsAction(terminals)
 
-        Called after we authenticate to the server, this function is attached to the 'terminal:terminals' WebSocket action which is the server's way of notifying the client that there are existing terminals.
+        Called after we authenticate to the server, this function is attached to the `terminal:terminals` WebSocket action which is the server's way of notifying the client that there are existing terminals.
 
         If we're reconnecting to an existing session, running terminals will be recreated/reattached.
 
@@ -2279,6 +2302,14 @@ go.Base.update(GateOne.Terminal, {
         var newTermSettings,
             reattachCallbacks = false;
         logDebug("reattachTerminalsAction() terminals: " + terminals);
+        if (!go.Storage.loadedFiles['font.css']) {
+            // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
+            setTimeout(function() {
+                // Retry in a few ms
+                go.Terminal.reattachTerminalsAction(terminals);
+            }, 50);
+            return;
+        }
         // Clean up localStorage
         for (var key in localStorage) {
             // Clean up old scrollback buffers that aren't attached to terminals anymore:

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130911084113" # Gets replaced by git (holds the date/time)
+__commit__ = "20130911181115" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1363,8 +1363,21 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             message = f.read()
         if message:
             message = message.rstrip()
-            msg_log.info("Broadcast (via broadcast_file): %s" % message)
-            message_dict = {'go:notice': message}
+            metadata = {'clients': []}
+            for instance in cls.instances:
+                try: # Only send to users that have authenticated
+                    user = instance.current_user
+                except AttributeError:
+                    continue
+                user_info = {
+                    'upn': user['upn'],
+                    'ip_address': user['ip_address']
+                }
+                metadata['clients'].append(user_info)
+            msg_log.info(
+                "Broadcast (via broadcast_file): %s" % message,
+                metadata=metadata)
+            message_dict = {'go:user_message': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
             io.open(broadcast_file, 'w').write(u'') # Empty it out
 
@@ -2371,7 +2384,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     theme_css_file, **template_args)
                 theme_files.append(rendered_path)
         # Combine the theme files into one
-        filename = 'theme.css' # Don't need a hashed name for the theme
+        filename = 'theme.css'
+        filename_hash = md5(
+            filename.encode('utf-8')).hexdigest()[:10]
         cached_theme_path = os.path.join(cache_dir, filename)
         new_theme_path = os.path.join(cache_dir, filename+'.new')
         with io.open(new_theme_path, 'wb') as f:
@@ -2394,11 +2409,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         kind = 'css'
         out_dict['files'].append({
             'filename': filename,
+            'hash': filename_hash,
             'mtime': mtime,
             'kind': kind,
             'element_id': 'theme'
         })
-        self.file_cache[filename] = {
+        self.file_cache[filename_hash] = {
             'filename': filename,
             'kind': kind,
             'path': cached_theme_path,
@@ -2409,8 +2425,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             message = {'go:file_sync': out_dict}
             self.write_message(message)
         else:
-            files = [a['filename'] for a in out_dict['files']]
-            self.file_request(files, use_client_cache=use_client_cache)
+            self.file_request(filename_hash, use_client_cache=use_client_cache)
 
     @require(authenticated())
     def get_js(self, filename):
@@ -2467,13 +2482,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         filenames = message['filenames']
         kind = message['kind']
         expired = []
-        for filename in filenames:
-            if filename.endswith('.js'):
-                # The file_cache uses hashes; convert it
-                filename = md5(
-                    filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
-            if filename not in self.file_cache:
-                expired.append(filename)
+        for filename_hash in filenames:
+            if filename_hash not in self.file_cache:
+                expired.append(filename_hash)
         if not expired:
             logging.debug(_(
                 "No expired %s files at client %s" %
@@ -2535,10 +2546,16 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         else:
             filename_hash = files_or_hash
-        if filename_hash.endswith('.js'):
-            # The file_cache uses hashes; convert it
-            filename_hash = md5(
-                filename_hash.encode('utf-8')).hexdigest()[:10]
+        if filename_hash not in self.file_cache:
+            error_msg = _('File Request Error: File not found ({0})').format(
+                filename_hash)
+            self.logger.warning(error_msg)
+            out_dict = {
+                'result': error_msg,
+                'filename': filename_hash
+            }
+            self.write_message({'go:load_js': out_dict})
+            return
         # Get the file info out of the file_cache so we can send it
         element_id = self.file_cache[filename_hash].get('element_id', None)
         path = self.file_cache[filename_hash]['path']
@@ -2552,17 +2569,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'result': 'Success',
             'cache': use_client_cache,
             'mtime': mtime,
-            'filename': filename_hash,
+            'filename': filename,
+            'hash': filename_hash,
             'kind': kind,
             'element_id': element_id,
             'requires': requires,
             'media': media
         }
-        if filename.endswith('.js'):
-            # JavaScript files can have dependencies which require that the
-            # client knows the filename.  The path-is-information-disclosure
-            # problem really only applies to rendered CSS template files anyway
-            out_dict['filename'] = filename
         cache_dir = self.settings['cache_dir']
         if self.settings['debug']:
             out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
@@ -2598,8 +2611,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             message = {'go:load_theme': out_dict}
         self.write_message(message)
 
-    def send_js_or_css(self,
-        paths_or_fileobj, kind, element_id=None, requires=None, media="screen"):
+    def send_js_or_css(self, paths_or_fileobj, kind,
+            element_id=None, requires=None, media="screen", filename=None):
         """
         Initiates a file synchronization of the given *paths_or_fileobj* with
         the client to ensure it has the latest version of the file(s).
@@ -2616,6 +2629,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         Optionally, a *media* string may be provided to specify the 'media='
         value when creating a <style> tag to hold the given CSS.
+
+        Optionally, a *filename* string may be provided which will be used
+        instead of the name of the actual file when file synchronization occurs.
+        This is useful for multi-stage processes (e.g. rendering templates)
+        where you wish to preserve the original filename.  Just be aware that
+        if you do this the given *filename* must be unique.
 
         .. note:
 
@@ -2647,11 +2666,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             for file_obj in paths_or_fileobj:
                 if isinstance(file_obj, basestring):
                     path = file_obj
-                    filename = os.path.split(path)[1]
+                    if not filename:
+                        filename = os.path.split(path)[1]
                 else:
                     file_obj.seek(0) # Just in case
                     path = file_obj.name
-                    filename = os.path.split(file_obj.name)[1]
+                    if not filename:
+                        filename = os.path.split(file_obj.name)[1]
                 mtime = os.stat(path).st_mtime
                 filename_hash = md5(
                     filename.encode('utf-8')).hexdigest()[:10]
@@ -2667,11 +2688,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 if self.settings['debug']:
                     # This makes sure that the files are always re-downloaded
                     mtime = time.time()
-                if not filename.endswith('.js'):
-                    # JavaScript files don't need a hashed filename
-                    filename = filename_hash
                 out_dict['files'].append({
                     'filename': filename,
+                    'hash': filename_hash,
                     'mtime': mtime,
                     'kind': kind,
                     'requires': requires,
@@ -2686,11 +2705,16 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return # No further processing is necessary
         elif isinstance(paths_or_fileobj, basestring):
             path = paths_or_fileobj
-            filename = os.path.split(path)[1]
+            if not filename:
+                filename = os.path.split(path)[1]
         else:
             paths_or_fileobj.seek(0) # Just in case
             path = paths_or_fileobj.name
-            filename = os.path.split(paths_or_fileobj.name)[1]
+            if not filename:
+                filename = os.path.split(paths_or_fileobj.name)[1]
+        # NOTE: The .split('.') above is so the hash we generate is always the
+        # same.  The tail end of the filename will have its modification date.
+        # Cache the metadata for sync
         mtime = os.stat(path).st_mtime
         logging.debug('send_js_or_css(%s) (mtime: %s)' % (path, mtime))
         if not os.path.exists(path):
@@ -2700,9 +2724,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Also, we don't want to reveal the file structure on the server.
         filename_hash = md5(
             filename.encode('utf-8')).hexdigest()[:10]
-        # NOTE: The .split('.') above is so the hash we generate is always the
-        # same.  The tail end of the filename will have its modification date.
-        # Cache the metadata for sync
         self.file_cache[filename_hash] = {
             'filename': filename,
             'kind': kind,
@@ -2715,11 +2736,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
             mtime = time.time()
-        if not filename.endswith('.js'):
-            # JavaScript files don't need a hashed filename
-            filename = filename_hash
         out_dict = {'files': [{
             'filename': filename,
+            'hash': filename_hash,
             'mtime': mtime,
             'kind': kind,
             'requires': requires,
@@ -2732,19 +2751,17 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             files = [a['filename'] for a in out_dict['files']]
             self.file_request(files, use_client_cache=use_client_cache)
 
-    def send_js(self, path, element_id=None, requires=None):
+    def send_js(self, path, **kwargs):
         """
-        A shortcut for `self.send_js_or_css(path, 'js', requires=requires)`.
+        A shortcut for ``self.send_js_or_css(path, 'js', **kwargs)``.
         """
-        self.send_js_or_css(
-            path, 'js', element_id=element_id, requires=requires)
+        self.send_js_or_css(path, 'js', **kwargs)
 
-    def send_css(self, path, element_id=None, media="screen"):
+    def send_css(self, path, **kwargs):
         """
-        A shortcut for
-        `self.send_js_or_css(path, 'css', element_id=element_id, media=media)`
+        A shortcut for ``self.send_js_or_css(path, 'css', **kwargs)``
         """
-        self.send_js_or_css(path, 'css', element_id=element_id, media=media)
+        self.send_js_or_css(path, 'css', **kwargs)
 
     def render_and_send_css(self,
             css_path, element_id=None, media="screen", **kwargs):
@@ -2775,11 +2792,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         cache_dir = self.settings['cache_dir']
         mtime = os.stat(css_path).st_mtime
+        filename = os.path.split(css_path)[1]
         safe_path = css_path.replace('/', '_') # So we can name the file safely
         rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if os.path.exists(rendered_path):
-            self.send_css(rendered_path, element_id=element_id, media=media)
+            self.send_css(rendered_path,
+                element_id=element_id, media=media, filename=filename)
             return
         template_loaders = tornado.web.RequestHandler._template_loaders
         # This wierd little bit empties Tornado's template cache:
@@ -2794,7 +2813,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         )
         with io.open(rendered_path, 'wb') as f:
             f.write(rendered)
-        self.send_css(rendered_path, element_id=element_id, media=media)
+        self.send_css(rendered_path,
+            element_id=element_id, media=media, filename=filename)
         # Remove older versions of the rendered template if present
         for fname in os.listdir(cache_dir):
             if fname == rendered_filename:
@@ -2864,7 +2884,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         self.send_js(js_file_path, requires=requires)
                     elif f.endswith('.css'):
                         css_file_path = os.path.join(plugin_static_path, f)
-                        self.send_css(css_file_path)
+                        self.send_css(css_file_path, filename=f)
 
 # TODO:  Add support for a setting that can control which themes are visible to users.
     def enumerate_themes(self):
@@ -2929,8 +2949,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 #       The real purpose of send_user_message() and broadcast() are for
 #       programmatic use.  For example, when a user shares a terminal and it
 #       would be appropriate to notify certain users that the terminal is now
-#       available for them to connect.  This may use something other than the
-#       'notice' WebSocket action in the future to avoid confusion (if need be).
+#       available for them to connect.
     @require(authenticated(), policies('gateone'))
     def send_user_message(self, settings):
         """
@@ -2949,8 +2968,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def send_message(self, message, upn=None, session=None):
         """
-        Sends the given *message* to the client using the `go:notice` WebSocket
-        action at the currently-connected client.
+        Sends the given *message* to the client using the `go:user_message`
+        WebSocket action at the currently-connected client.
 
         If *upn* is provided the *message* will be sent to all users with a
         matching 'upn' value.
@@ -2961,7 +2980,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         if *upn* is 'AUTHENTICATED' all users will get the message.
         """
-        message_dict = {'go:notice': message}
+        message_dict = {'go:user_message': message}
         if upn:
             ApplicationWebSocket._deliver(message_dict, upn=upn)
         elif session:
@@ -2973,8 +2992,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     @require(authenticated(), policies('gateone'))
     def broadcast(self, message):
         """
-        Sends the given *message* (string) to all connected, authenticated
-        users.
+        Attached to the `go:broadcast` WebSocket action; sends the given
+        *message* (string) to all connected, authenticated users.  Example
+        usage:
+
+         .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({"go:broadcast": "This is a test"}));
         """
         self.msg_log.info("Broadcast: %s" % message)
         from utils import strip_xss # Prevent XSS attacks

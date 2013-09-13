@@ -484,7 +484,7 @@ class TerminalApplication(GOApplication):
         # Render and send the client our terminal.css
         terminal_css = os.path.join(
             APPLICATION_PATH, 'templates', 'terminal.css')
-        self.ws.render_and_send_css(terminal_css)
+        self.ws.render_and_send_css(terminal_css, element_id="terminal.css")
         # Send the client our JavaScript files
         static_dir = os.path.join(APPLICATION_PATH, 'static')
         js_files = os.listdir(static_dir)
@@ -493,7 +493,8 @@ class TerminalApplication(GOApplication):
             if fname.endswith('.js'):
                 js_file_path = os.path.join(static_dir, fname)
                 if fname == 'terminal.js':
-                    self.ws.send_js(js_file_path)
+                    self.ws.send_js(js_file_path,
+                    requires=["theme.css", "terminal.css"])
                 elif fname == 'terminal_input.js':
                     self.ws.send_js(js_file_path, requires="terminal.js")
                 else:
@@ -501,7 +502,7 @@ class TerminalApplication(GOApplication):
         self.ws.send_plugin_static_files(
             os.path.join(APPLICATION_PATH, 'plugins'),
             application="terminal",
-            requires="terminal_input.js")
+            requires=["terminal_input.js"])
         # Send the client the 256-color style information and our printing CSS
         self.send_256_colors()
         self.send_print_stylesheet()
@@ -587,7 +588,8 @@ class TerminalApplication(GOApplication):
         font_size = settings.get('font_size', '90%')
         templates_path = templates_path = os.path.join(
             APPLICATION_PATH, 'templates')
-        font_css_path = os.path.join(templates_path, 'font.css')
+        filename = 'font.css'
+        font_css_path = os.path.join(templates_path, filename)
         if font_family == 'monospace':
             # User wants the browser to control the font; real simple:
             rendered_path = self.render_style(
@@ -595,7 +597,8 @@ class TerminalApplication(GOApplication):
                 force=True,
                 font_family=font_family,
                 font_size=font_size)
-            self.send_css(rendered_path, element_id="terminal_font")
+            self.send_css(
+                rendered_path, element_id="terminal_font", filename=filename)
             return
         from woff_info import woff_info
         fonts_path = os.path.join(APPLICATION_PATH, 'static', 'fonts')
@@ -644,7 +647,8 @@ class TerminalApplication(GOApplication):
             woffs=woffs,
             font_family=font_family,
             font_size=font_size)
-        self.send_css(rendered_path, element_id="terminal_font")
+        self.send_css(
+            rendered_path, element_id="terminal_font", filename=filename)
 
     def enumerate_colors(self):
         """
@@ -1217,15 +1221,15 @@ class TerminalApplication(GOApplication):
         """
         Kills *term* and any associated processes.
         """
+        term = int(term)
+        if term not in self.loc_terms:
+            return # Nothing to do
         metadata = {
             "term": term,
             "command": self.loc_terms[term]["command"]
         }
         self.term_log.info(
             "Terminal Killed: %s" % term, metadata=metadata)
-        term = int(term)
-        if term not in self.loc_terms:
-            return # Nothing to do
         multiplex = self.loc_terms[term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
@@ -1505,13 +1509,13 @@ class TerminalApplication(GOApplication):
 
             {'rows': 24, 'columns': 80}
         """
-        self.term_log.debug("resize(%s)" % repr(resize_obj))
         term = None
         if 'term' in resize_obj:
             try:
                 term = int(resize_obj['term'])
             except ValueError:
                 return # Got bad value, skip this resize
+        self.term_log.info("Resizing Terminal: %s" % term, metadata=resize_obj)
         rows = resize_obj['rows']
         cols = resize_obj['columns']
         self.em_dimensions = {

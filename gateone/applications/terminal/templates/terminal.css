@@ -22,26 +22,24 @@
 .✈pastearea:hover {
     cursor: text;
 }
-.✈terminal span.screen {
+span.✈screen {
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
 }
-.✈terminal span.scrollback {
+span.✈scrollback {
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
 }
-.✈terminal span.termline {
+span.✈termline {
     width: 100%;
+    display: block;
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
 .✈go_none {
     height: 1px;
     width: 1px;
-}
-.✈termline {
-    display: block;
 }
 .✈IME {
     height: 0;
