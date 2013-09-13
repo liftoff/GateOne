@@ -218,6 +218,10 @@ use the RSA algorithm at 4096 bits.</p>
 command) saving the result as 'certificate.pem' and 'keyfile.pem' to <em>path</em>.
 If <em>path</em> is not given the result will be saved in the current working
 directory.  The certificate will be valid for 10 years.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The self-signed certificate will utilize 4096-bit RSA encryption.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -233,6 +237,10 @@ but this can be overridden by passing a valid timestamp via the
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">gen_self_signed_ssl</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">365</span><span class="p">)</span> <span class="c"># 1-year certificate</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gen_self_signed_ssl</span><span class="p">()</span> <span class="c"># 10-year certificate</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The self-signed certificate will utilize 4096-bit RSA encryption.</p>
 </div>
 </dd></dl>
 

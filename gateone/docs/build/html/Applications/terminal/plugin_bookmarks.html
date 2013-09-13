@@ -340,7 +340,7 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.panelToggleIn">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">panelToggleIn</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.panelToggleIn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when 'panel_toggle:in' event is triggered, calls <a class="reference internal" href="#GateOne.Bookmarks.createPanel" title="GateOne.Bookmarks.createPanel"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.createPanel()</span></tt></a> if <em>panel</em> is the Bookmarks panel.</p>
+<dd><p>Called when <tt class="xref py py-obj docutils literal"><span class="pre">panel_toggle:in</span></tt> event is triggered, calls <a class="reference internal" href="#GateOne.Bookmarks.createPanel" title="GateOne.Bookmarks.createPanel"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.createPanel()</span></tt></a> if <em>panel</em> is the Bookmarks panel.</p>
 </dd></dl>
 
 <dl class="function">
@@ -429,7 +429,7 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.syncBookmarks">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">syncBookmarks</tt><big>(</big><em>response</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.syncBookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the 'bookmarks_updated' WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.</p>
+<dd><p>Called when the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:bookmarks_updated</span></tt> WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.</p>
 </dd></dl>
 
 <dl class="function">
@@ -488,7 +488,7 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.userLoginSync">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">userLoginSync</tt><big>(</big><em>username</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.userLoginSync" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets attached to the &quot;user_login&quot; event.  Calls the server-side 'bookmarks_get' WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.</p>
+<dd><p>This gets attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:js_loaded</span></tt> event.  Calls the server-side <tt class="xref py py-obj docutils literal"><span class="pre">terminal:bookmarks_get</span></tt> WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.</p>
 </dd></dl>
 
 </div>

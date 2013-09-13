@@ -382,6 +382,9 @@
 <span class="c"># Authentication stuff</span></div>
 <div class="viewcode-block" id="BaseAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The base class for all Gate One authentication handlers.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">set_default_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="BaseAuthHandler.get_current_user"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
         <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;gateone_user&quot;</span><span class="p">)</span>

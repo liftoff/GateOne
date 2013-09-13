@@ -683,7 +683,7 @@ into standards mode when content is loaded from intranet sites.</p>
 
 <dl class="method">
 <dt id="gateone.StaticHandler.options">
-<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="headerlink" href="#gateone.StaticHandler.options" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StaticHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StaticHandler.options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
 header, etc).  Since this is just the static file handler we don't
 include any extra information.</p>
@@ -701,7 +701,7 @@ purposes and also for enumerating useful information about this Gate One
 server (see below for more info).</p>
 <dl class="method">
 <dt id="gateone.BaseHandler.set_default_headers">
-<tt class="descname">set_default_headers</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.BaseHandler.set_default_headers" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set_default_headers</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler.set_default_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.set_default_headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>An override of <tt class="xref py py-meth docutils literal"><span class="pre">tornado.web.RequestHandler.set_default_headers()</span></tt>
 (which is how Tornado wants you to set default headers) that
 adds/overrides the following headers:</p>
@@ -728,7 +728,7 @@ adds/overrides the following headers:</p>
 
 <dl class="method">
 <dt id="gateone.BaseHandler.options">
-<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="headerlink" href="#gateone.BaseHandler.options" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
 header, etc) but also includes some useful information in the response
 body that lists which authentication API features we support in
@@ -1030,7 +1030,7 @@ timestamp back to the client so it can measure round-trip time.</p>
 
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.api_auth">
-<tt class="descname">api_auth</tt><big>(</big><em>auth_obj</em><big>)</big><a class="headerlink" href="#gateone.ApplicationWebSocket.api_auth" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">api_auth</tt><big>(</big><em>auth_obj</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.api_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.api_auth" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the <em>auth_obj</em> dict validates, returns the user dict and sets
 <tt class="docutils literal"><span class="pre">self.current_user</span></tt>.  If it doesn't validate, returns <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
 <p>This function also takes care of creating the user's directory if it
@@ -1274,7 +1274,7 @@ being sent to the client.</p>
 
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.send_js_or_css">
-<tt class="descname">send_js_or_css</tt><big>(</big><em>paths_or_fileobj</em>, <em>kind</em>, <em>element_id=None</em>, <em>requires=None</em>, <em>media='screen'</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">send_js_or_css</tt><big>(</big><em>paths_or_fileobj</em>, <em>kind</em>, <em>element_id=None</em>, <em>requires=None</em>, <em>media='screen'</em>, <em>filename=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initiates a file synchronization of the given <em>paths_or_fileobj</em> with
 the client to ensure it has the latest version of the file(s).</p>
 <p>The <em>kind</em> argument must be one of 'js' or 'css' to indicate JavaScript
@@ -1286,19 +1286,23 @@ single files).</p>
 ensure that the given file gets loaded after any dependencies.</p>
 <p>Optionally, a <em>media</em> string may be provided to specify the 'media='
 value when creating a &lt;style&gt; tag to hold the given CSS.</p>
+<p>Optionally, a <em>filename</em> string may be provided which will be used
+instead of the name of the actual file when file synchronization occurs.
+This is useful for multi-stage processes (e.g. rendering templates)
+where you wish to preserve the original filename.  Just be aware that
+if you do this the given <em>filename</em> must be unique.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.send_js">
-<tt class="descname">send_js</tt><big>(</big><em>path</em>, <em>element_id=None</em>, <em>requires=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'js',</span> <span class="pre">requires=requires)</span></tt>.</p>
+<tt class="descname">send_js</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'js',</span> <span class="pre">**kwargs)</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.send_css">
-<tt class="descname">send_css</tt><big>(</big><em>path</em>, <em>element_id=None</em>, <em>media='screen'</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_css" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for
-<tt class="xref py py-obj docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'css',</span> <span class="pre">element_id=element_id,</span> <span class="pre">media=media)</span></tt></p>
+<tt class="descname">send_css</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'css',</span> <span class="pre">**kwargs)</span></tt></p>
 </dd></dl>
 
 <dl class="method">
@@ -1361,8 +1365,8 @@ will be merged into the existing one.</p>
 <dl class="method">
 <dt id="gateone.ApplicationWebSocket.send_message">
 <tt class="descname">send_message</tt><big>(</big><em>message</em>, <em>upn=None</em>, <em>session=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_message" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the given <em>message</em> to the client using the <tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt> WebSocket
-action at the currently-connected client.</p>
+<dd><p>Sends the given <em>message</em> to the client using the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_message</span></tt>
+WebSocket action at the currently-connected client.</p>
 <p>If <em>upn</em> is provided the <em>message</em> will be sent to all users with a
 matching 'upn' value.</p>
 <p>If <em>session</em> is provided the message will be sent to all users with a

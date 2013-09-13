@@ -78,6 +78,11 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">curses</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">curses</span> <span class="o">=</span> <span class="bp">None</span>
+
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span><span class="p">,</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
@@ -185,15 +190,49 @@
             <span class="k">for</span> <span class="n">fr</span> <span class="ow">in</span> <span class="n">split_frames</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="c"># Undo extra CRs caused by capturing shell output on top of</span>
                 <span class="c"># shell output</span>
-                <span class="n">fr</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">fr</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">fr</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">next_frame</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
             <span class="c"># Write last frame</span>
             <span class="k">if</span> <span class="n">frame</span><span class="p">:</span>
-                <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">frame</span>
             <span class="k">break</span>
+</div>
+<div class="viewcode-block" id="retrieve_first_frame"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.retrieve_first_frame">[docs]</a><span class="k">def</span> <span class="nf">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the first frame from the given *golog_path*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">found_first_frame</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c"># One byte at a time</span>
+        <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
+            <span class="c"># That&#39;s it; wrap this up</span>
+            <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">),</span> <span class="n">distance</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_log_metadata"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_log_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_log_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the metadata from the log at the given *golog_path* in the form of</span>
+<span class="sd">    a dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span> <span class="c"># 0 bytes</span>
+        <span class="k">return</span> <span class="n">metadata</span> <span class="c"># Nothing to do</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">first_frame</span><span class="p">,</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="c"># Something wrong with the log...  Probably still being written to</span>
+        <span class="k">return</span> <span class="n">metadata</span>
+    <span class="k">if</span> <span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">):</span>
+        <span class="c"># This is JSON, capture metadata</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="n">metadata</span> <span class="c"># All done</span>
 </div>
 <div class="viewcode-block" id="playback_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.playback_log">[docs]</a><span class="k">def</span> <span class="nf">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">file_like</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -281,6 +320,10 @@
                 <span class="n">csi_type</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">csi_type</span> <span class="o">==</span> <span class="s">&#39;m&#39;</span> <span class="ow">and</span> <span class="n">preserve_renditions</span><span class="p">:</span> <span class="c"># mmmmmm!</span>
                     <span class="n">out</span> <span class="o">+=</span> <span class="n">esc_buffer</span> <span class="c"># Ooh, naked viewing of pretty things!</span>
+                <span class="k">elif</span> <span class="n">csi_type</span> <span class="o">==</span> <span class="s">&#39;C&#39;</span><span class="p">:</span> <span class="c"># Move cursor right (we want to do this)</span>
+                    <span class="c"># Will be something like this: \x1b[208C</span>
+                    <span class="n">spaces</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="s">u&#39; &#39;</span> <span class="o">*</span> <span class="n">spaces</span> <span class="c"># Add an equivalent amount of spaces</span>
                 <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Make room for more!</span>
                 <span class="k">continue</span>
     <span class="k">if</span> <span class="n">rstrip</span><span class="p">:</span>
@@ -304,12 +347,20 @@
 <span class="sd">    visible in the output.  Trailing whitespace and escape sequences will not be</span>
 <span class="sd">    removed.</span>
 
-<span class="sd">    NOTE: Converts our standard recording-based log format into something that</span>
-<span class="sd">    can be used with grep and similar search/filter tools.</span>
+<span class="sd">    ..note::</span>
+
+<span class="sd">        Converts our standard recording-based log format into something that</span>
+<span class="sd">        can be used with grep and similar search/filter tools.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">gzip</span>
     <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">SPECIAL</span>
-    <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_log_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;rows&#39;</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;columns&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span><span class="p">:</span>
+        <span class="c"># Try the old metadata format which used &#39;cols&#39;:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cols&#39;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
     <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
@@ -348,9 +399,10 @@
                             <span class="k">del</span> <span class="n">captured_file</span>
                             <span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span>
                             <span class="n">term</span><span class="o">.</span><span class="n">close_captured_fds</span><span class="p">()</span> <span class="c"># Instant cleanup</span>
-                            <span class="c">#term = Terminal(rows=100, cols=300, em_dimensions=0)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">out_line</span> <span class="o">+=</span> <span class="n">char</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">out_line</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">out_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
             <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
@@ -377,6 +429,9 @@
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">out_line</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">out_line</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">adjusted</span><span class="p">:</span>
+                    <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span> <span class="c"># Skip empty lines</span>
+                    <span class="k">continue</span>
                 <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span>
                 <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
                 <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
@@ -407,40 +462,6 @@
         <span class="n">file_like</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="k">del</span> <span class="n">term</span>
 </div>
-<div class="viewcode-block" id="retrieve_first_frame"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.retrieve_first_frame">[docs]</a><span class="k">def</span> <span class="nf">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the first frame from the given *golog_path*.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">frame</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="k">while</span> <span class="ow">not</span> <span class="n">found_first_frame</span><span class="p">:</span>
-        <span class="n">frame</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c"># One byte at a time</span>
-        <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
-            <span class="c"># That&#39;s it; wrap this up</span>
-            <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">),</span> <span class="n">distance</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="get_log_metadata"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_log_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_log_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the metadata from the log at the given *golog_path* in the form of</span>
-<span class="sd">    a dict.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span> <span class="c"># 0 bytes</span>
-        <span class="k">return</span> <span class="n">metadata</span> <span class="c"># Nothing to do</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">first_frame</span><span class="p">,</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="c"># Something wrong with the log...  Probably still being written to</span>
-        <span class="k">return</span> <span class="n">metadata</span>
-    <span class="k">if</span> <span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">):</span>
-        <span class="c"># This is JSON, capture metadata</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
-    <span class="k">return</span> <span class="n">metadata</span> <span class="c"># All done</span>
-</div>
 <div class="viewcode-block" id="render_log_frames"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.render_log_frames">[docs]</a><span class="k">def</span> <span class="nf">render_log_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the frames of *golog_path* as a list of HTML-encoded strings that</span>
@@ -466,7 +487,7 @@
             <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]))</span>
             <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
             <span class="c"># Emulate how a real shell would output newlines:</span>
-            <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame_screen</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame_screen</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_screen</span><span class="p">)</span>
             <span class="c"># Ensure we&#39;re not in the middle of capturing a file.  Otherwise</span>
             <span class="c"># it might get cut off and result in no image being shown.</span>
@@ -640,6 +661,12 @@
             <span class="s">&quot;Render a given .golog as a self-contained HTML playback file &quot;</span>
             <span class="s">&quot;(to stdout).&quot;</span><span class="p">)</span>
     <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--metadata&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;metadata&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span> <span class="s">&quot;Prints (to stdout) the metadata of the given .golog&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: You must specify a log file to view.&quot;</span><span class="p">)</span>
@@ -650,12 +677,20 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s"> does not exist&quot;</span> <span class="o">%</span> <span class="n">log_path</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">flat</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">flatten_log</span><span class="p">(</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">json</span>
+            <span class="k">if</span> <span class="n">curses</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">isatty</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">curses</span><span class="o">.</span><span class="n">setupterm</span><span class="p">()</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">get_log_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">get_log_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">)))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">flat</span><span class="p">:</span>
+            <span class="n">flatten_log</span><span class="p">(</span>
                 <span class="n">log_path</span><span class="p">,</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
                 <span class="n">preserve_renditions</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">pretty</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">html</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">render_html_playback</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>

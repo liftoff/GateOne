@@ -216,13 +216,26 @@ the given <em>multiplex</em> instance and <em>callback_id</em>.</p>
 <dd><p>Returns a new instance of <tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt> with the proper
 global and client-specific settings.</p>
 <blockquote>
-<div><ul class="simple">
-<li><em>cmd</em> - The command to execute inside of Multiplex.</li>
-<li><em>term_id</em> - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).</li>
-<li><em>logging</em> - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).</li>
-<li><em>encoding</em> - The default encoding that will be used when reading or writing to the Multiplex instance.</li>
-<li><em>debug</em> - If True, will enable debugging on the created Multiplex instance.</li>
-</ul>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">cmd:</th><td class="field-body">The command to execute inside of Multiplex.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">term_id:</th><td class="field-body">The terminal to associate with this Multiplex or a descriptive
+identifier (it's only used for logging purposes).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">logging:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">False</span></tt>, logging will be disabled for this instance of
+Multiplex (even if it would otherwise be enabled).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">encoding:</th><td class="field-body">The default encoding that will be used when reading or writing
+to the Multiplex instance.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">debug:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">True</span></tt>, will enable debugging on the created Multiplex
+instance.</td>
+</tr>
+</tbody>
+</table>
 </div></blockquote>
 </dd></dl>
 

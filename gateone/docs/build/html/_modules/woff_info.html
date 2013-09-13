@@ -308,7 +308,7 @@
         <span class="n">offset</span> <span class="o">=</span> <span class="n">storage_offset</span> <span class="o">+</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
         <span class="n">end</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;length&#39;</span><span class="p">]</span>
         <span class="c"># Remove any null chars from the string (they can have lots)</span>
-        <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="c"># Now make sure the string is unicode</span>
         <span class="n">encoding</span> <span class="o">=</span> <span class="n">ENCODING_MAP</span><span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="s">&#39;encoding&#39;</span><span class="p">]]</span>
         <span class="k">try</span><span class="p">:</span>
@@ -327,11 +327,11 @@
 
 <span class="sd">    .. note:: Only returns the English language stuff.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">table_data</span> <span class="o">=</span> <span class="n">unpack_table_data</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-    <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_data</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">b</span><span class="s">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_data</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">BadWoff</span><span class="p">(</span><span class="s">&quot;WOFF file is invalid&quot;</span><span class="p">)</span>
-    <span class="n">name_data</span> <span class="o">=</span> <span class="n">unpack_name_data</span><span class="p">(</span><span class="n">table_data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+    <span class="n">name_data</span> <span class="o">=</span> <span class="n">unpack_name_data</span><span class="p">(</span><span class="n">table_data</span><span class="p">[</span><span class="n">b</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
     <span class="n">name_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">name_data</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;language&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c"># English</span>

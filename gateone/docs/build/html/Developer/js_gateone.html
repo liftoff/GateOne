@@ -350,6 +350,12 @@
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="GateOne.Utils.keys">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">keys</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an Array containing the keys (attributes) of the given <em>obj</em></p>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="GateOne.Utils.items">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">items</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.items" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copied from <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-items">MochiKit.Base.items</a>.  Returns an Array of <tt class="docutils literal"><span class="pre">[propertyName,</span> <span class="pre">propertyValue]</span></tt> pairs for the given <em>obj</em>.</p>
@@ -1013,7 +1019,7 @@
 
 <dl class="staticmethod">
 <dt id="GateOne.Utils.getRowsAndColumns">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getRowsAndColumns</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getRowsAndColumns" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getRowsAndColumns</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.getRowsAndColumns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the number of text rows and colunmns that will fit in the given element (<em>elem</em>) as an object like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;cols&#39;</span><span class="o">:</span> <span class="mi">165</span><span class="p">,</span> <span class="s1">&#39;rows&#39;</span><span class="o">:</span> <span class="mi">45</span><span class="p">}</span>
 </pre></div>
@@ -1025,6 +1031,7 @@
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
 <li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
 </li>
+<li><strong>where</strong> -- An optional location to please a cloned node of the given <em>elem</em> before performing calculations.</li>
 </ul>
 </td>
 </tr>
@@ -1630,22 +1637,19 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </div>
 <p>That way you can just type &quot;logDebug()&quot; anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).</p>
 <dl class="staticmethod">
+<dt id="GateOne.Logging.init">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Logging.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes logging by setting <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Logging.level</span></tt> using the value provided by <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.logLevel</span></tt>.  <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.logLevel</span></tt> may be given as a case-insensitive string or an integer.</p>
+<p>Also, if <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.logToServer</span></tt> is <tt class="docutils literal"><span class="pre">false</span></tt> <a class="reference internal" href="#GateOne.Logging.logToConsole" title="GateOne.Logging.logToConsole"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logToConsole()</span></tt></a> will be removed from <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Logging.destinations</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="GateOne.Logging.setLevel">
 <tt class="descclassname">GateOne.Logging.</tt><tt class="descname">setLevel</tt><big>(</big><em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.setLevel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the log <em>level</em> to an integer if the given a string (e.g. &quot;DEBUG&quot;).  Sets it as-is if it's already a number.  Examples:</p>
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">setLevel</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span> <span class="c1">// Set log level to DEBUG</span>
 <span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">setLevel</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span> <span class="c1">// Same thing; they both work!</span>
 </pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Logging.logToConsole">
-<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">logToConsole</tt><big>(</big><em>msg</em>, <em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.logToConsole" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs the given <em>msg</em> to the browser's JavaScript console.  If <em>level</em> is provided it will attempt to use the appropriate console logger (e.g. console.warn()).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The original version of this function is from: <tt class="xref py py-obj docutils literal"><span class="pre">MochiKit.Logging.Logger.prototype.logToConsole</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -1663,6 +1667,22 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </ul>
 </div></blockquote>
 <p>If <em>destination</em> is given (must be a function) it will be used to log messages like so: <tt class="docutils literal"><span class="pre">destination(message,</span> <span class="pre">levelStr)</span></tt>.  The usual conversion of <em>msg</em> to <em>message</em> will apply.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Logging.logToConsole">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">logToConsole</tt><big>(</big><em>msg</em>, <em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.logToConsole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs the given <em>msg</em> to the browser's JavaScript console.  If <em>level</em> is provided it will attempt to use the appropriate console logger (e.g. console.warn()).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The original version of this function is from: <tt class="xref py py-obj docutils literal"><span class="pre">MochiKit.Logging.Logger.prototype.logToConsole</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Logging.logToServer">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">logToServer</tt><big>(</big><em>msg</em><span class="optional">[</span>, <em>level</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Logging.logToServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the given log <em>msg</em> to the Gate One server.  Such messages will end up in 'logs/gateone-client.log'.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1739,22 +1759,25 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Visual.serverMessageAction" title="GateOne.Visual.serverMessageAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.serverMessageAction()</span></tt></a></td>
 </tr>
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:ping</span></tt></td>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:user_message</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.userMessageAction" title="GateOne.Visual.userMessageAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.userMessageAction()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:ping</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.ping()</span></tt></a></td>
 </tr>
-<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:pong</span></tt></td>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:pong</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Net.pong" title="GateOne.Net.pong"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.pong()</span></tt></a></td>
 </tr>
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:reauthenticate</span></tt></td>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:reauthenticate</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Net.reauthenticate" title="GateOne.Net.reauthenticate"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.reauthenticate()</span></tt></a></td>
 </tr>
-<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:save_file</span></tt></td>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:save_file</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a></td>
 </tr>
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:set_username</span></tt></td>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:set_username</span></tt></td>
 <td><a class="reference internal" href="#GateOne.User.setUsernameAction" title="GateOne.User.setUsernameAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.setUsernameAction()</span></tt></a></td>
 </tr>
-<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt></td>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt></td>
 <td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.timeoutAction()</span></tt></td>
 </tr>
 </tbody>
@@ -1902,6 +1925,24 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function gets called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> and there's really no reason why it should be called directly by anything else.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Net.onClose">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">onClose</tt><big>(</big><em>evt</em><big>)</big><a class="headerlink" href="#GateOne.Net.onClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.ws.onclose()</span></tt>; called when the WebSocket is closed.</p>
+<p>If <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.connectionProblem</span></tt> is <tt class="docutils literal"><span class="pre">true</span></tt> <a class="reference internal" href="#GateOne.Net.connectionError" title="GateOne.Net.connectionError"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Net.connectionError()</span></tt></a> will be called.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Net.disconnect">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">disconnect</tt><big>(</big><span class="optional">[</span><em>reason</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Net.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the WebSocket and clears all processes (timeouts/keepalives) that watch the state of the connection.</p>
+<p>If a <em>reason</em> is given it will be passed to the WebSocket's <tt class="docutils literal"><span class="pre">close()</span></tt> function as the only argument.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>reason</em> feature of WebSockets does not appear to be implemented in any browsers (yet).</p>
 </div>
 </dd></dl>
 
@@ -2097,6 +2138,9 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <tbody valign="top">
 <tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Visual.serverMessageAction" title="GateOne.Visual.serverMessageAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.serverMessageAction()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:user_message</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.userMessageAction" title="GateOne.Visual.userMessageAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.userMessageAction()</span></tt></a></td>
 </tr>
 </tbody>
 </table>
@@ -2437,6 +2481,16 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <dt id="GateOne.Visual.serverMessageAction">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">serverMessageAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Visual.serverMessageAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt> WebSocket action; displays a given <em>message</em> from the Gate One server as a transient pop-up using <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.userMessageAction">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">userMessageAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Visual.userMessageAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_message</span></tt> WebSocket action; displays a given <em>message</em> as a transient pop-up using <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This will likely change to include/use additional metadata in the future (such as: from, to, etc)</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2805,6 +2859,9 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:applications</span></tt></td>
 <td><a class="reference internal" href="#GateOne.User.applicationsAction" title="GateOne.User.applicationsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.applicationsAction()</span></tt></a></td>
 </tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:user_list</span></tt></td>
+<td><a class="reference internal" href="#GateOne.User.userListAction" title="GateOne.User.userListAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.userListAction()</span></tt></a></td>
+</tr>
 </tbody>
 </table>
 </div></blockquote>
@@ -2850,6 +2907,18 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <dd><p>Adds a new section to the preferences panel using the given <em>title</em> and <em>content</em>.  The <em>title</em> will be used to create a link that will bring up <em>content</em>.  The <em>content</em> will be placed inside the preferences form.</p>
 <p>To place a preference under a subsection (e.g. Terminal -&gt; SSH) provide the <em>title</em> like so:  &quot;Terminal:SSH&quot;.</p>
 <p>If <em>callback</em> is given it will be attacheed to the &quot;<a class="reference external" href="go:save_prefs">go:save_prefs</a>&quot; event.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.User.listUsers">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">listUsers</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.listUsers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:list_users</span></tt> WebSocket action to the server which will reply with the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_list</span></tt> WebSocket action containing a list of all users that are currently connected.  Only users which are allowed to list users via the &quot;list_users&quot; policy will be able to perform this action.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.User.userListAction">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">userListAction</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.userListAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_list</span></tt> WebSocket action; sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.User.userList</span></tt> and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_list</span></tt> event passing the list of users as the only argument.</p>
 </dd></dl>
 
 </dd></dl>

@@ -99,13 +99,13 @@
 <dl class="function">
 <dt id="GateOne.Terminal.onResizeEvent">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">onResizeEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.onResizeEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the &quot;<a class="reference external" href="go:update_dimensions">go:update_dimensions</a>&quot; event; calls <a class="reference internal" href="#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt></a> for all terminals to ensure the new dimensions get applied.</p>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:update_dimensions</span></tt> event; calls <a class="reference internal" href="#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt></a> for all terminals to ensure the new dimensions get applied.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Terminal.timeoutEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">timeoutEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.timeoutEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the '<a class="reference external" href="go:timeout">go:timeout</a>' event; closes all open terminals when the user's session has timed out.</p>
+<dt id="GateOne.Terminal.reconnectEvent">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reconnectEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.reconnectEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:connnection_established</span></tt> event; closes all open terminals so that <a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></tt></a> can do its thing.</p>
 </dd></dl>
 
 <dl class="function">
@@ -170,8 +170,9 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.sendDimensions">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sendDimensions</tt><big>(</big><em>term</em><span class="optional">[</span>, <em>ctrl_l</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.sendDimensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Detects and sends the current terminal's dimensions (rows/columns) to the server.</p>
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sendDimensions</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">[</span>, <em>ctrl_l</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.sendDimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detects and sends the given term's dimensions (rows/columns) to the server.</p>
+<p>If no <em>term</em> is given it will send the dimensions of the currently-selected terminal to the server which will be applied to all terminals.</p>
 </dd></dl>
 
 <dl class="function">
@@ -183,7 +184,7 @@
 <dl class="function">
 <dt id="GateOne.Terminal.resizeAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resizeAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resizeAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the server sends the &quot;terminal:resize&quot; WebSocket action.  Sets the 'rows' and 'columns' values inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message['term']]</span></tt> and sets the same values inside the Info &amp; Tools panel.</p>
+<dd><p>Called when the server sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:resize</span></tt> WebSocket action.  Sets the 'rows' and 'columns' values inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message['term']]</span></tt> and sets the same values inside the Info &amp; Tools panel.</p>
 </dd></dl>
 
 <dl class="function">
@@ -219,7 +220,7 @@
 <dl class="function">
 <dt id="GateOne.Terminal.termUpdateFromWorker">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">termUpdateFromWorker</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.termUpdateFromWorker" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function gets assigned to the <tt class="xref js js-meth docutils literal"><span class="pre">termUpdatesWorker.onmessage()</span></tt> event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the &quot;terminal:term_updated&quot; event.</p>
+<dd><p>This function gets assigned to the <tt class="xref js js-meth docutils literal"><span class="pre">termUpdatesWorker.onmessage()</span></tt> event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the &quot;terminal:term_updated&quot; event passing the terminal number as the only argument.</p>
 </dd></dl>
 
 <dl class="function">
@@ -443,7 +444,7 @@ the appropriate message to the Gate One server.</p>
 <dl class="function">
 <dt id="GateOne.Terminal.reattachTerminalsAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reattachTerminalsAction</tt><big>(</big><em>terminals</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.reattachTerminalsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after we authenticate to the server, this function is attached to the 'terminal:terminals' WebSocket action which is the server's way of notifying the client that there are existing terminals.</p>
+<dd><p>Called after we authenticate to the server, this function is attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:terminals</span></tt> WebSocket action which is the server's way of notifying the client that there are existing terminals.</p>
 <p>If we're reconnecting to an existing session, running terminals will be recreated/reattached.</p>
 <p>If this is a new session (and we're not in embedded mode), a new terminal will be created.</p>
 </dd></dl>
@@ -568,6 +569,22 @@ the appropriate message to the Gate One server.</p>
 <dd><p>Undoes the results of <a class="reference internal" href="#GateOne.Terminal.highlight" title="GateOne.Terminal.highlight"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.highlight()</span></tt></a>.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="GateOne.Terminal.highlightTexts">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">highlightTexts</tt><a class="headerlink" href="#GateOne.Terminal.highlightTexts" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object that holds all the words the user wishes to stay persistently highlighted (even after screen updates and whatnot) across all terminals.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Word highlighting that is specific to individual terminals is stored in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.highlightDialog">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">highlightDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.highlightDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a dialog where users can add/remove text they would like to be highlighted on a semi-permanent basis (e.g. even after a screen update).</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="GateOne.Terminal.showSuspended">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">showSuspended</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.showSuspended" title="Permalink to this definition">¶</a></dt>
@@ -587,8 +604,8 @@ the appropriate message to the Gate One server.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Terminal.terminalChooser">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">terminalChooser</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.terminalChooser" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Terminal.chooser">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">chooser</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.chooser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pops up a dialog where the user can immediately switch to any terminal in any 'location'.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -670,6 +687,30 @@ the appropriate message to the Gate One server.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">If a user is granted write permission to a terminal they will automatically be granted read permission.</p>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.shareDialog">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareDialog</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a dialog where the user can share a terminal or modify the permissions on a terminal that is already shared.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.attachSharedTerminal">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">attachSharedTerminal</tt><big>(</big><em>shareID</em><span class="optional">[</span>, <em>password</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.attachSharedTerminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the terminal associated with the given <em>shareID</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.listSharedTerminals">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">listSharedTerminals</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.listSharedTerminals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sens the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:list_shared_terminals</span></tt> WebSocket action to the server which will reply with the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> WebSocket action (if the user is allowed to list shared terminals).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.sharedTerminalsAction">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTerminalsAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> WebSocket action; stores the list of terminals that have been shared with the user in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></tt> and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> event.</p>
 </dd></dl>
 
 </div>

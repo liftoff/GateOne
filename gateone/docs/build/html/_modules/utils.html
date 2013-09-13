@@ -544,6 +544,8 @@
 <span class="sd">    command) saving the result as &#39;certificate.pem&#39; and &#39;keyfile.pem&#39; to *path*.</span>
 <span class="sd">    If *path* is not given the result will be saved in the current working</span>
 <span class="sd">    directory.  The certificate will be valid for 10 years.</span>
+
+<span class="sd">    .. note:: The self-signed certificate will utilize 4096-bit RSA encryption.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
@@ -617,7 +619,6 @@
     <span class="c"># Clean up unnecessary leftovers</span>
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">)</span>
-
 </div>
 <div class="viewcode-block" id="gen_self_signed_pyopenssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_pyopenssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_pyopenssl</span><span class="p">(</span><span class="n">notAfter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -632,6 +633,8 @@
 
 <span class="sd">        &gt;&gt;&gt; gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate</span>
 <span class="sd">        &gt;&gt;&gt; gen_self_signed_ssl() # 10-year certificate</span>
+
+<span class="sd">    .. note:: The self-signed certificate will utilize 4096-bit RSA encryption.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">OpenSSL</span>
@@ -893,6 +896,9 @@
 <span class="sd">    :session_dir: The path to Gate One&#39;s session directory.</span>
 <span class="sd">    :pid_file: The path to Gate One&#39;s PID file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No lieutenant, your processes are already dead.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="c"># Nothing to do</span>
     <span class="n">sessions</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">session_dir</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">):</span>
         <span class="n">pid_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
@@ -1491,9 +1497,6 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;cssmin module not found.  CSS will not be minified.&quot;</span><span class="p">))</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;To install cssmin:  sudo pip install cssmin&quot;</span><span class="p">))</span>
-    <span class="c"># Temporarily disabled:</span>
-    <span class="n">slimit</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">cssmin</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

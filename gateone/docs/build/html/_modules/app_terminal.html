@@ -77,7 +77,7 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># I like to start my files with imports from Python&#39;s standard library...</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
@@ -89,6 +89,7 @@
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span><span class="p">,</span> <span class="n">get_plugins</span><span class="p">,</span> <span class="n">load_modules</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">bind</span><span class="p">,</span> <span class="n">MimeTypeFail</span><span class="p">,</span> <span class="n">create_data_uri</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">which</span><span class="p">,</span> <span class="n">get_translation</span>
+<span class="kn">from</span> <span class="nn">golog</span> <span class="kn">import</span> <span class="n">go_logger</span>
 <span class="kn">import</span> <span class="nn">terminal</span>
 
 <span class="c"># 3rd party imports</span>
@@ -103,6 +104,7 @@
 <span class="n">APPLICATION_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our application</span>
 <span class="n">REGISTERED_HANDLERS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># So we don&#39;t accidentally re-add handlers</span>
 <span class="n">web_handlers</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Assigned in init()</span>
+<span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">)</span>
 
 <span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
@@ -141,7 +143,7 @@
 
 <span class="sd">    .. note:: This function gets appended to the `SESSIONS[session][&quot;terminal_callbacks&quot;]` list inside of :meth:`TerminalApplication.authenticate`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_session(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">session</span><span class="p">)</span>
+    <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_session(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">session</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">kill_dtach</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">kill_dtached_proc</span>
     <span class="k">for</span> <span class="n">location</span><span class="p">,</span> <span class="n">apps</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -197,7 +199,7 @@
         <span class="n">max_rows</span> <span class="o">=</span> <span class="n">policy</span><span class="p">[</span><span class="s">&#39;max_dimensions&#39;</span><span class="p">][</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">max_terms</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">open_terminals</span> <span class="o">&gt;=</span> <span class="n">max_terms</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;</span><span class="si">%s</span><span class="s"> denied opening new terminal.  The &#39;max_terms&#39; policy limit &quot;</span>
                 <span class="s">&quot;(</span><span class="si">%s</span><span class="s">) has been reached for this user.&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">max_terms</span><span class="p">)))</span>
@@ -315,7 +317,7 @@
     <span class="c"># Start by determining if the user can even login to the terminal app</span>
     <span class="k">if</span> <span class="s">&#39;allow&#39;</span> <span class="ow">in</span> <span class="n">policy</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">policy</span><span class="p">[</span><span class="s">&#39;allow&#39;</span><span class="p">]:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;</span><span class="si">%s</span><span class="s"> denied access to the Terminal application by policy.&quot;</span>
                 <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]))</span>
             <span class="k">return</span> <span class="bp">False</span>
@@ -332,6 +334,7 @@
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">prefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefs&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">share_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;share_id&quot;</span><span class="p">)</span>
         <span class="n">gateone_js</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">static/gateone.js&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
         <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
         <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -343,6 +346,7 @@
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="s">&#39;shared.html&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
             <span class="n">index_path</span><span class="p">,</span>
+            <span class="n">share_id</span><span class="o">=</span><span class="n">share_id</span><span class="p">,</span>
             <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
             <span class="n">gateone_js</span><span class="o">=</span><span class="n">gateone_js</span><span class="p">,</span>
             <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">],</span>
@@ -373,7 +377,7 @@
     <span class="n">icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">,</span> <span class="s">&quot;icons&quot;</span><span class="p">,</span> <span class="s">&quot;terminal.svg&quot;</span><span class="p">)</span>
     <span class="n">about</span> <span class="o">=</span> <span class="s">&quot;Open terminals running any number of configured applications.&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.__init__(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">ws</span><span class="p">)</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.__init__(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">ws</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Gets set in authenticate() below</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">terms</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># So we can keep track and avoid sending unnecessary messages:</span>
@@ -387,7 +391,7 @@
 <span class="sd">        Called when the WebSocket is instantiated, sets up our WebSocket</span>
 <span class="sd">        actions, security policies, and attaches all of our plugin hooks/events.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.initialize()&quot;</span><span class="p">)</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.initialize()&quot;</span><span class="p">)</span>
         <span class="c"># Register our security policy function</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="n">terminal_policies</span><span class="p">})</span>
         <span class="c"># Register our WebSocket actions</span>
@@ -438,7 +442,7 @@
                 <span class="n">css_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
         <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
         <span class="c"># Setup some events</span>
         <span class="n">terminals_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">terminals</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:set_location&quot;</span><span class="p">,</span> <span class="n">terminals_func</span><span class="p">)</span>
@@ -509,7 +513,7 @@
 <span class="sd">        This gets called at the end of :meth:`ApplicationWebSocket.open` when</span>
 <span class="sd">        the WebSocket is opened.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.open()&#39;</span><span class="p">)</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.open()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">;</span><span class="si">%s</span><span class="s">;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:open&quot;</span><span class="p">)</span>
@@ -521,7 +525,12 @@
 <span class="sd">        Sends all plugin JavaScript files to the client and triggers the</span>
 <span class="sd">        &#39;terminal:authenticate&#39; event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.authenticate()&#39;</span><span class="p">)</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.authenticate()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
+            <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">log_metadata</span><span class="p">)</span>
         <span class="c"># Get our user-specific settings/policies for quick reference</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">applicable_policies</span><span class="p">(</span>
             <span class="s">&#39;terminal&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
@@ -530,14 +539,14 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">[</span><span class="s">&#39;allow&#39;</span><span class="p">]:</span>
                 <span class="c"># User is not allowed to access the terminal application.  Don&#39;t</span>
                 <span class="c"># bother sending them any static files and whatnot.</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;User is not allowed to use the Terminal application.  &quot;</span>
                     <span class="s">&quot;Skipping post-authentication functions.&quot;</span><span class="p">))</span>
                 <span class="k">return</span>
         <span class="c"># Render and send the client our terminal.css</span>
         <span class="n">terminal_css</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;terminal.css&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">terminal_css</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">terminal_css</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal.css&quot;</span><span class="p">)</span>
         <span class="c"># Send the client our JavaScript files</span>
         <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
         <span class="n">js_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">static_dir</span><span class="p">)</span>
@@ -546,7 +555,8 @@
             <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
                 <span class="n">js_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="s">&#39;terminal.js&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span>
+                    <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;theme.css&quot;</span><span class="p">,</span> <span class="s">&quot;terminal.css&quot;</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="n">fname</span> <span class="o">==</span> <span class="s">&#39;terminal_input.js&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="s">&quot;terminal.js&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -554,7 +564,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_plugin_static_files</span><span class="p">(</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">),</span>
             <span class="n">application</span><span class="o">=</span><span class="s">&quot;terminal&quot;</span><span class="p">,</span>
-            <span class="n">requires</span><span class="o">=</span><span class="s">&quot;terminal_input.js&quot;</span><span class="p">)</span>
+            <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;terminal_input.js&quot;</span><span class="p">])</span>
         <span class="c"># Send the client the 256-color style information and our printing CSS</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send_256_colors</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send_print_stylesheet</span><span class="p">()</span>
@@ -640,7 +650,8 @@
         <span class="n">font_size</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font_size&#39;</span><span class="p">,</span> <span class="s">&#39;90%&#39;</span><span class="p">)</span>
         <span class="n">templates_path</span> <span class="o">=</span> <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-        <span class="n">font_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;font.css&#39;</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;font.css&#39;</span>
+        <span class="n">font_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">font_family</span> <span class="o">==</span> <span class="s">&#39;monospace&#39;</span><span class="p">:</span>
             <span class="c"># User wants the browser to control the font; real simple:</span>
             <span class="n">rendered_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_style</span><span class="p">(</span>
@@ -648,7 +659,8 @@
                 <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                 <span class="n">font_family</span><span class="o">=</span><span class="n">font_family</span><span class="p">,</span>
                 <span class="n">font_size</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_font&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span>
+                <span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_font&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="kn">from</span> <span class="nn">woff_info</span> <span class="kn">import</span> <span class="n">woff_info</span>
         <span class="n">fonts_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fonts&#39;</span><span class="p">)</span>
@@ -671,8 +683,8 @@
                     <span class="s">&quot;font_weight&quot;</span><span class="p">:</span> <span class="s">&quot;normal&quot;</span><span class="p">,</span> <span class="c"># Ditto</span>
                     <span class="s">&quot;locals&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
                     <span class="s">&quot;url&quot;</span><span class="p">:</span> <span class="p">(</span>
-                        <span class="s">&quot;{url_prefix}terminal/static/fonts/{font}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">],</span>
+                        <span class="s">&quot;{server_url}terminal/static/fonts/{font}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">server_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
                             <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="p">}</span>
@@ -697,7 +709,8 @@
             <span class="n">woffs</span><span class="o">=</span><span class="n">woffs</span><span class="p">,</span>
             <span class="n">font_family</span><span class="o">=</span><span class="n">font_family</span><span class="p">,</span>
             <span class="n">font_size</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_font&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span>
+            <span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_font&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TerminalApplication.enumerate_colors"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.enumerate_colors">[docs]</a>    <span class="k">def</span> <span class="nf">enumerate_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -718,7 +731,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Note: *args and **kwargs are present so we can attach this to a go:</span>
         <span class="c"># event and just ignore the provided arguments.</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;terminals()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;terminals()&#39;</span><span class="p">)</span>
         <span class="n">terminals</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c"># Create an application-specific storage space in the locations dict</span>
         <span class="k">if</span> <span class="s">&#39;terminal&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">location</span><span class="p">]:</span>
@@ -752,6 +765,12 @@
 <span class="sd">        Sends the &#39;term_ended&#39; message to the client letting it know that the</span>
 <span class="sd">        given *term* is no more.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;term&quot;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+            <span class="s">&quot;command&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&quot;command&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&quot;Terminal Closed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:term_ended&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">term</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">:</span>
             <span class="n">timediff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;created&#39;</span><span class="p">]</span>
@@ -771,7 +790,7 @@
                         <span class="s">&quot;check your server settings.&quot;</span>
                     <span class="p">))</span>
                     <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cmd</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                         <span class="s">&quot;Terminals are closing too quickly after being opened &quot;</span>
                         <span class="s">&quot;(command: </span><span class="si">%s</span><span class="s">).  Please check your &#39;commands&#39; (usually &quot;</span>
                         <span class="s">&quot;in settings/50terminal.conf).&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">cmd</span><span class="p">)))</span>
@@ -847,11 +866,20 @@
 <span class="sd">        Returns a new instance of :py:class:`termio.Multiplex` with the proper</span>
 <span class="sd">        global and client-specific settings.</span>
 
-<span class="sd">            * *cmd* - The command to execute inside of Multiplex.</span>
-<span class="sd">            * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it&#39;s only used for logging purposes).</span>
-<span class="sd">            * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).</span>
-<span class="sd">            * *encoding* - The default encoding that will be used when reading or writing to the Multiplex instance.</span>
-<span class="sd">            * *debug* - If True, will enable debugging on the created Multiplex instance.</span>
+<span class="sd">            :cmd:</span>
+<span class="sd">                The command to execute inside of Multiplex.</span>
+<span class="sd">            :term_id:</span>
+<span class="sd">                The terminal to associate with this Multiplex or a descriptive</span>
+<span class="sd">                identifier (it&#39;s only used for logging purposes).</span>
+<span class="sd">            :logging:</span>
+<span class="sd">                If ``False``, logging will be disabled for this instance of</span>
+<span class="sd">                Multiplex (even if it would otherwise be enabled).</span>
+<span class="sd">            :encoding:</span>
+<span class="sd">                The default encoding that will be used when reading or writing</span>
+<span class="sd">                to the Multiplex instance.</span>
+<span class="sd">            :debug:</span>
+<span class="sd">                If ``True``, will enable debugging on the created Multiplex</span>
+<span class="sd">                instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">policies</span> <span class="o">=</span> <span class="n">applicable_policies</span><span class="p">(</span>
             <span class="s">&#39;terminal&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
@@ -935,8 +963,6 @@
 <span class="sd">        without having to worry about figuring out if a new terminal already</span>
 <span class="sd">        exists or not).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> new_terminal(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="p">))</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
         <span class="c"># TODO: Make these specific to each terminal:</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
@@ -945,6 +971,8 @@
             <span class="c"># Fall back to a standard default</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="mi">24</span>
             <span class="n">cols</span> <span class="o">=</span> <span class="mi">80</span>
+        <span class="n">default_env</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;TERM&quot;</span><span class="p">:</span> <span class="s">&#39;xterm-256color&#39;</span><span class="p">}</span> <span class="c"># Only one default</span>
+        <span class="n">environment_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;environment_vars&#39;</span><span class="p">,</span> <span class="n">default_env</span><span class="p">)</span>
         <span class="n">default_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;default_encoding&#39;</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
         <span class="n">encoding</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;encoding&#39;</span><span class="p">,</span> <span class="n">default_encoding</span><span class="p">)</span>
         <span class="c"># NOTE: &#39;command&#39; here is actually just the short name of the command.</span>
@@ -956,7 +984,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">[</span><span class="s">&#39;default_command&#39;</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                    <span class="s">&quot;You are missing a &#39;default_command&#39; in your terminal &quot;</span>
                    <span class="s">&quot;settings (usually 50terminal.conf in </span><span class="si">%s</span><span class="s">)&quot;</span>
                    <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;settings_dir&#39;</span><span class="p">]))</span>
@@ -966,10 +994,20 @@
             <span class="n">full_command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">[</span><span class="s">&#39;commands&#39;</span><span class="p">][</span><span class="n">command</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="c"># The given command isn&#39;t an option</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: Attempted to execute invalid command (</span><span class="si">%s</span><span class="s">).&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;</span><span class="si">%s</span><span class="s">: Attempted to execute invalid command (</span><span class="si">%s</span><span class="s">).&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">command</span><span class="p">)))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Terminal: Invalid command: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">command</span><span class="p">))</span>
             <span class="k">return</span>
+        <span class="c"># Make a nice, useful logging line with extra metadata</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;rows&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;rows&quot;</span><span class="p">],</span>
+            <span class="s">&quot;columns&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;columns&quot;</span><span class="p">],</span>
+            <span class="s">&quot;term&quot;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+            <span class="s">&quot;command&quot;</span><span class="p">:</span> <span class="n">command</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;New Terminal: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="c"># Now remove the new-term-specific metadata</span>
         <span class="k">if</span> <span class="s">&#39;em_dimensions&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s">&#39;height&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;em_dimensions&#39;</span><span class="p">][</span><span class="s">&#39;h&#39;</span><span class="p">],</span>
@@ -981,6 +1019,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s">&#39;last_activity&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
                 <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Gate One&#39;</span><span class="p">,</span>
+                <span class="s">&#39;command&#39;</span><span class="p">:</span> <span class="n">command</span><span class="p">,</span>
                 <span class="s">&#39;manual_title&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
                 <span class="c"># This is needed by the terminal sharing policies:</span>
                 <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span> <span class="c"># So we can determine the owner</span>
@@ -1030,7 +1069,7 @@
                     <span class="n">resumed_dtach</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">else</span><span class="p">:</span> <span class="c"># No existing dtach session...  Make a new one</span>
                     <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;dtach -c </span><span class="si">%s</span><span class="s"> -E -z -r none </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dtach_path</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;new_terminal cmd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;new_terminal cmd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">))</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
                 <span class="n">cmd</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
             <span class="c"># Set some environment variables so the programs we execute can use</span>
@@ -1044,6 +1083,7 @@
                 <span class="s">&#39;GO_SESSION&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                 <span class="s">&#39;GO_SESSION_DIR&#39;</span><span class="p">:</span> <span class="n">session_dir</span>
             <span class="p">}</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">environment_vars</span><span class="p">)</span> <span class="c"># Apply policy-based environment</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_env_hooks</span><span class="p">:</span>
                 <span class="c"># This allows plugins to add/override environment variables</span>
                 <span class="n">env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugin_env_hooks</span><span class="p">)</span>
@@ -1053,10 +1093,8 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">temppath</span><span class="p">):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">temppath</span><span class="p">)</span>
             <span class="c"># Tell it how to serve them up (origin ensures correct link)</span>
-            <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">linkpath</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}{url_prefix}downloads&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
-                <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-                <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">linkpath</span> <span class="o">=</span> <span class="s">&quot;{server_url}downloads&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">server_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
             <span class="c"># Make sure it can generate pretty icons for file downloads</span>
             <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">icondir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;icons&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">resumed_dtach</span><span class="p">:</span>
@@ -1083,6 +1121,7 @@
         <span class="c"># Setup callbacks so that everything gets called when it should</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_terminal_callbacks</span><span class="p">(</span>
             <span class="n">term</span><span class="p">,</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="c"># NOTE: refresh_screen will also take care of cleaning things up if</span>
         <span class="c">#       term_obj[&#39;multiplex&#39;].isalive() is False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="c"># Send a fresh screen to the client</span>
@@ -1166,7 +1205,7 @@
 
 <span class="sd">        If the given location dict doesn&#39;t exist (yet) it will be created.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;move_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;move_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="n">new_location_exists</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">term</span> <span class="o">=</span> <span class="n">existing_term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
         <span class="n">new_location</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span>
@@ -1244,10 +1283,15 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Kills *term* and any associated processes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;killing terminal: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">:</span>
             <span class="k">return</span> <span class="c"># Nothing to do</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;term&quot;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+            <span class="s">&quot;command&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&quot;command&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&quot;Terminal Killed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
         <span class="n">multiplex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
         <span class="c"># Remove the EXIT callback so the terminal doesn&#39;t restart itself</span>
         <span class="n">multiplex</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span><span class="n">multiplex</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
@@ -1292,7 +1336,7 @@
 <span class="sd">        emulator (among other things) to return the terminal to a sane state in</span>
 <span class="sd">        the event that something went wrong (bad escape sequence).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;reset_terminal(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;reset_terminal(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="c"># This re-creates all the tabstops:</span>
         <span class="n">tabs</span> <span class="o">=</span> <span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">H        &#39;</span> <span class="o">*</span> <span class="mi">22</span>
@@ -1321,7 +1365,7 @@
 
 <span class="sd">        .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we&#39;d be sending a &#39;title&#39; message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn&#39;t changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;set_title(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">force</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;set_title(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">force</span><span class="p">))</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;manual_title&#39;</span><span class="p">]:</span>
@@ -1347,7 +1391,7 @@
 <span class="sd">        from :func:`set_title` in that this is an action that gets called by the</span>
 <span class="sd">        client when the user sets a terminal title manually.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;manual_title: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;manual_title: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
         <span class="n">title</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span>
         <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
@@ -1387,7 +1431,7 @@
 <span class="sd">                }</span>
 <span class="sd">            }</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s">&quot;mode_handler() term: </span><span class="si">%s</span><span class="s">, setting: </span><span class="si">%s</span><span class="s">, boolean: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
             <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">boolean</span><span class="p">))</span>
         <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
@@ -1448,7 +1492,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">output_dict</span><span class="p">))</span>
             <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span> <span class="c"># Socket was just closed, no biggie</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="n">_</span><span class="p">(</span><span class="s">&quot;WebSocket closed (</span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
                 <span class="n">multiplex</span> <span class="o">=</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
                 <span class="n">multiplex</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span> <span class="c"># Stop trying to write</span>
@@ -1468,7 +1512,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Commented this out because it was getting annoying.</span>
         <span class="c"># Note to self: add more levels of debugging beyond just &quot;debug&quot;.</span>
-        <span class="c">#logging.debug(</span>
+        <span class="c">#self.term_log.debug(</span>
             <span class="c">#&quot;refresh_screen (full=%s) on %s&quot; % (full, self.callback_id))</span>
         <span class="k">if</span> <span class="n">term</span><span class="p">:</span>
             <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
@@ -1504,7 +1548,7 @@
                 <span class="n">client_dict</span><span class="p">[</span><span class="s">&#39;refresh_timeout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiplex</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
                     <span class="n">msec</span><span class="p">,</span> <span class="n">refresh</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KeyError in refresh_screen: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KeyError in refresh_screen: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:refresh_screen&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
 
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
@@ -1513,7 +1557,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;Invalid terminal number given to full_refresh(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:full_refresh&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
@@ -1527,13 +1571,13 @@
 
 <span class="sd">            {&#39;rows&#39;: 24, &#39;columns&#39;: 80}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;resize(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">resize_obj</span><span class="p">))</span>
         <span class="n">term</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="s">&#39;term&#39;</span> <span class="ow">in</span> <span class="n">resize_obj</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                 <span class="k">return</span> <span class="c"># Got bad value, skip this resize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Resizing Terminal: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">resize_obj</span><span class="p">)</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span> <span class="o">=</span> <span class="p">{</span>
@@ -1578,7 +1622,7 @@
 <span class="sd">        Writes *chars* (string) to *term*.  If *term* is not provided the</span>
 <span class="sd">        characters will be sent to the currently-selected terminal.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;char_handler(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">term</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;char_handler(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">term</span><span class="p">)))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span>
             <span class="n">term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span> <span class="c"># Just in case it was sent as a string</span>
@@ -1606,7 +1650,7 @@
 <span class="sd">        Writes *message[&#39;chars&#39;]* to *message[&#39;term&#39;]*.  If *message[&#39;term&#39;]*</span>
 <span class="sd">        is not present, *self.current_term* will be used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c">#logging.debug(&#39;write_chars(%s)&#39; % message)</span>
+        <span class="c">#self.term_log.debug(&#39;write_chars(%s)&#39; % message)</span>
         <span class="k">if</span> <span class="s">&#39;chars&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="k">return</span> <span class="c"># Invalid message</span>
         <span class="k">if</span> <span class="s">&#39;term&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
@@ -1615,10 +1659,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">char_handler</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s">&#39;chars&#39;</span><span class="p">],</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c"># Term is closed or invalid</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;Got exception trying to write_chars() to terminal </span><span class="si">%s</span><span class="s">&quot;</span>
                 <span class="o">%</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">]))</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
             <span class="kn">import</span> <span class="nn">traceback</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
 
@@ -1640,23 +1684,25 @@
 
 <span class="sd">        .. ansi-block::</span>
 
-<span class="sd">            $ echo -e &quot;\033[_;somename|Text passed to some_function()\007&quot;</span>
+<span class="sd">            $ echo -e &quot;\033]_;somename|Text passed to some_function()\007&quot;</span>
 
 <span class="sd">        Which would result in :func:`some_function` being called like so::</span>
 
 <span class="sd">            some_function(self, &quot;Text passed to some_function()&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;opt_esc_handler(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;opt_esc_handler(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
         <span class="n">plugin_name</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">plugin_name</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span>
                     <span class="s">&quot;terminal:opt_esc_handler:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">plugin_name</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;Got exception trying to execute plugin&#39;s optional ESC &quot;</span>
                     <span class="s">&quot;sequence handler...&quot;</span><span class="p">))</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TerminalApplication.get_bell"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.get_bell">[docs]</a>    <span class="k">def</span> <span class="nf">get_bell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1704,11 +1750,11 @@
 <span class="sd">            * **prefix** - The string being used to prefix all elements (e.g. &#39;go\_&#39;)</span>
 <span class="sd">            * **colors** - The name of the CSS text color scheme to be retrieved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_colors(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_colors(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="n">send_css</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;send_css&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">send_css</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="s">&#39;logged_css_message&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;send_css is false; will not send JavaScript.&quot;</span><span class="p">))</span>
             <span class="c"># So we don&#39;t repeat this message a zillion times in the logs:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logged_css_message</span> <span class="o">=</span> <span class="bp">True</span>
@@ -1767,7 +1813,6 @@
             <span class="k">if</span> <span class="n">terms</span><span class="p">:</span>
                 <span class="n">term_locations</span><span class="p">[</span><span class="n">location</span><span class="p">]</span> <span class="o">=</span> <span class="n">terms</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:term_locations&#39;</span><span class="p">:</span> <span class="n">term_locations</span><span class="p">}</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;term_locations: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:term_locations&quot;</span><span class="p">,</span> <span class="n">term_locations</span><span class="p">)</span>
 
@@ -1846,7 +1891,7 @@
 <span class="sd">            *settings[&#39;read&#39;]* is &quot;AUTHENTICATED&quot; all users will be able to view</span>
 <span class="sd">            the shared terminal without having to enter a password.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;share_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;share_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">generate_session_id</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">}</span>
         <span class="n">share_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1855,29 +1900,34 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">][</span><span class="s">&#39;shared&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">shared_terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">][</span><span class="s">&#39;shared&#39;</span><span class="p">]</span>
         <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
-        <span class="n">read</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;read&#39;</span><span class="p">,</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">)</span> <span class="c"># List of who to share with</span>
-        <span class="c">#write = settings.get(&#39;write&#39;, list()) # List of who can write</span>
+        <span class="n">read</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;read&#39;</span><span class="p">,</span> <span class="s">&#39;AUTHENTICATED&#39;</span><span class="p">)</span> <span class="c"># List of who to share with</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">read</span> <span class="o">=</span> <span class="p">[</span><span class="n">read</span><span class="p">]</span>
+        <span class="n">write</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;write&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="c"># Who can write (implies read access)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">write</span> <span class="o">=</span> <span class="p">[</span><span class="n">write</span><span class="p">]</span>
         <span class="c"># &quot;broadcast&quot; mode allows anonymous access without a password</span>
-        <span class="n">broadcast</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;broadcast&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="c">#broadcast = settings.get(&#39;broadcast&#39;, False)</span>
         <span class="c"># ANONYMOUS (auto-gen URL), user.attr=(regex), and &quot;AUTHENTICATED&quot;</span>
         <span class="n">out_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
             <span class="s">&#39;read&#39;</span><span class="p">:</span> <span class="n">read</span><span class="p">,</span>
-            <span class="s">&#39;broadcast&#39;</span><span class="p">:</span> <span class="n">broadcast</span>
+            <span class="s">&#39;write&#39;</span><span class="p">:</span> <span class="n">write</span><span class="p">,</span>
+            <span class="c">#&#39;broadcast&#39;: broadcast</span>
         <span class="p">})</span>
         <span class="n">share_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span>
             <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
             <span class="s">&#39;term_obj&#39;</span><span class="p">:</span> <span class="n">term_obj</span><span class="p">,</span>
             <span class="s">&#39;read&#39;</span><span class="p">:</span> <span class="n">read</span><span class="p">,</span>
-            <span class="s">&#39;write&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="c"># Populated on-demand by the sharing user</span>
-            <span class="s">&#39;broadcast&#39;</span><span class="p">:</span> <span class="n">broadcast</span>
+            <span class="s">&#39;write&#39;</span><span class="p">:</span> <span class="n">write</span><span class="p">,</span> <span class="c"># Populated on-demand by the sharing user</span>
+            <span class="c">#&#39;broadcast&#39;: broadcast</span>
         <span class="p">})</span>
         <span class="n">password</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">read</span> <span class="o">==</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">broadcast</span><span class="p">:</span>
-                <span class="c"># This situation *requires* a password</span>
-                <span class="n">password</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="n">generate_session_id</span><span class="p">()[:</span><span class="mi">8</span><span class="p">])</span>
+        <span class="c">#if read == &#39;ANONYMOUS&#39;:</span>
+            <span class="c">#if not broadcast:</span>
+                <span class="c">## This situation *requires* a password</span>
+                <span class="c">#password = settings.get(&#39;password&#39;, generate_session_id()[:8])</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">password</span>
         <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">password</span>
         <span class="n">url_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
@@ -1901,7 +1951,7 @@
         <span class="n">shared_terms</span><span class="p">[</span><span class="n">share_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">share_dict</span>
         <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;share_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">share_id</span> <span class="c"># So we can quickly tell it&#39;s shared</span>
         <span class="c"># Make a note of this shared terminal in the logs</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s"> shared terminal </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">,</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">])))</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:term_shared&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
@@ -1924,7 +1974,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="c"># TODO: Write logic here that kills the terminal of each viewer and sends them a message indicating that the sharing has ended.</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:term_ended&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}</span>
-        <span class="c"># TODO: Per the above TODO, this needs to be changed to notify each user:</span>
+        <span class="c"># TODO: Per the above TODO, this needs to be changed to notify each user (connected to the terminal):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">upn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">share_id</span><span class="p">,</span> <span class="n">share_dict</span> <span class="ow">in</span> <span class="n">shared_terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;term_obj&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">term_obj</span><span class="p">:</span>
@@ -1946,7 +1996,9 @@
 <span class="sd">                &quot;read&quot;: &quot;AUTHENTICATED&quot;,</span>
 <span class="sd">                &quot;write&quot;: [&#39;bob@somehost&#39;, &#39;joe@somehost&#39;]</span>
 <span class="sd">            }</span>
-<span class="sd">            GateOne.ws.send(JSON.stringify({&quot;terminal:set_sharing_permissions&quot;: settings}));</span>
+<span class="sd">            GateOne.ws.send(JSON.stringify({</span>
+<span class="sd">                &quot;terminal:set_sharing_permissions&quot;: settings</span>
+<span class="sd">            }));</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s">&#39;shared&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]:</span>
             <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Error: Invalid share ID.&quot;</span><span class="p">)</span>
@@ -1969,6 +2021,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:set_sharing_permissions&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
 
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">get_sharing_permissions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends the client an object representing the permissions of the given</span>
+<span class="sd">        *term*.  Example JavaScript:</span>
+
+<span class="sd">        .. code-block:: javascript</span>
+
+<span class="sd">            GateOne.ws.send(JSON.stringify({</span>
+<span class="sd">                &quot;terminal:get_sharing_permissions&quot;: 1</span>
+<span class="sd">            }));</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s">&#39;shared&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Error: Invalid share ID.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">}</span>
+        <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
+        <span class="n">shared_terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">][</span><span class="s">&#39;shared&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">share_id</span><span class="p">,</span> <span class="n">share_dict</span> <span class="ow">in</span> <span class="n">shared_terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;term_obj&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">term_obj</span><span class="p">:</span>
+                <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;write&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;write&#39;</span><span class="p">]</span>
+                <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;read&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;read&#39;</span><span class="p">]</span>
+                <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;share_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">share_id</span>
+                <span class="k">break</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sharing_permissions&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:get_sharing_permissions&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+
+    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">share_user_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">share_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends the client a dict of users that are currently viewing the terminal</span>
@@ -1979,7 +2060,9 @@
 <span class="sd">        .. code-block:: javascript</span>
 
 <span class="sd">            var shareID = &quot;YzUxNzNkNjliMDQ4NDU21DliM3EwZTAwODVhNGY5MjNhM&quot;;</span>
-<span class="sd">            GateOne.ws.send(JSON.stringify({&quot;terminal:share_user_list&quot;: shareID}));</span>
+<span class="sd">            GateOne.ws.send(JSON.stringify({</span>
+<span class="sd">                &quot;terminal:share_user_list&quot;: shareID</span>
+<span class="sd">            }));</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;viewers&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;write&#39;</span><span class="p">:</span> <span class="p">[]}</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:share_user_list&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
@@ -2013,7 +2096,12 @@
 
 <span class="sd">        .. code-block:: javascript</span>
 
-<span class="sd">            GateOne.ws.send(JSON.stringify({&quot;terminal:list_shared_terminals&quot;: null}));</span>
+<span class="sd">            GateOne.ws.send(JSON.stringify({</span>
+<span class="sd">                &quot;terminal:list_shared_terminals&quot;: null</span>
+<span class="sd">            }));</span>
+
+<span class="sd">        The client will be sent the list of shared terminals via the</span>
+<span class="sd">        `terminal:shared_terminals` WebSocket action.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminals&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">}</span>
         <span class="n">shared_terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;shared&#39;</span><span class="p">,</span> <span class="p">{})</span>
@@ -2032,7 +2120,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:list_shared_terminals&quot;</span><span class="p">)</span>
 
-    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
+    <span class="c"># NOTE: This doesn&#39;t require authenticated() so anonymous sharing can work</span>
+    <span class="nd">@require</span><span class="p">(</span><span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">attach_shared_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attaches callbacks for the terminals associated with</span>
@@ -2045,14 +2134,21 @@
 
 <span class="sd">            settings = {</span>
 <span class="sd">                &quot;share_id&quot;: &quot;ZWVjNGRiZTA0OTllNDJiODkwOGZjNDA2ZWNkNGU4Y2UwM&quot;,</span>
-<span class="sd">                &quot;password&quot;: &quot;password here&quot; // This line is only necessary if the shared terminal requires a password</span>
+<span class="sd">                &quot;password&quot;: &quot;password here&quot;</span>
 <span class="sd">            }</span>
-<span class="sd">            GateOne.ws.send(JSON.stringify({&quot;terminal:attach_shared_terminal&quot;: settings}));</span>
+<span class="sd">            GateOne.ws.send(JSON.stringify({</span>
+<span class="sd">                &quot;terminal:attach_shared_terminal&quot;: settings</span>
+<span class="sd">            }));</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Providing a password is only necessary if the shared terminal</span>
+<span class="sd">            requires it.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;attach_shared_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;attach_shared_terminal(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="n">shared_terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">][</span><span class="s">&#39;shared&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s">&#39;share_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Invalid share_id.&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Invalid share_id.&quot;</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="n">password</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">share_obj</span> <span class="o">=</span> <span class="bp">None</span>
@@ -2062,6 +2158,10 @@
                 <span class="k">break</span> <span class="c"># This is the share_dict we want</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">share_obj</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Requested shared terminal does not exist.&quot;</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">share_obj</span><span class="p">[</span><span class="s">&#39;read&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;You are not authorized to view this terminal&quot;</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="n">share_obj</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">password</span> <span class="o">!=</span> <span class="n">share_obj</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Invalid password.&quot;</span><span class="p">))</span>
@@ -2099,7 +2199,7 @@
         <span class="c"># Tell the client about this terminal&#39;s title</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="c"># Make a note of this connection in the logs</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s"> connected to terminal shared by </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">][</span><span class="s">&#39;upn&#39;</span><span class="p">])))</span>
         <span class="c"># Add this user to the list of viewers</span>
@@ -2274,7 +2374,10 @@
                 <span class="s">&#39;commands&#39;</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s">&#39;SSH&#39;</span><span class="p">:</span> <span class="n">default_command</span>
                 <span class="p">},</span>
-                <span class="s">&#39;default_command&#39;</span><span class="p">:</span> <span class="s">&#39;SSH&#39;</span>
+                <span class="s">&#39;default_command&#39;</span><span class="p">:</span> <span class="s">&#39;SSH&#39;</span><span class="p">,</span>
+                <span class="s">&#39;environment_vars&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;TERM&#39;</span><span class="p">:</span> <span class="s">&#39;xterm-256color&#39;</span>
+                <span class="p">}</span>
             <span class="p">})</span>
             <span class="n">new_term_settings</span> <span class="o">=</span> <span class="n">settings_template</span><span class="p">(</span>
                 <span class="n">template_path</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">])</span>
@@ -2294,12 +2397,12 @@
         <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;session_dir&#39;</span><span class="p">],</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;dtach&#39;</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+        <span class="n">term_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="n">_</span><span class="p">(</span><span class="s">&quot;dtach command not found.  dtach support has been disabled.&quot;</span><span class="p">))</span>
     <span class="c"># Fix the path to known_hosts if using the old default command</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">term_settings</span><span class="p">[</span><span class="s">&#39;commands&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">%USERDIR%/%USER%/ssh/known_hosts</span><span class="se">\&quot;</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">command</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="n">term_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;The default path to known_hosts has been changed.  Please &quot;</span>
                 <span class="s">&quot;update your settings to use &#39;/.ssh/known_hosts&#39; instead of &quot;</span>
                 <span class="s">&quot;&#39;/ssh/known_hosts&#39;.  Applying a termporary fix...&quot;</span><span class="p">))</span>

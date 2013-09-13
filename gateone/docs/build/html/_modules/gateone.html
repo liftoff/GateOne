@@ -72,7 +72,7 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
-<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20130903213249&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
+<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20130912210621&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
@@ -613,6 +613,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
 <span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
 <span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">)</span>
+<span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">)</span>
 
 <span class="c"># Setup the locale functions before anything else</span>
 <span class="n">locale</span><span class="o">.</span><span class="n">set_default_locale</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span>
@@ -712,7 +713,7 @@
         <span class="n">user_dir</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">user_dir</span>
     <span class="n">default</span> <span class="o">=</span> <span class="s">&quot;30d&quot;</span>
     <span class="n">max_age_str</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;user_logs_max_age&#39;</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s">&#39;user_logs_max_age&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s">&#39;user_logs_max_age&#39;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
         <span class="n">max_age_str</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">user_logs_max_age</span>
     <span class="n">max_age</span> <span class="o">=</span> <span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">max_age_str</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">descend</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -818,7 +819,7 @@
 <span class="sd">    Calls all &#39;timeout_callbacks&#39; attached to all `SESSIONS`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Killing all sessions...&quot;</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">SESSIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
         <span class="k">if</span> <span class="s">&quot;timeout_callbacks&quot;</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s">&quot;timeout_callbacks&quot;</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s">&quot;timeout_callbacks&quot;</span><span class="p">]:</span>
@@ -889,19 +890,6 @@
         <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
 
 <span class="c"># Classes</span></div>
-<div class="viewcode-block" id="HTTPSRedirectHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler">[docs]</a><span class="k">class</span> <span class="nc">HTTPSRedirectHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A handler to redirect clients from HTTP to HTTPS.  Only used if</span>
-<span class="sd">    `https_redirect` is True in Gate One&#39;s settings.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="HTTPSRedirectHandler.get"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Just redirects the client from HTTP to HTTPS&quot;&quot;&quot;</span>
-        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
-        <span class="n">url_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Host&#39;</span><span class="p">,</span> <span class="s">&#39;localhost&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span>
-            <span class="s">&#39;https://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">url_prefix</span><span class="p">))</span>
-</div></div>
 <div class="viewcode-block" id="StaticHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StaticHandler">[docs]</a><span class="k">class</span> <span class="nc">StaticHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">StaticFileHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An override of :class:`tornado.web.StaticFileHandler` to ensure that the</span>
@@ -926,15 +914,43 @@
 <span class="sd">        into standards mode when content is loaded from intranet sites.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;X-UA-Compatible&#39;</span><span class="p">,</span> <span class="s">&#39;IE=edge&#39;</span><span class="p">)</span>
+        <span class="c"># Allow access to our static content from any page:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StaticHandler.options"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StaticHandler.options">[docs]</a>    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replies to OPTIONS requests with the usual stuff (200 status, Allow</span>
+<span class="sd">        header, etc).  Since this is just the static file handler we don&#39;t</span>
+<span class="sd">        include any extra information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Allow&#39;</span><span class="p">,</span> <span class="s">&#39;HEAD,GET,POST,OPTIONS&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
 </div></div>
 <div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A base handler that all Gate One RequestHandlers will inherit methods from.</span>
 
-<span class="sd">    Provides the :meth:`get_current_user` method.</span>
+<span class="sd">    Provides the :meth:`get_current_user` method, sets default headers, and</span>
+<span class="sd">    provides a default :meth:`options` method that can be used for monitoring</span>
+<span class="sd">    purposes and also for enumerating useful information about this Gate One</span>
+<span class="sd">    server (see below for more info).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Right now it&#39;s just the one function...</span>
+<div class="viewcode-block" id="BaseHandler.set_default_headers"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler.set_default_headers">[docs]</a>    <span class="k">def</span> <span class="nf">set_default_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        An override of :meth:`tornado.web.RequestHandler.set_default_headers`</span>
+<span class="sd">        (which is how Tornado wants you to set default headers) that</span>
+<span class="sd">        adds/overrides the following headers:</span>
+
+<span class="sd">            :Server: &#39;GateOne&#39;</span>
+<span class="sd">            :X-UA-Compatible: &#39;IE=edge&#39; (forces IE 10+ into Standards mode)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Force IE 10 into Standards Mode:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;X-UA-Compatible&#39;</span><span class="p">,</span> <span class="s">&#39;IE=edge&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
+</div>
 <div class="viewcode-block" id="BaseHandler.get_current_user"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
         <span class="c"># NOTE: self.current_user is actually an @property that calls</span>
@@ -946,7 +962,79 @@
             <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">None</span>
             <span class="k">return</span> <span class="n">user</span>
-    <span class="c"># More may be added in the future</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.options"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler.options">[docs]</a>    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replies to OPTIONS requests with the usual stuff (200 status, Allow</span>
+<span class="sd">        header, etc) but also includes some useful information in the response</span>
+<span class="sd">        body that lists which authentication API features we support in</span>
+<span class="sd">        addition to which applications are installed.  The response body is</span>
+<span class="sd">        conveniently JSON-encoded:</span>
+
+<span class="sd">        .. ansi-block::</span>
+
+<span class="sd">            \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m curl -k \</span>
+<span class="sd">            -X OPTIONS https://gateone.company.com/ | python -mjson.tool</span>
+<span class="sd">              % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span>
+<span class="sd">                                             Dload  Upload   Total   Spent    Left  Speed</span>
+<span class="sd">            100   158  100   158    0     0   6793      0 --:--:-- --:--:-- --:--:--  7181</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;applications&quot;: [</span>
+<span class="sd">                    &quot;File Transfer&quot;,</span>
+<span class="sd">                    &quot;Terminal&quot;,</span>
+<span class="sd">                    &quot;X11&quot;</span>
+<span class="sd">                ],</span>
+<span class="sd">                &quot;auth_api&quot;: {</span>
+<span class="sd">                    &quot;hmacs&quot;: [</span>
+<span class="sd">                        &quot;HMAC-SHA1&quot;,</span>
+<span class="sd">                        &quot;HMAC-SHA256&quot;,</span>
+<span class="sd">                        &quot;HMAC-SHA384&quot;,</span>
+<span class="sd">                        &quot;HMAC-SHA512&quot;</span>
+<span class="sd">                    ],</span>
+<span class="sd">                    &quot;versions&quot;: [</span>
+<span class="sd">                        &quot;1.0&quot;</span>
+<span class="sd">                    ]</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The &#39;Server&#39; header does not supply the version information.  This</span>
+<span class="sd">            is intentional as it amounts to an unnecessary information</span>
+<span class="sd">            disclosure.  We don&#39;t need to make an attacker&#39;s job any easier.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span><span class="p">)</span>
+        <span class="n">enabled_applications</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">&#39;enabled_applications&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled_applications</span><span class="p">:</span>
+            <span class="c"># List all installed apps</span>
+            <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">APPLICATIONS</span><span class="p">:</span>
+                <span class="n">enabled_applications</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Allow&#39;</span><span class="p">,</span> <span class="s">&#39;HEAD,GET,POST,OPTIONS&#39;</span><span class="p">)</span>
+        <span class="n">features_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;auth_api&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;versions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;1.0&#39;</span><span class="p">],</span>
+                <span class="s">&#39;hmacs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">&#39;HMAC-SHA1&#39;</span><span class="p">,</span> <span class="s">&#39;HMAC-SHA256&#39;</span><span class="p">,</span> <span class="s">&#39;HMAC-SHA384&#39;</span><span class="p">,</span> <span class="s">&#39;HMAC-SHA512&#39;</span><span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">&quot;applications&quot;</span><span class="p">:</span> <span class="n">enabled_applications</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">features_dict</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="HTTPSRedirectHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler">[docs]</a><span class="k">class</span> <span class="nc">HTTPSRedirectHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A handler to redirect clients from HTTP to HTTPS.  Only used if</span>
+<span class="sd">    `https_redirect` is True in Gate One&#39;s settings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="HTTPSRedirectHandler.get"><a class="viewcode-back" href="../Developer/gateone.html#gateone.HTTPSRedirectHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Just redirects the client from HTTP to HTTPS&quot;&quot;&quot;</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
+        <span class="n">url_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Host&#39;</span><span class="p">,</span> <span class="s">&#39;localhost&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span>
+            <span class="s">&#39;https://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">url_prefix</span><span class="p">))</span>
 </div></div>
 <div class="viewcode-block" id="DownloadHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.DownloadHandler">[docs]</a><span class="k">class</span> <span class="nc">DownloadHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -984,6 +1072,8 @@
         <span class="c"># Set the Cache-Control header to private since this file is not meant</span>
         <span class="c"># to be public.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Cache-Control&quot;</span><span class="p">,</span> <span class="s">&quot;private&quot;</span><span class="p">)</span>
+        <span class="c"># Add some additional headers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
         <span class="c"># Check the If-Modified-Since, and don&#39;t send the result if the</span>
         <span class="c"># content has not been modified</span>
         <span class="n">ims_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;If-Modified-Since&quot;</span><span class="p">)</span>
@@ -1033,8 +1123,7 @@
     <span class="nd">@tornado.web.addslash</span>
     <span class="c"># TODO: Get this auto-minifying gateone.js</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># Force IE 10 into Standard Mode:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;X-UA-Compatible&#39;</span><span class="p">,</span> <span class="s">&#39;IE=edge&#39;</span><span class="p">)</span>
+        <span class="c"># Set our server header so it doesn&#39;t say TornadoServer/&lt;version&gt;</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;location&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">)</span>
         <span class="n">prefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefs&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -1204,6 +1293,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actions</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;go:ping&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pong</span><span class="p">,</span>
+            <span class="s">&#39;go:log&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_message</span><span class="p">,</span>
             <span class="s">&#39;go:authenticate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span><span class="p">,</span>
             <span class="s">&#39;go:get_theme&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_theme</span><span class="p">,</span>
             <span class="s">&#39;go:get_js&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_js</span><span class="p">,</span>
@@ -1220,8 +1310,9 @@
         <span class="c"># Setup some instance-specific loggers that we can later update with</span>
         <span class="c"># more metadata</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># This is used to keep track of used API authentication signatures so</span>
         <span class="c"># we can prevent replay attacks.</span>
@@ -1232,6 +1323,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">apps</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Gets filled up by self.initialize()</span>
         <span class="c"># The security dict stores applications&#39; various policy functions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">security</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
         <span class="n">WebSocketHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
@@ -1332,8 +1425,21 @@
             <span class="n">message</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
-            <span class="n">msg_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Broadcast (via broadcast_file): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
-            <span class="n">message_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;clients&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">instances</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span> <span class="c"># Only send to users that have authenticated</span>
+                    <span class="n">user</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">current_user</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">user_info</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
+                    <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;clients&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user_info</span><span class="p">)</span>
+            <span class="n">msg_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s">&quot;Broadcast (via broadcast_file): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">,</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+            <span class="n">message_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:user_message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">_deliver</span><span class="p">(</span><span class="n">message_dict</span><span class="p">,</span> <span class="n">upn</span><span class="o">=</span><span class="s">&quot;AUTHENTICATED&quot;</span><span class="p">)</span>
             <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">broadcast_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&#39;&#39;</span><span class="p">)</span> <span class="c"># Empty it out</span>
 </div>
@@ -1467,28 +1573,40 @@
                     <span class="s">&quot; the &#39;origin&#39; option in your settings.  See the docs &quot;</span>
                     <span class="s">&quot;for details.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">origin</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">origin_denied</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c"># client_id is unique to the browser/client whereas session_id is unique</span>
         <span class="c"># to the user.  It isn&#39;t used much right now but it will be useful in</span>
         <span class="c"># the future once more stuff is running over WebSockets.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">generate_session_id</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+            <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
-        <span class="c"># NOTE: self.current_user will call self.get_current_user() the first</span>
-        <span class="c"># time it is used.</span>
+        <span class="c"># NOTE: self.current_user will call self.get_current_user() and set</span>
+        <span class="c"># self._current_user the first time it is used.</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="n">client_address</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
             <span class="c"># Update our loggers to include the user metadata</span>
-            <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="c"># NOTE: NOT using self.auth_log() here on purpose:</span>
             <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span> <span class="c"># Use global auth_log so we&#39;re not redundant</span>
                 <span class="n">_</span><span class="p">(</span><span class="s">&quot;WebSocket opened (</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">) via origin </span><span class="si">%s</span><span class="s">.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">origin</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c"># NOTE: NOT using self.auth_log() here on purpose:</span>
             <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} WebSocket opened (unknown user).&#39;</span><span class="p">)</span>
             <span class="o">%</span> <span class="n">client_address</span><span class="p">)</span>
+        <span class="c"># NOTE: These get updated with more metadata inside of authenticate():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span> <span class="c"># Invalid user info</span>
+            <span class="c"># NOTE: NOT using self.auth_log() here on purpose:</span>
             <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} Unauthenticated WebSocket attempt.&#39;</span>
                 <span class="p">)</span> <span class="o">%</span> <span class="n">client_address</span><span class="p">)</span>
@@ -1601,6 +1719,217 @@
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
+    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attached to the `go:log` WebSocket action; logs the given *log_obj* via</span>
+<span class="sd">        :meth:`ApplicationWebSocket.client_log`.  The *log_obj* should be a</span>
+<span class="sd">        dict (JSON object, really) in the following format::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;level&quot;: &quot;info&quot;, # Optional</span>
+<span class="sd">                &quot;message&quot;: &quot;Actual log message here&quot;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        If a &quot;level&quot; is not given the &quot;info&quot; level will be used.</span>
+
+<span class="sd">        *Supported Levels:* &quot;info&quot;, &quot;error&quot;, &quot;warning&quot;, &quot;debug&quot;, &quot;fatal&quot;,</span>
+<span class="sd">        &quot;critical&quot;.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The &quot;critical&quot; and &quot;fatal&quot; log levels both use the</span>
+<span class="sd">            `logging.Logger.critical` method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">log_obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Nothing to do</span>
+        <span class="n">log_obj</span><span class="p">[</span><span class="s">&quot;level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;level&quot;</span><span class="p">,</span> <span class="s">&quot;info&quot;</span><span class="p">)</span> <span class="c"># Default to &quot;info&quot;</span>
+        <span class="n">loggers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;info&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">info</span><span class="p">,</span>
+            <span class="s">&quot;warning&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">warning</span><span class="p">,</span>
+            <span class="s">&quot;error&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
+            <span class="s">&quot;debug&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
+            <span class="s">&quot;fatal&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">critical</span><span class="p">,</span> <span class="c"># Python doesn&#39;t use &quot;fatal&quot;</span>
+            <span class="s">&quot;critical&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span><span class="o">.</span><span class="n">critical</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">loggers</span><span class="p">[</span><span class="n">log_obj</span><span class="p">[</span><span class="s">&quot;level&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()](</span>
+            <span class="s">&quot;Client Logging: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">log_obj</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="ApplicationWebSocket.api_auth"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.api_auth">[docs]</a>    <span class="k">def</span> <span class="nf">api_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the *auth_obj* dict validates, returns the user dict and sets</span>
+<span class="sd">        ``self.current_user``.  If it doesn&#39;t validate, returns ``False``.</span>
+
+<span class="sd">        This function also takes care of creating the user&#39;s directory if it</span>
+<span class="sd">        does not exist and creating/updating the user&#39;s &#39;session&#39; file (which</span>
+<span class="sd">        just stores metadata related to their session).</span>
+
+<span class="sd">        Example usage::</span>
+
+<span class="sd">            auth_obj = {</span>
+<span class="sd">                &#39;api_key&#39;: &#39;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&#39;,</span>
+<span class="sd">                &#39;upn&#39;: &#39;joe@company.com&#39;,</span>
+<span class="sd">                &#39;timestamp&#39;: &#39;1323391717238&#39;,</span>
+<span class="sd">                &#39;signature&#39;: &lt;gibberish&gt;,</span>
+<span class="sd">                &#39;signature_method&#39;: &#39;HMAC-SHA1&#39;,</span>
+<span class="sd">                &#39;api_version&#39;: &#39;1.0&#39;</span>
+<span class="sd">            }</span>
+<span class="sd">            result = self.api_auth(auth_obj)</span>
+
+<span class="sd">        .. seealso:: :ref:`api-auth` documentation.</span>
+
+<span class="sd">        Here&#39;s a rundown of the required *auth_obj* parameters:</span>
+
+<span class="sd">            :api_key:</span>
+<span class="sd">                The first half of what gets generated when you run</span>
+<span class="sd">                ``./gateone.py --new_api_key`` (the other half is the secret).</span>
+<span class="sd">            :upn:</span>
+<span class="sd">                The userPrincipalName (aka username) of the user being</span>
+<span class="sd">                authenticated.</span>
+<span class="sd">            :timestamp:</span>
+<span class="sd">                A 13-digit &quot;time since the epoch&quot; JavaScript-style timestamp.</span>
+<span class="sd">                Both integers and strings are accepted.</span>
+<span class="sd">                Example JavaScript: ``var timestamp = new Date().getTime()``</span>
+<span class="sd">            :signature:</span>
+<span class="sd">                The HMAC signature of the combined *api_key*, *upn*, and</span>
+<span class="sd">                *timestamp*; hashed using the secret associated with the given</span>
+<span class="sd">                *api_key*.</span>
+<span class="sd">            :signature_method:</span>
+<span class="sd">                The hashing algorithm used to create the *signature*.  Currently</span>
+<span class="sd">                this must be one of &quot;HMAC-SHA1&quot;, &quot;HMAC-SHA256&quot;, &quot;HMAC-SHA384&quot;,</span>
+<span class="sd">                or &quot;HMAC-SHA512&quot;</span>
+<span class="sd">            :api_version:</span>
+<span class="sd">                Which version of the authentication API to use when performing</span>
+<span class="sd">                authentication.  Currently the only supported version is &#39;1.0&#39;.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Any additional key/value pairs that are included in the *auth_obj*</span>
+<span class="sd">            will be assigned to the ``self.current_user`` object.  So if you&#39;re</span>
+<span class="sd">            embedding Gate One and wish to associate extra metadata with the</span>
+<span class="sd">            user you may do so via the API authentication process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_signature</span>
+        <span class="n">api_key</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;api_key&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">api_key</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;API AUTH: Invalid API authentication object (missing api_key).&#39;</span>
+            <span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">upn</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;timestamp&#39;</span><span class="p">])</span> <span class="c"># str in case integer</span>
+        <span class="n">signature</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;signature&#39;</span><span class="p">]</span>
+        <span class="n">signature_method</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;signature_method&#39;</span><span class="p">]</span>
+        <span class="n">api_version</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;api_version&#39;</span><span class="p">]</span>
+        <span class="n">supported_hmacs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;HMAC-SHA1&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">,</span>
+            <span class="s">&#39;HMAC-SHA256&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">,</span>
+            <span class="s">&#39;HMAC-SHA384&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha384</span><span class="p">,</span>
+            <span class="s">&#39;HMAC-SHA512&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">signature_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_hmacs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&#39;API AUTH: Unsupported API auth &#39;</span>
+                    <span class="s">&#39;signature method: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">signature_method</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">hmac_algo</span> <span class="o">=</span> <span class="n">supported_hmacs</span><span class="p">[</span><span class="n">signature_method</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">api_version</span> <span class="o">!=</span> <span class="s">&quot;1.0&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&#39;API AUTH: Unsupported API version:&#39;</span>
+                    <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">api_version</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">secret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_keys&#39;</span><span class="p">][</span><span class="n">api_key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;API AUTH: API Key not found.&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+<span class="c"># TODO: Make API version 1.1 that signs *all* attributes--not just the known ones</span>
+        <span class="c"># Check the signature against existing API keys</span>
+        <span class="n">sig_check</span> <span class="o">=</span> <span class="n">create_signature</span><span class="p">(</span>
+            <span class="n">secret</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">upn</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hmac_algo</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sig_check</span> <span class="o">!=</span> <span class="n">signature</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;API AUTH: Signature check failed.&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="c"># Everything matches (great!) so now we do due diligence</span>
+        <span class="c"># by checking the timestamp against the</span>
+        <span class="c"># api_timestamp_window setting and whether or not we&#39;ve</span>
+        <span class="c"># already used it (to prevent replay attacks).</span>
+        <span class="k">if</span> <span class="n">signature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_signatures</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;API AUTH: replay attack detected!  User: &quot;</span>
+                <span class="s">&quot;</span><span class="si">%s</span><span class="s">, Remote IP: </span><span class="si">%s</span><span class="s">, Origin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">upn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="p">)))</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;API AUTH: Replay attack detected!  This &#39;</span>
+                <span class="s">&#39;event has been logged.&#39;</span><span class="p">)}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_timestamp_window&#39;</span><span class="p">]</span>
+        <span class="n">then</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">time_diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">then</span>
+        <span class="k">if</span> <span class="n">time_diff</span> <span class="o">&gt;</span> <span class="n">window</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;API AUTH: Authentication failed due to an expired auth &quot;</span>
+                <span class="s">&quot;object.  If you just restarted the server this is &quot;</span>
+                <span class="s">&quot;normal (users just need to reload the page).  If &quot;</span>
+                <span class="s">&quot; this problem persists it could be a problem with &quot;</span>
+                <span class="s">&quot;the server&#39;s clock (either this server or the &quot;</span>
+                <span class="s">&quot;server(s) embedding Gate One).&quot;</span>
+            <span class="p">))</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;AUTH FAILED: Authentication object timed out. &#39;</span>
+                <span class="s">&#39;Try reloading this page (F5).&#39;</span><span class="p">)}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;AUTH FAILED: If the problem persists after &#39;</span>
+                <span class="s">&#39;reloading this page please contact your server&#39;</span>
+                <span class="s">&#39; administrator to notify them of the issue.&#39;</span><span class="p">)}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;API Authentication Successful&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_signatures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signature</span><span class="p">)</span> <span class="c"># Prevent replays</span>
+        <span class="c"># Attach any additional provided keys/values to the user</span>
+        <span class="c"># object so applications embedding Gate One can use</span>
+        <span class="c"># them in their own plugins and whatnot.</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">known_params</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;api_key&#39;</span><span class="p">,</span>
+            <span class="s">&#39;api_version&#39;</span><span class="p">,</span>
+            <span class="s">&#39;timestamp&#39;</span><span class="p">,</span>
+            <span class="s">&#39;signature&#39;</span><span class="p">,</span>
+            <span class="s">&#39;signature_method&#39;</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">auth_obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_params</span><span class="p">:</span>
+                <span class="n">user</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c"># user dicts need a little extra attention for IPs...</span>
+        <span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="c"># Force-set the current user:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span> <span class="o">=</span> <span class="n">user</span>
+        <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o770</span><span class="p">)</span>
+        <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s">&#39;session&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">):</span>
+            <span class="n">session_data</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">session_data</span><span class="p">)[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_session_id</span><span class="p">()</span>
+            <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c"># Save it so we can keep track across multiple clients</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span>
+</div>
 <div class="viewcode-block" id="ApplicationWebSocket.authenticate"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.authenticate">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Authenticates the client by first trying to use the &#39;gateone_user&#39;</span>
@@ -1627,9 +1956,23 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;authenticate(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="c"># Make sure the client is authenticated if authentication is enabled</span>
         <span class="n">reauth</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span> <span class="c"># Just a shortcut to keep lines short</span>
+        <span class="n">auth_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auth&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">auth_method</span> <span class="ow">and</span> <span class="n">auth_method</span> <span class="o">!=</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
+            <span class="c"># Regular, non-API authentication</span>
+            <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]:</span>
+                <span class="c"># Try authenticating with the given (encrypted) &#39;auth&#39; value</span>
+                <span class="n">auth_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span>
+                    <span class="s">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">])</span>
+                <span class="c"># NOTE:  This will override whatever is in the cookie.</span>
+                <span class="c"># Why?  Because we&#39;ll eventually transition to not using cookies</span>
+                <span class="k">if</span> <span class="n">auth_data</span><span class="p">:</span>
+                    <span class="c"># Force-set the current user</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">auth_data</span><span class="p">)</span>
+                    <span class="c"># Add/update the user&#39;s IP address</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+                    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Unauthenticated WebSocket attempt.&quot;</span><span class="p">))</span>
                     <span class="c"># This usually happens when the cookie_secret gets changed</span>
@@ -1647,175 +1990,15 @@
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c"># &#39;upn&#39; wasn&#39;t in user</span>
                 <span class="c"># Force them to authenticate</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s">&#39;auth&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="c"># &#39;auth&#39; message should look like this:</span>
-                <span class="c"># {</span>
-                <span class="c">#    &#39;api_key&#39;: &#39;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&#39;,</span>
-                <span class="c">#    &#39;upn&#39;: &#39;joe@company.com&#39;,</span>
-                <span class="c">#    &#39;timestamp&#39;: &#39;1323391717238&#39;,</span>
-                <span class="c">#    &#39;signature&#39;: &lt;gibberish&gt;,</span>
-                <span class="c">#    &#39;signature_method&#39;: &#39;HMAC-SHA1&#39;,</span>
-                <span class="c">#    &#39;api_version&#39;: &#39;1.0&#39;</span>
-                <span class="c"># }</span>
-                <span class="c">#</span>
-                <span class="c"># *api_key* is the first half of what gets generated when you</span>
-                <span class="c">#   run ./gateone --new_api_key.</span>
-                <span class="c"># *upn* is the User Principal Name of the user.  This is</span>
-                <span class="c">#   typically something like &quot;joe@company.com&quot;.</span>
-                <span class="c"># *timestamp* is a JavaScript Date() object converted into an</span>
-                <span class="c">#   &quot;time since the epoch&quot; (int or string is OK):</span>
-                <span class="c">#       var timestamp = new Date().getTime()</span>
-                <span class="c"># *signature* is an HMAC signature of the previous three</span>
-                <span class="c">#   variables that was created using the given API key&#39;s secret.</span>
-                <span class="c"># *signature_method* is the HMAC hashing algorithm to use for</span>
-                <span class="c">#   the signature.  Only HMAC-SHA1 is supported for now.</span>
-                <span class="c"># *api_version* is the auth API version.  Always &quot;1.0&quot; for now.</span>
-                <span class="c">#</span>
-                <span class="c"># For reference, here&#39;s how to make a signature using PHP:</span>
-                <span class="c"># $authobj = array(&#39;api_key&#39; =&gt; &#39;M2I1MzJmZjk4MTEwNDk2Zjk4MjMwNmMwMTVkODQzMTEyO&#39;, &#39;upn&#39; =&gt; $_SERVER[&#39;REMOTE_USER&#39;], &#39;timestamp&#39; =&gt; time() . &#39;0000&#39;, &#39;signature_method&#39; =&gt; &#39;HMAC-SHA1&#39;, &#39;api_version&#39; =&gt; &#39;1.0&#39;);</span>
-                <span class="c"># $authobj[&#39;signature&#39;] = hash_hmac(&#39;sha1&#39;, $authobj[&#39;api_key&#39;] . $authobj[&#39;upn&#39;] . $authobj[&#39;timestamp&#39;], &#39;&lt;secret&gt;&#39;);</span>
-                <span class="c"># Note that the order matters:  api_key -&gt; upn -&gt; timestamp</span>
-                <span class="n">auth_obj</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span>
-                <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_signature</span>
-                <span class="k">if</span> <span class="s">&#39;api_key&#39;</span> <span class="ow">in</span> <span class="n">auth_obj</span><span class="p">:</span>
-                    <span class="c"># Assume everything else is present if the api_key is there</span>
-                    <span class="n">api_key</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;api_key&#39;</span><span class="p">]</span>
-                    <span class="n">upn</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-                    <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;timestamp&#39;</span><span class="p">])</span> <span class="c"># str in case integer</span>
-                    <span class="n">signature</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;signature&#39;</span><span class="p">]</span>
-                    <span class="n">signature_method</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;signature_method&#39;</span><span class="p">]</span>
-                    <span class="n">api_version</span> <span class="o">=</span> <span class="n">auth_obj</span><span class="p">[</span><span class="s">&#39;api_version&#39;</span><span class="p">]</span>
-                    <span class="n">supported_hmacs</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s">&#39;HMAC-SHA1&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">,</span>
-                        <span class="s">&#39;HMAC-SHA256&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">,</span>
-                        <span class="s">&#39;HMAC-SHA384&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha384</span><span class="p">,</span>
-                        <span class="s">&#39;HMAC-SHA512&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">,</span>
-                    <span class="p">}</span>
-                    <span class="k">if</span> <span class="n">signature_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_hmacs</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                                <span class="s">&#39;AUTHENTICATION ERROR: Unsupported API auth &#39;</span>
-                                <span class="s">&#39;signature method: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">signature_method</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
-                        <span class="k">return</span>
-                    <span class="n">hmac_algo</span> <span class="o">=</span> <span class="n">supported_hmacs</span><span class="p">[</span><span class="n">signature_method</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">api_version</span> <span class="o">!=</span> <span class="s">&quot;1.0&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                                <span class="s">&#39;AUTHENTICATION ERROR: Unsupported API version:&#39;</span>
-                                <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">api_version</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
-                        <span class="k">return</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">secret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_keys&#39;</span><span class="p">][</span><span class="n">api_key</span><span class="p">]</span>
-                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&#39;AUTHENTICATION ERROR: API Key not found.&#39;</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
-                        <span class="k">return</span>
-                    <span class="c"># TODO: Make API version 1.1 that signs *all* attributes--not just the known ones</span>
-                    <span class="c"># Check the signature against existing API keys</span>
-                    <span class="n">sig_check</span> <span class="o">=</span> <span class="n">create_signature</span><span class="p">(</span>
-                        <span class="n">secret</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">upn</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hmac_algo</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">sig_check</span> <span class="o">==</span> <span class="n">signature</span><span class="p">:</span>
-                        <span class="c"># Everything matches (great!) so now we do due diligence</span>
-                        <span class="c"># by checking the timestamp against the</span>
-                        <span class="c"># api_timestamp_window setting and whether or not we&#39;ve</span>
-                        <span class="c"># already used it (to prevent replay attacks).</span>
-                        <span class="k">if</span> <span class="n">signature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_signatures</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;API authentication replay attack detected!  User: &quot;</span>
-                            <span class="s">&quot;</span><span class="si">%s</span><span class="s">, Remote IP: </span><span class="si">%s</span><span class="s">, Origin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                                <span class="n">upn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="p">)))</span>
-                            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
-                                <span class="s">&#39;AUTH FAILED: Replay attack detected!  This &#39;</span>
-                                <span class="s">&#39;event has been logged.&#39;</span><span class="p">)}</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                            <span class="k">return</span>
-                        <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_timestamp_window&#39;</span><span class="p">]</span>
-                        <span class="n">then</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
-                        <span class="n">time_diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">then</span>
-                        <span class="k">if</span> <span class="n">time_diff</span> <span class="o">&gt;</span> <span class="n">window</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;API authentication failed due to an expired auth &quot;</span>
-                            <span class="s">&quot;object.  If you just restarted the server this is &quot;</span>
-                            <span class="s">&quot;normal (users just need to reload the page).  If &quot;</span>
-                            <span class="s">&quot; this problem persists it could be a problem with &quot;</span>
-                            <span class="s">&quot;the server&#39;s clock (either this server or the &quot;</span>
-                            <span class="s">&quot;server(s) embedding Gate One).&quot;</span>
-                            <span class="p">))</span>
-                            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
-                                <span class="s">&#39;AUTH FAILED: Authentication object timed out. &#39;</span>
-                                <span class="s">&#39;Try reloading this page (F5).&#39;</span><span class="p">)}</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
-                                <span class="s">&#39;AUTH FAILED: If the problem persists after &#39;</span>
-                                <span class="s">&#39;reloading this page please contact your server&#39;</span>
-                                <span class="s">&#39; administrator to notify them of the issue.&#39;</span><span class="p">)}</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                            <span class="k">return</span>
-                        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;API Authentication Successful&quot;</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">prev_signatures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signature</span><span class="p">)</span> <span class="c"># Prevent replays</span>
-                <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-                        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">upn</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                                <span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
-                            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o770</span><span class="p">)</span>
-                        <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s">&#39;session&#39;</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">):</span>
-                            <span class="n">session_data</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">session_data</span><span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                        <span class="c"># Save it so we can keep track across multiple clients</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="p">{</span>
-                                    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">upn</span><span class="p">,</span> <span class="c"># FYI: UPN == userPrincipalName</span>
-                                    <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
-                                <span class="p">}</span>
-                                <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">json_encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
-                                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
-                        <span class="c"># Attach any additional provided keys/values to the user</span>
-                        <span class="c"># object so applications embedding Gate One can use</span>
-                        <span class="c"># them in their own plugins and whatnot.</span>
-                        <span class="n">known_params</span> <span class="o">=</span> <span class="p">[</span>
-                            <span class="s">&#39;api_key&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;api_version&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;timestamp&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;upn&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;signature&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;signature_method&#39;</span>
-                        <span class="p">]</span>
-                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">auth_obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_params</span><span class="p">:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                        <span class="c"># user dicts need a little extra attention for IPs...</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
-                        <span class="c"># Force-set the current user:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span>
-                        <span class="c"># Update our loggers to include the user metadata</span>
-                        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
-                            <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
-                            <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span>
-                        <span class="p">}</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;WebSocket auth failed signature check.&quot;</span><span class="p">))</span>
-                        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                        <span class="k">return</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                    <span class="s">&quot;Missing API Key in authentication object&quot;</span><span class="p">))</span>
-                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                <span class="k">return</span>
+                <span class="c">#self.close() # Close the WebSocket</span>
+        <span class="k">elif</span> <span class="n">auth_method</span> <span class="ow">and</span> <span class="n">auth_method</span> <span class="o">==</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;auth&#39;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">])</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_auth</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+                    <span class="c"># The api_auth() function takes care of logging/notification</span>
+                    <span class="k">return</span>
         <span class="k">else</span><span class="p">:</span> <span class="c"># Anonymous auth</span>
             <span class="c"># Double-check there isn&#39;t a user set in the cookie (i.e. we have</span>
             <span class="c"># recently changed Gate One&#39;s settings).  If there is, force it</span>
@@ -1837,42 +2020,40 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                         <span class="s">&quot;Client tried to use API-based authentication but this &quot;</span>
                         <span class="s">&quot;server is configured with &#39;auth = </span><span class="se">\&quot;</span><span class="s">{0}</span><span class="se">\&quot;</span><span class="s">&#39;.  Did you &quot;</span>
-                        <span class="s">&quot;forget to set &#39;auth = </span><span class="se">\&quot;</span><span class="s">api</span><span class="se">\&quot;</span><span class="s"> in your settings?&quot;</span>
+                        <span class="s">&quot;forget to set &#39;</span><span class="se">\&quot;</span><span class="s">auth</span><span class="se">\&quot;</span><span class="s">: </span><span class="se">\&quot;</span><span class="s">api</span><span class="se">\&quot;</span><span class="s">&#39; in the settings?&quot;</span>
                         <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]))</span>
                     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
                         <span class="s">&quot;AUTHENTICATION ERROR: Server is not configured to &quot;</span>
                         <span class="s">&quot;perform API-based authentication.  Did someone forget &quot;</span>
-                        <span class="s">&quot;to set &#39;auth = </span><span class="se">\&quot;</span><span class="s">api</span><span class="se">\&quot;</span><span class="s"> in the settings?&quot;</span><span class="p">)}</span>
+                        <span class="s">&quot;to set &#39;</span><span class="se">\&quot;</span><span class="s">auth</span><span class="se">\&quot;</span><span class="s">: </span><span class="se">\&quot;</span><span class="s">api</span><span class="se">\&quot;</span><span class="s">&#39; in the settings?&quot;</span><span class="p">)}</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
                     <span class="k">return</span>
                 <span class="k">if</span> <span class="n">cookie_data</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">cookie_data</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                    <span class="n">user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">cookie_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="c"># Generate a new session/anon user</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
                 <span class="c"># Also store/update their session info in localStorage</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
+                <span class="p">}</span>
                 <span class="n">encoded_user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_signed_value</span><span class="p">(</span>
-                    <span class="s">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">))</span>
+                    <span class="s">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
                 <span class="n">session_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:gateone_user&#39;</span><span class="p">:</span> <span class="n">encoded_user</span><span class="p">}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_message</span><span class="p">))</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span> <span class="o">=</span> <span class="n">user</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">:</span>
                 <span class="c"># Gate One server&#39;s auth config probably changed</span>
-                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                <span class="c">#self.close() # Close the WebSocket</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
                 <span class="k">return</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
-            <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;session&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Authentication failed for unknown user&quot;</span><span class="p">))</span>
-                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;AUTHENTICATION ERROR: User unknown&#39;</span><span class="p">)}</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                <span class="k">return</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                <span class="s">&quot;Exception encountered trying to authenticate: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span> <span class="ow">and</span> <span class="s">&#39;session&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Authentication failed for unknown user&quot;</span><span class="p">))</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;AUTHENTICATION ERROR: User unknown&#39;</span><span class="p">)}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">reauth</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># Execute any post-authentication hooks that plugins have registered</span>
@@ -1881,15 +2062,21 @@
                     <span class="n">auth_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Exception in registered Auth hook: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
+        <span class="c"># Update our loggers to include the user metadata</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
+            <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
         <span class="c"># Apply the container/prefix settings (if present)</span>
-        <span class="k">if</span> <span class="s">&#39;container&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s">&#39;prefix&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
         <span class="c"># Locations are used to differentiate between different tabs/windows</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
-        <span class="k">if</span> <span class="s">&#39;location&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;location&#39;</span><span class="p">,</span> <span class="s">&#39;default&#39;</span><span class="p">)</span>
+        <span class="c"># NOTE: NOT using self.auth_log() here on purpose:</span>
         <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="n">_</span><span class="p">(</span><span class="s">&quot;User {upn} authenticated successfully via origin {origin}&quot;</span>
               <span class="s">&quot; (location: {location}).&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -1911,7 +2098,7 @@
             <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;last_seen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;connected&#39;</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">]:</span>
                 <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="c"># A shortcut for SESSIONS[self.session][&#39;locations&#39;]:</span>
+        <span class="c"># A shortcut:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;locations&#39;</span><span class="p">]</span>
         <span class="c"># Call applications&#39; authenticate() functions (if any)</span>
         <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
@@ -2120,7 +2307,10 @@
 <span class="sd">        the client (via the `go:locations` WebSocket action) with a list of all</span>
 <span class="sd">        the locations associated with the connected user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="c"># NOTE: The list() wrap below is because the dict.keys() method returns</span>
+        <span class="c"># a dict_keys (view) object in Python 3 and the JSON encoder doesn&#39;t</span>
+        <span class="c"># know how to serialize that.</span>
+        <span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:locations&#39;</span><span class="p">:</span> <span class="n">locations</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;go:get_locations&quot;</span><span class="p">)</span>
@@ -2256,7 +2446,9 @@
                     <span class="n">theme_css_file</span><span class="p">,</span> <span class="o">**</span><span class="n">template_args</span><span class="p">)</span>
                 <span class="n">theme_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">)</span>
         <span class="c"># Combine the theme files into one</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;theme.css&#39;</span> <span class="c"># Don&#39;t need a hashed name for the theme</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;theme.css&#39;</span>
+        <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
+            <span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
         <span class="n">cached_theme_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
         <span class="n">new_theme_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">filename</span><span class="o">+</span><span class="s">&#39;.new&#39;</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">new_theme_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -2279,11 +2471,12 @@
         <span class="n">kind</span> <span class="o">=</span> <span class="s">&#39;css&#39;</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
             <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s">&#39;hash&#39;</span><span class="p">:</span> <span class="n">filename_hash</span><span class="p">,</span>
             <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
             <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
             <span class="s">&#39;element_id&#39;</span><span class="p">:</span> <span class="s">&#39;theme&#39;</span>
         <span class="p">})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
             <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
             <span class="s">&#39;path&#39;</span><span class="p">:</span> <span class="n">cached_theme_path</span><span class="p">,</span>
@@ -2294,8 +2487,7 @@
             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:file_sync&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;files&#39;</span><span class="p">]]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">file_request</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">use_client_cache</span><span class="o">=</span><span class="n">use_client_cache</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_request</span><span class="p">(</span><span class="n">filename_hash</span><span class="p">,</span> <span class="n">use_client_cache</span><span class="o">=</span><span class="n">use_client_cache</span><span class="p">)</span>
 </div>
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
     <span class="k">def</span> <span class="nf">get_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
@@ -2335,7 +2527,7 @@
                     <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
                         <span class="n">js_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_static_path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
                         <span class="n">js_files</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">f</span><span class="p">:</span> <span class="n">js_file_path</span><span class="p">})</span>
-        <span class="k">if</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">js_files</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">js_files</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">js_files</span><span class="p">[</span><span class="n">filename</span><span class="p">])</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:load_js&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
@@ -2352,13 +2544,9 @@
         <span class="n">filenames</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;filenames&#39;</span><span class="p">]</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;kind&#39;</span><span class="p">]</span>
         <span class="n">expired</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-                <span class="c"># The file_cache uses hashes; convert it</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
-                    <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">filename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">:</span>
-                <span class="n">expired</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename_hash</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename_hash</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">:</span>
+                <span class="n">expired</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename_hash</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expired</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;No expired </span><span class="si">%s</span><span class="s"> files at client </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
@@ -2420,10 +2608,16 @@
             <span class="k">return</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">files_or_hash</span>
-        <span class="k">if</span> <span class="n">filename_hash</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-            <span class="c"># The file_cache uses hashes; convert it</span>
-            <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
-                <span class="n">filename_hash</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">filename_hash</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;File Request Error: File not found ({0})&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">filename_hash</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="n">error_msg</span><span class="p">,</span>
+                <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename_hash</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">({</span><span class="s">&#39;go:load_js&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">})</span>
+            <span class="k">return</span>
         <span class="c"># Get the file info out of the file_cache so we can send it</span>
         <span class="n">element_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;element_id&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">][</span><span class="s">&#39;path&#39;</span><span class="p">]</span>
@@ -2437,17 +2631,13 @@
             <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">,</span>
             <span class="s">&#39;cache&#39;</span><span class="p">:</span> <span class="n">use_client_cache</span><span class="p">,</span>
             <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
-            <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename_hash</span><span class="p">,</span>
+            <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s">&#39;hash&#39;</span><span class="p">:</span> <span class="n">filename_hash</span><span class="p">,</span>
             <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
             <span class="s">&#39;element_id&#39;</span><span class="p">:</span> <span class="n">element_id</span><span class="p">,</span>
             <span class="s">&#39;requires&#39;</span><span class="p">:</span> <span class="n">requires</span><span class="p">,</span>
             <span class="s">&#39;media&#39;</span><span class="p">:</span> <span class="n">media</span>
         <span class="p">}</span>
-        <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-            <span class="c"># JavaScript files can have dependencies which require that the</span>
-            <span class="c"># client knows the filename.  The path-is-information-disclosure</span>
-            <span class="c"># problem really only applies to rendered CSS template files anyway</span>
-            <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
         <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache_dir&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_cache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">minify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -2483,8 +2673,8 @@
             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:load_theme&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ApplicationWebSocket.send_js_or_css"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_js_or_css">[docs]</a>    <span class="k">def</span> <span class="nf">send_js_or_css</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">paths_or_fileobj</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="s">&quot;screen&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="ApplicationWebSocket.send_js_or_css"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_js_or_css">[docs]</a>    <span class="k">def</span> <span class="nf">send_js_or_css</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths_or_fileobj</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span>
+            <span class="n">element_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="s">&quot;screen&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initiates a file synchronization of the given *paths_or_fileobj* with</span>
 <span class="sd">        the client to ensure it has the latest version of the file(s).</span>
@@ -2501,6 +2691,12 @@
 
 <span class="sd">        Optionally, a *media* string may be provided to specify the &#39;media=&#39;</span>
 <span class="sd">        value when creating a &lt;style&gt; tag to hold the given CSS.</span>
+
+<span class="sd">        Optionally, a *filename* string may be provided which will be used</span>
+<span class="sd">        instead of the name of the actual file when file synchronization occurs.</span>
+<span class="sd">        This is useful for multi-stage processes (e.g. rendering templates)</span>
+<span class="sd">        where you wish to preserve the original filename.  Just be aware that</span>
+<span class="sd">        if you do this the given *filename* must be unique.</span>
 
 <span class="sd">        .. note:</span>
 
@@ -2532,11 +2728,13 @@
             <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">paths_or_fileobj</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_obj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="n">file_obj</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">file_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c"># Just in case</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
                 <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
                     <span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
@@ -2552,11 +2750,9 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
                     <span class="c"># This makes sure that the files are always re-downloaded</span>
                     <span class="n">mtime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-                    <span class="c"># JavaScript files don&#39;t need a hashed filename</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename_hash</span>
                 <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                     <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+                    <span class="s">&#39;hash&#39;</span><span class="p">:</span> <span class="n">filename_hash</span><span class="p">,</span>
                     <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
                     <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
                     <span class="s">&#39;requires&#39;</span><span class="p">:</span> <span class="n">requires</span><span class="p">,</span>
@@ -2571,11 +2767,16 @@
             <span class="k">return</span> <span class="c"># No further processing is necessary</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">paths_or_fileobj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">paths_or_fileobj</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">paths_or_fileobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c"># Just in case</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">paths_or_fileobj</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">paths_or_fileobj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">paths_or_fileobj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># NOTE: The .split(&#39;.&#39;) above is so the hash we generate is always the</span>
+        <span class="c"># same.  The tail end of the filename will have its modification date.</span>
+        <span class="c"># Cache the metadata for sync</span>
         <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;send_js_or_css(</span><span class="si">%s</span><span class="s">) (mtime: </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mtime</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -2585,9 +2786,6 @@
         <span class="c"># Also, we don&#39;t want to reveal the file structure on the server.</span>
         <span class="n">filename_hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span>
             <span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
-        <span class="c"># NOTE: The .split(&#39;.&#39;) above is so the hash we generate is always the</span>
-        <span class="c"># same.  The tail end of the filename will have its modification date.</span>
-        <span class="c"># Cache the metadata for sync</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
             <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
@@ -2600,11 +2798,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="c"># This makes sure that the files are always re-downloaded</span>
             <span class="n">mtime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-            <span class="c"># JavaScript files don&#39;t need a hashed filename</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename_hash</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;files&#39;</span><span class="p">:</span> <span class="p">[{</span>
             <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s">&#39;hash&#39;</span><span class="p">:</span> <span class="n">filename_hash</span><span class="p">,</span>
             <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
             <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
             <span class="s">&#39;requires&#39;</span><span class="p">:</span> <span class="n">requires</span><span class="p">,</span>
@@ -2617,19 +2813,17 @@
             <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;files&#39;</span><span class="p">]]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">file_request</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">use_client_cache</span><span class="o">=</span><span class="n">use_client_cache</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ApplicationWebSocket.send_js"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_js">[docs]</a>    <span class="k">def</span> <span class="nf">send_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ApplicationWebSocket.send_js"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_js">[docs]</a>    <span class="k">def</span> <span class="nf">send_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A shortcut for `self.send_js_or_css(path, &#39;js&#39;, requires=requires)`.</span>
+<span class="sd">        A shortcut for ``self.send_js_or_css(path, &#39;js&#39;, **kwargs)``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_or_css</span><span class="p">(</span>
-            <span class="n">path</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="n">requires</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_or_css</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ApplicationWebSocket.send_css"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_css">[docs]</a>    <span class="k">def</span> <span class="nf">send_css</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="s">&quot;screen&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="ApplicationWebSocket.send_css"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_css">[docs]</a>    <span class="k">def</span> <span class="nf">send_css</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A shortcut for</span>
-<span class="sd">        `self.send_js_or_css(path, &#39;css&#39;, element_id=element_id, media=media)`</span>
+<span class="sd">        A shortcut for ``self.send_js_or_css(path, &#39;css&#39;, **kwargs)``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_or_css</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;css&#39;</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_or_css</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;css&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ApplicationWebSocket.render_and_send_css"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.render_and_send_css">[docs]</a>    <span class="k">def</span> <span class="nf">render_and_send_css</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
             <span class="n">css_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="s">&quot;screen&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -2660,11 +2854,13 @@
             <span class="k">return</span>
         <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache_dir&#39;</span><span class="p">]</span>
         <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">css_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">safe_path</span> <span class="o">=</span> <span class="n">css_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="c"># So we can name the file safely</span>
         <span class="n">rendered_filename</span> <span class="o">=</span> <span class="s">&#39;rendered_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">safe_path</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
         <span class="n">rendered_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">rendered_filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span>
+                <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">template_loaders</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="o">.</span><span class="n">_template_loaders</span>
         <span class="c"># This wierd little bit empties Tornado&#39;s template cache:</span>
@@ -2679,7 +2875,8 @@
         <span class="p">)</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span>
+            <span class="n">element_id</span><span class="o">=</span><span class="n">element_id</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
         <span class="c"># Remove older versions of the rendered template if present</span>
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="n">rendered_filename</span><span class="p">:</span>
@@ -2749,7 +2946,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="n">requires</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
                         <span class="n">css_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_static_path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">css_file_path</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">css_file_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
 
 <span class="c"># TODO:  Add support for a setting that can control which themes are visible to users.</span></div>
 <div class="viewcode-block" id="ApplicationWebSocket.enumerate_themes"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.enumerate_themes">[docs]</a>    <span class="k">def</span> <span class="nf">enumerate_themes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2814,8 +3011,7 @@
 <span class="c">#       The real purpose of send_user_message() and broadcast() are for</span>
 <span class="c">#       programmatic use.  For example, when a user shares a terminal and it</span>
 <span class="c">#       would be appropriate to notify certain users that the terminal is now</span>
-<span class="c">#       available for them to connect.  This may use something other than the</span>
-<span class="c">#       &#39;notice&#39; WebSocket action in the future to avoid confusion (if need be).</span></div>
+<span class="c">#       available for them to connect.</span></div>
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">send_user_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2834,8 +3030,8 @@
 
 <div class="viewcode-block" id="ApplicationWebSocket.send_message"><a class="viewcode-back" href="../Developer/gateone.html#gateone.ApplicationWebSocket.send_message">[docs]</a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">upn</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sends the given *message* to the client using the `go:notice` WebSocket</span>
-<span class="sd">        action at the currently-connected client.</span>
+<span class="sd">        Sends the given *message* to the client using the `go:user_message`</span>
+<span class="sd">        WebSocket action at the currently-connected client.</span>
 
 <span class="sd">        If *upn* is provided the *message* will be sent to all users with a</span>
 <span class="sd">        matching &#39;upn&#39; value.</span>
@@ -2846,7 +3042,7 @@
 
 <span class="sd">        if *upn* is &#39;AUTHENTICATED&#39; all users will get the message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">message_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
+        <span class="n">message_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:user_message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">upn</span><span class="p">:</span>
             <span class="n">ApplicationWebSocket</span><span class="o">.</span><span class="n">_deliver</span><span class="p">(</span><span class="n">message_dict</span><span class="p">,</span> <span class="n">upn</span><span class="o">=</span><span class="n">upn</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">session</span><span class="p">:</span>
@@ -2858,8 +3054,13 @@
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sends the given *message* (string) to all connected, authenticated</span>
-<span class="sd">        users.</span>
+<span class="sd">        Attached to the `go:broadcast` WebSocket action; sends the given</span>
+<span class="sd">        *message* (string) to all connected, authenticated users.  Example</span>
+<span class="sd">        usage:</span>
+
+<span class="sd">         .. code-block:: javascript</span>
+
+<span class="sd">            GateOne.ws.send(JSON.stringify({&quot;go:broadcast&quot;: &quot;This is a test&quot;}));</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Broadcast: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">strip_xss</span> <span class="c"># Prevent XSS attacks</span>
@@ -2954,6 +3155,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status_code</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_error_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;static_url&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">404</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">403</span><span class="p">]:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -3695,7 +3897,7 @@
     <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">argument</span> <span class="ow">in</span> <span class="n">non_options</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">argument</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">argument</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="n">go_settings</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
     <span class="c"># Update Tornado&#39;s options from our settings.</span>
     <span class="c"># NOTE: For options given on the command line this step should be redundant.</span>
@@ -3717,9 +3919,6 @@
     <span class="k">global</span> <span class="n">_</span>
     <span class="k">global</span> <span class="n">PLUGINS</span>
     <span class="k">global</span> <span class="n">APPLICATIONS</span>
-    <span class="k">global</span> <span class="n">logger</span>
-    <span class="k">global</span> <span class="n">auth_log</span>
-    <span class="k">global</span> <span class="n">msg_log</span>
     <span class="n">define_options</span><span class="p">()</span>
     <span class="c"># Before we do anything else we need the get the settings_dir argument (if</span>
     <span class="c"># given) so we can make sure we&#39;re handling things accordingly.</span>
@@ -4028,16 +4227,21 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">proto</span> <span class="o">=</span> <span class="s">&quot;https://&quot;</span>
     <span class="c"># Fill out our settings with command line args if any are missing</span>
-    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
         <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">non_options</span><span class="p">:</span>
             <span class="k">continue</span> <span class="c"># These don&#39;t belong</span>
         <span class="k">if</span> <span class="n">option</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">go_settings</span><span class="p">:</span>
             <span class="n">go_settings</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">option</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
     <span class="n">tornado</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">enable_pretty_logging</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
-    <span class="c"># Assign our logging globals</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-    <span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
-    <span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">)</span>
+    <span class="c">## Assign our logging globals</span>
+    <span class="c">#global logger</span>
+    <span class="c">#global auth_log</span>
+    <span class="c">#global msg_log</span>
+    <span class="c">#global client_log</span>
+    <span class="c">#logger = go_logger(None)</span>
+    <span class="c">#auth_log = go_logger(&#39;gateone.auth&#39;)</span>
+    <span class="c">#msg_log = go_logger(&#39;gateone.message&#39;)</span>
+    <span class="c">#client_log = go_logger(&#39;gateone.client&#39;)</span>
     <span class="n">https_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
         <span class="n">GateOneApp</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">go_settings</span><span class="p">,</span> <span class="n">web_handlers</span><span class="o">=</span><span class="n">web_handlers</span><span class="p">),</span>
         <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">)</span>

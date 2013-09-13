@@ -145,6 +145,19 @@ as strings.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="logviewer.retrieve_first_frame">
+<tt class="descclassname">logviewer.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.get_log_metadata">
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_log_metadata</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#get_log_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.get_log_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the metadata from the log at the given <em>golog_path</em> in the form of
+a dict.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="logviewer.playback_log">
 <tt class="descclassname">logviewer.</tt><tt class="descname">playback_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#playback_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.playback_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays back the log file at <em>log_path</em> by way of timely output to <em>file_like</em>
@@ -183,21 +196,10 @@ Besides that, it looks really nice =)</p>
 <p>If <em>show_esc</em> is True, escape sequences and control characters will be
 visible in the output.  Trailing whitespace and escape sequences will not be
 removed.</p>
-<p>NOTE: Converts our standard recording-based log format into something that
-can be used with grep and similar search/filter tools.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="logviewer.retrieve_first_frame">
-<tt class="descclassname">logviewer.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="logviewer.get_log_metadata">
-<tt class="descclassname">logviewer.</tt><tt class="descname">get_log_metadata</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#get_log_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.get_log_metadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the metadata from the log at the given <em>golog_path</em> in the form of
-a dict.</p>
+<p>..note:</p>
+<div class="highlight-python"><pre>Converts our standard recording-based log format into something that
+can be used with grep and similar search/filter tools.</pre>
+</div>
 </dd></dl>
 
 <dl class="function">
