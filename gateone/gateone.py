@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130912210621" # Gets replaced by git (holds the date/time)
+__commit__ = "20130912210717" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2000,10 +2000,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     auth_hook(self, self.current_user, self.settings)
         except Exception as e:
             self.logger.error(_("Exception in registered Auth hook: %s" % e))
+        # Locations are used to differentiate between different tabs/windows
+        self.location = settings.get('location', 'default')
         # Update our loggers to include the user metadata
         metadata = {
             'upn': user['upn'],
-            'ip_address': self.request.remote_ip
+            'ip_address': self.request.remote_ip,
+            'location': self.location
         }
         self.logger = go_logger(None, **metadata)
         self.auth_log = go_logger('gateone.auth', **metadata)
@@ -2012,8 +2015,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Apply the container/prefix settings (if present)
         self.container = settings.get('container', self.container)
         self.prefix = settings.get('prefix', self.prefix)
-        # Locations are used to differentiate between different tabs/windows
-        self.location = settings.get('location', 'default')
         # NOTE: NOT using self.auth_log() here on purpose:
         auth_log.info(
             _("User {upn} authenticated successfully via origin {origin}"
@@ -2921,7 +2922,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         more than one JSON translation is sent to the client the new translation
         will be merged into the existing one.
 
-        .. note:: Translation files must be the result of a `pojson /path/to/translation.po` conversion.
+        .. note::
+
+            Translation files must be the result of a
+            `pojson /path/to/translation.po` conversion.
         """
         chosen_locale = self.prefs['*']['gateone'].get('locale', 'en_US')
         json_translation = os.path.join(
@@ -2955,7 +2959,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         Sends the given *settings['message']* to the given *settings['upn']*.
 
-        if *upn* is 'AUTHENTICATED' all users will get the message.
+        if *upn* is 'AUTHENTICATED' all users will get the message.  Example:
+
+        .. code-block:: javascript
+
+            var obj = {"message": "This is a test", "upn": "joe@company.com"}
+            GateOne.ws.send(JSON.stringify({"go:send_user_message": obj}));
         """
         if 'message' not in settings:
             self.send_message(_("Error: No message to send."))
@@ -2963,6 +2972,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if 'upn' not in settings:
             self.send_message(_("Error: Missing UPN."))
             return
+        metadata = {"to": settings["upn"]}
+        self.msg_log.info(
+            _("User Message: {0}").format(settings["message"]),
+            metadata=metadata)
         self.send_message(settings['message'], upn=settings['upn'])
         self.trigger('go:send_user_message', settings)
 
@@ -2996,7 +3009,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         *message* (string) to all connected, authenticated users.  Example
         usage:
 
-         .. code-block:: javascript
+        .. code-block:: javascript
 
             GateOne.ws.send(JSON.stringify({"go:broadcast": "This is a test"}));
         """
@@ -4171,15 +4184,6 @@ def main():
         if option not in go_settings:
             go_settings[option] = options._options[option].value()
     tornado.log.enable_pretty_logging(options=options)
-    ## Assign our logging globals
-    #global logger
-    #global auth_log
-    #global msg_log
-    #global client_log
-    #logger = go_logger(None)
-    #auth_log = go_logger('gateone.auth')
-    #msg_log = go_logger('gateone.message')
-    #client_log = go_logger('gateone.client')
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)

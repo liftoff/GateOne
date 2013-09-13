@@ -466,7 +466,8 @@ class TerminalApplication(GOApplication):
         term_log.debug('TerminalApplication.authenticate()')
         self.log_metadata = {
             'upn': self.current_user['upn'],
-            'ip_address': self.ws.request.remote_ip
+            'ip_address': self.ws.request.remote_ip,
+            'location': self.ws.location
         }
         self.term_log = go_logger("gateone.terminal", **self.log_metadata)
         # Get our user-specific settings/policies for quick reference
