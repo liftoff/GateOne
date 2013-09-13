@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130912223528" # Gets replaced by git (holds the date/time)
+__commit__ = "20130913103804" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1665,7 +1665,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             The `pong` method is a Gate One-specific implementation.
         """
         latency = int(time.time() * 1000) - int(timestamp)
-        print("latency: %s" % latency)
         self.logger.info(_("WebSocket Latency: {0}ms").format(latency))
 
     def pong(self, timestamp):
