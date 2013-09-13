@@ -182,7 +182,7 @@ class require(object):
                             self.request.remote_ip, f.__name__, str(condition))
                         ))
                     # Try to notify the client of their failings
-                    if self.ws_connection:
+                    if self.ws:
                         msg = _("ERROR: %s" % condition.error)
                         if hasattr(self, 'send_message'):
                             self.send_message(msg)

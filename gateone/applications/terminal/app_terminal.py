@@ -704,10 +704,9 @@ class TerminalApplication(GOApplication):
         Sends the 'term_ended' message to the client letting it know that the
         given *term* is no more.
         """
-        metadata = {
-            "term": term,
-            "command": self.loc_terms[term]["command"]
-        }
+        metadata = {"term": term}
+        if term in self.loc_terms:
+            metadata["command"] = self.loc_terms[term].get("command", None)
         self.term_log.info(
             "Terminal Closed: %s" % term, metadata=metadata)
         message = {'terminal:term_ended': term}
