@@ -495,7 +495,7 @@ class TerminalApplication(GOApplication):
                 js_file_path = os.path.join(static_dir, fname)
                 if fname == 'terminal.js':
                     self.ws.send_js(js_file_path,
-                    requires=["theme.css", "terminal.css"])
+                    requires=["terminal.css"])
                 elif fname == 'terminal_input.js':
                     self.ws.send_js(js_file_path, requires="terminal.js")
                 else:

@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130912213742";
+GateOne.__commit__ = "20130912214405";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1710,8 +1710,8 @@ GateOne.Base.update(GateOne.Utils, {
                         existing = u.getNode('#'+prefix+message['element_id']);
                         stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     } else {
-                        existing = u.getNode('#'+prefix+message['filename']+"_css");
-                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
+                        existing = u.getNode('#'+prefix+message['filename']);
+                        stylesheet = u.createElement('style', {'id': message['filename'].replace(/\./g, '_'), 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     }
                     stylesheet.textContent = message['data'];
                     if (existing) {
