@@ -838,7 +838,7 @@ class ImageFile(FileType):
         """
         logging.debug('ImageFile.capture()')
         # Image file formats don't usually like carriage returns:
-        open('/tmp/lastimage.img', 'w').write(data) # Use for debug
+        #open('/tmp/lastimage.img', 'w').write(data) # Use for debug
         data = data.replace(b'\r\n', b'\n') # shell adds an extra /r
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = BytesIO(data)
