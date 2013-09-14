@@ -781,26 +781,24 @@ go.Base.update(GateOne.Terminal, {
     loadFont: function(font, /*opt*/size) {
         /**:GateOne.Terminal.loadFont(font[, size])
 
-        Tells the server to perform a sync of the given *font* with the client.  If *font* is not given, will load the font set in `GateOne.prefs.font`.
+        Tells the server to perform a sync of the given *font* with the client.  If *font* is not given, will load the font set in :js:attr:`GateOne.prefs.font`.
 
         Optionally, a *size* may be chosen.  It must be a valid CSS 'font-size' value such as '0.9em', '90%', '12pt', etc.
         */
         logDebug('loadFont(' + font + ", " + size + ")");
         font = font || go.prefs.terminalFont;
-        var settings = { 'font_family': font };
-        if (size) { settings['font_size'] = size; }
+        var settings = {'font_family': font};
+        if (size) {settings['font_size'] = size}
         go.ws.send(JSON.stringify({'terminal:get_font': settings}));
     },
     loadTextColors: function(colors) {
         /**:GateOne.Terminal.loadTextColors(colors)
 
-        Tells the server to perform a sync of the given *colors* (terminal text colors) with the client.  If *colors* is not given, will load the colors set in `GateOne.prefs.colors`.
+        Tells the server to perform a sync of the given *colors* (terminal text colors) with the client.  If *colors* is not given, will load the colors set in :js:attr:`GateOne.prefs.colors`.
         */
-        var container = go.prefs.goDiv.split('#')[1];
-        if (!colors) {
-            colors = go.prefs.colors;
-        }
-        go.ws.send(JSON.stringify({'terminal:get_colors': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'colors': colors}}));
+        logDebug('loadTextColors(' + colors + ")");
+        colors = colors || go.prefs.colors;
+        go.ws.send(JSON.stringify({'terminal:get_colors': {'colors': colors}}));
     },
     // TODO: Get this *actually* centering the terminal info
     displayTermInfo: function(term) {

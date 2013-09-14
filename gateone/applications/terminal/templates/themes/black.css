@@ -39,6 +39,7 @@
     background-color: #222; /* Not quite black so we can use shadows :) */
     color: #eee;
     line-height: 1;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     position: absolute;

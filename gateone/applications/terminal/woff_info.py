@@ -71,7 +71,23 @@ information for any given WOFF file:
     The command line output is JSON so it can be easily used by other programs.
 """
 
-import sys, struct, zlib
+import sys, struct, zlib, functools
+
+def memoize(obj):
+    cache = obj.cache = {}
+    @functools.wraps(obj)
+    def memoizer(*args, **kwargs):
+        key = str(args) + str(kwargs)
+        if key not in cache:
+            cache[key] = obj(*args, **kwargs)
+        return cache[key]
+    return memoizer
+
+# Try using Gate One's memoize decorator (with self-expiry!)
+try:
+    from utils import memoize
+except ImportError:
+    pass # No big, use the one above
 
 # Globals
 ENCODING_MAP = {
@@ -288,6 +304,7 @@ def woff_name_data(path):
                 name_dict[name_id] = record
     return name_dict
 
+@memoize
 def woff_info(path):
     """
     Returns a dictionary containing the English-language name (string) data

@@ -30,7 +30,7 @@ import logging
 import mimetypes
 import fcntl
 import hmac, hashlib
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import partial
 try:
     import cPickle as pickle
@@ -44,6 +44,7 @@ from tornado.options import options
 from tornado.escape import json_encode as _json_encode
 from tornado.escape import json_decode
 from tornado.escape import to_unicode, utf8
+from tornado.ioloop import IOLoop, PeriodicCallback
 
 # Globals
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -202,6 +203,124 @@ class RUDict(dict):
         Just returns `self.__repr__()` with an extra newline at the end.
         """
         return self.__repr__() + "\n"
+
+class AutoExpireDict(dict):
+    """
+    An override of Python's `dict` that expires keys after a given
+    *_expire_timeout* timeout (`datetime.timedelta`).  The default expiration
+    is one day.  It is used like so::
+
+        >>> expiring_dict = AutoExpireDict(timeout=timedelta(minutes=10))
+        >>> expiring_dict['somekey'] = 'some value'
+        >>> # You can see when this key was created:
+        >>> print(expiring_dict.creation_times['somekey'])
+        2013-04-15 18:44:18.224072
+
+    10 minutes later your key will be gone::
+
+        >>> 'somekey' in expiring_dict
+        False
+
+    By default `AutoExpireDict` will check for expired keys every 30 seconds but
+    this can be changed by setting the '_check_interval' key::
+
+        >>> expiring_dict = AutoExpireDict(interval=5000) # 5 secs
+
+    .. note::
+
+        Only works if there's a running instances of `tornado.ioloop.IOLoop`.
+    """
+    def __init__(self, *args, **kwargs):
+        self.timeout = timedelta(hours=1) # Default is 1-hour timeout
+        self.interval = 10000 # 10-second check interval default
+        if 'timeout' in kwargs:
+            self.timeout = kwargs.pop('timeout')
+        if 'interval' in kwargs:
+            self.interval = kwargs.pop('interval')
+        super(AutoExpireDict, self).__init__(*args, **kwargs)
+        self.creation_times = {}
+        # Set the start time on every key
+        for k in self.keys():
+            self.creation_times[k] = datetime.now()
+        self.io_loop = IOLoop.current()
+        self._key_watcher = PeriodicCallback(
+            self._timeout_checker, self.interval, io_loop=self.io_loop)
+        self._key_watcher.start()
+
+    def renew(self, key):
+        """
+        Resets the timeout on the given *key*; like it was just created.
+        """
+        self.creation_times[key] = datetime.now() # Set/renew the start time
+
+    def __setitem__(self, key, value):
+        """
+        An override that tracks when keys are updated.
+        """
+        super(AutoExpireDict, self).__setitem__(key, value) # Set normally
+        self.renew(key) # Set/renew the start time
+
+    def __delitem__(self, key):
+        """
+        An override that makes sure *key* gets removed from
+        ``self.creation_times`` dict.
+        """
+        del self.creation_times[key]
+        super(AutoExpireDict, self).__delitem__(key)
+
+    def __del__(self):
+        """
+        Ensures that our `tornado.ioloop.PeriodicCallback`
+        (``self._key_watcher``) gets stopped.
+        """
+        self._key_watcher.stop()
+
+    def update(self, *args, **kwargs):
+        super(AutoExpireDict, self).update(*args, **kwargs)
+        if 'timeout' in kwargs:
+            self.timeout = kwargs.pop('timeout')
+        if 'interval' in kwargs:
+            self.interval = kwargs.pop('interval')
+        for key, value in kwargs.items():
+            self.renew(key)
+
+    def _timeout_checker(self):
+        """
+        Walks ``self`` and removes keys that have passed the expiration point.
+        """
+        for key, starttime in list(self.creation_times.items()):
+            if datetime.now() - starttime > self.timeout:
+                del self[key]
+
+MEMO = {}
+class memoize(object):
+    """
+    A memoization decorator that works with multiple arguments as well as
+    unhashable arguments (e.g. dicts).  It also self-expires any memoized
+    calls after the timedelta specified via *timeout*.
+
+    If a *timeout* is not given memoized information will be discared after five
+    minutes.
+
+    .. note:: Expiration checks will be performed every 30 seconds.
+    """
+    def __init__(self, fn, timeout=None):
+        self.fn = fn
+        if not timeout:
+            timeout = timedelta(minutes=5)
+        global MEMO # Use a global so that instances can share the cache
+        if not MEMO:
+            MEMO = AutoExpireDict(timeout=timeout, interval=30000) # 30 sec
+
+    def __call__(self, *args, **kwargs):
+        string = pickle.dumps(args, 0) + pickle.dumps(kwargs, 0)
+        if string not in MEMO:
+            # Commented out because it is REALLY noisy.  Uncomment to debug
+            #logging.debug("memoize cache miss (%s)" % self.fn.__name__)
+            MEMO[string] = self.fn(*args, **kwargs)
+        #else:
+            #logging.debug("memoize cache hit (%s)" % self.fn.__name__)
+        return MEMO[string]
 
 # Functions
 def noop(*args, **kwargs):
@@ -1600,25 +1719,6 @@ def settings_template(path, **kwargs):
         if line.strip():
             out += line + "\n"
     return out
-
-class memoize:
-    """
-    A memoization decorator that works with multiple arguments as well as
-    unhashable arguments (e.g. dicts).
-    """
-    def __init__(self, fn):
-        self.fn = fn
-        self.memo = {}
-
-    def __call__(self, *args, **kwds):
-        string = pickle.dumps(args, 1) + pickle.dumps(kwds, 1)
-        if string not in self.memo:
-            # Commented out because it is REALLY noisy.  Uncomment to debug
-            #logging.debug("memoize cache miss (%s)" % self.fn.__name__)
-            self.memo[string] = self.fn(*args, **kwds)
-        #else:
-            #logging.debug("memoize cache hit (%s)" % self.fn.__name__)
-        return self.memo[string]
 
 def strip_xss(html, whitelist=None, replacement=u"\u2421"):
     """

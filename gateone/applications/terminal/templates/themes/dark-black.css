@@ -39,6 +39,7 @@
     background-color: #000; /* Black - dark black! */
     color: #fff;
     line-height: 1;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     position: absolute;

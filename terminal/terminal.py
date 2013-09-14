@@ -634,6 +634,102 @@ class InvalidParameters(Exception):
     pass
 
 # Classes
+class AutoExpireDict(dict):
+    """
+    An override of Python's `dict` that expires keys after a given
+    *_expire_timeout* timeout (`datetime.timedelta`).  The default expiration
+    is one day.  It is used like so::
+
+        >>> expiring_dict = AutoExpireDict(timeout=timedelta(minutes=10))
+        >>> expiring_dict['somekey'] = 'some value'
+        >>> # You can see when this key was created:
+        >>> print(expiring_dict.creation_times['somekey'])
+        2013-04-15 18:44:18.224072
+
+    10 minutes later your key will be gone::
+
+        >>> 'somekey' in expiring_dict
+        False
+
+    By default `AutoExpireDict` will check for expired keys every 30 seconds but
+    this can be changed by setting the '_check_interval' key::
+
+        >>> expiring_dict = AutoExpireDict(interval=5000) # 5 secs
+
+    .. note::
+
+        Only works if there's a running instances of `tornado.ioloop.IOLoop`.
+    """
+    def __init__(self, *args, **kwargs):
+        self.timeout = timedelta(hours=1) # Default is 1-hour timeout
+        self.interval = 10000 # 10-second check interval default
+        if 'timeout' in kwargs:
+            self.timeout = kwargs.pop('timeout')
+        if 'interval' in kwargs:
+            self.interval = kwargs.pop('interval')
+        super(AutoExpireDict, self).__init__(*args, **kwargs)
+        self.creation_times = {}
+        # Set the start time on every key
+        for k in self.keys():
+            self.creation_times[k] = datetime.now()
+        self.io_loop = IOLoop.current()
+        self._key_watcher = PeriodicCallback(
+            self._timeout_checker, self.interval, io_loop=self.io_loop)
+        self._key_watcher.start()
+
+    def renew(self, key):
+        """
+        Resets the timeout on the given *key*; like it was just created.
+        """
+        self.creation_times[key] = datetime.now() # Set/renew the start time
+
+    def __setitem__(self, key, value):
+        """
+        An override that tracks when keys are updated.
+        """
+        super(AutoExpireDict, self).__setitem__(key, value) # Set normally
+        self.renew(key) # Set/renew the start time
+
+    def __delitem__(self, key):
+        """
+        An override that makes sure *key* gets removed from
+        ``self.creation_times`` dict.
+        """
+        del self.creation_times[key]
+        super(AutoExpireDict, self).__delitem__(key)
+
+    def __del__(self):
+        """
+        Ensures that our `tornado.ioloop.PeriodicCallback`
+        (``self._key_watcher``) gets stopped.
+        """
+        self._key_watcher.stop()
+
+    def update(self, *args, **kwargs):
+        super(AutoExpireDict, self).update(*args, **kwargs)
+        if 'timeout' in kwargs:
+            self.timeout = kwargs.pop('timeout')
+        if 'interval' in kwargs:
+            self.interval = kwargs.pop('interval')
+        for key, value in kwargs.items():
+            self.renew(key)
+
+    def _timeout_checker(self):
+        """
+        Walks ``self`` and removes keys that have passed the expiration point.
+        """
+        for key, starttime in list(self.creation_times.items()):
+            if datetime.now() - starttime > self.timeout:
+                del self[key]
+
+# AutoExpireDict only works if Tornado is present.
+# Don't use the HTML_CACHE if Tornado isn't available.
+try:
+    from tornado.ioloop import IOLoop, PeriodicCallback
+    HTML_CACHE = AutoExpireDict(timeout=timedelta(minutes=5), interval=30000)
+except ImportError:
+    HTML_CACHE = None
+
 class FileType(object):
     """
     An object to hold the attributes of a supported file capture/output type.
@@ -1700,9 +1796,6 @@ class Terminal(object):
             u' ': [], # Nada, nothing, no rendition.  Not the same as below
             self.rend_counter.next(): [0] # Default is actually reset
         }
-        self.prev_dump = [] # A cache to speed things up
-        self.prev_dump_rend = [] # Ditto
-        self.html_cache = [] # Ditto
         self.watcher = None # Placeholder for the file watcher thread (if used)
 
     def add_magic(self, filetype):
@@ -1792,9 +1885,6 @@ class Terminal(object):
         self.cursorX = 0
         self.cursorY = 0
         self.rendition_set = False
-        self.prev_dump = [] # Force a full dump with an init
-        self.prev_dump_rend = []
-        self.html_cache = [] # Force this to be reset as well
 
     def init_renditions(self, rendition=unichr(1000)): # Match unicode_counter
         """
@@ -1935,9 +2025,6 @@ class Terminal(object):
         self.init_screen()
         self.init_renditions()
         self.init_scrollback()
-        self.prev_dump = []
-        self.prev_dump_rend = []
-        self.html_cache = []
         try:
             for callback in self.callbacks[CALLBACK_RESET].values():
                 callback()
@@ -3098,9 +3185,6 @@ class Terminal(object):
             self.alt_renditions = None
         # These all need to be reset no matter what
         self.cur_rendition = unichr(1000)
-        self.prev_dump = []
-        self.prev_dump_rend = []
-        self.html_cache = []
 
     def toggle_alternate_screen_buffer_cursor(self, alt):
         """
@@ -3681,39 +3765,32 @@ class Terminal(object):
         # lookups are faster--especially in loops.
         special = SPECIAL
         rendition_classes = RENDITION_CLASSES
+        html_cache = HTML_CACHE
         screen = self.screen
         renditions = self.renditions
         renditions_store = self.renditions_store
         cursorX = self.cursorX
         cursorY = self.cursorY
         show_cursor = self.expanded_modes['25']
-        if len(self.prev_dump) != len(screen):
-            # Fix it to be equal--assume first time/screen reset/resize/etc
-            # Just fill it with empty strings (only the length matters here)
-            self.prev_dump = [[] for a in screen]
-            self.prev_dump_rend = [[] for a in screen]
-        # The html_cache may need to be fixed as well
-        if len(self.html_cache) != len(screen):
-            self.html_cache = [u'' for a in screen] # Essentially a reset
         spancount = 0
         current_classes = set()
         prev_rendition = None
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
+        cursor_span = '<span class="%scursor">' % self.class_prefix
         for linecount, line_rendition in enumerate(izip(screen, renditions)):
             line = line_rendition[0]
             rendition = line_rendition[1]
-            if linecount != cursorY and self.prev_dump[linecount] == line:
-                cursor_span = '<span class="%scursor">' % self.class_prefix
-                if cursor_span not in self.html_cache[linecount]:
-                    if self.prev_dump_rend[linecount] == rendition:
-                        # No change since the last dump.  Use the cache...
-                        results.append(self.html_cache[linecount])
-                        continue # Nothing changed so move on to the next line
+            combined = (line + rendition).tounicode()
+            if html_cache and combined in html_cache:
+                # Always re-render the line with the cursor (or just had it)
+                if cursor_span not in html_cache[combined]:
+                    # Use the cache...
+                    results.append(html_cache[combined])
+                    continue
             if not len(line.tounicode().rstrip()) and linecount != cursorY:
                 results.append(line.tounicode())
-                self.html_cache[linecount] = u''
                 continue # Line is empty so we don't need to process renditions
             outline = ""
             if current_classes:
@@ -3721,7 +3798,6 @@ class Terminal(object):
                     self.class_prefix,
                     (" %s" % self.class_prefix).join(current_classes))
             charcount = 0
-            # TODO: Figure out if there's a faster way to process each character
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
@@ -3790,7 +3866,7 @@ class Terminal(object):
                             self.class_prefix,
                             (" %s" % self.class_prefix).join(current_classes))
                         spancount += 1
-                if linecount == cursorY and charcount == cursorX: # Cursor position
+                if linecount == cursorY and charcount == cursorX: # Cursor
                     if show_cursor:
                         outline += '<span class="%scursor">%s</span>' % (
                             self.class_prefix, char)
@@ -3799,17 +3875,15 @@ class Terminal(object):
                 else:
                     outline += char
                 charcount += 1
-            self.prev_dump[linecount] = line[:]
-            self.prev_dump_rend[linecount] = rendition[:]
             if outline:
                 # Make sure all renditions terminate at the end of the line
                 for whatever in xrange(spancount):
                     outline += "</span>"
                 results.append(outline)
-                self.html_cache[linecount] = outline
+                if html_cache:
+                    html_cache[combined] = outline
             else:
                 results.append(None) # null is shorter than 4 spaces
-                self.html_cache[linecount] = u''
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe
@@ -3826,6 +3900,7 @@ class Terminal(object):
         # NOTE: See the comments in _spanify_screen() for details on this logic
         results = []
         special = SPECIAL
+        html_cache = HTML_CACHE
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
         rendition_classes = RENDITION_CLASSES
@@ -3837,6 +3912,12 @@ class Terminal(object):
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for line, rendition in izip(screen, renditions):
+            combined = (line + rendition).tounicode()
+            if combined in html_cache:
+                # Most lines should be in the cache because they were rendered
+                # while they were on the screen.
+                results.append(html_cache[combined])
+                continue
             if not len(line.tounicode().rstrip()):
                 results.append(line.tounicode())
                 continue # Line is empty so we don't need to process renditions
@@ -3943,8 +4024,9 @@ class Terminal(object):
                     cursor_row = ""
                     for x, c in enumerate(row):
                         if x == cursorX:
-                            cursor_row += '<span class="%scursor">%s</span>' % (
-                                self.class_prefix, c)
+                            cursor_row += (
+                                '<span class="%scursor">%s</span>' % (
+                                self.class_prefix, c))
                         else:
                             cursor_row += char
                     screen.append(cursor_row)

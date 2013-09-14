@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130913103845" # Gets replaced by git (holds the date/time)
+__commit__ = "20130913104204" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1327,6 +1327,27 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         cls.file_update_funcs.update({path: func})
 
     @classmethod
+    def load_prefs(cls):
+        """
+        Loads all of Gate One's settings from `options.settings_dir` into
+        ``cls.prefs``.
+
+        .. note::
+
+            This ``classmethod`` gets called automatically whenever a change is
+            detected inside Gate One's ``settings_dir``.
+        """
+        logger.info(_(
+            "Settings have been modified.  Reloading from %s"
+            % options.settings_dir))
+        prefs = get_settings(options.settings_dir)
+        # Only overwrite our settings if everything is proper
+        if 'gateone' in prefs['*']:
+            cls.prefs = prefs
+        else:
+            pass # The get_settings() function logs its own errors
+
+    @classmethod
     def broadcast_file_update(cls):
         """
         Called when there's an update to the `broadcast_file` (e.g.
@@ -2211,6 +2232,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             cls.file_watcher = tornado.ioloop.PeriodicCallback(
                 cls.file_checker, interval, io_loop=io_loop)
             cls.file_watcher.start()
+        if options.settings_dir not in cls.watched_files:
+            cls.watch_file(options.settings_dir, cls.load_prefs)
 
     def list_applications(self):
         """
@@ -2561,7 +2584,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         being sent to the client.
         """
         logging.debug(
-            "file_request(%s, use_client_cache=%s" % (
+            "file_request(%s, use_client_cache=%s)" % (
                 files_or_hash, use_client_cache))
         if isinstance(files_or_hash, (list, tuple)):
             for filename_hash in files_or_hash:
@@ -3123,7 +3146,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         return tuple(out)
 
     @require(authenticated(), policies('gateone'))
-    def debug(self, term):
+    def debug(self):
         """
         Imports Python's Garbage Collection module (gc) and displays various
         information about the current state of things inside of Gate One.
@@ -3134,21 +3157,54 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
             GateOne.ws.send(JSON.stringify({'go:debug': null}));
         """
+        # NOTE: Making a debug-specific logger but logging using info() so that
+        # the log messages show up even if I don't have logging set to debug.
+        # Since this debugging function is only ever called manually there's no
+        # need to use debug() logging.
+        metadata = {
+            'upn': self.current_user['upn'],
+            'ip_address': self.request.remote_ip,
+            'location': self.location
+        }
+        debug_logger = go_logger("gateone.debugging", **metadata)
         import gc
         #gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
         gc.set_debug(
             gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
+        # Using pprint for some things below instead of the logger because they
+        # just won't look right if they go to the logs.
         from pprint import pprint
         pprint(gc.garbage)
-        print("gc.collect(): %s" % gc.collect())
+        debug_logger.info("Debug: gc.collect(): %s" % gc.collect())
         pprint(gc.garbage)
         print("SESSIONS:")
         pprint(SESSIONS)
         try:
             from pympler import asizeof
-            print("Size of SESSIONS dict: %s" % asizeof.asizeof(SESSIONS))
+            debug_logger.info(
+                "Debug: Size of SESSIONS dict: %s" % asizeof.asizeof(SESSIONS))
         except ImportError:
             pass # No biggie
+        try:
+            # NOTE: For this Heapy stuff to work best you have to make more then
+            # one call to this function (just do it at regular intervals).
+            from guppy import hpy
+            if not hasattr(self, 'hp'):
+                self.hp = hpy()
+                self.hp.setrelheap() # We only want to track NEW stuff
+            print("Heap:")
+            h = self.hp.heap()
+            print(h)
+            # Uncomment this to troubleshoot memory leaks.  If any exist this
+            # loop will shine a light on them:
+            #print("Heap Details (up to top 10):")
+            #for i in range(10):
+                #try:
+                    #print(h.byrcs[i].byid)
+                #except IndexError:
+                    #break
+        except ImportError:
+            pass # Oh well
 
 class ErrorHandler(tornado.web.RequestHandler):
     """
@@ -3738,7 +3794,7 @@ def generate_server_conf():
     # Make sure we have a valid log_file_prefix
     if config_defaults['log_file_prefix'] == None:
         web_log_dir = os.path.join(GATEONE_DIR, 'logs')
-        web_log_path = os.path.join(web_log_dir, 'webserver.log')
+        web_log_path = os.path.join(web_log_dir, 'gateone.log')
         config_defaults['log_file_prefix'] = web_log_path
     else:
         web_log_dir = os.path.split(config_defaults['log_file_prefix'])[0]

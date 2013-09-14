@@ -12,7 +12,7 @@ __license__ = "Apache 2.0 (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 
-import logging
+import sys, logging
 
 if bytes != str: # Python 3
     unicode = str # Necessary for a type check below

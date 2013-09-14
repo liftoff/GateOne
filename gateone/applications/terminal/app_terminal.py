@@ -193,6 +193,8 @@ def policy_char_handler(cls, policy):
             term = instance.current_term
     # Make sure the term is an int
     term = int(term)
+    if term not in instance.loc_terms:
+        return True # Terminal was probably just closed
     term_obj = instance.loc_terms[term]
     user = instance.current_user
     if user['upn'] == term_obj['user']['upn']:
@@ -1684,9 +1686,7 @@ class TerminalApplication(GOApplication):
         Sends the text color stylesheet matching the properties specified in
         *settings* to the client.  *settings* must contain the following:
 
-            * **container** - The element Gate One resides in (e.g. 'gateone')
-            * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
-            * **colors** - The name of the CSS text color scheme to be retrieved.
+           :colors: The name of the CSS text color scheme to be retrieved.
         """
         self.term_log.debug('get_colors(%s)' % settings)
         send_css = self.ws.prefs['*']['gateone'].get('send_css', True)
@@ -1699,11 +1699,7 @@ class TerminalApplication(GOApplication):
             return
         templates_path = os.path.join(APPLICATION_PATH, 'templates')
         term_colors_path = os.path.join(templates_path, 'term_colors')
-        go_url = settings['go_url'] # Used to prefix the url_prefix
-        if not go_url.endswith('/'):
-            go_url += '/'
-        colors = settings["colors"]
-        colors_filename = "%s.css" % colors
+        colors_filename = "%s.css" % settings["colors"]
         colors_path = os.path.join(term_colors_path, colors_filename)
         filename = "term_colors.css" # Make sure it's the same every time
         self.render_and_send_css(colors_path,
