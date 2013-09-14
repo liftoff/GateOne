@@ -18,9 +18,7 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, tempfile, signal, re
-import urlparse, socket, base64, hashlib
-from subprocess import Popen
+import os, sys
 from optparse import OptionParser
 # i18n support stuff
 import gettext
@@ -29,7 +27,7 @@ gettext.textdomain('ssh_connect')
 _ = gettext.gettext
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
-readline.parse_and_bind('esc: none')
+#readline.parse_and_bind('esc: none')
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
@@ -53,6 +51,7 @@ def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError as exc: # Python >2.5
+        import errno
         if exc.errno == errno.EEXIST:
             pass
         else: raise
@@ -85,6 +84,7 @@ def short_hash(to_shorten):
         Collisions are possible but *highly* unlikely because of how this
         method is used.
     """
+    import base64, hashlib
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
     # Take the first eight characters to create a shortened version.
     return base64.urlsafe_b64encode(hashed.digest())[:8].decode('utf-8')
@@ -135,6 +135,7 @@ def valid_hostname(hostname, allow_underscore=False):
         return False
     if hostname[-1:] == ".": # Strip the tailing dot if present
         hostname = hostname[:-1]
+    import re
     allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     if allow_underscore:
         allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
@@ -145,6 +146,7 @@ def valid_ip(ipaddr):
     Returns True if *ipaddr* is a valid IPv4 or IPv6 address.
     (from http://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python)
     """
+    import socket
     if ':' in ipaddr: # IPv6 address
         try:
             socket.inet_pton(socket.AF_INET6, ipaddr)
@@ -232,6 +234,7 @@ def openssh_connect(
     except ValueError:
         print(_("The port must be an integer < 65535"))
         sys.exit(1)
+    import signal, tempfile
     signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     # NOTE: Figure out if we really want to use the env forwarding feature
     if not env: # Unless we enable SendEnv in ssh these will do nothing
@@ -370,6 +373,7 @@ def openssh_connect(
         env['SSH_ASKPASS'] = temp.name
         env['DISPLAY'] = ':9999'
         # This removes the temporary file in a timely manner
+        from subprocess import Popen
         Popen("sleep 15 && /bin/rm -f %s" % temp.name, shell=True)
         # 15 seconds should be enough even for slow connections/servers
         # It's a tradeoff:  Lower number, more secure.  Higher number, less
@@ -422,6 +426,7 @@ def telnet_connect(user, host, port=23, env=None):
     except ValueError:
         print(_("The port must be an integer < 65535"))
         sys.exit(1)
+    import signal, tempfile
     signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     if not env:
         env = {
@@ -493,6 +498,7 @@ def parse_url(url):
     .. note:: *password* and *identities* may be returned as None and [], respectively.
     """
     identities = set()
+    import urlparse, socket
     o = urlparse.urlparse(url)
     if o.query:
         q_attrs = urlparse.parse_qs(o.query)
@@ -514,6 +520,20 @@ def parse_url(url):
         #username = os.environ['USER']
     return (o.scheme, username, o.hostname, port, o.password, identities)
 
+def bad_chars(chars):
+    """
+    Returns ``False`` if the given *chars* are OK, ``True`` if there's bad
+    characters present (i.e. shell exec funny business).
+
+    .. note::
+
+        This is to prevent things like "ssh://user@host && <malicious commands>"
+    """
+    import re
+    bad_chars = re.compile('.*[\$\n\!\;&` |<>].*')
+    if bad_chars.match(chars):
+        return True
+    return False
 
 if __name__ == "__main__":
     """Parse command line arguments and execute ssh_connect()"""
@@ -574,8 +594,7 @@ if __name__ == "__main__":
         metavar="'<hostname>'"
     )
     (options, args) = parser.parse_args()
-    # This is to prevent things like "ssh://user@host && <malicious commands>"
-    bad_chars = re.compile('.*[\$\n\!\;&` |<>].*')
+
     # NOTE: This also means you can't use these characters in things like
     #       usernames or passwords (if using autoConnectURL).
     try:
@@ -645,7 +664,7 @@ if __name__ == "__main__":
             url = raw_input(_(
                "[Press Shift-F1 for help]\n\nHost/IP or ssh:// URL%s: " %
                default_host_str))
-            if bad_chars.match(url):
+            if bad_chars(url):
                 noop = raw_input(invalid_hostname_err)
                 continue
             if not url:
@@ -699,7 +718,7 @@ if __name__ == "__main__":
                 user = raw_input("User: ")
                 if not user:
                     continue
-            if bad_chars.match(user):
+            if bad_chars(user):
                 noop = raw_input(invalid_user_err)
                 user = None
             else:
