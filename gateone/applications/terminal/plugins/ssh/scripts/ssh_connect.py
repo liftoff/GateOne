@@ -210,22 +210,30 @@ def openssh_connect(
     """
     Starts an interactive SSH session to the given host as the given user on the
     given port.
+
     If *command* isn't given, the equivalent of "which ssh" will be used to
     determine the full path to the ssh executable.  Otherwise *command* will be
     used.
+
     If a password is given, that will be passed to SSH when prompted.
+
     If *env* (dict) is given, that will be used for the shell env when opening
     the SSH connection.
+
     If *socket* (a file path) is given, this will be passed to the SSH command
     as -S<socket>.  If the socket does not exist, ssh's Master mode switch will
     be set (-M) automatically.  This allows sessions to be duplicated
     automatically.
+
     If *sshfp* resolves to True, SSHFP (DNS-based host verification) support
     will be enabled.
+
     If *randomart* resolves to True, the VisualHostKey (randomart hash) option
     will be enabled to display randomart when the connection is made.
+
     If *identities* given (may be a list or just a single string), it/those will
     be passed to the ssh command to use when connecting (e.g. -i/identity/path).
+
     If *additional_args* is given this value (or values if it is a list) will be
     added to the arguments passed to the ssh command.
     """
@@ -242,10 +250,13 @@ def openssh_connect(
             'TERM': 'xterm',
             'LANG': 'en_US.UTF-8',
         }
-    # Get the default rows/cols right from the start
     try:
+        # Get the default rows/cols right from the start
         env['LINES'] = os.environ['LINES']
         env['COLUMNS'] = os.environ['COLUMNS']
+        # Also pass on some useful (but harmless) Gate One-specific vars:
+        env['GO_TERM'] = os.environ['GO_TERM']
+        env['GO_SESSION'] = os.environ['GO_SESSION']
     except KeyError:
         pass # These variables aren't set
     # Get the user's ssh directory
@@ -277,8 +288,9 @@ def openssh_connect(
         "-oNoHostAuthenticationForLocalhost=yes",
         # This ensure's that the executing user's identity won't be used:
         "-oIdentityFile='/dev/null'",
-        # This ensures the other end can tell we're a Gate One terminal
-        "-oSendEnv=GO_TERM",
+        # This ensures the other end can tell we're a Gate One terminal and
+        # possibly use the session ID with plugins (could be interesting).
+        "-oSendEnv='GO_TERM GO_SESSION'",
         "-p", str(port),
         "-l", user,
     ]
@@ -639,12 +651,11 @@ if __name__ == "__main__":
         logo = None
         # Only show the logo image if running inside Gate One
         if options.logo:
-            if 'GO_TERM' in os.environ.keys():
-                if os.path.exists(logo_path):
-                    with open(logo_path) as f:
-                        logo = f.read()
-                        # stdout instead of print so we don't get an extra newline
-                        sys.stdout.write(logo)
+            if 'GO_TERM' in os.environ.keys() and os.path.exists(logo_path):
+                with open(logo_path) as f:
+                    logo = f.read()
+                    # stdout instead of print so we don't get an extra newline
+                    sys.stdout.write(logo)
         url = None
         user = None
         port = None

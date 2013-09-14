@@ -578,9 +578,9 @@ def get_translation(settings_dir=None):
 
 def gen_self_signed_ssl(path=None):
     """
-    Generates a self-signed SSL certificate using pyOpenSSL or the openssl
-    command depending on what's available,  The resulting key/certificate will
-    use the RSA algorithm at 4096 bits.
+    Generates a self-signed SSL certificate using `pyOpenSSL` or the `openssl <http://www.openssl.org/docs/apps/openssl.html>`_ command depending on
+    what's available,  The resulting key/certificate will use the RSA algorithm
+    at 4096 bits.
     """
     try:
         import OpenSSL
@@ -680,7 +680,7 @@ def gen_self_signed_openssl(path=None):
 def gen_self_signed_pyopenssl(notAfter=None, path=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
-    (using pyOpenSSL) saving the result as 'certificate.pem' and 'keyfile.pem'
+    (using `pyOpenSSL`) saving the result as 'certificate.pem' and 'keyfile.pem'
     in *path*.  If *path* is not given the result will be saved in the current
     working directory.  By default the certificate will be valid for 10 years
     but this can be overridden by passing a valid timestamp via the

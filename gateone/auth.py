@@ -182,12 +182,11 @@ class require(object):
                             self.request.remote_ip, f.__name__, str(condition))
                         ))
                     # Try to notify the client of their failings
-                    if self.ws:
-                        msg = _("ERROR: %s" % condition.error)
-                        if hasattr(self, 'send_message'):
-                            self.send_message(msg)
-                        elif hasattr(self, 'ws'):
-                            self.ws.send_message(msg)
+                    msg = _("ERROR: %s" % condition.error)
+                    if hasattr(self, 'send_message'):
+                        self.send_message(msg)
+                    elif hasattr(self, 'ws'): # This is inside an app, use ws
+                        self.ws.send_message(msg)
                     return noop
             return f(self, *args, **kwargs)
         return wrapped_f
