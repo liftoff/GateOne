@@ -598,6 +598,11 @@ if __name__ == "__main__":
         action="store_true",
         help=_("Display the logo image inline in the terminal.")
     )
+    parser.add_option("--logo-path",
+        dest="logo_path",
+        default=None,
+        help=_("Provide the logo path (implies --logo).")
+    )
     parser.add_option("--default_host",
         dest="default_host",
         default="localhost",
@@ -607,6 +612,8 @@ if __name__ == "__main__":
     )
     (options, args) = parser.parse_args()
 
+    if options.logo_path:
+        options.logo = True
     # NOTE: This also means you can't use these characters in things like
     #       usernames or passwords (if using autoConnectURL).
     try:
@@ -651,6 +658,11 @@ if __name__ == "__main__":
         logo = None
         # Only show the logo image if running inside Gate One
         if options.logo:
+            if options.logo_path:
+                if options.logo_path.startswith(os.sep):
+                    logo_path = options.logo_path
+                else:
+                    logo_path = os.path.join(script_dir, options.logo_path)
             if 'GO_TERM' in os.environ.keys() and os.path.exists(logo_path):
                 with open(logo_path) as f:
                     logo = f.read()
