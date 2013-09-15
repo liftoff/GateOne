@@ -603,21 +603,21 @@ if __name__ == "__main__":
         default=None,
         help=_("Provide the logo path (implies --logo).")
     )
-    parser.add_option("--default_host", "--default-host",
+    parser.add_option("--default_host",
         dest="default_host",
         default="localhost",
         help=_("The default host that will be used for outbound connections if "
                "no hostname is provided.  Default: localhost"),
         metavar="'<hostname>'"
     )
-    parser.add_option("--default-port",
+    parser.add_option("--default_port",
         dest="default_port",
         default='22',
         help=_("The default port that will be used for outbound connections if "
                "no port is provided.  Default: 22"),
         metavar="'<port>'"
     )
-    parser.add_option("--auth-only",
+    parser.add_option("--auth_only",
         dest="auth_only",
         default=False,
         help=_("Skip asking for host information (hostname and port) and ask for "
