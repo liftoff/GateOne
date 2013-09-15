@@ -598,15 +598,35 @@ if __name__ == "__main__":
         action="store_true",
         help=_("Display the logo image inline in the terminal.")
     )
-    parser.add_option("--default_host",
+    parser.add_option("--logo-path",
+        dest="logo_path",
+        default=None,
+        help=_("Provide the logo path (implies --logo).")
+    )
+    parser.add_option("--default_host", "--default-host",
         dest="default_host",
         default="localhost",
         help=_("The default host that will be used for outbound connections if "
                "no hostname is provided.  Default: localhost"),
         metavar="'<hostname>'"
     )
+    parser.add_option("--default-port",
+        dest="default_port",
+        default='22',
+        help=_("The default port that will be used for outbound connections if "
+               "no port is provided.  Default: 22"),
+        metavar="'<port>'"
+    )
+    parser.add_option("--auth-only",
+        dest="auth_only",
+        default=False,
+        help=_("Skip asking for host information (hostname and port) and ask for "
+            "credentials only (you probably want to use --default_host and "
+            "--default_port as well).")
+    )
     (options, args) = parser.parse_args()
-
+    if options.logo_path:
+        options.logo = True
     # NOTE: This also means you can't use these characters in things like
     #       usernames or passwords (if using autoConnectURL).
     try:
@@ -625,7 +645,7 @@ if __name__ == "__main__":
                     socket=options.socket
                 )
         elif len(args) == 2: # No port given, assume 22
-            openssh_connect(args[0], args[1], '22',
+            openssh_connect(args[0], args[1], options.default_port,
                 command=options.command,
                 sshfp=options.sshfp,
                 randomart=options.randomart,
@@ -651,6 +671,11 @@ if __name__ == "__main__":
         logo = None
         # Only show the logo image if running inside Gate One
         if options.logo:
+            if options.logo_path:
+                if options.logo_path.startswith(os.sep):
+                    logo_path = options.logo_path
+                else:
+                    logo_path = os.path.join(script_dir, options.logo_path)
             if 'GO_TERM' in os.environ.keys() and os.path.exists(logo_path):
                 with open(logo_path) as f:
                     logo = f.read()
@@ -667,16 +692,21 @@ if __name__ == "__main__":
         invalid_user_err = _(
             'Error:  You must enter a valid username.')
         default_host_str = " [%s]" % options.default_host
+        default_port_str = "Port [%s]" % options.default_port
         if options.default_host == "":
             default_host_str = ""
         # Set a pre-connection title
         print("\x1b]0;SSH Connect\007")
+        if options.auth_only:
+            url = options.default_host
         while not validated:
-            url = raw_input(_(
-               "[Press Shift-F1 for help]\n\nHost/IP or ssh:// URL%s: " %
-               default_host_str))
+            if not url:
+                url = raw_input(_(
+                   "[Press Shift-F1 for help]\n\nHost/IP or ssh:// URL%s: " %
+                   default_host_str))
             if bad_chars(url):
                 noop = raw_input(invalid_hostname_err)
+                url = None
                 continue
             if not url:
                 if options.default_host:
@@ -708,11 +738,13 @@ if __name__ == "__main__":
                     url = None
                     noop = raw_input(invalid_hostname_err)
         validated = False
+        if options.auth_only:
+            port = options.default_port
         while not validated:
             if not port:
-                port = raw_input("Port [22]: ")
+                port = raw_input(_("%s: " % default_port_str))
                 if not port:
-                    port = 22
+                    port = options.default_port
             try:
                 port = int(port)
                 if port <= 65535 and port > 1:
@@ -771,3 +803,6 @@ if __name__ == "__main__":
         print("Please open up a new issue at https://github.com/liftoff"
                 "/GateOne/issues and paste the above information.")
         noop = raw_input(_("[Press any key to close this terminal]"))
+
+
+# vim: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 smarttab expandtab
