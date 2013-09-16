@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130915133809" # Gets replaced by git (holds the date/time)
+__commit__ = "20130915215314" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1466,6 +1466,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             files in there.
         """
         extra_path = os.path.join(GATEONE_DIR, 'static', 'extra')
+        if not os.path.isdir(extra_path):
+            return # Nothing to do
         for filename in os.listdir(extra_path):
             filepath = os.path.join(extra_path, filename)
             if filename.endswith('.js'):
