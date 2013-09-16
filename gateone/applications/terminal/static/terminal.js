@@ -38,6 +38,7 @@ var go = GateOne,
     v = go.Visual,
     E = go.Events,
     I = go.Input,
+    S = go.Storage,
     gettext = GateOne.i18n.gettext,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
@@ -105,6 +106,10 @@ go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into cli
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
 go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
+go.Terminal.dbVersion = 1; // NOTE: Must be an integer (no floats!)
+go.Terminal.terminalDBModel = {
+    'scrollback': {keyPath: 'term'} // Just storing the scrollback buffer for now
+}
 go.Terminal.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
@@ -341,7 +346,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.Input.capture();
         };
         var closeCurrentTerm = function() {
-            go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal']);
+            go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal'], false);
             go.Terminal.Input.capture();
         }
         toolbarClose.onclick = closeCurrentTerm;
@@ -473,6 +478,14 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
+        // Open/Create our terminal database
+        go.Storage.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
+        // Cleanup any old-style scrollback buffers that might be hanging around
+        for (var key in localStorage) {
+            if (key.indexOf(prefix+'scrollback') == 0) { // This is an old-style scrollback buffer
+                delete localStorage[key];
+            }
+        }
     },
     __new__: function(settings) {
         /**:GateOne.Terminal.__new__(settings)
@@ -483,6 +496,13 @@ go.Base.update(GateOne.Terminal, {
         var command = settings['command'];
         go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
         // TODO: Make this take settings like "command", rows/columns, and *where*.
+    },
+    setDBReady: function(db) {
+        /**:GateOne.Terminal.dbReady(db)
+
+        Sets ``GateOne.Terminal.dbReady = true`` so that we know when the 'terminal' database is available & ready (indexedDB databases are async).
+        */
+        go.Terminal.dbReady = true;
     },
     createPrefsPanel: function() {
         /**:GateOne.Terminal.createPrefsPanel()
@@ -986,12 +1006,22 @@ go.Base.update(GateOne.Terminal, {
 
         Writes the given *scrollback* buffer for the given *term* to localStorage.
         */
-        try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
-            localStorage.setItem(GateOne.prefs.prefix+"scrollback" + term, scrollback.join('\n'));
-        } catch (e) {
-            logError(e);
+        // NOTE:  I seriously doubt we'll ever be in a situation where this gets called before the DB is ready but just in case...
+        if (!go.Terminal.dbReady) {
+            // Database hasn't finished initializing yet.  Wait just a moment and retry...
+            if (go.Terminal.deferDBTimer) {
+                clearTimeout(go.Terminal.deferDBTimer);
+                go.Terminal.deferDBTimer = null;
+            }
+            go.Terminal.deferDBTimer = setTimeout(function() {
+                go.Terminal.wrriteScrollback(term, scrollback);
+                go.Terminal.deferDBTimer = null;
+            }, 10);
+            return;
         }
-        return null;
+        var terminalDB = S.dbObject('terminal'),
+            scrollbackObj = {'term': term, 'scrollback': scrollback, 'date': new Date()}; // Date is probably not necessary but you never know...   Could be useful
+        terminalDB.put('scrollback', scrollbackObj); // Put it in the 'scrollback' store
     },
     applyScreen: function(screen, /*opt*/term, /*opt*/noUpdate) {
         /**:GateOne.Terminal.applyScreen(screen[, term[, noUpdate]])
@@ -1066,15 +1096,17 @@ go.Base.update(GateOne.Terminal, {
         } else {
             // Feel free to attach something like this to the "terminal:term_updated" event if you want.
             if (u.isVisible(termPre)) {
-//                 var originalHeight = termPre.style.height;
-//                 go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
-//                 termPre.style.height = ''; // Reset it (important for the distance calculation below)
-                // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
-                var distance = go.node.clientHeight - (screenSpan.offsetHeight + Math.floor(emDimensions.h * rowAdjust)),
+                // NOTE:  The distance below is -1 because--for whatever reason--the calculation is always off by 1.  No idea why.
+                var distance = go.node.clientHeight - (screenSpan.offsetHeight + Math.floor(emDimensions.h * rowAdjust)) - 1,
                     transform = "translateY(-" + distance + "px)";
-                v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-//                 termPre.style.height = originalHeight; // Put it back to what it was
-//                 go.Terminal.enableScrollback(term); // Turn it back on
+                if (distance > 0) {
+                    if (distance < emDimensions.h) { // A sanity check (we should never be adjusting more than the height of a single character)
+                        v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                    } else {
+                        // Fall back to no adjustment at all (rather have the scrollback partially visible than anything off-screen)
+                        v.applyTransform(termPre, ''); // This resets it to "no transform"
+                    }
+                }
             }
         }
     },
@@ -1181,14 +1213,9 @@ go.Base.update(GateOne.Terminal, {
             scrollback = []; // Empty it out since the user has disabled the scrollback buffer
         }
         if (scrollback.length && go.Terminal.terminals[term]['scrollback'].toString() != scrollback.toString()) {
-            var reScrollback = u.partial(GateOne.Terminal.enableScrollback, term),
-                writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
+            var reScrollback = u.partial(GateOne.Terminal.enableScrollback, term);
             go.Terminal.terminals[term]['scrollback'] = scrollback;
-            // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStorage is a blocking operation so this could speed things up considerable for larger terminal sizes.
-            clearTimeout(go.Terminal.terminals[term]['scrollbackWriteTimer']);
-            go.Terminal.terminals[term]['scrollbackWriteTimer'] = null;
-            // This will save the scrollback buffer after 3.5 seconds of terminal inactivity (idle)
-            go.Terminal.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 3500);
+            go.Terminal.writeScrollback(term, scrollback); // Uses IndexedDB so it should be nice and async
             // This updates the scrollback buffer in the DOM
             clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
             // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
@@ -1279,7 +1306,7 @@ go.Base.update(GateOne.Terminal, {
     updateTerminalAction: function(termUpdateObj) {
         /**:GateOne.Terminal.updateTerminalAction(termUpdateObj)
 
-            Takes the updated screen information from *termUpdateObj* and posts it to the term_ww.js Web Worker to be processed.
+            Takes the updated screen information from *termUpdateObj* and posts it to the 'term_ww.js' Web Worker to be processed.
 
             .. note:: The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
         */
@@ -1534,11 +1561,11 @@ go.Base.update(GateOne.Terminal, {
         var t = go.Terminal,
             currentTerm, terminal, emDimensions, dimensions, rows, columns, pastearea, switchTermFunc,
             termUndefined = false,
+            terminalDB = S.dbObject('terminal'),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             workspaceNum, // Set below (if any)
-            prevScrollback = localStorage.getItem(prefix + "scrollback" + term),
             termPre, // Created below after we have a terminal number to use
             screenSpan, // Ditto
             wheelFunc = function(e) {
@@ -1547,14 +1574,7 @@ go.Base.update(GateOne.Terminal, {
                 if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
                     if (go.Terminal.terminals[term]) {
                         var term = localStorage[prefix+'selectedTerminal'],
-                            terminalObj = go.Terminal.terminals[term],
-                            screen = terminalObj['screen'],
-                            scrollback = terminalObj['scrollback'],
-                            sbT = terminalObj['scrollbackTimer'];
-                        if (sbT) {
-                            clearTimeout(sbT);
-                            sbT = null;
-                        }
+                            terminalObj = go.Terminal.terminals[term];
                         if (!terminalObj['scrollbackVisible']) {
                             // Immediately re-enable the scrollback buffer
                             go.Terminal.enableScrollback(term);
@@ -1610,16 +1630,14 @@ go.Base.update(GateOne.Terminal, {
         for (var pref in settings) {
             go.Terminal.terminals[term][pref] = settings[pref];
         }
-        if (prevScrollback) {
-            go.Terminal.terminals[term]['scrollback'] = prevScrollback.split('\n');
-        } else { // No previous scrollback buffer
-            // Fill it with empty strings so that the current line stays at the bottom of the screen when scrollback is re-enabled after screen updates.
-            var blankLines = [];
-            for (var i=0; i<go.prefs.scrollback; i++) {
-                blankLines.push("");
+        // Retrieve any previous scrollback buffer for this terminal
+        terminalDB.get('scrollback', term, function(obj) {
+            if (obj) {
+                go.Terminal.terminals[term]['scrollback'] = obj['scrollback'];
             }
-            go.Terminal.terminals[term]['scrollback'] = blankLines;
-        }
+            // Call this whether there's an old scrollback or not because it ensures the terminal stays bottom-aligned wherever it is placed:
+            go.Terminal.enableScrollback(term);
+        });
         terminal = u.createElement('div', {'id': currentTerm, 'class': '✈terminal'});
         if (!go.prefs.embedded) {
             // Switch to the newly created workspace (if warranted)
@@ -1697,7 +1715,6 @@ go.Base.update(GateOne.Terminal, {
 //             termPre.style.height = "100%"; // Ensures the top doesn't get cut off
         }
         termPre.appendChild(screenSpan);
-        u.scrollToBottom(termPre);
         termPre.oncopy = function(e) {
             // Convert to plaintext before copying
             // NOTE: This process doesn't work in Firefox...  It will auto-empty the clipboard if you try.
@@ -1743,7 +1760,7 @@ go.Base.update(GateOne.Terminal, {
         /**:GateOne.Terminal.closeTerminal(term[, noCleanup[, message[, sendKill]]])
 
         :param number term: The terminal to close.
-        :param boolean noCleanup: If ``true`` the terminal's metadata in localStorage (i.e. scrollback buffer) will not be removed.
+        :param boolean noCleanup: If ``true`` the terminal's metadata in localStorage/IndexedDB (i.e. scrollback buffer) will not be removed.
         :param string message: An optional message to display to the user after the terminal is close.
         :param boolean sendKill: If undefined or ``true``, will tell the server to kill the process associated with the given *term* (i.e. close it for real).
 
@@ -1751,7 +1768,8 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
         var lastTerm = null,
-            termNode = go.Terminal.terminals[term]['terminal'];
+            termNode = go.Terminal.terminals[term]['terminal'],
+            terminalDB = S.dbObject('terminal');
         if (message === undefined) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
@@ -1760,8 +1778,8 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.killTerminal(term);
         }
         if (!noCleanup) {
-            // Delete the associated scrollback buffer (save the world from localStorage pollution)
-            delete localStorage[prefix+'scrollback'+term];
+            // Delete the associated scrollback buffer (save the world from storage pollution)
+            terminalDB.del('scrollback', term);
         }
         // Remove the terminal from the page
         if (termNode) {
@@ -2196,9 +2214,10 @@ go.Base.update(GateOne.Terminal, {
 
         Empties the scrollback buffer for the given *term* in memory, in localStorage, and in the DOM.
         */
-        var scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'];
+        var scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'],
+            terminalDB = S.dbObject('terminal');
         go.Terminal.terminals[term]['scrollback'] = [];
-        localStorage[prefix+"scrollback" + term] = '';
+        terminalDB.del('scrollback', term);
         if (scrollbackNode) {
             scrollbackNode.innerHTML = '';
         }
@@ -2286,7 +2305,7 @@ go.Base.update(GateOne.Terminal, {
         var term = obj['term'],
             location = obj['location'],
             message = "Terminal " + term + " has been relocated to location, '" + location + "'";
-        GateOne.Terminal.closeTerminal(term, null, message, false); // Close the terminal with our special message and don't kill its process
+        GateOne.Terminal.closeTerminal(term, false, message, false); // Close the terminal with our special message and don't kill its process
     },
     reattachTerminalsAction: function(terminals) {
         /**:GateOne.Terminal.reattachTerminalsAction(terminals)
@@ -2298,7 +2317,8 @@ go.Base.update(GateOne.Terminal, {
         If this is a new session (and we're not in embedded mode), a new terminal will be created.
         */
         var newTermSettings,
-            reattachCallbacks = false;
+            reattachCallbacks = false,
+            terminalDB = S.dbObject('terminal');
         logDebug("reattachTerminalsAction() terminals: " + terminals);
         if (!go.Storage.loadedFiles['font.css']) {
             // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
@@ -2309,16 +2329,15 @@ go.Base.update(GateOne.Terminal, {
             return;
         }
         // Clean up localStorage
-        for (var key in localStorage) {
-            // Clean up old scrollback buffers that aren't attached to terminals anymore:
-            if (key.indexOf(prefix+'scrollback') == 0) { // This is a scrollback buffer
-                var termNum = parseInt(key.split(prefix+'scrollback')[1]);
+        terminalDB.dump('scrollback', function(objs) {
+            for (var i=0; i<objs.length; i++) {
+                var termNum = objs[i]['term'];
                 if (terminals.indexOf(termNum) == -1) { // Terminal for this buffer no longer exists
-                    logDebug("Deleting scollback buffer for non-existent terminal " + key);
-                    delete localStorage[key];
+                    logDebug("Deleting scollback buffer for non-existent terminal " + termNum);
+                    terminalDB.del('scrollback', termNum);
                 }
             }
-        }
+        });
         if (go.Terminal.reattachTerminalsCallbacks.length || "term_reattach" in E.callbacks) {
             reattachCallbacks = true;
         }

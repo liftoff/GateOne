@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130915133809";
+GateOne.__commit__ = "20130916094509";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -5775,11 +5775,10 @@ GateOne.Storage.dbObject = function(DB) {
     }
     return self;
 }
+GateOne.Storage.dbVersion = 2; // NOTE: Must be an integer (no floats!)
 GateOne.Storage.fileCacheModel = {
     'js': {keyPath: 'filename'},
-    'css': {keyPath: 'filename'},
-    'theme': {keyPath: 'filename'},
-    'print': {keypath: 'filename'}
+    'css': {keyPath: 'filename'}
 }
 GateOne.Storage.deferLoadingTimers = {}; // Used to make sure we don't duplicate our efforts in retries
 GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files to ensure they load in the proper order.
@@ -5793,7 +5792,7 @@ GateOne.Base.update(GateOne.Storage, {
         */
         go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
         go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
-        go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel);
+        go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel, go.Storage.dbVersion);
     },
     cacheReady: function() {
         /**:GateOne.Storage.cacheReady()
@@ -5912,10 +5911,6 @@ GateOne.Base.update(GateOne.Storage, {
         var remoteFiles = message['files'],
             fileCache = S.dbObject('fileCache'),
             callback = function(remoteFileObj, localFileObj) {
-//                 console.log('remoteFileObj:');
-//                 console.log(remoteFileObj);
-//                 console.log('localFileObj:');
-//                 console.log(localFileObj);
                 if (localFileObj) {
                     // NOTE:  Using "!=" below instead of ">" so that debugging works properly
                     if (remoteFileObj['mtime'] != localFileObj['mtime']) {
@@ -5933,7 +5928,7 @@ GateOne.Base.update(GateOne.Storage, {
                                 }
                                 if (!S.loadedFiles[remoteFileObj['requires']]) {
                                     setTimeout(function() {
-                                        if (S.failedRequirementsCounter[remoteFileObj['filename']] >= 20) { // ~2 seconds
+                                        if (S.failedRequirementsCounter[remoteFileObj['filename']] >= 50) { // ~5 seconds
                                             // Give up
                                             logError("Failed to load " + remoteFileObj['filename'] + ".  Took too long waiting for " + remoteFileObj['requires']);
                                             return;
@@ -6002,10 +5997,12 @@ GateOne.Base.update(GateOne.Storage, {
 
         Attached as the errorback function in various storage operations; logs the given error (*e*).
         */
-        logError("GateOne.Storage.onerror:");
-        logError(e);
+        var eventElem = e.srcElement || e.target,
+            errorMsg = eventElem.error.message,
+            errorName = eventElem.error.name;
+        logError("in GateOne.Storage: " + errorName + ": " + errorMsg);
+        console.log(e);
     },
-    // storeObj['options'] == {keyPath: 'id', autoIncrement: true}
     _upgradeDB: function(DB, trans, callback) {
         /**:GateOne.Storage._upgradeDB(trans[, callback])
 
@@ -6014,29 +6011,46 @@ GateOne.Base.update(GateOne.Storage, {
         If *callback* is given it will be called when the transaction is complete.
         */
         logDebug('upgradeDB('+DB+')');
+        var S = go.Storage;
         try {
-            var model = GateOne.Storage._models[DB];
+            var model = S._models[DB],
+                storeNames = {},
+                objectCreationMsg = "Creating new object store: ";
             if (!model) {
                 logError("You must create a database model before creating a new database.");
                 return false;
             }
             for (var storeName in model) {
-                var store = GateOne.Storage.databases[DB].createObjectStore(storeName, model[storeName]);
+                if (!S.databases[DB].objectStoreNames.contains(storeName)) {
+                    logInfo(objectCreationMsg + storeName);
+                    var store = S.databases[DB].createObjectStore(storeName, model[storeName]);
+                }
+            }
+            // Create a temporary object with all the store names so we can iterate over them without having to worry about the delete-in-place-breaks-index problem:
+            for (var storeNum in S.databases[DB].objectStoreNames) {
+                if (storeNum % 1 === 0) { // Only want the integers
+                    storeNames[S.databases[DB].objectStoreNames[storeNum]] = true;
+                }
+            }
+            // Now delete any object stores no longer in use
+            for (var storeName in storeNames) {
+                if (!(storeName in model)) {
+                    // Delete it (no longer part of the model)
+                    logInfo('Removing obsolete object store (self-cleanup): ' + storeName);
+                    S.databases[DB].deleteObjectStore(storeName);
+                    storeNum -= 1; // The objectStoreNames will now have one less entry
+                }
             }
             // TODO: Investigate using indexes to speed things up.  Example (must happen inside a setVersion transaction):
-//             GateOne.Storage.indexes[DB] = store.createIndex("urls", "url");
+//             S.indexes[DB] = store.createIndex("urls", "url");
         } catch (e) {
-            ;; // Nothing to see here
+            S.onerror(e);
         }
         trans.oncomplete = function(e) {
-            if (callback) { callback(GateOne.Storage.dbObject(DB)); }
+            logInfo(DB + " database creation/upgrade complete");
+            if (callback) { callback(S.dbObject(DB)); }
         }
     },
-    // Example usage:
-    // var model = {'BookmarksDB': {'bookmarks': {keyPath: "url"}, 'tags': {keyPath: "name"}}};
-    // GateOne.Storage.openDB('somedb', callback, model);
-    // The DB will also then be accessible via:
-    // GateOne.Storage.databases['somedb']
     openDB: function(DB, callback, model, /*opt*/version) {
         /**:GateOne.Storage.openDB(DB[, callback[, model[, version]]])
 
@@ -6047,61 +6061,67 @@ GateOne.Base.update(GateOne.Storage, {
         If this is the first time we're opening this database a *model* must be given.  Also, if the database already exists, the *model* argument will be ignored so it is safe to pass it with every call to this function.
 
         If provided, the *version* of the database will be set.  Otherwise it will be set to 1.
+
+        Example usage::
+
+            >>> var model = {'BookmarksDB': {'bookmarks': {keyPath: "url"}, 'tags': {keyPath: "name"}}};
+            >>> GateOne.Storage.openDB('somedb', function(dbObj) {console.log(dbObj);}, model);
+            >>> // Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases['somedb']
         */
-        if (GateOne.Storage._models[DB]) {
+        var S = go.Storage;
+        if (S._models[DB]) {
             // Existing model, check if there's a difference
-            if (GateOne.Storage._models[DB] != model) {
+            if (S._models[DB] != model) {
                 logDebug("Model difference!");
                 logDebug(model);
-                logDebug(GateOne.Storage._models[DB]);
+                logDebug(S._models[DB]);
             }
         } else {
-            GateOne.Storage._models[DB] = model;
+            S._models[DB] = model;
         }
         if (indexedDB) {
             logDebug('GateOne.Storage.openDB(): Opening indexedDB: ' + DB);
             var v = version || 1, // Database version
-                openRequest = indexedDB.open(DB, v);
+                openRequest = indexedDB.open(DB, v),
+                upgradeMsg = "The " + DB + " database needs to be created or updated.  Creating/upgrading database...";
+            openRequest.onblocked = function(e) {
+                go.Visual.alert(gettext("Please close other tabs connected to this server and reload this page so we may upgrade the IndexedDB database."));
+            }
             openRequest.onsuccess = function(e) {
                 logDebug('GateOne.Storage.openDB(): openRequest.onsuccess');
-                GateOne.Storage.databases[DB] = e.target.result;
-                // We can only create Object stores in a setVersion transaction;
+                S.databases[DB] = e.target.result;
+                // We can only create/delete Object stores inside of a setVersion transaction;
                 var needsUpdate;
-                for (var storeName in model) {
-                    if (!GateOne.Storage.databases[DB].objectStoreNames.contains(storeName)) {
-                        needsUpdate = true;
-                        break;
-                    }
-                }
-                if(v != GateOne.Storage.databases[DB].version) {
+                if(v != S.databases[DB].version) {
                     needsUpdate = true;
                 }
                 if(needsUpdate) {
-                    logInfo("GateOne.Storage.openDB(): Database version mismatch or missing store.  Creating/upgrading Database.");
+                    logInfo(upgradeMsg);
                     // This is the old way of doing upgrades.  It should only ever be called in (much) older browsers...
-                    if (typeof GateOne.Storage.databases[DB].setVersion === "function") {
+                    if (typeof S.databases[DB].setVersion === "function") {
                         logDebug("GateOne.Storage.openDB(): Using db.setVersion()");
-                        var setVrequest = GateOne.Storage.databases[DB].setVersion(v);
+                        var setVrequest = S.databases[DB].setVersion(v);
                         // onsuccess is the only place we can create Object Stores
-                        setVrequest.onfailure = GateOne.Storage.onerror;
+                        setVrequest.onfailure = S.onerror;
                         setVrequest.onsuccess = function(evt) {
                             logDebug('GateOne.Storage.openDB(): setVrequest success');
-                            GateOne.Storage._upgradeDB(DB, setVrequest.transaction, callback);
+                            S._upgradeDB(DB, setVrequest.transaction, callback);
                         }
                     }
                 } else {
                     if (callback) {
                         logDebug('GateOne.Storage.openDB(): No database upgrade necessary.  Calling callback...');
-                        callback(GateOne.Storage.dbObject(DB));
+                        callback(S.dbObject(DB));
                     }
                 }
             };
             openRequest.onupgradeneeded = function(e) { // New (mostly standard) way
-                logDebug('GateOne.Storage.openDB(): openRequest.onupgradeneeded()');
-                GateOne.Storage.databases[DB] = e.target.result;
-                GateOne.Storage._upgradeDB(DB, openRequest.transaction, callback);
+                logInfo(upgradeMsg);
+                S.databases[DB] = e.target.result;
+                S._upgradeDB(DB, openRequest.transaction, callback);
             }
-            openRequest.onfailure = GateOne.Storage.onerror;
+            openRequest.onfailure = S.onerror; // Older version of IndexedDB (I think?  I can't remember)
+            openRequest.onerror = S.onerror;
         } else { // Fallback to localStorage if the browser doesn't support IndexedDB
             logDebug("GateOne.Storage.openDB(): IndexedDB is unavailable.  Falling back to localStorage...")
             if (!localStorage[go.prefs.prefix+DB]) {
@@ -6112,28 +6132,35 @@ GateOne.Base.update(GateOne.Storage, {
                 }
                 localStorage[go.prefs.prefix+DB] = JSON.stringify(o);
             }
-            if (callback) { callback(GateOne.Storage.dbObject(DB)); }
+            if (callback) { callback(S.dbObject(DB)); }
         }
     },
-    clearDatabase: function(DB, storeName) {
-        /**:GateOne.Storage.clearDatabase(DB, storeName)
+    clearDatabase: function(DB, /*opt*/storeName) {
+        /**:GateOne.Storage.clearDatabase(DB[, storeName])
 
         Clears the contents of the given *storeName* in the given database (*DB*).  AKA "the nuclear option."
+
+        If a *storeName* is not given the whole database will be deleted.
         */
         logDebug('clearDatabase()');
         if (indexedDB) {
-            logDebug('clearing indexedDB: ' + DB);
-            var db = GateOne.Storage.databases[DB],
-                trans = db.transaction(storeName, 'readwrite'),
-                store = trans.objectStore(storeName),
-                request = store.clear();
-            trans.oncomplete = function(e) {
-                logDebug('store deleted');
-                var dbreq = indexedDB.deleteDatabase(DB);
-                dbreq.onsuccess = function(e) {
-                    logDebug('database deleted');
+            if (!storeName) {
+                logDebug('clearing entire indexedDB: ' + DB);
+                indexedDB.deleteDatabase(DB);
+            } else {
+                logDebug('clearing indexedDB store: ' + DB + '[' + storeName + ']');
+                var db = GateOne.Storage.databases[DB],
+                    trans = db.transaction(storeName, 'readwrite'),
+                    store = trans.objectStore(storeName),
+                    request = store.clear();
+                trans.oncomplete = function(e) {
+                    logDebug('store deleted');
+                    var dbreq = indexedDB.deleteDatabase(DB);
+                    dbreq.onsuccess = function(e) {
+                        logDebug('database deleted');
+                    }
+                    dbreq.onerror = GateOne.Storage.onerror;
                 }
-                dbreq.onerror = GateOne.Storage.onerror;
             }
         } else {
             delete localStorage[go.prefs.prefix+DB];

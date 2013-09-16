@@ -79,7 +79,11 @@ def kill_session(session, kill_dtach=False):
     *kill_dtach* is True, the dtach processes associated with the session will
     also be killed.
 
-    .. note:: This function gets appended to the `SESSIONS[session]["terminal_callbacks"]` list inside of :meth:`TerminalApplication.authenticate`.
+    .. note::
+
+        This function gets appended to the
+        `SESSIONS[session]["terminal_callbacks"]` list inside of
+        :meth:`TerminalApplication.authenticate`.
     """
     term_log.debug('kill_session(%s)' % session)
     if kill_dtach:
@@ -93,6 +97,15 @@ def kill_session(session, kill_dtach=False):
                     loc[term]['multiplex'].terminate()
                 if kill_dtach:
                     kill_dtached_proc(session, location, term)
+
+def timeout_session(session):
+    """
+    Attached to Gate One's 'timeout_callbacks'; kills the given session.
+
+    If 'dtach' support is enabled the dtach processes associated with the
+    session will also be killed.
+    """
+    kill_session(session, dtach=True)
 
 def policy_new_terminal(cls, policy):
     """
@@ -514,9 +527,12 @@ class TerminalApplication(GOApplication):
         # (but not necessarily this 'location')
         if "terminal" not in sess:
             sess['terminal'] = {}
-        if "timeout_callbacks" in sess:
-            if kill_session not in sess["timeout_callbacks"]:
-                sess["timeout_callbacks"].append(kill_session)
+        # When Gate One exits...
+        if kill_session not in sess["kill_session_callbacks"]:
+            sess["kill_session_callbacks"].append(kill_session)
+        # When a session actually times out (kill dtach'd processes too)...
+        if timeout_session not in sess["timeout_session"]:
+            sess["timeout_session"].append(timeout_session)
         self.terminals() # Tell the client about open terminals
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most

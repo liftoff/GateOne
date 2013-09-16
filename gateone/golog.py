@@ -41,6 +41,7 @@ prefixing::
 """
 
 import os, logging, json
+from utils import mkdir_p
 from tornado.log import LogFormatter
 
 class JSONAdapter(logging.LoggerAdapter):
@@ -106,6 +107,9 @@ def go_logger(name, **kwargs):
             path = os.path.join(basepath, filename)
         else:
             path = options.log_file_prefix
+            basepath = os.path.split(options.log_file_prefix)[0]
+        if not os.path.isdir(basepath):
+            mkdir_p(basepath)
         channel = logging.handlers.RotatingFileHandler(
             filename=path,
             maxBytes=options.log_file_max_size,

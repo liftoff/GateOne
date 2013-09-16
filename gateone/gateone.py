@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130915215314" # Gets replaced by git (holds the date/time)
+__commit__ = "20130916094509" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -752,16 +752,26 @@ def gateone_policies(cls):
     return True # Default to permissive if we made it this far
 
 @atexit.register # I love this feature!
-def kill_all_sessions():
+def kill_all_sessions(timeout=False):
     """
-    Calls all 'timeout_callbacks' attached to all `SESSIONS`.
+    Calls all 'kill_session_callbacks' attached to all `SESSIONS`.
+
+    If *timeout* is ``True``, emulate a session timeout event in order to
+    *really* kill any user sessions (to ensure things like dtach processes get
+    killed too).
     """
     logging.debug(_("Killing all sessions..."))
     for session in list(SESSIONS.keys()):
-        if "timeout_callbacks" in SESSIONS[session]:
-            if SESSIONS[session]["timeout_callbacks"]:
-                for callback in SESSIONS[session]["timeout_callbacks"]:
-                    callback(session)
+        if timeout:
+            if "timeout_callbacks" in SESSIONS[session]:
+                if SESSIONS[session]["timeout_callbacks"]:
+                    for callback in SESSIONS[session]["timeout_callbacks"]:
+                        callback(session)
+        else:
+            if "kill_session_callbacks" in SESSIONS[session]:
+                if SESSIONS[session]["kill_session_callbacks"]:
+                    for callback in SESSIONS[session]["kill_session_callbacks"]:
+                        callback(session)
 
 def timeout_sessions():
     """
@@ -769,6 +779,18 @@ def timeout_sessions():
     for the length of time specified in *TIMEOUT* (global).  The value of
     *TIMEOUT* can be set in 10server.conf or specified on the command line via
     the *session_timeout* value.
+
+    Applications and plugins can register functions to be called when a session
+    times out by attaching them to the user's session inside the `SESSIONS`
+    dict under 'timeout_callbacks'.  The best place to do this is inside of the
+    application's `authenticate()` function or by attaching them to the
+    `go:authenticate` event.  Examples::
+
+        # Imagine this is inside an application's authenticate() method:
+        sess = SESSIONS[self.ws.session]
+        # Pretend timeout_sesssion() is a function we wrote to kill stuff
+        if timeout_session not in sess["timeout_session"]:
+            sess["timeout_session"].append(timeout_session)
 
     .. note::
 
@@ -2093,6 +2115,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             SESSIONS[self.session] = {
                 'last_seen': 'connected',
                 'user': self.current_user,
+                'kill_session_callbacks': [
+                    partial(self.send_message,
+                        _("Please wait while the server is restarted..."))
+                ],
                 'timeout_callbacks': [],
                 # Locations are virtual containers that indirectly correlate
                 # with browser windows/tabs.  The point is to allow things like
@@ -3049,7 +3075,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.send_message(settings['message'], upn=settings['upn'])
         self.trigger('go:send_user_message', settings)
 
-    def send_message(self, message, upn=None, session=None):
+    def send_message(self, message, session=None, upn=None):
         """
         Sends the given *message* to the client using the `go:user_message`
         WebSocket action at the currently-connected client.
