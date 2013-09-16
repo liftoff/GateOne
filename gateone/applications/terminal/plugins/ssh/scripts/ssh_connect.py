@@ -598,7 +598,7 @@ if __name__ == "__main__":
         action="store_true",
         help=_("Display the logo image inline in the terminal.")
     )
-    parser.add_option("--logo-path",
+    parser.add_option("--logo_path",
         dest="logo_path",
         default=None,
         help=_("Provide the logo path (implies --logo).")

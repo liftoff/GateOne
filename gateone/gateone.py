@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130913222159" # Gets replaced by git (holds the date/time)
+__commit__ = "20130915133809" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1423,6 +1423,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
                     self.on(event, callback)
+        self.on("go:authenticate", self.send_extra)
         # Setup some actions to take place after the user authenticates
         # Send our plugin .js and .css files to the client
         send_plugin_static_files = partial(
@@ -1452,6 +1453,25 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             logging.debug("Initializing %s" % instance)
             if hasattr(instance, 'initialize'):
                 instance.initialize()
+
+    def send_extra(self):
+        """
+        Sends any extra JS/CSS files placed in Gate One's 'static/extra'
+        directory.  Can be useful if you want to use Gate One's file
+        synchronization and caching capabilities in your app.
+
+        .. note::
+
+            You may have to create the 'static/extra' directory before putting
+            files in there.
+        """
+        extra_path = os.path.join(GATEONE_DIR, 'static', 'extra')
+        for filename in os.listdir(extra_path):
+            filepath = os.path.join(extra_path, filename)
+            if filename.endswith('.js'):
+                self.send_js(filepath)
+            elif filename.endswith('.css'):
+                self.send_css(filepath)
 
     def allow_draft76(self):
         """

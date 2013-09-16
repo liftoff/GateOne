@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130913222159";
+GateOne.__commit__ = "20130915133809";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -968,6 +968,34 @@ GateOne.Base.update(GateOne.Utils, {
         */
         return str != null && substr != null &&
             str.lastIndexOf(substr) == Math.max(str.length - substr.length, 0);
+    },
+    isBool: function(obj) {
+        /**:GateOne.Utils.isBool(obj)
+
+        Returns ``true`` if *obj* is a Boolean value.
+        */
+        if (typeof obj == typeof true) {
+            return true;
+        }
+        return false;
+    },
+    isFunction: function(obj) {
+        /**:GateOne.Utils.isFunction(obj)
+
+        Returns ``true`` if *obj* is a function.
+        */
+        var getType = {};
+        return obj && getType.toString.call(obj) === '[object Function]';
+    },
+    isString: function(obj) {
+        /**:GateOne.Utils.isString(obj)
+
+        Returns ``true`` if *obj* is a string.
+        */
+        if (obj.substring) {
+            return true;
+        }
+        return false;
     },
     isArray: function(obj) {
         /**:GateOne.Utils.isArray(obj)
@@ -5361,6 +5389,273 @@ GateOne.Base.update(GateOne.Visual, {
         go.Visual.applyTransform(clone, 'scale('+scale+')');
         clone.id = clone.id + '_mini';
         return clone;
+    },
+    table: function(settings, data) {
+        /**:GateOne.Visual.table(settings, data)
+
+        :settings: A JavaScript object that controls the display and creation of this table (see below).
+        :data: A JavaScript Array *or* a function which returns a JavaScript Array (more on that below) representing the data in the table.
+
+        :returns: The table node.
+
+        Creates or updates-in-place an HTML table from the given *settings* and *data* that will use Gate One defaults for style (which means appearance will be controlled via themes).
+
+        The *settings* are described below:
+
+            :id: **Required** - A unique name to identify this table.  Will be assigned to the 'id' attribute, prefixed with :js:attr:`GateOne.prefs.prefix`.  If a table with this `id` already exists it will be replaced with a new table using *data*.
+            :header: An array of column headers.
+            :footer: An array of column footers.  Footers may be passed as functions.
+            :table_attrs: Any extra attributes you wish to be applied to the ``<table>`` element.
+            :thead_attrs: Any extra attributes you wish to be applied to the ``<thead>`` element.
+            :tbody_attrs: Any extra attributes you wish to be applied to the ``<tbody>`` element.
+            :th_attrs: Any extra attributes you wish to be applied to ``<th>`` elements.
+            :tr_attrs: Any extra attributes you wish to be applied to ``<tr>`` elements.
+            :td_attrs: Any extra attributes you wish to be applied to ``<td>`` elements.
+            :readonly: If ``true`` any automatically-created form elements (e.g. checkboxes) in the table will be marked as disabled (read-only).
+
+        Examples::
+
+            >>> var mydata = [
+                ["John", "Smith", true],
+                ["Jane", "Austin", false]
+            ];
+            >>> var settings = {
+                'id': "example",
+                'header': ["First Name", "Last Name", "Marital Status"]
+            };
+            >>> var mytable = GateOne.Visual.table(settings, mydata);
+
+        The above example would result in HTML looking like this:
+
+        .. code-block:: html
+
+            <table id="go_default_example" class="✈table">
+                <thead class="✈table_head">
+                <tr class="✈table_row">
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Marital Status</th>
+                </tr>
+                </thead>
+
+                <tbody class="✈table_body">
+                <tr class="✈table_row" data-index="0">
+                    <td class="✈table_cell" data-column="First Name">John</td>
+                    <td class="✈table_cell" data-column="Last Name">Doe</td>
+                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status" checked></td>
+                </tr>
+
+                <tr class="✈table_row" data-index="1">
+                    <td class="✈table_cell" data-column="First Name">Jane</td>
+                    <td class="✈table_cell" data-column="Last Name">Austin</td>
+                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status"></td>
+                </tr>
+                </tbody>
+            </table>
+
+        .. note:: All 'id' attributes will be prefixed with `GateOne.Prefs.prefix`.
+
+        .. note:: In order to facilitate theming all tables, rows, and cells will be assigned the '✈table', '✈table_row' and '✈table_cell' classes, respectively.
+
+        Tables can be created using two-way data binding if you provide a function instead of an Array as ``settings['data']``.  It works like this:
+
+            * The function will be called to populate the initial table.
+            * The function will be attached to the `go:table:<table id>:render` event.  To update the table with the latest data simply trigger it: `GateOne.Events.trigger('go:table:<table id>:render')`.  Any extra arguments supplied will be passed to the attached function.
+            * Appropriate (DOM) event hadlers will be attached to each element of the table that trigger the `go:table:<table id>:interact` event.  The element and the event object will be passed as the only arguments.
+
+        So if a user clicks on a cell in the table the `go:table:<table id>` event will be fired three times:  Once with the table, once with the row, and once with the cell; each with their respective DOM event objects as the second argument.
+
+        If you make a change to your data you simply need to call `GateOne.Events.trigger('go:table:<table id>:render')` and your bound function will be called and the table updated automatically.
+
+        As an alternative to providing a simple Array of Arrays of strings as the table data, an Array of Objects may be used instead.  Here's an example demonstrating the format::
+
+            >>> var mydata = [
+                [{'content': "John", 'class': "firstname", 'data-alternatives': "Jon, Jonathan"}, {'content': "Doe", 'class': "lastname"}, true],
+                [{'content': "Jane", 'class': "firstname"}, {'content': "Austin", 'class': "lastname"}, false]
+            ]
+            >>> var settings = {
+                'id': "example2",
+                'header': ["First Name", "Last Name", "Marital Status"],
+                'table_attrs': {'class': '✈my_table'}
+            };
+            >>> var mytable = GateOne.Visual.table(settings, mydata);
+
+        The format above would generate HTML that looks like this:
+
+        .. code-block:: html
+
+            <table id="go_default_example2" class="✈table ✈my_table">
+                <thead class="✈table_head">
+                <tr class="✈table_row">
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Marital Status</th>
+                </tr>
+                </thead>
+
+                <tbody class="✈table_body">
+                <tr class="✈table_row" data-index="0">
+                    <td class="✈table_cell firstname" data-column="First Name" data-alternatives="Jon, Jonathan">John</td>
+                    <td class="✈table_cell lastname" data-column="Last Name">Doe</td>
+                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status" checked></td>
+                </tr>
+
+                <tr class="✈table_row" data-index="1">
+                    <td class="✈table_cell firstname" data-column="First Name">Jane</td>
+                    <td class="✈table_cell lastname" data-column="Last Name">Austin</td>
+                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status"></td>
+                </tr>
+                </tbody>
+            </table>
+
+        Any extra attributes assigned to each cell's object will be passed to the second argument of :js:meth:`GateOne.Utils.createElement`.  The only exception being the "content" attribute which will be used inside the cell.
+
+        .. note:: If you're using the object notation for cells you *must* include a "content" attribute.
+        */
+        if (!settings['id']) {
+            logError(gettext("GateOne.Visual.table(): You must pass in settings['id'] to this function."));
+            return
+        }
+        var prefix = go.prefs.prefix,
+            u = go.Utils,
+            E = go.Events,
+            v = go.Visual,
+            existing = u.getNode('#'+prefix+settings['id']),
+            table, thead, tbody, tr, th, td, datafunc,
+            count = 0,
+            prependClass = function(attrs, _class) {
+                // This just makes sure that _class is in attrs (and it's first if not already present)
+                if ('class' in attrs) {
+                    if (attrs['class'].indexOf(_class) == -1) {
+                        // Prepend the missing class (e.g. '✈table')
+                        attrs['class'] = _class + ' ' + attrs['class'];
+                    }
+                } else {
+                    attrs['class'] = _class;
+                }
+            };
+        datafunc = data;
+        if (u.isFunction(data)) {
+            data = data();
+        }
+        if (settings["table_attrs"]) {
+            prependClass(settings["table_attrs"], '✈table');
+        } else {
+            settings["table_attrs"] = {'class': '✈table'};
+        }
+        if (existing) {
+            // Empty it out because we'll be replacing it with all new stuff (in two operations:  First the thead then then the tbody)
+            existing.innerHTML = '';
+        }
+        table = existing || u.createElement('table', settings["table_attrs"]);
+        // Attach our data update func to the appropriate event
+        if (!("go:table:"+settings['id']+":render" in E.callbacks)) {
+            E.on("go:table:"+settings['id']+":render", u.partial(v.table, settings, datafunc, table));
+        }
+        if (settings['id']) {
+            table.id = prefix+settings['id'];
+        }
+        if (settings["thead_attrs"]) {
+            prependClass(settings["thead_attrs"], '✈table_head');
+        } else {
+            settings["thead_attrs"] = {'class': '✈table_head'};
+        }
+        thead = u.createElement('thead', settings["thead_attrs"]);
+        if (settings["tbody_attrs"]) {
+            prependClass(settings["tbody_attrs"], '✈table_body');
+        } else {
+            settings["tbody_attrs"] = {'class': '✈table_body'};
+        }
+        tbody = u.createElement('tbody', settings["tbody_attrs"]);
+        if (settings["th_attrs"]) {
+            prependClass(settings["th_attrs"], '✈table_th');
+        } else {
+            settings["th_attrs"] = {'class': '✈table_th'};
+        }
+        th = u.partial(u.createElement, 'th', settings["th_attrs"]);
+        if (settings["tr_attrs"]) {
+            prependClass(settings["tr_attrs"], '✈table_row');
+        } else {
+            settings["tr_attrs"] = {'class': '✈table_row'};
+        }
+        tr = u.partial(u.createElement, 'tr', settings["tr_attrs"]);
+        if (settings["td_attrs"]) {
+            prependClass(settings["td_attrs"], '✈table_cell');
+        } else {
+            settings["td_attrs"] = {'class': '✈table_cell'};
+        }
+        td = u.partial(u.createElement, 'td', settings["td_attrs"]);
+        // Add the header
+        if (settings['header']) {
+            var thead_tr = u.createElement('tr', settings["tr_attrs"]);
+            settings['header'].forEach(function(name) {
+                var th_cell = th();
+                th_cell.innerHTML = name;
+                thead_tr.appendChild(th_cell);
+            });
+            thead.appendChild(thead_tr);
+        }
+        data.forEach(function(row) {
+            var table_row = tr(),
+                valcount = 0;
+            table_row.setAttribute('data-index', count);
+            row.forEach(function(val) {
+                var table_cell = td();
+                if (u.isBool(val)) {
+                    // Make a checkbox for true/false values
+                    var checkbox = u.createElement('input', {'type': 'checkbox'});
+                    checkbox.disabled = settings['readonly'] || false;
+                    checkbox.checked = val;
+                    table_cell.appendChild(checkbox);
+                } else if (val['content']) {
+                    // This is an object (as opposed to just a string or bool); treat it appropriately
+                    var contentNode;
+                    if (!u.isString(val['content'])) {
+                        // Remove it temporarily
+                        contentNode = val['content'];
+                        delete val['content'];
+                    }
+                    if (val["class"]) {
+                        prependClass(val, '✈table_cell');
+                    } else {
+                        val["class"] = '✈table_cell';
+                    }
+                    // Replace the table_cell we just created with a new one that uses the given attributes:
+                    table_cell = u.createElement('td', val);
+                    // Remove the 'content' attribute before we place it in the DOM:
+                    table_cell.removeAttribute('content');
+                    // Add the content node back if necessary
+                    if (contentNode) {
+                        val['content'] = contentNode;
+                    }
+                    if (u.isString(val['content'])) {
+                        table_cell.innerHTML = val['content'];
+                    } else {
+                        // A DOM node; handle it appropriately
+                        table_cell.appendChild(val['content']);
+                    }
+                } else {
+                    if (u.isString(val)) {
+                        table_cell.innerHTML = val;
+                    } else {
+                        // Assume a DOM node; handle it appropriately
+                        table_cell.appendChild(val);
+                    }
+                }
+                // Add the data-column attribute
+                if (settings['header']) {
+                    table_row.setAttribute('data-column', settings["header"][valcount]);
+                }
+                table_row.appendChild(table_cell);
+                valcount += 1;
+            });
+            tbody.appendChild(table_row);
+            count += 1;
+        });
+        // Do these last to cut down on DOM reflows
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        return table;
     }
 });
 
