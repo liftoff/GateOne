@@ -1058,10 +1058,13 @@ def get_plugins(plugin_dir, enabled=None):
 
         {
             'js': [ // NOTE: These would be be inside *plugin_dir*/static
-                '/static/happy_plugin/whatever.js',
-                '/static/ssh/ssh.js',
+                'happy_plugin/static/whatever.js',
+                'ssh/static/ssh.js',
             ],
-            'css': ['/cssrender?plugin=bookmarks&template=bookmarks.css'],
+            'css': [
+                'bookmarks/static/bookmarks.css',
+                'ssh/templates/ssh.css'
+            ],
             // NOTE: CSS URLs will require '&container=<container>' and '&prefix=<prefix>' to load.
             'py': [ // NOTE: These will get added to sys.path
                 'happy_plugin',
@@ -1090,7 +1093,8 @@ def get_plugins(plugin_dir, enabled=None):
         if enabled and directory not in enabled:
             continue
         plugin = directory
-        http_static_path = '/static/%s' % plugin
+        http_static_path = '%s/static' % plugin
+        http_template_path = '%s/templates' % plugin
         directory = os.path.join(plugin_dir, directory) # Make absolute
         if not os.path.isdir(directory):
             continue # This is not a plugin
@@ -1120,8 +1124,8 @@ def get_plugins(plugin_dir, enabled=None):
                 templates_dir = os.path.join(directory, plugin_file)
                 for template_file in os.listdir(templates_dir):
                     if template_file.endswith('.css'):
-                        http_path = "/cssrender?plugin=%s&template=%s" % (
-                            plugin, template_file)
+                        http_path = os.path.join(
+                            http_template_path, template_file)
                         out_dict['css'].append(http_path)
     # Sort all plugins alphabetically so the order in which they're applied can
     # be controlled somewhat predictably

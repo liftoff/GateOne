@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from functools import partial
 
 # Gate One imports
-import termio
 from gateone import GATEONE_DIR, BaseHandler, GOApplication, StaticHandler
 from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, json_encode, get_settings, short_hash
@@ -28,11 +27,8 @@ from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
 from utils import which, get_translation
 from golog import go_logger
-import terminal
 
 # 3rd party imports
-import tornado.ioloop
-import tornado.web
 from tornado.options import options, define
 
 # Globals
@@ -156,10 +152,8 @@ def policy_new_terminal(cls, policy):
                 user['upn'], max_terms)))
             # Let the client know this term is no more (after a timeout so the
             # can complete its newTerminal stuff beforehand).
-            ioloop = tornado.ioloop.IOLoop.instance()
             term_ended = partial(instance.term_ended, term)
-            ioloop.add_timeout(
-                timedelta(milliseconds=500), term_ended)
+            instance.add_timeout("500", term_ended)
             cls.error = _(
                 "Server policy dictates that you may only open %s terminal(s) "
                 % max_terms)
@@ -253,7 +247,7 @@ def terminal_policies(cls):
 
     If no 'terminal' policies are defined this function will always return True.
     """
-    instance = cls.instance # ApplicationWebSocket instance
+    instance = cls.instance # TerminalApplication instance
     function = cls.function # Wrapped function
     #f_args = cls.f_args     # Wrapped function's arguments
     #f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
@@ -306,20 +300,16 @@ class SharedTermHandler(BaseHandler):
             prefs=prefs
         )
 
-class TermStaticFiles(tornado.web.StaticFileHandler):
+class TermStaticFiles(StaticHandler):
     """
     Serves static files in the `gateone/applications/terminal/static` directory.
+
+    .. note::
+
+        This is configured via the `web_handlers` global (a feature inherent to
+        Gate One applications).
     """
-    # This is the only function we need to override thanks to the thoughtfulness
-    # of the Tornado devs.
-    def set_extra_headers(self, path):
-        """
-        Adds the Access-Control-Allow-Origin header to allow cross-origin
-        access to static content for applications embedding Gate One.
-        Specifically, this is necessary in order to support loading fonts
-        from different origins.
-        """
-        self.set_header('Access-Control-Allow-Origin', '*')
+    pass
 
 class TerminalApplication(GOApplication):
     """
@@ -371,6 +361,7 @@ class TerminalApplication(GOApplication):
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
             'terminal:unshare_terminal': self.unshare_terminal,
+            'terminal:enumerate_commands': self.enumerate_commands,
             'terminal:enumerate_fonts': self.enumerate_fonts,
             'terminal:enumerate_colors': self.enumerate_colors,
             'terminal:list_shared_terminals': self.list_shared_terminals,
@@ -386,13 +377,16 @@ class TerminalApplication(GOApplication):
             'enabled_plugins', [])
         self.plugins = get_plugins(
             os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
-        js_plugins = [a.split('/')[2] for a in self.plugins['js']]
+        js_plugins = []
+        for js_path in self.plugins['js']:
+            name = js_path.split(os.path.sep)[-1].split('.')[0]
+            name = os.path.splitext(name)[0]
+            js_plugins.append(name)
         css_plugins = []
-        for i in css_plugins:
-            if '?' in i: # CSS Template
-                css_plugins.append(i.split('plugin=')[1].split('&')[0])
-            else: # Static CSS file
-                css_plugins.append(i.split('/')[1])
+        for css_path in css_plugins:
+            name = css_path.split(os.path.sep)[-1].split('.')[0]
+            name = os.path.splitext(name)[0]
+            css_plugins.append(name)
         plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         term_log.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
@@ -500,7 +494,7 @@ class TerminalApplication(GOApplication):
         # Render and send the client our terminal.css
         terminal_css = os.path.join(
             APPLICATION_PATH, 'templates', 'terminal.css')
-        self.ws.render_and_send_css(terminal_css, element_id="terminal.css")
+        self.render_and_send_css(terminal_css, element_id="terminal.css")
         # Send the client our JavaScript files
         static_dir = os.path.join(APPLICATION_PATH, 'static')
         js_files = os.listdir(static_dir)
@@ -531,8 +525,8 @@ class TerminalApplication(GOApplication):
         if kill_session not in sess["kill_session_callbacks"]:
             sess["kill_session_callbacks"].append(kill_session)
         # When a session actually times out (kill dtach'd processes too)...
-        if timeout_session not in sess["timeout_session"]:
-            sess["timeout_session"].append(timeout_session)
+        if timeout_session not in sess["timeout_callbacks"]:
+            sess["timeout_callbacks"].append(timeout_session)
         self.terminals() # Tell the client about open terminals
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most
@@ -567,6 +561,16 @@ class TerminalApplication(GOApplication):
                         if self.ws.client_id in term_obj:
                             del term_obj[self.ws.client_id]
         self.trigger("terminal:on_close")
+
+    @require(authenticated(), policies('terminal'))
+    def enumerate_commands(self):
+        """
+        Tell the client which 'commands' (from settings/policy) that are
+        available via the `terminal:commands_list` WebSocket action.
+        """
+        commands = list(self.policy['commands'].keys())
+        message = {'terminal:commands_list': {'commands': commands}}
+        self.write_message(message)
 
     def enumerate_fonts(self):
         """
@@ -735,9 +739,7 @@ class TerminalApplication(GOApplication):
                 if race_check_timediff < timedelta(seconds=1):
                     # Definitely a race condition (command is failing to run).
                     # Add a delay
-                    term_ended = partial(self.term_ended, term)
-                    ioloop = tornado.ioloop.IOLoop.instance()
-                    ioloop.add_timeout(timedelta(seconds=5), term_ended)
+                    self.add_timeout("5s", partial(self.term_ended, term))
                     self.race_check = False
                     self.ws.send_message(_(
                         "Warning: Terminals are closing too fast.  If you see "
@@ -769,6 +771,7 @@ class TerminalApplication(GOApplication):
         Sets up all the callbacks associated with the given *term*, *multiplex*
         instance and *callback_id*.
         """
+        import terminal
         refresh = partial(self.refresh_screen, term)
         multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
         ended = partial(self.term_ended, term)
@@ -804,6 +807,7 @@ class TerminalApplication(GOApplication):
         Removes all the Multiplex and terminal emulator callbacks attached to
         the given *multiplex* instance and *callback_id*.
         """
+        import terminal
         multiplex.remove_callback(multiplex.CALLBACK_UPDATE, callback_id)
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, callback_id)
         term_emulator = multiplex.term
@@ -837,6 +841,7 @@ class TerminalApplication(GOApplication):
                 If ``True``, will enable debugging on the created Multiplex
                 instance.
         """
+        import termio
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
         user_dir = self.settings['user_dir']
@@ -2199,7 +2204,7 @@ class TerminalApplication(GOApplication):
         """
         print_css_path = os.path.join(
             APPLICATION_PATH, 'templates', 'printing', 'default.css')
-        self.ws.render_and_send_css(
+        self.render_and_send_css(
             print_css_path, element_id="terminal_print_css", media="print")
 
     @require(authenticated())

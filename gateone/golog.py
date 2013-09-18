@@ -40,7 +40,7 @@ prefixing::
     That is a built-in feature of the `termio` module.
 """
 
-import os, logging, json
+import os.path, logging, json
 from utils import mkdir_p
 from tornado.log import LogFormatter
 

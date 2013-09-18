@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130916094509";
+GateOne.__commit__ = "20130916193409";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3826,7 +3826,23 @@ GateOne.Base.update(GateOne.Visual, {
             wsContainer = u.createElement('div', {'class': '✈centertrans ✈sectrans ✈new_workspace_workspace'}),
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace = v.newWorkspace(),
-            workspaceNum = workspace.id.split(prefix+'workspace')[1];
+            workspaceNum = workspace.id.split(prefix+'workspace')[1],
+            calledNew = false,
+            callFunc = function(appName, e) {
+                wsContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(wsContainer);
+                    go.loadedApplications[appName].__new__(workspace);
+                }, 1000);
+                // TODO: Figure out why this ends up being called FOUR FRIGGIN TIMES:
+//                 wsContainer.addEventListener(transitionEndName, function(e) {
+//                     if (!calledNew) {
+//                         u.removeElement(wsContainer);
+//                         go.loadedApplications[appName].__new__(workspace);
+//                         calledNew = true;
+//                     }
+//                 }, false);
+            };
         titleH2.innerHTML = "Gate One - Applications";
         wsContainer.style.opacity = 0;
         wsContainer.appendChild(titleH2);
@@ -3842,6 +3858,7 @@ GateOne.Base.update(GateOne.Visual, {
             appIcon.innerHTML = icon || go.Icons['application'];
             appSquare.appendChild(appIcon);
             appSquare.appendChild(appText);
+            appSquare.addEventListener('click', u.partial(callFunc, appName), false);
             wsAppGrid.appendChild(appSquare);
         });
         workspace.appendChild(wsContainer);
@@ -5600,6 +5617,7 @@ GateOne.Base.update(GateOne.Visual, {
                 valcount = 0;
             table_row.setAttribute('data-index', count);
             row.forEach(function(val) {
+                console.log(val);
                 var table_cell = td();
                 if (u.isBool(val)) {
                     // Make a checkbox for true/false values
@@ -5644,7 +5662,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 // Add the data-column attribute
                 if (settings['header']) {
-                    table_row.setAttribute('data-column', settings["header"][valcount]);
+                    table_cell.setAttribute('data-column', settings["header"][valcount]);
                 }
                 table_row.appendChild(table_cell);
                 valcount += 1;

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130916094509" # Gets replaced by git (holds the date/time)
+__commit__ = "20130916193409" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -482,7 +482,6 @@ import hashlib
 import tempfile
 from functools import wraps, partial
 from datetime import datetime, timedelta
-from hashlib import md5
 
 # This is used as a way to ensure users get a friendly message about missing
 # dependencies:
@@ -1113,8 +1112,6 @@ class MainHandler(BaseHandler):
             index_path,
             hostname=hostname,
             gateone_js=gateone_js,
-            jsplugins=PLUGINS['js'],
-            cssplugins=PLUGINS['css'],
             location=location,
             js_init=js_init,
             url_prefix=self.settings['url_prefix'],
@@ -1184,6 +1181,7 @@ class GOApplication(OnOffMixin):
         self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
+        self.ioloop = tornado.ioloop.IOLoop.instance()
 
     def __repr__(self):
         return "GOApplication: %s" % self.__class__
@@ -1235,6 +1233,19 @@ class GOApplication(OnOffMixin):
         # Why the Tornado devs didn't give us a simple way to do this is beyond
         # me.
         self.ws.application.handlers[0][1].append(spec)
+
+    def add_timeout(self, timeout, func):
+        """
+        A convenience function that calls the given *func* after *timeout* using
+        ``self.ioloop.add_timeout()`` (which uses
+        :meth:`tornado.ioloop.IOLoop.add_timeout`).
+
+        The given *timeout* may be a `datetime.timedelta` or a string compatible
+        with `utils.convert_to_timedelta` such as, "5s" or "10m".
+        """
+        if isinstance(timeout, basestring):
+            timeout = convert_to_timedelta(timeout)
+        self.ioloop.add_timeout(timeout, term_ended)
 
 class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     """
@@ -2297,15 +2308,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     name = app.name
                 enabled_applications.append(name)
         # I've been using these for testing stuff...  Ignore
-        enabled_applications.append("Bookmarks")
-        enabled_applications.append("Terminal: Nethack")
-        enabled_applications.append("Terminal: Login")
-        enabled_applications.append("Admin")
-        enabled_applications.append("IRC")
-        enabled_applications.append("Log Viewer")
-        enabled_applications.append("Help")
-        enabled_applications.append("RDP")
-        enabled_applications.append("VNC")
+        #enabled_applications.append("Bookmarks")
+        #enabled_applications.append("Terminal: Nethack")
+        #enabled_applications.append("Terminal: Login")
+        #enabled_applications.append("Admin")
+        #enabled_applications.append("IRC")
+        #enabled_applications.append("Log Viewer")
+        #enabled_applications.append("Help")
+        #enabled_applications.append("RDP")
+        #enabled_applications.append("VNC")
         enabled_applications.sort()
         # Use this user's specific allowed list of applications if possible:
         user_apps = policy.get('user_applications', enabled_applications)
@@ -2480,7 +2491,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 theme_files.append(rendered_path)
         # Combine the theme files into one
         filename = 'theme.css'
-        filename_hash = md5(
+        filename_hash = hashlib.md5(
             filename.encode('utf-8')).hexdigest()[:10]
         cached_theme_path = os.path.join(cache_dir, filename)
         new_theme_path = os.path.join(cache_dir, filename+'.new')
@@ -2769,7 +2780,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     if not filename:
                         filename = os.path.split(file_obj.name)[1]
                 mtime = os.stat(path).st_mtime
-                filename_hash = md5(
+                filename_hash = hashlib.md5(
                     filename.encode('utf-8')).hexdigest()[:10]
                 self.file_cache[filename_hash] = {
                     'filename': filename,
@@ -2818,7 +2829,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
-        filename_hash = md5(
+        filename_hash = hashlib.md5(
             filename.encode('utf-8')).hexdigest()[:10]
         self.file_cache[filename_hash] = {
             'filename': filename,
@@ -3429,7 +3440,9 @@ class GateOneApp(tornado.web.Application):
                 # Call the plugin's initialization functions
                 hooks['Init'](tornado_settings)
         # Include JS-only and CSS-only plugins (for logging purposes)
-        js_plugins = [a.split('/')[2] for a in PLUGINS['js']]
+        js_plugins = [a.split(os.path.sep)[2] for a in PLUGINS['js']]
+        # NOTE: JS and CSS files are normally sent after the user authenticates
+        #       via ApplicationWebSocket.send_plugin_static_files()
         # Add static handlers for all the JS plugins (primarily for source URLs)
         for js_plugin in js_plugins:
             js_plugin_path = os.path.join(
@@ -3443,14 +3456,13 @@ class GateOneApp(tornado.web.Application):
         # to override defaults:
         handlers = merge_handlers(handlers)
         css_plugins = []
-        for i in css_plugins:
-            if '?' in i: # CSS Template
-                css_plugins.append(i.split('plugin=')[1].split('&')[0])
-            else: # Static CSS file
-                css_plugins.append(i.split('/')[1])
+        for css_path in css_plugins:
+            name = css_path.split(os.path.sep)[-1].split('.')[0]
+            name = os.path.splitext(name)[0]
+            css_plugins.append(name)
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        logger.info(_("Loaded plugins: %s") % ", ".join(plugin_list))
+        logger.info(_("Loaded global plugins: %s") % ", ".join(plugin_list))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
 def define_options():
@@ -4142,7 +4154,9 @@ def main():
                 web_handlers.extend(module.web_handlers)
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
-    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
+
+    logging.info(_("Imported applications: {0}".format(
+        ', '.join([a.name for a in APPLICATIONS]))))
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])

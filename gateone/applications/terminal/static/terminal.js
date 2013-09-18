@@ -416,6 +416,7 @@ go.Base.update(GateOne.Terminal, {
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
+        go.Net.addAction('terminal:commands_list', go.Terminal.enumerateCommandsAction);
         go.Net.addAction('terminal:fonts_list', go.Terminal.enumerateFontsAction);
         go.Net.addAction('terminal:colors_list', go.Terminal.enumerateColorsAction);
         go.Net.addAction('terminal:terminals', go.Terminal.reattachTerminalsAction);
@@ -474,6 +475,7 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.setActive();
                 });
             }
+            go.ws.send(JSON.stringify({'terminal:enumerate_commands': null}));
             go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
@@ -487,14 +489,14 @@ go.Base.update(GateOne.Terminal, {
             }
         }
     },
-    __new__: function(settings) {
-        /**:GateOne.Terminal.__new__(settings)
+    __new__: function(workspace) {
+        /**:GateOne.Terminal.__new__(workspace)
 
         Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
         */
-        logInfo("GateOne.Terminal.__new__(" + settings + ")");
-        var command = settings['command'];
-        go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
+        logInfo("GateOne.Terminal.__new__(" + workspace + ")");
+//         var command = settings['command'];
+        go.Terminal.newTerminal(null, null, workspace); // Just create a new terminal in a new workspace for now.
         // TODO: Make this take settings like "command", rows/columns, and *where*.
     },
     setDBReady: function(db) {
@@ -654,10 +656,19 @@ go.Base.update(GateOne.Terminal, {
         contentContainer.appendChild(tableDiv2);
         go.User.preference("Terminal", contentContainer, savePrefsCallback);
     },
+    enumerateCommandsAction: function(messageObj) {
+        /**:GateOne.Terminal.enumerateCommandsAction(messageObj)
+
+        Attached to the 'terminal:commands_list' WebSocket action; stores *messageObj['commands']* in `GateOne.Terminal.commandsList`.
+        */
+        var commandsList = messageObj['commands'];
+        // Save the fonts list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
+        go.Terminal.commandsList = commandsList;
+    },
     enumerateFontsAction: function(messageObj) {
         /**:GateOne.Terminal.enumerateFontsAction(messageObj)
 
-        Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server.
+        Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server and stores the list in `GateOne.Terminal.fontsList`.
         */
         var fontsList = messageObj['fonts'],
             prefsFontSelect = u.getNode('#'+prefix+'prefs_font'),
@@ -1607,6 +1618,10 @@ go.Base.update(GateOne.Terminal, {
             }
         } else {
             where = u.getNode(where);
+            if (where.id.indexOf(prefix+'workspace') != -1) {
+                // This is a workspace, grab the number
+                workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
+            }
         }
         // Create the terminal record scaffold
         if (!go.Terminal.terminals[term]) {
@@ -1624,7 +1639,7 @@ go.Base.update(GateOne.Terminal, {
                 scrollback: [],
                 scrollbackTimer: null, // Controls re-adding scrollback buffer
                 where: where,
-                workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
+                workspace: workspaceNum // NOTE: This will be (likely) be undefined when embedding
             }
         }
         for (var pref in settings) {
@@ -2768,7 +2783,7 @@ go.Base.update(GateOne.Terminal, {
         Opens a dialog where the user can share a terminal or modify the permissions on a terminal that is already shared.
         */
         var closeDialog, // Filled out below
-            anonDesc = gettext('Anonymous Users (Broadcast)'),
+            anonDesc = gettext('Anyone (Broadcast)'),
             authenticatedDesc = gettext('Authenticated Users'),
             tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
             td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
@@ -2782,26 +2797,36 @@ go.Base.update(GateOne.Terminal, {
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             addUsers = function(userList) {
                 // Add the "Authenticated Users" and "Anonymous" rows first
-                var anonUsers = {'upn': anonDesc};
+                var anonUsers = {'upn': anonDesc},
+                    authenticatedUsers = {'upn': authenticatedDesc},
+                    tableSettings = {
+                        'id': "sharing_table",
+                        'header': [
+                            gettext("User"),
+                            gettext("IP Address"),
+                            gettext("Read"),
+                            gettext("Write")
+                        ]
+                    },
+                    tableData = [],
+                    table; // Assigned below
                 userList.unshift(anonUsers);
-                var authenticatedUsers = {'upn': authenticatedDesc};
                 userList.unshift(authenticatedUsers);
+                console.log(userList);
                 for (var user in userList) {
                     var upn = userList[user]['upn'],
-                        row = tr(),
-                        userTD = u.createElement('td', {'class': '✈table_cell ✈user'}),
-                        readTD = td(),
+                        ip = userList[user]['ip_address'] || '',
                         readCheck = u.createElement('input', {'type': 'checkbox', 'name': 'read'}),
-                        writeTD = td(),
-                        writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
-                    if (upn == GateOne.User.username) {
-                        continue; // Don't need to share with ourself
-                    } else if (upn == anonDesc) { // So we know which are
-                        userTD.setAttribute('data-user', 'ANONYMOUS');
+                        writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'}),
+                        row = [upn, ip, readCheck, writeCheck],
+                        anon = false;
+                    if (upn == go.User.username) {
+                        if (upn != 'ANONYMOUS') {
+                            anon = true; // So we know that all users are anonymous
+                            continue;
+                        }
                     } else if (upn == authenticatedDesc) {
-                        userTD.setAttribute('data-user', 'AUTHENTICATED');
-                    } else {
-                        userTD.setAttribute('data-user', upn);
+                        if (anon) { continue; } // ANONYMOUS and AUTHENTICATED cannot co-exist
                     }
                     writeCheck.addEventListener('click', function() {
                         var read = this.parentNode.parentNode.querySelector('input[name="read"]');
@@ -2815,28 +2840,63 @@ go.Base.update(GateOne.Terminal, {
                             write.checked = false;
                         }
                     }, false);
-                    userTD.addEventListener('click', function() {
-                        var read = this.parentNode.querySelector('input[name="read"]'),
-                            write = this.parentNode.querySelector('input[name="write"]');
-                        if (read.checked) {
-                            if (!write.checked) {
-                                write.checked = true;
-                            } else {
-                                read.checked = false;
-                                write.checked = false;
-                            }
-                        } else {
-                            read.checked = true;
-                        }
-                    }, false);
-                    userTD.innerHTML = upn;
-                    readTD.appendChild(readCheck);
-                    writeTD.appendChild(writeCheck);
-                    row.appendChild(userTD);
-                    row.appendChild(readTD);
-                    row.appendChild(writeTD);
-                    tbody.appendChild(row);
+                    tableData.unshift(row);
                 }
+                console.log(tableData);
+                table = v.table(tableSettings, tableData);
+                console.log(table);
+                tableContainer.appendChild(table);
+//                 for (var user in userList) {
+//                     var upn = userList[user]['upn'],
+//                         row = tr(),
+//                         userTD = u.createElement('td', {'class': '✈table_cell ✈user'}),
+//                         readTD = td(),
+//                         readCheck = u.createElement('input', {'type': 'checkbox', 'name': 'read'}),
+//                         writeTD = td(),
+//                         writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
+//                     if (upn == go.User.username) {
+//                         continue; // Don't need to share with ourself
+//                     } else if (upn == anonDesc) { // So we know which are
+//                         userTD.setAttribute('data-user', 'ANONYMOUS');
+//                     } else if (upn == authenticatedDesc) {
+//                         userTD.setAttribute('data-user', 'AUTHENTICATED');
+//                     } else {
+//                         userTD.setAttribute('data-user', upn);
+//                     }
+//                     writeCheck.addEventListener('click', function() {
+//                         var read = this.parentNode.parentNode.querySelector('input[name="read"]');
+//                         if (this.checked) {
+//                             read.checked = true;
+//                         }
+//                     }, false);
+//                     readCheck.addEventListener('click', function() {
+//                         var write = this.parentNode.parentNode.querySelector('input[name="write"]');
+//                         if (!this.checked) {
+//                             write.checked = false;
+//                         }
+//                     }, false);
+//                     userTD.addEventListener('click', function() {
+//                         var read = this.parentNode.querySelector('input[name="read"]'),
+//                             write = this.parentNode.querySelector('input[name="write"]');
+//                         if (read.checked) {
+//                             if (!write.checked) {
+//                                 write.checked = true;
+//                             } else {
+//                                 read.checked = false;
+//                                 write.checked = false;
+//                             }
+//                         } else {
+//                             read.checked = true;
+//                         }
+//                     }, false);
+//                     userTD.innerHTML = upn;
+//                     readTD.appendChild(readCheck);
+//                     writeTD.appendChild(writeCheck);
+//                     row.appendChild(userTD);
+//                     row.appendChild(readTD);
+//                     row.appendChild(writeTD);
+//                     tbody.appendChild(row);
+//                 }
                 closeDialog = v.dialog(gettext("Terminal Sharing: ") + term, container);
                 cancel.onclick = closeDialog;
             },
@@ -2861,10 +2921,10 @@ go.Base.update(GateOne.Terminal, {
         save.innerHTML = "Save";
         cancel.innerHTML = "Cancel";
         save.addEventListener('click', saveFunc, false);
-        users.innerHTML = gettext("<thead><tr class='✈table_row'><th>User</th><th>Read</th><th>Write</th></tr></thead>");
-        users.appendChild(tbody);
+//         users.innerHTML = gettext("<thead><tr class='✈table_row'><th>User</th><th>Read</th><th>Write</th></tr></thead>");
+//         users.appendChild(tbody);
         container.innerHTML = gettext("<p style='width: 18em;'>Please select which users you wish to share this terminal with.</p>");
-        tableContainer.appendChild(users);
+//         tableContainer.appendChild(users);
         container.appendChild(tableContainer);
         container.appendChild(passwordLabel);
         container.appendChild(password);

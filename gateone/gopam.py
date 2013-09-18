@@ -176,6 +176,75 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
     retval = PAM_AUTHENTICATE(handle, 0)
     return retval == 0
 
+def pam_service_exists(service):
+    """
+    Returns ``True`` if the given *service* can be found in the system's PAM
+    configuration.
+    """
+    if os.path.isdir('/etc/pam.d'):
+        # Modern PAM implementation.  Services are named after files.
+        if service in os.listdir('/etc/pam.d/'):
+            return True
+    else:
+        # Old-school PAM implementation (Solaris, AIX, etc).
+        services = [] # He's making a list, and checkin' it twice.
+        for line in open('/etc/pam.conf'):
+            if line.startswith('#'): # It's a comment
+                continue
+            _service = line.split()[0]
+            if _service not in services:
+                services.append(_service)
+        if service in services:
+            return True
+    return False
+
 if __name__ == "__main__":
-    import getpass
-    print(authenticate(getpass.getuser(), getpass.getpass()))
+    # Do a little test.  Make a little love.  Get down tonight!
+    import os, sys, getpass
+    print("\x1b[1mTesting PAM authentication\x1b[0m")
+    if os.getuid() != 0:
+        print( # Print in bold/yellow
+            "\x1b[1;33mWarning: You're not root.  This means you'll only be "
+            "able to test authenticating your own user ({0}).\x1b[0m"
+            .format(getpass.getuser()))
+    service = raw_input("PAM Service [login]: ")
+    if not service:
+        service = 'login'
+    if not pam_service_exists(service):
+        print(
+            "\x1b[1;33mWarning: The given service, '{0}' could not be found in "
+            "this system's PAM configuration.  This means the 'other' service "
+            "will be used.\x1b[0m".format(service))
+    getting_user = True
+    while getting_user:
+        user = raw_input("Username [{0}]: ".format(getpass.getuser()))
+        getting_user = False
+        if not user:
+            user = getpass.getuser()
+        if os.getuid() != 0 and user != getpass.getuser():
+            getting_user = True
+            print(
+                "ERROR: I told you that you can only authenticate as yourself "
+                "(since you're not root).")
+            print(
+                "Try again but this time just hit the enter key or actually "
+                "type out your own username.")
+    password = getpass.getpass()
+    try:
+        result = authenticate(user, password)
+        if result:
+            print("SUCCESS:  PAM authentication definitely works.")
+        else:
+            print(
+                "FAIL:  Authentication failed.  Did you enter your password "
+                "correctly?")
+            print(
+                "If this keeps happening you either need some caffeine or you "
+                "need to check the system logs to see why the authentication "
+                "is failing.")
+    except Exception as e:
+        print("EPIC FAIL:  Something horrible went wrong.  Exception message:")
+        print(e)
+        print("Here's the traceback:")
+        import traceback
+        traceback.print_exc(file=sys.stdout)
