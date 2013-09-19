@@ -35,6 +35,7 @@
     transition: all 1s ease-in-out;
 }
 .✈workspace {
+    color: #000;
     position: static;
     float: left;
     -webkit-transition: -webkit-transform 1s ease-in-out;
@@ -84,8 +85,10 @@
     background-image: linear-gradient(to top, rgba(80, 80, 80, 0.9) 0%,rgba(255,255,255,0) 100%);
 }
 .✈new_workspace_workspace {
-    width: 100%;
+    width: calc(100% - 2em);
     height: 100%;
+    overflow-y: auto;
+    background-color: #FFF;
 }
 .✈new_workspace_workspace_title {
     text-align: center;
@@ -98,8 +101,10 @@
 .✈app_grid {
     width: 80%;
     margin: 0 auto;
+    text-align: center;
 }
 .✈application {
+    display: inline-block;
     width: 15%;
     background: linear-gradient(to bottom, #ccc, #fff);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -107,16 +112,32 @@
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
     color: #000;
     font-weight: bold;
-    float: left;
     text-align: center;
-    margin-left: 3.9%;
     margin-top: 1em;
     border-radius: 1em;
+    margin-left: 2%;
+    margin-right: 2%;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+    width: 15%;
+    height: 10em;
+}
+.✈application p {
+    margin: 0 0 1em 0;
+    word-break: break-all;
+    word-wrap: break-word;
 }
 .✈application:hover {
     box-shadow: 0 0 0.6em #444;
     background: linear-gradient(to bottom, #fff, #ccc);
     cursor: pointer;
+    text-shadow: .1em .1em .4em #000;
+}
+.✈application:focus {
+    box-shadow: 0 0 0.6em #444;
+    background: linear-gradient(to bottom, #fff, #ccc);
+    cursor: pointer;
+    outline: none;
     text-shadow: .1em .1em .4em #000;
 }
 .✈pointer {
@@ -228,7 +249,7 @@
     -o-transition: all 0s ease-in-out !important;
     transition: all 0s ease-in-out !important;
 }
-.✈toolbar_container {
+.✈toolbar {
     z-index:600;
     position:absolute;
     top:0;
@@ -236,7 +257,7 @@
     color: #000;
     text-align: right;
 }
-.✈toolbar {
+.✈toolbar_icon {
     float: right;
     clear: both;
     opacity: .75;
@@ -248,11 +269,11 @@
     transition: transform 1.0s ease-in-out;
     margin-right: 5px;
 }
-.✈toolbar:hover {
+.✈toolbar_icon:hover {
     opacity: 1;
     cursor:pointer;
 }
-.✈toolbar:target {
+.✈toolbar_icon:target {
     -webkit-transform:rotate(180deg);
     -moz-transform:rotate(180deg);
     -ms-transform:rotate(180deg);

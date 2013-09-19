@@ -18,7 +18,7 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys
+import os, sys, readline
 from optparse import OptionParser
 # i18n support stuff
 import gettext
@@ -27,7 +27,7 @@ gettext.textdomain('ssh_connect')
 _ = gettext.gettext
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
-#readline.parse_and_bind('esc: none')
+readline.parse_and_bind('esc: none')
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names

@@ -101,7 +101,7 @@ def timeout_session(session):
     If 'dtach' support is enabled the dtach processes associated with the
     session will also be killed.
     """
-    kill_session(session, dtach=True)
+    kill_session(session, kill_dtach=True)
 
 def policy_new_terminal(cls, policy):
     """
@@ -316,9 +316,12 @@ class TerminalApplication(GOApplication):
     A Gate One Application (`GOApplication`) that handles creating and
     controlling terminal applications running on the Gate One server.
     """
+    info = {
+        'name': "Terminal",
+        'description': (
+            "Open terminals running any number of configured applications.")
+    }
     name = "Terminal" # A user-friendly name that will be displayed to the user
-    icon = os.path.join(APPLICATION_PATH, "static", "icons", "terminal.svg")
-    about = "Open terminals running any number of configured applications."
     def __init__(self, ws):
         term_log.debug("TerminalApplication.__init__(%s)" % ws)
         self.policy = {} # Gets set in authenticate() below
@@ -379,13 +382,11 @@ class TerminalApplication(GOApplication):
             os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
         js_plugins = []
         for js_path in self.plugins['js']:
-            name = js_path.split(os.path.sep)[-1].split('.')[0]
-            name = os.path.splitext(name)[0]
+            name = js_path.split(os.path.sep)[-2]
             js_plugins.append(name)
         css_plugins = []
         for css_path in css_plugins:
-            name = css_path.split(os.path.sep)[-1].split('.')[0]
-            name = os.path.splitext(name)[0]
+            name = css_path.split(os.path.sep)[-2]
             css_plugins.append(name)
         plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
@@ -528,6 +529,20 @@ class TerminalApplication(GOApplication):
         if timeout_session not in sess["timeout_callbacks"]:
             sess["timeout_callbacks"].append(timeout_session)
         self.terminals() # Tell the client about open terminals
+        # Set the sub-applications list to our commands
+        commands = list(self.policy['commands'].keys())
+        if len(commands) > 1:
+            sub_apps = []
+            for command in commands:
+                if isinstance(self.policy['commands'][command], dict):
+                    sub_app = self.policy['commands'][command].copy()
+                    del sub_app['command'] # Don't want clients to know this
+                    sub_app['name'] = command # Let them have the short name
+                else:
+                    sub_app = {'name': command}
+                sub_apps.append(sub_app)
+            self.info['sub_applications'] = sub_apps
+            self.info['sub_applications'].sort()
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most
         # cases (only when the connection lost and re-connected without a page
@@ -960,6 +975,8 @@ class TerminalApplication(GOApplication):
                 self.current_user['upn'], command)))
             self.ws.send_message(_("Terminal: Invalid command: %s" % command))
             return
+        if isinstance(full_command, dict): # Extended command definition
+            full_command = full_command['command']
         # Make a nice, useful logging line with extra metadata
         metadata = {
             "rows": settings["rows"],
@@ -2295,7 +2312,10 @@ def init(settings):
                 'session_logs_max_age': "30d",
                 'syslog_session_logging': False,
                 'commands': {
-                    'SSH': default_command
+                    'SSH': {
+                        "command": default_command,
+                        "description": "Connect to hosts via SSH."
+                    }
                 },
                 'default_command': 'SSH',
                 'environment_vars': {

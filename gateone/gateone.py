@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130916193409" # Gets replaced by git (holds the date/time)
+__commit__ = "20130917203140" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1168,6 +1168,16 @@ class GOApplication(OnOffMixin):
         `tornado.options.options`) and Gate One imports application modules
         before it evaluates command line arguments.
     """
+    # You'll want to override these values in your own app:
+    info = {
+        'name': "Unknown App",
+        'icon': os.path.join(
+            GATEONE_DIR, "static", "icons", "application.svg"),
+        'description': (
+            "The application developer has yet to provide a description.")
+    }
+    # NOTE: The above 'info' dict will be sent to the client.
+    # NOTE: The icon value will be replaced with the actual icon data.
     def __init__(self, ws):
         self.ws = ws # WebSocket instance
         # Setup some shortcuts to make things more natural and convenient
@@ -1185,6 +1195,9 @@ class GOApplication(OnOffMixin):
 
     def __repr__(self):
         return "GOApplication: %s" % self.__class__
+
+    def __str__(self):
+        return self.info['name']
 
     def initialize(self):
         """
@@ -1245,7 +1258,7 @@ class GOApplication(OnOffMixin):
         """
         if isinstance(timeout, basestring):
             timeout = convert_to_timedelta(timeout)
-        self.ioloop.add_timeout(timeout, term_ended)
+        self.ioloop.add_timeout(timeout, func)
 
 class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     """
@@ -1282,6 +1295,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Setup some instance-specific loggers that we can later update with
         # more metadata
         self.logger = go_logger(None)
+        self.sync_log = go_logger('gateone.sync')
         self.msg_log = go_logger('gateone.message')
         self.auth_log = go_logger('gateone.auth')
         self.client_log = go_logger('gateone.client')
@@ -1378,7 +1392,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if 'gateone' in prefs['*']:
             cls.prefs = prefs
         else:
-            pass # The get_settings() function logs its own errors
+            # NOTE: get_settings() records its own errors too
+            logger.info(_("Settings have NOT been loaded."))
 
     @classmethod
     def broadcast_file_update(cls):
@@ -1620,6 +1635,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             % client_address)
         # NOTE: These get updated with more metadata inside of authenticate():
         self.logger = go_logger(None, **metadata)
+        self.sync_log = go_logger('gateone.sync', **metadata)
         self.auth_log = go_logger('gateone.auth', **metadata)
         self.msg_log = go_logger('gateone.message', **metadata)
         self.client_log = go_logger('gateone.client', **metadata)
@@ -1717,8 +1733,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         user = self.current_user
         client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
-            # Update 'last_seen' with a datetime object for accuracy
-            SESSIONS[user['session']]['last_seen'] = datetime.now()
+            if self.client_id in SESSIONS[user['session']]['client_ids']:
+                SESSIONS[user['session']]['client_ids'].remove(self.client_id)
+            # This check is so we don't accidentally timeout a user's session if
+            # the server has session_timeout=0 and the user still has a browser
+            # connected at a different location:
+            if not SESSIONS[user['session']]['client_ids']:
+                # Update 'last_seen' with a datetime object for accuracy
+                SESSIONS[user['session']]['last_seen'] = datetime.now()
         if user and 'upn' in user:
             self.auth_log.info(
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
@@ -1847,6 +1869,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             user you may do so via the API authentication process.
         """
         from utils import create_signature
+        reauth = {'go:reauthenticate': True}
         api_key = auth_obj.get('api_key', None)
         if not api_key:
             self.auth_log.error(_(
@@ -1966,6 +1989,61 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 # Save it so we can keep track across multiple clients
                 f.write(session_info_json)
         return user
+
+# Work-in-progress...  New session-re-key stuff
+    #def new_session_id(self, existing_session=None):
+        #"""
+        #Creates a new session ID for the user and stores it in the `SESSIONS`
+        #global.  If the user already has an existing session it will be renamed.
+        #"""
+        #user = self.current_user
+        #if 'session' not in user:
+
+        #session = user['session']
+        #if self.session not in SESSIONS:
+            ## Start a new session:
+            #SESSIONS[self.session] = {
+                #'last_seen': 'connected',
+                #'user': self.current_user,
+                #'kill_session_callbacks': [
+                    #partial(self.send_message,
+                        #_("Please wait while the server is restarted..."))
+                #],
+                #'timeout_callbacks': [],
+                ## Locations are virtual containers that indirectly correlate
+                ## with browser windows/tabs.  The point is to allow things like
+                ## opening/moving applications/terminals in/to new windows/tabs.
+                #'locations': {self.location: {}}
+            #}
+        #else:
+            #SESSIONS[self.session]['last_seen'] = 'connected'
+            #if self.location not in SESSIONS[self.session]['locations']:
+                #SESSIONS[self.session]['locations'][self.location] = {}
+        #user_dir = os.path.join(
+            #self.prefs['*']['gateone']['user_dir'], user['upn'])
+        #if not os.path.exists(user_dir):
+            #logging.info(_("Creating user directory: %s" % user_dir))
+            #mkdir_p(user_dir)
+            #os.chmod(user_dir, 0o700)
+        #session_file = os.path.join(user_dir, 'session')
+        #session_file_exists = os.path.exists(session_file)
+        #if session_file_exists:
+            #session_data = open(session_file).read()
+            #try:
+                #session_info = tornado.escape.json_decode(session_data)
+            #except ValueError: # Something wrong with the file
+                #session_file_exists = False # Overwrite it below
+        #if not session_file_exists:
+            #with open(session_file, 'w') as f:
+                ## Save it so we can keep track across multiple clients
+                #session_info = {
+                    #'session': generate_session_id(),
+                #}
+                #session_info.update(user)
+                #session_info_json = tornado.escape.json_encode(session_info)
+                #f.write(session_info_json)
+        #self.set_secure_cookie(
+            #"gateone_user", tornado.escape.json_encode(session_info))
 
     def authenticate(self, settings):
         """
@@ -2108,6 +2186,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'location': self.location
         }
         self.logger = go_logger(None, **metadata)
+        self.sync_log = go_logger('gateone.sync', **metadata)
         self.auth_log = go_logger('gateone.auth', **metadata)
         self.msg_log = go_logger('gateone.message', **metadata)
         self.client_log = go_logger('gateone.client', **metadata)
@@ -2124,6 +2203,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if self.session not in SESSIONS:
             # Start a new session:
             SESSIONS[self.session] = {
+                'client_ids': [self.client_id],
                 'last_seen': 'connected',
                 'user': self.current_user,
                 'kill_session_callbacks': [
@@ -2138,6 +2218,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             }
         else:
             SESSIONS[self.session]['last_seen'] = 'connected'
+            SESSIONS[self.session]['client_ids'].append(self.client_id)
             if self.location not in SESSIONS[self.session]['locations']:
                 SESSIONS[self.session]['locations'][self.location] = {}
         # A shortcut:
@@ -2181,9 +2262,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 'session_timeout_check_interval', "30s") # 30s default
             td = convert_to_timedelta(interval)
             interval = ((
-                td.microseconds +
-                (td.seconds + td.days * 24 * 3600) *
-                10**6) / 10**6) * 1000
+                (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
+                / 10**6) * 1000)
             SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
                 timeout_sessions, interval)
             SESSION_WATCHER.start()
@@ -2296,31 +2376,42 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def list_applications(self):
         """
-        Sends a message to the client indiciating which applications are
-        available to the user.
+        Sends a message to the client indiciating which applications and
+        sub-applications are available to the user.
+
+        .. note::
+
+            What's the difference between an "application" and a
+            "sub-application"?  An "application" is a `GOApplication` like
+            `app_terminal.TerminalApplication` while a "sub-application" would
+            be something like "SSH" or "nethack" which runs inside the parent
+            application.
         """
         policy = applicable_policies("gateone", self.current_user, self.prefs)
         enabled_applications = policy.get('enabled_applications', [])
-        if not enabled_applications:
+        applications = []
+        if not enabled_applications: # Load all apps
             for app in self.apps: # Use the app's name attribute
-                name = str(app)
-                if hasattr(app, 'name'):
-                    name = app.name
-                enabled_applications.append(name)
+                info_dict = app.info.copy() # Make a copy so we can change it
+                applications.append(info_dict)
+        else:
+            app_dict = {} # Temporary name:app storage
+            [app_dict.update({a.info['name']: a}) for a in self.apps]
+            for name, app in app_dict.items():
+                if name in app_dict:
+                    applications.append(app)
         # I've been using these for testing stuff...  Ignore
         #enabled_applications.append("Bookmarks")
-        #enabled_applications.append("Terminal: Nethack")
-        #enabled_applications.append("Terminal: Login")
         #enabled_applications.append("Admin")
-        #enabled_applications.append("IRC")
+        #enabled_applications.append("Chat")
         #enabled_applications.append("Log Viewer")
         #enabled_applications.append("Help")
-        #enabled_applications.append("RDP")
-        #enabled_applications.append("VNC")
-        enabled_applications.sort()
+        #enabled_applications.append("X11: RDP")
+        #enabled_applications.append("X11: VNC")
+        applications.sort()
         # Use this user's specific allowed list of applications if possible:
-        user_apps = policy.get('user_applications', enabled_applications)
-        message = {'go:applications': user_apps}
+        #user_apps = policy.get('user_applications', applications)
+        message = {'go:applications': applications}
         self.write_message(json_encode(message))
 
     @require(authenticated(), policies('gateone'))
@@ -2411,7 +2502,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         .. note:: This will send the theme files for all applications and plugins that have a matching stylesheet in their 'templates' directory.
         """
-        logging.debug('get_theme(%s)' % settings)
+        self.logger.debug('get_theme(%s)' % settings)
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
             if not hasattr('logged_css_message', self):
@@ -2420,6 +2511,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
             return
+        self.sync_log.info('Sync Theme: %s' % settings['theme'])
         use_client_cache = self.prefs['*']['gateone'].get(
             'use_client_cache', True)
         cache_dir = self.settings['cache_dir']
@@ -2549,7 +2641,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             This will alow authenticated clients to download whatever file they
             want that ends in .js inside of /static/ directories.
         """
-        logging.debug('get_js(%s)' % filename)
+        self.logger.info('get_js(%s)' % filename)
         out_dict = {'result': 'Success', 'filename': filename, 'data': None}
         js_files = {} # Key:value == 'somefile.js': '/full/path/to/somefile.js'
         static_dir = os.path.join(GATEONE_DIR, 'static')
@@ -2642,7 +2734,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         If the `cssmin` module is installed CSS files will be minified before
         being sent to the client.
         """
-        logging.debug(
+        self.sync_log.debug(
             "file_request(%s, use_client_cache=%s)" % (
                 files_or_hash, use_client_cache))
         if isinstance(files_or_hash, (list, tuple)):
@@ -2671,6 +2763,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         requires = self.file_cache[filename_hash].get('requires', None)
         media = self.file_cache[filename_hash].get('media', 'screen')
         url_prefix = self.settings['url_prefix']
+        self.sync_log.info("Send: {0}".format(filename))
         out_dict = {
             'result': 'Success',
             'cache': use_client_cache,
@@ -2779,6 +2872,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     path = file_obj.name
                     if not filename:
                         filename = os.path.split(file_obj.name)[1]
+                self.sync_log.info(
+                    "Sync {kind}: {filename}".format(
+                        kind=kind, filename=filename))
                 mtime = os.stat(path).st_mtime
                 filename_hash = hashlib.md5(
                     filename.encode('utf-8')).hexdigest()[:10]
@@ -2819,6 +2915,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             path = paths_or_fileobj.name
             if not filename:
                 filename = os.path.split(paths_or_fileobj.name)[1]
+        self.sync_log.info(
+            "Sync {kind}: {filename}".format(kind=kind, filename=filename))
         # NOTE: The .split('.') above is so the hash we generate is always the
         # same.  The tail end of the filename will have its modification date.
         # Cache the metadata for sync
@@ -4156,7 +4254,7 @@ def main():
             pass # No apps--probably just a supporting .py file.
 
     logging.info(_("Imported applications: {0}".format(
-        ', '.join([a.name for a in APPLICATIONS]))))
+        ', '.join([a.info['name'] for a in APPLICATIONS]))))
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])

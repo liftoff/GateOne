@@ -53,9 +53,12 @@ class JSONAdapter(logging.LoggerAdapter):
         extra = self.extra.copy()
         if 'metadata' in kwargs:
             extra.update(kwargs.pop('metadata'))
-        return ('{json_data} {msg}'.format(
-            json_data=json.dumps(extra, sort_keys=True), msg=msg),
-            kwargs)
+        if extra:
+            json_data = json.dumps(extra, sort_keys=True)
+            line = '{json_data} {msg}'.format(json_data=json_data, msg=msg)
+        else:
+            line = msg
+        return (line, kwargs)
 
 def go_logger(name, **kwargs):
     """

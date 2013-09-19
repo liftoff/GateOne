@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130916193409";
+GateOne.__commit__ = "20130917203140";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -489,8 +489,10 @@ var go = GateOne.Base.update(GateOne, {
             prefsPanelDisableTransitions = u.createElement('input', {'id': 'prefs_disabletrans', 'name': prefix+'prefs_disabletrans', 'value': 'disabletrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': '✈button ✈black ✈save_button'}),
             noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'class': '✈noticecontainer'}),
-            toolbar = u.createElement('div', {'id': 'toolbar', 'class': '✈toolbar_container'}),
-            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'✈toolbar', 'title': gettext("Preferences")}),
+            toolbar = u.createElement('div', {'id': 'toolbar', 'class': '✈toolbar'}),
+            toolbarIconClose = u.createElement('div', {'id': 'icon_close', 'class': '✈toolbar_icon', 'title': "Close This Workspace"}),
+            toolbarIconNewWorkspace = u.createElement('div', {'id': 'icon_newws', 'class': '✈toolbar_icon', 'title': "New Workspace"}),
+            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'✈toolbar_icon', 'title': gettext("Preferences")}),
             panels = u.getNodes('.✈panel'),
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'✈sideinfo'}),
             updateCSSfunc = function(panelNode) {
@@ -501,7 +503,9 @@ var go = GateOne.Base.update(GateOne, {
         // Create our prefs panel
         u.hideElement(prefsPanel); // Start out hidden
         go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
-        toolbarIconPrefs.innerHTML = go.Icons.prefs;
+        toolbarIconClose.innerHTML = go.Icons['close'];
+        toolbarIconNewWorkspace.innerHTML = go.Icons['newWS'];
+        toolbarIconPrefs.innerHTML = go.Icons['prefs'];
         prefsPanelH2.innerHTML = gettext("Preferences");
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -629,10 +633,17 @@ var go = GateOne.Base.update(GateOne, {
             // We just keep it hidden so that plugins don't have to worry about whether or not it is there (avoids exceptions)
             toolbar.style['display'] = 'none';
         }
-        toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
+        toolbar.appendChild(toolbarIconClose);
+        toolbar.appendChild(toolbarIconNewWorkspace);
+        toolbar.appendChild(toolbarIconPrefs);
         goDiv.appendChild(toolbar);
         var showPrefs = function() {
             go.Visual.togglePanel('#'+prefix+'panel_prefs');
+        }
+        toolbarIconNewWorkspace.onclick = go.Visual.newWorkspaceWorkspace;
+        toolbarIconClose.onclick = function(e) {
+            var workspace = localStorage[prefix+'selectedWorkspace'];
+            go.Visual.closeWorkspace(workspace);
         }
         toolbarIconPrefs.onclick = showPrefs;
         // Put our invisible pop-up message container on the page
@@ -2873,11 +2884,7 @@ GateOne.Base.update(GateOne.Net, {
                 }
             },
             takeAction = function() {
-                if (go.prefs.auth) {
-                    v.alert(gettext('API Authentication Failure'), gettext("The API authentication object was denied by the server.  Click OK to reload the page."), redirect);
-                } else {
-                    v.alert(gettext('Authentication Failure'), gettext('You must re-authenticate with the Gate One server.  The page will now be reloaded.'), redirect);
-                }
+                v.alert(gettext('Authentication Failure'), gettext("The authentication object was denied by the server.  Click OK to reload the page."), redirect);
             };
         u.deleteCookie('gateone_user', '/', '');
         delete localStorage[prefix+'gateone_user']; // Also clear this if it is set
@@ -3761,19 +3768,21 @@ GateOne.Base.update(GateOne.Visual, {
 
         Registers the following keyboard shortcuts:
 
-            =================================== =======================
-            Function                            Shortcut
-            =================================== =======================
-            Show Grid                           :kbd:`Control-Alt-G`
-            Switch to the terminal on the left  :kbd:`Shift-LeftArrow`
-            Switch to the terminal on the right :kbd:`Shift-RightArrow`
-            Switch to the terminal above        :kbd:`Shift-UpArrow`
-            Switch to the terminal below        :kbd:`Shift-DownArrow`
-            =================================== =======================
+            ===================================  =======================
+            Function                             Shortcut
+            ===================================  =======================
+            New Workspace                        :kbd:`Control-Alt-N`
+            Close Workspace                      :kbd:`Control-Alt-W`
+            Show Grid                            :kbd:`Control-Alt-G`
+            Switch to the workspace on the left  :kbd:`Shift-LeftArrow`
+            Switch to the workspace on the right :kbd:`Shift-RightArrow`
+            Switch to the workspace above        :kbd:`Shift-UpArrow`
+            Switch to the workspace below        :kbd:`Shift-DownArrow`
+            ===================================  =======================
         */
         var u = go.Utils,
             v = go.Visual,
-            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': '✈toolbar', 'title': "Grid View"}),
+            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': '✈toolbar_icon', 'title': "Grid View"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Add our grid icon to the icons list
         GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
@@ -3791,11 +3800,74 @@ GateOne.Base.update(GateOne.Visual, {
         toolbar.appendChild(toolbarGrid);
         // Register our keyboard shortcuts (Shift-<arrow keys> to switch workspaces, ctrl-alt-G to toggle grid view)
         if (!go.prefs.embedded) {
-            go.Input.registerShortcut('KEY_ARROW_LEFT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideLeft()'});
-            go.Input.registerShortcut('KEY_ARROW_RIGHT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideRight()'});
-            go.Input.registerShortcut('KEY_ARROW_UP', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideUp()'});
-            go.Input.registerShortcut('KEY_ARROW_DOWN', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideDown()'});
-            go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
+            go.Input.registerShortcut('KEY_N',
+                {'modifiers': {
+                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Visual.newWorkspace()'
+                });
+            go.Input.registerShortcut('KEY_W',
+                {'modifiers': {
+                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Terminal.closeWorkspace(localStorage[GateOne.prefs.prefix+"selectedWorkspace"])'
+                });
+            go.Input.registerShortcut('KEY_ARROW_LEFT',
+                {'modifiers': {
+                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'action': 'GateOne.Visual.slideLeft()'
+                });
+            go.Input.registerShortcut('KEY_ARROW_RIGHT',
+                {'modifiers': {
+                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'action': 'GateOne.Visual.slideRight()'
+                });
+            go.Input.registerShortcut('KEY_ARROW_UP',
+                {'modifiers': {
+                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'action': 'GateOne.Visual.slideUp()'
+                });
+            go.Input.registerShortcut('KEY_ARROW_DOWN',
+                {'modifiers': {
+                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'action': 'GateOne.Visual.slideDown()'
+                });
+            go.Input.registerShortcut('KEY_G',
+                {'modifiers': {
+                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Visual.toggleGridView()'
+                });
+            // This is enables keyboard navigation on the New Workspace Workspace:
+//             go.Input.registerShortcut('KEY_ARROW_LEFT',
+//                 {'modifiers': {
+//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
+//                     'action': 'GateOne.Visual.appLeft()'
+//                 });
+//             go.Input.registerShortcut('KEY_ARROW_RIGHT',
+//                 {'modifiers': {
+//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
+//                     'action': 'GateOne.Visual.appRight()'
+//                 });
+//             go.Input.registerShortcut('KEY_ARROW_UP',
+//                 {'modifiers': {
+//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
+//                     'action': 'GateOne.Visual.appUp()'
+//                 });
+//             go.Input.registerShortcut('KEY_ARROW_DOWN',
+//                 {'modifiers': {
+//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
+//                     'action': 'GateOne.Visual.appDown()'
+//                 });
+//             go.Input.registerShortcut('KEY_G',
+//                 {'modifiers': {
+//                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+//                     'action': 'GateOne.Visual.toggleGridView()'
+//                 });
+            go.Events.on("go:js_loaded", function() {
+                setTimeout(function() {
+                    // If there's no workspaces after a while make the new workspace workspace
+                    var workspaces = u.getNodes('.✈workspace');
+                    if (!workspaces.length) {v.newWorkspaceWorkspace();}
+                }, 1000);
+            });
         }
         go.Net.addAction('go:notice', v.serverMessageAction);
         go.Net.addAction('go:user_message', v.userMessageAction);
@@ -3803,71 +3875,229 @@ GateOne.Base.update(GateOne.Visual, {
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
         go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
         window.addEventListener('resize', go.Visual.updateDimensions, false);
-        // Forthcoming New Workspace Workspace :)
-//         if (!go.prefs.embedded) {
-//             setTimeout(function() {
-//                 // If there's no workspaces after a while make the new workspace workspace
-//                 var workspaces = u.getNodes('.✈workspace');
-//                 if (!workspaces.length) {v.newWorkspaceWorkspace();}
-//             }, 250);
-//         }
     },
+    lastAppPosition: 0, // Used by newWorkspaceWorkspace() below
     newWorkspaceWorkspace: function() {
         /**:GateOne.Visual.newWorkspaceWorkspace()
 
         Creates the new workspace workspace (akin to a browser's "new tab tab") that allows users to open applications (and possibly other things in the future).
+
+        If only one application is enabled (for this user) it will be opened automatically *unless* it has more than one non-hidden sub-application.
         */
         var u = go.Utils,
             v = go.Visual,
             E = go.Events,
             prefix = go.prefs.prefix,
             apps = go.User.applications,
+            selectedApp,
+            spacers = 0,
+            filteredApps = [],
             titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
             wsContainer = u.createElement('div', {'class': '✈centertrans ✈sectrans ✈new_workspace_workspace'}),
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace = v.newWorkspace(),
             workspaceNum = workspace.id.split(prefix+'workspace')[1],
-            calledNew = false,
-            callFunc = function(appName, e) {
-                wsContainer.style.opacity = 0;
-                setTimeout(function() {
-                    u.removeElement(wsContainer);
-                    go.loadedApplications[appName].__new__(workspace);
-                }, 1000);
-                // TODO: Figure out why this ends up being called FOUR FRIGGIN TIMES:
-//                 wsContainer.addEventListener(transitionEndName, function(e) {
-//                     if (!calledNew) {
-//                         u.removeElement(wsContainer);
-//                         go.loadedApplications[appName].__new__(workspace);
-//                         calledNew = true;
-//                     }
-//                 }, false);
+            callFunc = function(appObj, parentApp, e) {
+                var name = appObj['name'];
+                if (parentApp !== undefined) {
+                    name = parentApp['name'];
+                }
+                if (go.loadedApplications[name] && go.loadedApplications[name].__new__) {
+                    wsContainer.style.opacity = 0;
+                    setTimeout(function() {
+                        // Remove the New Workspace Workspace container but not the workspace itself
+                        u.removeElement(wsContainer);
+                        go.loadedApplications[name].__new__(workspaceNum, appObj);
+                    }, 1000);
+                } else {
+                    v.displayMessage("Error: Application has no __new__() function.");
+                }
+            },
+            addIcon = function(appObj, parentApp, spacer) {
+                if (appObj['sub_applications']) {
+                    appObj['sub_applications'].forEach(function(subApp) {
+                        addIcon(subApp, appObj)
+                    });
+                    return;
+                }
+                if (appObj['hidden']) {
+                    return; // Don't show this one
+                }
+                var name = appObj['name'],
+                    combinedName,
+                    appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application', 'data-appname': name}),
+                    appIcon = u.createElement('div', {'class': '✈appicon'}),
+                    appText = u.createElement('p', {'class': '✈application_text'});
+                appText.innerHTML = name;
+                appSquare.title = appObj['description'] || "Opens the " + name + " application.";
+                if (parentApp !== undefined) {
+                    combinedName = parentApp['name'] + ": " + name;
+                    appText.innerHTML = combinedName;
+                    appSquare.title = appObj['description'] || "Opens the " + combinedName + " sub-application.";
+                    name = parentApp['name'];
+                }
+                if (spacer) {
+                    appSquare.style.opacity = 0;
+                    appSquare.setAttribute('data-spacer', true);
+                    appIcon.innerHTML = go.Icons['application'];
+                } else {
+                    appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
+                    appSquare.tabIndex = 0;
+                    appSquare.addEventListener('click', u.partial(callFunc, appObj, parentApp), false);
+                }
+                appSquare.appendChild(appIcon);
+                appSquare.appendChild(appText);
+                wsAppGrid.appendChild(appSquare);
             };
+        // Remove any apps that are missing the __appinfo__ object
+        apps.forEach(function(appObj) {
+            var name = appObj['name'];
+            if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
+                filteredApps.push(appObj);
+            }
+        });
+        if (filteredApps.length == 1) {
+            // Check for sub-applications
+            var subApps = [];
+            if (filteredApps[0]['sub_applications']) {
+                filteredApps[0]['sub_applications'].forEach(function(subApp) {
+                    if (!subApp['hidden']) {
+                        subApps.push(subApp);
+                    }
+                });
+            }
+            if (!subApps.length) {
+                // If there's only one app don't bother making a listing; just launch the app
+                setTimeout(function() {
+                    go.loadedApplications[filteredApps[0]['name']].__new__(workspaceNum, filteredApps[0]);
+                }, 10); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
+                return;
+            } else if (subApps.length == 1){
+                // There's only one sub-application in one app; launch it
+                var subApp = subApps[0];
+                setTimeout(function() {
+                    go.loadedApplications[filteredApps[0]['name']].__new__(workspaceNum, subApp);
+                }, 10);
+                return;
+            }
+        }
         titleH2.innerHTML = "Gate One - Applications";
         wsContainer.style.opacity = 0;
         wsContainer.appendChild(titleH2);
         wsContainer.appendChild(wsAppGrid);
-        apps.forEach(function(appName) {
-            var icon, appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application'}),
-                appIcon = u.createElement('div', {'class': '✈appicon'}),
-                appText = u.createElement('p', {'class': '✈application_text'});
-            appText.innerHTML = appName;
-            if (go.loadedApplications[appName] && go.loadedApplications[appName].__appinfo__) {
-                icon = go.loadedApplications[appName].__appinfo__.icon || go.Icons['application'];
+        // Enable using the keyboard to navigate the application icons:
+        wsContainer.addEventListener('keydown', function(e) {
+            var key = go.Input.key(e),
+                appIcons = u.toArray(u.getNodes('.✈application')),
+                numIcons = appIcons.length - spacers,
+                rows = 0,
+                rowLength = 0,
+                appGrid = [],
+                appTops = [],
+                clickEvent = document.createEvent('MouseEvents');
+            clickEvent.initEvent('click', true, true);
+            if (!selectedApp) {
+                selectedApp = u.getNode('.✈application');
+                selectedApp.focus();
             }
-            appIcon.innerHTML = icon || go.Icons['application'];
-            appSquare.appendChild(appIcon);
-            appSquare.appendChild(appText);
-            appSquare.addEventListener('click', u.partial(callFunc, appName), false);
-            wsAppGrid.appendChild(appSquare);
+            for (var i=0; i<numIcons; i++) {
+                var top = appIcons[i].offsetTop;
+                if (appTops.indexOf(top) == -1) {
+                    appTops.push(top);
+                }
+            }
+            rows = appTops.length;
+            rowLength = Math.ceil(numIcons/rows);
+            if (key.string == "KEY_ARROW_UP") {
+                go.Visual.lastAppPosition -= rowLength;
+                if (go.Visual.lastAppPosition < 0) {
+                    go.Visual.lastAppPosition = numIcons + go.Visual.lastAppPosition - 1;
+                }
+                appIcons[go.Visual.lastAppPosition].focus();
+                selectedApp = appIcons[go.Visual.lastAppPosition];
+            } else if (key.string == "KEY_ARROW_DOWN") {
+                go.Visual.lastAppPosition += rowLength;
+                if (go.Visual.lastAppPosition > (numIcons-1)) {
+                    go.Visual.lastAppPosition = Math.abs(numIcons - go.Visual.lastAppPosition);
+                }
+                appIcons[go.Visual.lastAppPosition].focus();
+                selectedApp = appIcons[go.Visual.lastAppPosition];
+            } else if (key.string == "KEY_ARROW_LEFT") {
+                go.Visual.lastAppPosition -= 1;
+                if (go.Visual.lastAppPosition < 0) {
+                    go.Visual.lastAppPosition = numIcons - 1;
+                }
+                appIcons[go.Visual.lastAppPosition].focus();
+                selectedApp = appIcons[go.Visual.lastAppPosition];
+            } else if (key.string == "KEY_ARROW_RIGHT") {
+                go.Visual.lastAppPosition += 1;
+                if (go.Visual.lastAppPosition > (numIcons - 1)) {
+                    go.Visual.lastAppPosition = 0;
+                }
+                appIcons[go.Visual.lastAppPosition].focus();
+                selectedApp = appIcons[go.Visual.lastAppPosition];
+            } else if (key.string == "KEY_ENTER") {
+                selectedApp.dispatchEvent(clickEvent);
+            }
+        }, true);
+        filteredApps.forEach(function(appObj) {
+            if (appObj['sub_applications']) {
+                appObj['sub_applications'].sort();
+            }
+            addIcon(appObj);
         });
         workspace.appendChild(wsContainer);
         // Scale it back into view
         setTimeout(function() {
+            var appIcons = u.toArray(u.getNodes('.✈application')),
+                appTops = [],
+                rows = 0,
+                rowLength = 0;
             wsContainer.style.opacity = 1;
-        }, 1);
+            appIcons[go.Visual.lastAppPosition].focus();
+            // Figure out how many spacers we need and add them
+            for (var i=0; i<appIcons.length; i++) {
+                var top = appIcons[i].offsetTop;
+                if (appTops.indexOf(top) == -1) {
+                    appTops.push(top);
+                }
+            }
+            rows = appTops.length;
+            rowLength = Math.ceil(appIcons.length/rows);
+            spacers = (rowLength * rows) % appIcons.length;
+            for (var i=0; i<spacers; i++) {
+                var appObj = {'name': 'spacer'};
+                addIcon(appObj, undefined, true);
+            }
+        }, 10);
+        v.setTitle(workspaceNum+": New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
         E.trigger('go:new_workspace_workspace', workspace);
+    },
+    setTitle: function(title) {
+        /**:GateOne.Visual.setTitle(title)
+
+        Sets the innerHTML of the '✈sideinfo' element to *title*.
+
+        .. note:: The location of the '✈sideinfo' is controlled by the theme but it is typically on the right-hand side of the window.
+        */
+        var u = go.Utils,
+            v = go.Visual,
+            scaleDown,
+            sideinfo = u.getNode('.✈sideinfo'),
+            toolbar = u.getNode('.✈toolbar'),
+            heightDiff = go.node.clientHeight - toolbar.clientHeight,
+            scrollbarAdjust = (go.Visual.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
+        logDebug("setTitle(" + title + ")");
+        sideinfo.innerHTML = title;
+        // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
+        v.applyTransform(sideinfo, "rotate(90deg)"); // This removes the 'scale()' and 'translateY()' portions (if present)
+        if (sideinfo.clientWidth > heightDiff) { // We have overlap
+            scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
+            scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
+            v.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
+        }
+        go.Events.trigger('go:set_title_action', title);
     },
     updateDimensions: function() {
         /**:GateOne.Visual.updateDimensions()
@@ -4287,11 +4517,11 @@ GateOne.Base.update(GateOne.Visual, {
     closeWorkspace: function(workspace, /*opt*/message) {
         /**:GateOne.Visual.closeWorkspace(workspace)
 
-        Removes the given *workspace* from the 'gridwrapper' element and triggers the 'go:workspace_closed' event.
+        Removes the given *workspace* from the 'gridwrapper' element and triggers the `go:close_workspace` event.
 
         If *message* (string) is given it will be displayed to the user when the workspace is closed.
 
-        .. note:: If you're writing an application for Gate One you'll definitely want to attach a function to the 'go:workspace_closed' event to either close your application or move it to a new workspace.
+        .. note:: If you're writing an application for Gate One you'll definitely want to attach a function to the `go:close_workspace` event to close your application.
         */
         var u = go.Utils,
             v = go.Visual,
@@ -4300,9 +4530,13 @@ GateOne.Base.update(GateOne.Visual, {
         // Now find out what the previous workspace was and move to it
         var workspaces = u.toArray(u.getNodes('.✈workspace'));
         if (message) { v.displayMessage(message); }
-        workspaces.forEach(function(wsObj) {
-            v.lastWorkspaceNumber = parseInt(wsObj.id.split('workspace')[1]);
-        });
+        if (!workspaces.length) {
+            v.lastWorkspaceNumber = 0;
+        } else {
+            workspaces.forEach(function(wsObj) {
+                v.lastWorkspaceNumber = parseInt(wsObj.id.split('workspace')[1]);
+            });
+        }
         if (v.lastWorkspaceNumber) {
             v.switchWorkspace(v.lastWorkspaceNumber);
         } else {
@@ -4310,7 +4544,6 @@ GateOne.Base.update(GateOne.Visual, {
             if (!go.prefs.embedded) {
                 if (go.ws.readyState == 1) {
                     // There are no other workspaces and we're still connected.  Open a new one...
-                    // This is coming soon:
                     if (go.User.applications.length > 1) {
                         v.newWorkspaceWorkspace();
                     } else {
@@ -4320,7 +4553,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             }
         }
-        go.Events.trigger('go:workspace_closed', workspace);
+        go.Events.trigger('go:close_workspace', workspace);
     },
     switchWorkspace: function(workspace) {
         /**:GateOne.Visual.switchWorkspace(workspace)
@@ -6322,7 +6555,7 @@ GateOne.Base.update(GateOne.User, {
     applicationsAction: function(apps) {
         /**:GateOne.User.applicationsAction()
 
-        Sets `GateOne.User.applications` to be the given list of *apps* (which is the list of applications the user is allowed to run).
+        Sets `GateOne.User.applications` to the given list of *apps* (which is the list of applications the user is allowed to run).
         */
         // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
@@ -6645,6 +6878,7 @@ GateOne.Base.update(GateOne.Events, {
     }
 });
 go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+go.Icons['newWS'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
 go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
 GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="✈panelstop1" offset="0"/><stop class="✈panelstop2" offset="0.4944"/><stop class="✈panelstop3" offset="0.5"/><stop class="✈panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';

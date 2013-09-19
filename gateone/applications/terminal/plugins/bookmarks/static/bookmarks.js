@@ -80,7 +80,7 @@ go.Base.update(GateOne.Bookmarks, {
         */
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
-            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar ✈icon_bookmarks', 'title': "Bookmarks"}),
+            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar_icon ✈icon_bookmarks', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Default sort order is by date created, descending, followed by alphabetical order
         if (!localStorage[prefix+'sort']) {

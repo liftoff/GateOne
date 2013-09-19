@@ -51,7 +51,6 @@ var go = GateOne,
 
 // Icons used in this application:
 go.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
-go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
@@ -124,9 +123,7 @@ go.Base.update(GateOne.Terminal, {
             div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': '✈toolbar', 'title': "Close This Terminal"}),
-            toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': '✈toolbar', 'title': "New Terminal"}),
-            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar', 'title': "Terminal Application Panel"}),
+            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': '✈panel'}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
             infoPanelRow1 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow1'}),
@@ -179,8 +176,8 @@ go.Base.update(GateOne.Terminal, {
         }
         // Create our Terminal panel
         toolbarInfo.innerHTML = go.Icons['terminal'];
-        toolbarClose.innerHTML = go.Icons['close'];
-        toolbarNewTerm.innerHTML = go.Icons['newTerm'];
+//         toolbarClose.innerHTML = go.Icons['close'];
+//         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
         infoPanelH2.innerHTML = "Gate One";
         infoPanelH2.title = "Click to edit.  Leave blank for default.";
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -318,8 +315,7 @@ go.Base.update(GateOne.Terminal, {
                 titleEdit = u.createElement('input', {'type': 'text', 'name': 'title', 'value': title, 'id': go.prefs.prefix + 'title_edit'}),
                 finishEditing = function(e) {
                     var newTitle = titleEdit.value,
-                        termObj = u.getNode('#'+prefix+'term' + term),
-                        sideInfo = u.getNode('#'+prefix+'sideinfo');
+                        termObj = u.getNode('#'+prefix+'term' + term);
                     // Send a message to the server with the new title so it can stay in sync if the user reloads the page or reconnects from a different browser/machine
                     go.ws.send(JSON.stringify({'terminal:manual_title': {'term': term, 'title': newTitle}}));
                     infoPanelH2.innerHTML = newTitle;
@@ -341,15 +337,6 @@ go.Base.update(GateOne.Terminal, {
             titleEdit.select();
         }
         infoPanelH2.onclick = editTitle;
-        toolbarNewTerm.onclick = function(e) {
-            go.Terminal.newTerminal();
-            go.Terminal.Input.capture();
-        };
-        var closeCurrentTerm = function() {
-            go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal'], false);
-            go.Terminal.Input.capture();
-        }
-        toolbarClose.onclick = closeCurrentTerm;
         // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
         var showInfo = function() {
             var term = localStorage[prefix+'selectedTerminal'],
@@ -361,8 +348,6 @@ go.Base.update(GateOne.Terminal, {
         }
         toolbarInfo.onclick = showInfo;
         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
-        toolbar.insertBefore(toolbarNewTerm, toolbarInfo);
-        toolbar.insertBefore(toolbarClose, toolbarNewTerm);
         resetTermButton.innerHTML = "Rescue Terminal";
         resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
         resetTermButton.onclick = function() {
@@ -373,19 +358,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.colAdjust = 1; // No scrollbar so we can use the extra space
         }
         // Register our keyboard shortcuts
-        // Ctrl-Alt-N to create a new terminal
         if (!go.prefs.embedded) {
-            I.registerShortcut('KEY_N',
-                {'modifiers': {
-                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Terminal.newTerminal()'
-                });
-            // Ctrl-Alt-W to close the current terminal
-            I.registerShortcut('KEY_W',
-                {'modifiers': {
-                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'
-                });
             I.registerShortcut('KEY_P',
                 {'modifiers': {
                     'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
@@ -450,6 +423,7 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("terminal:switch_terminal", go.Terminal.switchTerminalEvent);
         E.on("go:switch_workspace", go.Terminal.switchWorkspaceEvent);
+        E.on("go:close_workspace", go.Terminal.workspaceClosedEvent);
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
             // Ensure any scaled terminals are un-scaled so there's no overlap:
@@ -489,15 +463,28 @@ go.Base.update(GateOne.Terminal, {
             }
         }
     },
-    __new__: function(workspace) {
-        /**:GateOne.Terminal.__new__(workspace)
+    __new__: function(workspace, appObj) {
+        /**:GateOne.Terminal.__new__(workspace, appObj)
 
         Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
+
+        :workspace: The workspace *number* which was created for this application.
+        :appObj: An object representing the application the user clicked on.  Contains all the application's 'info' data from the server.
         */
-        logInfo("GateOne.Terminal.__new__(" + workspace + ")");
-//         var command = settings['command'];
-        go.Terminal.newTerminal(null, null, workspace); // Just create a new terminal in a new workspace for now.
-        // TODO: Make this take settings like "command", rows/columns, and *where*.
+        logDebug("GateOne.Terminal.__new__(" + workspace + ", " + JSON.stringify(appObj) + ")");
+        var wsNode = go.workspaces[workspace]['node'],
+            settings = {'command': appObj['name']};
+        if (appObj['name'] == 'Terminal') {
+            // Use the default app
+            delete settings['command'];
+        }
+        if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
+            go.Terminal.newTerminal(null, settings, wsNode); // Just create a new terminal in a new workspace for now.
+        } else {
+            v.closeWorkspace(workspace);
+            v.displayMessage(gettex("Please wait until Gate One is reconnected."));
+            v.newWorkspaceWorkspace();
+        }
     },
     setDBReady: function(db) {
         /**:GateOne.Terminal.dbReady(db)
@@ -748,6 +735,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the `go:connnection_established` event; closes all open terminals so that :js:meth:`GateOne.Terminal.reattachTerminalsAction` can do its thing.
         */
+        logDebug('reconnectEvent()');
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
@@ -948,23 +936,22 @@ go.Base.update(GateOne.Terminal, {
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
             termTitle = u.getNode('#'+prefix+'termtitle'),
             toolbar = u.getNode('#'+prefix+'toolbar'),
-            termNode = u.getNode('#'+prefix+'term' + term),
             goDiv = u.getNode(go.prefs.goDiv),
             heightDiff = goDiv.clientHeight - toolbar.clientHeight,
             scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("Setting term " + term + " to title: " + title);
         go.Terminal.terminals[term]['X11Title'] = title;
         go.Terminal.terminals[term]['title'] = title;
-        sideinfo.innerHTML = term + ": " + title;
+        v.setTitle(term + ": " + title);
         // Also update the info panel
         termTitle.innerHTML = term+': '+title;
         // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-        go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
-        if (sideinfo.clientWidth > heightDiff) { // We have overlap
-            var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-            scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
-            go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
-        }
+//         go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
+//         if (sideinfo.clientWidth > heightDiff) { // We have overlap
+//             var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
+//             scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
+//             go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
+//         }
         E.trigger('terminal:set_title_action', term, title);
     },
     resizeAction: function(message) {
@@ -1560,7 +1547,7 @@ go.Base.update(GateOne.Terminal, {
 
         Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         */
-        logDebug("newTerminal(" + term + ")");
+        logDebug("newTerminal(" + term + ", " + JSON.stringify(settings) + ", " + where + ")");
         if (!go.Storage.loadedFiles['font.css']) {
             // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
             setTimeout(function() {
@@ -1782,9 +1769,12 @@ go.Base.update(GateOne.Terminal, {
         Closes the given terminal (*term*) and tells the server to end its running process.
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
-        var lastTerm = null,
+        var lastTerm, terms,
             termNode = go.Terminal.terminals[term]['terminal'],
             terminalDB = S.dbObject('terminal');
+        if (!termNode) {
+            return; // Nothing to do
+        }
         if (message === undefined) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
@@ -1803,7 +1793,7 @@ go.Base.update(GateOne.Terminal, {
         // Also remove it from working memory
         delete go.Terminal.terminals[term];
         // Now find out what the previous terminal was and move to it
-        var terms = u.toArray(u.getNodes('.✈terminal'));
+        terms = u.toArray(u.getNodes('.✈terminal'));
         if (message.length) {
             go.Visual.displayMessage(message);
         }
@@ -1823,16 +1813,6 @@ go.Base.update(GateOne.Terminal, {
         if (lastTerm) {
             var termNum = lastTerm.id.split('term')[1];
             go.Terminal.switchTerminal(termNum);
-        } else {
-            // Only open a new terminal if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
-            if (!go.prefs.embedded) {
-                if (sendKill !== false) {
-                    if (go.ws.readyState == 1) {
-                        // There are no other terminals and we're still connected.  Open a new one...
-                        go.Terminal.newTerminal();
-                    }
-                }
-            }
         }
     },
     setTerminal: function(term) {
@@ -1901,7 +1881,6 @@ go.Base.update(GateOne.Terminal, {
         var termNode = null,
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
-            sideinfo = u.getNode('#'+prefix+'sideinfo'),
             setActivityCheckboxes = function(term) {
                 var monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                     monitorActivity = u.getNode('#'+prefix+'monitor_activity');
@@ -1929,7 +1908,7 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        sideinfo.innerHTML = displayText;
+        v.setTitle(displayText);
         go.Terminal.displayTermInfo(term);
         if (go.Terminal.alignTimer) {
             clearTimeout(go.Terminal.alignTimer);
@@ -1964,6 +1943,22 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.showIcons();
         }
     },
+    workspaceClosedEvent: function(workspace) {
+        /**:GateOne.Terminal.workspaceClosedEvent(workspace)
+
+        Attached to the `go:close_workspace` event; closes any terminals that are attached to the given *workspace*.
+        */
+        console.log('workspaceClosedEvent: ' + workspace);
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                    // At least one terminal is on this workspace
+                    go.Terminal.closeTerminal(term);
+                }
+            }
+        };
+    },
     printScreen: function(term) {
         /**:GateOne.Terminal.printScreen(term)
 
@@ -1994,18 +1989,18 @@ go.Base.update(GateOne.Terminal, {
 
         Hides the Terminal's toolbar icons (i.e. when another application is running).
         */
-        u.hideElement('#'+prefix+'icon_closeterm');
+//         u.hideElement('#'+prefix+'icon_closeterm');
         u.hideElement('#'+prefix+'icon_info');
-        u.hideElement('#'+prefix+'icon_newterm');
+//         u.hideElement('#'+prefix+'icon_newterm');
     },
     showIcons: function() {
         /**:GateOne.Terminal.showIcons()
 
         Shows (unhides) the Terminal's toolbar icons (i.e. when another application is running).
         */
-        u.showElement('#'+prefix+'icon_closeterm');
+//         u.showElement('#'+prefix+'icon_closeterm');
         u.showElement('#'+prefix+'icon_info');
-        u.showElement('#'+prefix+'icon_newterm');
+//         u.showElement('#'+prefix+'icon_newterm');
     },
     loadBell: function(message) {
         // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.
@@ -2300,7 +2295,9 @@ go.Base.update(GateOne.Terminal, {
     reconnectTerminalAction: function(term) {
         /**:GateOne.Terminal.reconnectTerminalAction(term)
 
-        Called when the server reports that the terminal number supplied via 'terminal:new_terminal' already exists.
+        Called when the server reports that the terminal number supplied via the `terminal:new_terminal` WebSocket action already exists.
+
+        This method also gets called when a terminal is moved from one 'location' to another.
         */
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(' + term + ')');
@@ -2365,7 +2362,7 @@ go.Base.update(GateOne.Terminal, {
                         go.Terminal.lastTermNumber = termNum;
                     }
                 });
-            } else {
+            } /*else {
                 // Create a new terminal
                 go.Terminal.lastTermNumber = 0; // Reset to 0
                 E.on("terminal:new_terminal", function(term) {
@@ -2374,7 +2371,7 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
                 });
                 go.Terminal.newTerminal();
-            }
+            }*/
         }
         E.trigger("terminal:term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {

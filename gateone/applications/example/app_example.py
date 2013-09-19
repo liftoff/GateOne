@@ -178,10 +178,11 @@ class ExampleApplication(GOApplication):
     A Gate One Application (`GOApplication`) that serves as an example of how
     to write a Gate One application.
     """
-    name = "Example" # A user-friendly name that will be displayed to the user
-    # If your application has an icon you can set it like so:
-    icon = os.path.join(APPLICATION_PATH, "static", "icons", "example.svg")
-    about = "An example of how to write a Gate One Application."
+    info = {
+        'name': "Example", # A user-friendly name for your app
+    # A description of what your app does:
+        'description': "An example of how to write a Gate One Application."
+    }
     def __init__(self, ws):
         example_log.debug("ExampleApplication.__init__(%s)" % ws)
         # Having your app's policies handy is a good idea.  However, you can't
@@ -232,13 +233,12 @@ class ExampleApplication(GOApplication):
         # Now let's separate the plugins by type (to save some typing)
         js_plugins = []
         for js_path in self.plugins['js']:
-            name = js_path.split(os.path.sep)[-1].split('.')[0]
+            name = js_path.split(os.path.sep)[-2]
             name = os.path.splitext(name)[0]
             js_plugins.append(name)
         css_plugins = []
         for css_path in css_plugins:
-            name = css_path.split(os.path.sep)[-1].split('.')[0]
-            name = os.path.splitext(name)[0]
+            name = css_path.split(os.path.sep)[-2]
             css_plugins.append(name)
         plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
@@ -358,8 +358,10 @@ class ExampleApplication(GOApplication):
         #        render_and_send_css() works.  It auto-minifies and caches!
         # Send the client our application's static JavaScript files
         static_dir = os.path.join(APPLICATION_PATH, 'static')
-        js_files = os.listdir(static_dir) # Everything in static/*.js
-        js_files.sort()
+        js_files = []
+        if os.path.isdir(static_dir):
+            js_files = os.listdir(static_dir) # Everything in static/*.js
+            js_files.sort()
         for fname in js_files:
             if fname.endswith('.js'):
                 js_file_path = os.path.join(static_dir, fname)
@@ -371,11 +373,11 @@ class ExampleApplication(GOApplication):
                     # good idea.  You could also put 'theme.css' if you want to
                     # ensure that the theme gets loaded before your JavaScript
                     # init() function is called.
-                    self.ws.send_js(js_file_path, requires=["example.css"])
+                    self.send_js(js_file_path, requires=["example.css"])
                 else:
                     # Send any other discovered JS files to the client with
                     # example.js as the only dependency.
-                    self.ws.send_js(js_file_path, requires='example.js')
+                    self.send_js(js_file_path, requires='example.js')
         # If you're not using plugins you can disregard this:
         # The send_plugin_static_files() function will locate any JS/CSS files
         # in your plugins' respective static directories and send them to the
