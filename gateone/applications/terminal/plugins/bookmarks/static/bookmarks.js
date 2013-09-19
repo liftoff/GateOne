@@ -36,6 +36,7 @@ var go = GateOne,
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
 // TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
+// TODO: Add a 'registerURLHandler()' or something like that so that an app or plugin can take advantage of bookmarks.
 
 // GateOne.Bookmarks (bookmark management functions)
 go.Base.module(GateOne, "Bookmarks", "1.2", ['Base']);
@@ -1417,38 +1418,41 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             bookmark = b.getBookmarkObj(URL),
             term = localStorage[prefix+'selectedTerminal'],
-            termTitle = go.Terminal.terminals[term]['title'];
+            unconnectedTermTitle = 'SSH Connect', // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
+            openNewTerminal = function() {
+                E.once("terminal:new_terminal", u.partial(t.sendString, URL+'\n'));
+                t.newTerminal(); // This will automatically open a new workspace
+            };
         if (URL.indexOf('%s') != -1) { // This is a keyword search bookmark
             b.openSearchDialog(URL, bookmark.name);
             return;
         }
+        b.incrementVisits(URL);
         if (u.startsWith('ssh', URL) || u.startsWith('telnet', URL)) {
-            // This is a URL that will be handled by Gate One.  Send it to the terminal:
-            if (termTitle == 'SSH Connect') { // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
+            // This is a URL that will be handled by Gate One's Terminal app.
+            // First we check if a terminal is opened:
+            if (!t.terminals[term]) {
+                // No terminal opened yet...  Open one and take us to the URL
+                openNewTerminal();
+            } else if (t.terminals[term]['title'] == unconnectedTermTitle) {
                 // Foreground terminal has yet to be connected, use it
-                b.incrementVisits(URL);
                 t.sendString(URL+'\n')
             } else {
-                b.incrementVisits(URL);
-                go.Terminal.newTerminal();
-                setTimeout(function() {
-                    t.sendString(URL+'\n')
-                }, 250);
+                // A terminal is open but it is already connected to something else
+                openNewTerminal();
             }
         } else {
             // This is a regular URL, open in a new window and let the browser handle it
-            b.incrementVisits(URL);
             go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
             window.open(URL);
-            return; // All done
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
-        go.Events.trigger("bookmarks:open_bookmark", URL);
+        E.trigger("bookmarks:open_bookmark", URL);
     },
     toggleSortOrder: function() {
         /**:GateOne.Bookmarks.toggleSortOrder()
 
-        Reverses the order of the bookmarks list
+        Reverses the order of the bookmarks list.
         */
         var go = GateOne,
             b = go.Bookmarks,

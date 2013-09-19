@@ -1,5 +1,5 @@
 
-// TODO: Add a feature that lets you highlight certain words in the terminal.
+// TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
 // NOTE:  This transitionEnd stuff needs to go outside the "use strict" below
 var transitionEndSupported = false,
@@ -115,6 +115,29 @@ go.Base.update(GateOne.Terminal, {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
         'icon': go.Icons['terminal']
+    },
+    __new__: function(workspace, appObj) {
+        /**:GateOne.Terminal.__new__(workspace, appObj)
+
+        Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
+
+        :workspace: The workspace *number* which was created for this application.
+        :appObj: An object representing the application the user clicked on.  Contains all the application's 'info' data from the server.
+        */
+        logDebug("GateOne.Terminal.__new__(" + workspace + ", " + JSON.stringify(appObj) + ")");
+        var wsNode = go.workspaces[workspace]['node'],
+            settings = {'command': appObj['name']};
+        if (appObj['name'] == 'Terminal') {
+            // Use the default app
+            delete settings['command'];
+        }
+        if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
+            go.Terminal.newTerminal(null, settings, wsNode); // Just create a new terminal in a new workspace for now.
+        } else {
+            v.closeWorkspace(workspace);
+            v.displayMessage(gettex("Please wait until Gate One is reconnected."));
+            v.newWorkspaceWorkspace();
+        }
     },
     init: function() {
         logDebug("Terminal.init()");
@@ -461,29 +484,6 @@ go.Base.update(GateOne.Terminal, {
             if (key.indexOf(prefix+'scrollback') == 0) { // This is an old-style scrollback buffer
                 delete localStorage[key];
             }
-        }
-    },
-    __new__: function(workspace, appObj) {
-        /**:GateOne.Terminal.__new__(workspace, appObj)
-
-        Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
-
-        :workspace: The workspace *number* which was created for this application.
-        :appObj: An object representing the application the user clicked on.  Contains all the application's 'info' data from the server.
-        */
-        logDebug("GateOne.Terminal.__new__(" + workspace + ", " + JSON.stringify(appObj) + ")");
-        var wsNode = go.workspaces[workspace]['node'],
-            settings = {'command': appObj['name']};
-        if (appObj['name'] == 'Terminal') {
-            // Use the default app
-            delete settings['command'];
-        }
-        if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
-            go.Terminal.newTerminal(null, settings, wsNode); // Just create a new terminal in a new workspace for now.
-        } else {
-            v.closeWorkspace(workspace);
-            v.displayMessage(gettex("Please wait until Gate One is reconnected."));
-            v.newWorkspaceWorkspace();
         }
     },
     setDBReady: function(db) {
@@ -1558,7 +1558,9 @@ go.Base.update(GateOne.Terminal, {
         }
         var t = go.Terminal,
             currentTerm, terminal, emDimensions, dimensions, rows, columns, pastearea, switchTermFunc,
-            termUndefined = false,
+            // NOTE: trulyNew tracks whether or not we were passed a *term* (terminal number) as an argument.
+            //       This allows us to differentiate between a terminal that we're resuming and one that is truly *new*.
+            trulyNew = false,
             terminalDB = S.dbObject('terminal'),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
@@ -1586,7 +1588,7 @@ go.Base.update(GateOne.Terminal, {
             currentTerm = 'term' + term;
             t.lastTermNumber = term;
         } else {
-            termUndefined = true;
+            trulyNew = true;
             if (!t.lastTermNumber) {
                 t.lastTermNumber = 0; // Start at 0 so the first increment will be 1
             }
@@ -1714,7 +1716,6 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
-//             termPre.style.height = "100%"; // Ensures the top doesn't get cut off
         }
         termPre.appendChild(screenSpan);
         termPre.oncopy = function(e) {
@@ -1737,7 +1738,7 @@ go.Base.update(GateOne.Terminal, {
             return true;
         }
         // Switch to our new terminal if *term* is set (no matter where it is)
-        if (termUndefined) {
+        if (trulyNew) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
             setTimeout(slide, 100);
         }
@@ -1754,7 +1755,7 @@ go.Base.update(GateOne.Terminal, {
         }
         // Fire our new_terminal event if everything was successful
         if (go.Terminal.terminals[term]) {
-            E.trigger("terminal:new_terminal", term, termUndefined);
+            E.trigger("terminal:new_terminal", term, trulyNew);
         }
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },

@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130917203140";
+GateOne.__commit__ = "20130918223353";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4070,7 +4070,7 @@ GateOne.Base.update(GateOne.Visual, {
                 addIcon(appObj, undefined, true);
             }
         }, 10);
-        v.setTitle(workspaceNum+": New Workspace - Applications");
+        v.setTitle("New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
         E.trigger('go:new_workspace_workspace', workspace);
     },
