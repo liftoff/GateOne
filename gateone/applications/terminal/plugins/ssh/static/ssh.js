@@ -46,14 +46,6 @@ go.Base.update(go.SSH, {
             infoPanelDuplicateSession = u.createElement('button', {'id': 'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             infoPanelManageIdentities = u.createElement('button', {'id': 'manage_identities', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        if (go.Logging) {
-            logFatal = go.Logging.logFatal;
-            logError = go.Logging.logError;
-            logWarning = go.Logging.logWarning;
-            logInfo = go.Logging.logInfo;
-            logDebug = go.Logging.logDebug;
-        }
         prefsPanelKnownHosts.innerHTML = "Edit Known Hosts";
         prefsPanelKnownHosts.onclick = function() {
             u.xhrGet(go.prefs.url+'ssh?known_hosts=True', go.SSH.updateKH);
@@ -121,6 +113,41 @@ go.Base.update(go.SSH, {
         E.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
+        }
+    },
+    postInit: function() {
+        /**:GateOne.SSH.postInit()
+
+        Registers our 'ssh' and 'telnet' protocol handlers with the Bookmarks plugin.
+
+        .. note:: These things are run inside of the ``postInit()`` function in order to ensure that `GateOne.Bookmarks` is loaded first.
+        */
+        go.Bookmarks.registerURLHandler('ssh', go.SSH.connect);
+        go.Bookmarks.registerURLHandler('telnet', go.SSH.connect);
+    },
+    connect: function(URL) {
+        /**:GateOne.SSH.connect(URL)
+
+        Connects to the given SSH *URL*.
+
+        If the current terminal is sitting at the SSH Connect prompt it will be used to make the connection.  Otherwise a new terminal will be opened.
+        */
+        logDebug("GateOne.SSH.connect: " + URL);
+        var term = localStorage[prefix+'selectedTerminal'],
+            unconnectedTermTitle = 'SSH Connect', // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
+            openNewTerminal = function() {
+                E.once("terminal:new_terminal", u.partial(t.sendString, URL+'\n'));
+                t.newTerminal(); // This will automatically open a new workspace
+            };
+        if (!t.terminals[term]) {
+            // No terminal opened yet...  Open one and take us to the URL
+            openNewTerminal();
+        } else if (t.terminals[term]['title'] == unconnectedTermTitle) {
+            // Foreground terminal has yet to be connected, use it
+            t.sendString(URL+'\n')
+        } else {
+            // A terminal is open but it is already connected to something else
+            openNewTerminal();
         }
     },
     autoConnect: function(term, termUndefined) {

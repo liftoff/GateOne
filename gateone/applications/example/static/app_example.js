@@ -39,21 +39,19 @@ go.Base.update(GateOne.ExampleApp, {
     __appinfo__: {
         'name': 'Example', // This is how we match the server-side name of your app with the JS so make sure they match.
         'module': 'GateOne.ExampleApp', // Just some metadata (not currently used but please don't skip this)
-        'icon': go.Icons['example'] // This is the icon that will appear in the New Workspace Workspace
+        'icon': null // This is the icon that will appear in the New Workspace Workspace
     },
     // Here's the other thing your application will need:
-    __new__: function(workspace, appObj) {
-        /**:GateOne.ExampleApp.__new__(workspace, appObj)
+    __new__: function(settings, /*opt*/where) {
+        /**:GateOne.ExampleApp.__new__(settings[, where])
 
-        This function gets called whenever a user clicks on your application's icon in the New Workspace Workspace.
+        Called when a user clicks on your application in the New Workspace Workspace (or anything that happens to call __new__()).
 
-        :workspace: The workspace number which was created for this application.
-        :appObj: An object representing the application the user clicked on.  Contains all the application's 'info' data from the server.
+        :settings: An object containing the settings that will control how the application is created.  Typically contains the application's 'info' data from the server.
+        :where: An optional querySelector-like string or DOM node where the new application should be placed.  If not given a new workspace will be created to contain the application.
         */
-        // Here's how to get the workspace's DOM node using the workspace's number:
-        var wsNode = go.workspaces[workspace]['node'];
         // Let's open up a new example in the new workspace:
-        go.ExampleApp.newExample(wsNode, appObj);
+        go.ExampleApp.newExample(where, settings);
         // NOTE: When __new__() is called there's no need to create a new workspace as the workspace that's given will be empty.
     },
     init: function() {

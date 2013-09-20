@@ -8,7 +8,13 @@
 __doc__ = """\
 A Gate One Application (`GOApplication`) that provides an example of how to
 write a Gate One Application.
+
+.. note::
+
+    This application is hidden by default to show it make sure to set the
+    ``HIDDEN`` variable to ``False``.
 """
+HIDDEN = True
 
 # Meta information about the plugin.  Your plugin doesn't *have* to have this
 # but it is a good idea.
@@ -181,7 +187,8 @@ class ExampleApplication(GOApplication):
     info = {
         'name': "Example", # A user-friendly name for your app
     # A description of what your app does:
-        'description': "An example of how to write a Gate One Application."
+        'description': "An example of how to write a Gate One Application.",
+        'hidden': HIDDEN
     }
     def __init__(self, ws):
         example_log.debug("ExampleApplication.__init__(%s)" % ws)

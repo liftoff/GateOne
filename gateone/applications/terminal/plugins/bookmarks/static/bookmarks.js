@@ -6,6 +6,7 @@ var document = window.document; // Have to do this because we're sandboxed
 
 // Useful sandbox-wide stuff
 var go = GateOne,
+    b, // Will become go.Bookmarks
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
@@ -40,6 +41,7 @@ var go = GateOne,
 
 // GateOne.Bookmarks (bookmark management functions)
 go.Base.module(GateOne, "Bookmarks", "1.2", ['Base']);
+b = go.Bookmarks;
 go.Bookmarks.bookmarks = [];
 /**:GateOne.Bookmarks.bookmarks
 
@@ -59,15 +61,16 @@ All the user's bookmarks are stored in this array which is stored/loaded from `l
 
 Most of that should be self-explanatory except the `updateSequenceNum` (aka USN).  The USN value is used to determine when this bookmark was last changed in comparison to the highest USN stored on the server.  By comparing the highest client-side USN against the highest server-side USN we can determine what (if anything) has changed since the last synchronization.  It is much more efficient than enumerating all bookmarks on both the client and server in order to figure out what's different.
 */
-go.Bookmarks.tags = [];
-go.Bookmarks.sortToggle = false;
-go.Bookmarks.searchFilter = null;
-go.Bookmarks.page = 0; // Used to tracking pagination
-go.Bookmarks.dateTags = [];
-go.Bookmarks.URLTypeTags = [];
-go.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded to the server
-go.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
-go.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
+b.handlers = {};
+b.tags = [];
+b.sortToggle = false;
+b.searchFilter = null;
+b.page = 0; // Used to tracking pagination
+b.dateTags = [];
+b.URLTypeTags = [];
+b.toUpload = []; // Used for tracking what needs to be uploaded to the server
+b.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
+b.temp = ""; // Just a temporary holding space for things like drag & drop
 go.Base.update(GateOne.Bookmarks, {
     init: function() {
         /**:GateOne.Bookmarks.init()
@@ -1348,7 +1351,7 @@ go.Base.update(GateOne.Bookmarks, {
                 var li = u.createElement('li', {'class': '✈bm_tag ✈sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
                 li.innerHTML = tag;
                 li.addEventListener('dragstart', b.handleDragStart, false);
-                go.Visual.applyTransform(li, 'translateX(700px)');
+                v.applyTransform(li, 'translateX(700px)');
                 li.onclick = function(e) {
                     b.addFilterTag(b.bookmarks, tag);
                 };
@@ -1362,7 +1365,7 @@ go.Base.update(GateOne.Bookmarks, {
                     li.className = '✈bm_tag ✈sectrans ✈untagged';
                 }
                 setTimeout(function unTrans() {
-                    go.Visual.applyTransform(li, '');
+                    v.applyTransform(li, '');
                 }, delay);
                 delay += 50;
             });
@@ -1370,14 +1373,14 @@ go.Base.update(GateOne.Bookmarks, {
             allAutotags.forEach(function(tag) {
                 var li = u.createElement('li', {'title': 'Click to filter.'});
                 li.innerHTML = tag;
-                go.Visual.applyTransform(li, 'translateX(700px)');
+                v.applyTransform(li, 'translateX(700px)');
                 if (u.startsWith('<', tag) || u.startsWith('>', tag)) { // Date tag
                     li.className = '✈bm_autotag ✈sectrans';
                     li.onclick = function(e) {
                         b.addFilterDateTag(b.bookmarks, tag);
                     };
                     setTimeout(function unTrans() {
-                        go.Visual.applyTransform(li, '');
+                        v.applyTransform(li, '');
                         setTimeout(function() {
                             li.className = '✈bm_autotag';
                         }, 1000);
@@ -1388,20 +1391,28 @@ go.Base.update(GateOne.Bookmarks, {
                         b.addFilterURLTypeTag(b.bookmarks, tag);
                     }
                     setTimeout(function unTrans() {
-                        go.Visual.applyTransform(li, '');
+                        v.applyTransform(li, '');
                         setTimeout(function() {
                             li.className = '✈bm_autotag ✈bm_urltype_tag';
                         }, 1000);
                     }, delay);
                 }
                 bmTagCloudUL.appendChild(li);
-
                 delay += 50;
             });
         }
         setTimeout(function() {
-            go.Visual.applyTransform(bmTagsHeader, '');
+            v.applyTransform(bmTagsHeader, '');
         }, 800);
+    },
+    registerURLHandler: function(protocol, handler) {
+        /**:GateOne.Bookmarks.registerURLHandler(protocol, handler)
+
+        Registers the given *protocol* and *handler* so that whenever a bookmark is opened with a matching *protocol* the given *handler* will be called.
+
+        When the given *handler* is called it will be passed the URL as the only argument.
+        */
+        b.handlers[protocol] = handler;
     },
     openBookmark: function(URL) {
         /**:GateOne.Bookmarks.openBookmark(URL)
@@ -1412,38 +1423,17 @@ go.Base.update(GateOne.Bookmarks, {
 
         If the given *URL* does not start with 'ssh://' it will be opened in a new browser tab/window.
         */
-        var go = GateOne,
-            b = go.Bookmarks,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            bookmark = b.getBookmarkObj(URL),
-            term = localStorage[prefix+'selectedTerminal'],
-            unconnectedTermTitle = 'SSH Connect', // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
-            openNewTerminal = function() {
-                E.once("terminal:new_terminal", u.partial(t.sendString, URL+'\n'));
-                t.newTerminal(); // This will automatically open a new workspace
-            };
+        var bookmark = b.getBookmarkObj(URL),
+            parsed = b.parseUri(URL);
         if (URL.indexOf('%s') != -1) { // This is a keyword search bookmark
             b.openSearchDialog(URL, bookmark.name);
             return;
         }
         b.incrementVisits(URL);
-        if (u.startsWith('ssh', URL) || u.startsWith('telnet', URL)) {
-            // This is a URL that will be handled by Gate One's Terminal app.
-            // First we check if a terminal is opened:
-            if (!t.terminals[term]) {
-                // No terminal opened yet...  Open one and take us to the URL
-                openNewTerminal();
-            } else if (t.terminals[term]['title'] == unconnectedTermTitle) {
-                // Foreground terminal has yet to be connected, use it
-                t.sendString(URL+'\n')
-            } else {
-                // A terminal is open but it is already connected to something else
-                openNewTerminal();
-            }
+        if (b.handlers[parsed.protocol]) {
+            b.handlers[parsed.protocol](URL);
         } else {
-            // This is a regular URL, open in a new window and let the browser handle it
-            go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
+            // Let the browser handle it
             window.open(URL);
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
@@ -2603,6 +2593,34 @@ go.Base.update(GateOne.Bookmarks, {
 //         [].forEach.call(bmElement, function (bmElement) {
 //             bmElement.className = '✈bookmark ✈sectrans';
 //         });
+    }
+});
+
+// The below portion of GateOne.Bookmarks comes from parseUri which is MIT licensed:
+// http://blog.stevenlevithan.com/archives/parseuri
+go.Base.update(go.Bookmarks, {
+    parseUri: function(str) {
+        var o = {
+                strictMode: true,
+                key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+                q: {
+                    name: "queryKey",
+                    parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+                },
+                parser: {
+                    strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                    loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+                }
+            },
+            m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i = 14;
+        while (i--) uri[o.key[i]] = m[i] || "";
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+        return uri;
     }
 });
 

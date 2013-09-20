@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130918223353" # Gets replaced by git (holds the date/time)
+__commit__ = "20130919085638" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1171,8 +1171,6 @@ class GOApplication(OnOffMixin):
     # You'll want to override these values in your own app:
     info = {
         'name': "Unknown App",
-        'icon': os.path.join(
-            GATEONE_DIR, "static", "icons", "application.svg"),
         'description': (
             "The application developer has yet to provide a description.")
     }
@@ -2398,7 +2396,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             app_dict = {} # Temporary name:app storage
             [app_dict.update({a.info['name']: a}) for a in self.apps]
             for name, app in app_dict.items():
-                if name in app_dict:
+                if name in enabled_applications:
                     applications.append(app)
         # I've been using these for testing stuff...  Ignore
         #enabled_applications.append("Bookmarks")

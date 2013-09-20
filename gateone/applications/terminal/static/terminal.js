@@ -114,25 +114,27 @@ go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
-        'icon': go.Icons['terminal']
+        'icon': go.Icons['terminal'] + ''
     },
-    __new__: function(workspace, appObj) {
-        /**:GateOne.Terminal.__new__(workspace, appObj)
+    __new__: function(settings, /*opt*/where) {
+        /**:GateOne.Terminal.__new__(settings[, where])
 
         Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
 
-        :workspace: The workspace *number* which was created for this application.
-        :appObj: An object representing the application the user clicked on.  Contains all the application's 'info' data from the server.
+        :settings: An object containing the settings that will control how the new terminal is created.  Typically contains the application's 'info' data from the server.
+        :where: An optional querySelector-like string or DOM node where the new Terminal should be placed.  If not given a new workspace will be created to contain the Terminal.
         */
-        logDebug("GateOne.Terminal.__new__(" + workspace + ", " + JSON.stringify(appObj) + ")");
-        var wsNode = go.workspaces[workspace]['node'],
-            settings = {'command': appObj['name']};
-        if (appObj['name'] == 'Terminal') {
-            // Use the default app
-            delete settings['command'];
+        logDebug("GateOne.Terminal.__new__(" + JSON.stringify(settings) + ")");
+        if (settings) {
+            // Make a copy of the settings just in case the caller is passing us the entry inside GateOne.User.applications:
+            settings = Object.create(settings);
+            if (settings['sub_application']) {
+                settings['command'] = settings['sub_application'];
+            }
         }
+        where = where || go.Visual.newWorkspace();
         if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
-            go.Terminal.newTerminal(null, settings, wsNode); // Just create a new terminal in a new workspace for now.
+            go.Terminal.newTerminal(null, settings, where);
         } else {
             v.closeWorkspace(workspace);
             v.displayMessage(gettex("Please wait until Gate One is reconnected."));
@@ -199,8 +201,6 @@ go.Base.update(GateOne.Terminal, {
         }
         // Create our Terminal panel
         toolbarInfo.innerHTML = go.Icons['terminal'];
-//         toolbarClose.innerHTML = go.Icons['close'];
-//         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
         infoPanelH2.innerHTML = "Gate One";
         infoPanelH2.title = "Click to edit.  Leave blank for default.";
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -1949,7 +1949,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the `go:close_workspace` event; closes any terminals that are attached to the given *workspace*.
         */
-        console.log('workspaceClosedEvent: ' + workspace);
+        logDebug('workspaceClosedEvent: ' + workspace);
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
@@ -1990,18 +1990,30 @@ go.Base.update(GateOne.Terminal, {
 
         Hides the Terminal's toolbar icons (i.e. when another application is running).
         */
-//         u.hideElement('#'+prefix+'icon_closeterm');
-        u.hideElement('#'+prefix+'icon_info');
-//         u.hideElement('#'+prefix+'icon_newterm');
+        u.removeElement('#'+prefix+'icon_info');
     },
     showIcons: function() {
         /**:GateOne.Terminal.showIcons()
 
         Shows (unhides) the Terminal's toolbar icons (i.e. when another application is running).
         */
-//         u.showElement('#'+prefix+'icon_closeterm');
-        u.showElement('#'+prefix+'icon_info');
-//         u.showElement('#'+prefix+'icon_newterm');
+        var toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
+            existing = u.getNode('#'+prefix+'icon_info'),
+            toolbar = u.getNode('#'+prefix+'toolbar'),
+            toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
+            showInfo = function() {
+                var term = localStorage[prefix+'selectedTerminal'],
+                    termObj = go.Terminal.terminals[term];
+                u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
+                u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
+                u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
+                go.Visual.togglePanel('#'+prefix+'panel_info');
+            };
+        if (!existing) {
+            toolbarInfo.innerHTML = go.Icons['terminal'];
+            toolbarInfo.onclick = showInfo;
+            toolbar.insertBefore(toolbarInfo, toolbarPrefs);
+        }
     },
     loadBell: function(message) {
         // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.

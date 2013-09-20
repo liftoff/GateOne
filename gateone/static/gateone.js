@@ -104,7 +104,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130918223353";
+GateOne.__commit__ = "20130919085638";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -688,6 +688,29 @@ var go = GateOne.Base.update(GateOne, {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
             u.hideElements('.✈panel');
         }, 500);
+    },
+    openApplication: function(app, /*opt*/settings, /*opt*/where) {
+        /**:GateOne.openApplication(app[, settings[, where]])
+
+        Opens the given *app* using its ``__new__()`` method.
+
+        If *where* is provided the application will be placed there.  Otherwise a new workspace will be created and the app placed inside.
+
+        :app: The name of the application to open.
+        :settings:  Optional settings which will be passed to the application's ``__new__()`` method.
+        :where:  A querySelector-like string or DOM node where you wish to place the application.
+        */
+        if (!go.loadedApplications[app]) {
+            logError(gettext("Application, '" + app + "' could not be found."));
+            return;
+        }
+        var appObj = go.loadedApplications[app],
+            where = go.Utils.getNode(where) || go.Visual.newWorkspace();
+        if (!appObj.__new__) {
+            logError(gettext("Application, '" + app + "' does not have a __new__() method."));
+            return;
+        }
+        appObj.__new__(settings, where);
     }
 });
 
@@ -1588,6 +1611,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
     },
+    _ranPostInit: [], // So we know which modules had their postInit() functions called already
     runPostInit: function() {
         /**:GateOne.Utils.runPostInit()
 
@@ -1610,16 +1634,23 @@ GateOne.Base.update(GateOne.Utils, {
                 go.initializedModules.push(moduleObj.__name__);
             }
         });
-        // Go through all our loaded modules and run their postInit functions (if any)
-        go.loadedModules.forEach(function(module) {
-            var moduleObj = eval(module);
-            if (go.initializedModules.indexOf(moduleObj.__name__) == -1) {
-                logDebug('Running: ' + moduleObj.__name__ + '.postInit()');
-                if (typeof(moduleObj.postInit) == "function") {
-                    moduleObj.postInit();
+        if (go.Utils.postInitDebounce) {
+            clearTimeout(go.Utils.postInitDebounce);
+            go.Utils.postInitDebounce = null;
+        }
+        go.Utils.postInitDebounce = setTimeout(function() {
+            // Go through all our loaded modules and run their postInit functions (if any)
+            go.loadedModules.forEach(function(module) {
+                var moduleObj = eval(module);
+                if (go.Utils._ranPostInit.indexOf(moduleObj.__name__) == -1) {
+                    logDebug('Running: ' + moduleObj.__name__ + '.postInit()');
+                    if (typeof(moduleObj.postInit) == "function") {
+                        moduleObj.postInit();
+                    }
+                    go.Utils._ranPostInit.push(moduleObj.__name__);
                 }
-            }
-        });
+            });
+        }, 500); // postInit() functions need to de-bounced separately from init() functions
     },
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)
@@ -1684,16 +1715,16 @@ GateOne.Base.update(GateOne.Utils, {
             }
             go.Storage.loadedFiles[message['filename']] = true;
             // Don't call runPostInit() until we're done loading all JavaScript
-            if (u.postInitDebounce) {
-                clearTimeout(u.postInitDebounce);
-                u.postInitDebounce = null;
+            if (u.initDebounce) {
+                clearTimeout(u.initDebounce);
+                u.initDebounce = null;
             }
             // If this JS file requires no depdendencies call its init() and postInit() functions right away
             if (!message['requires']) {
                 logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
                 u.runPostInit();
             }
-            u.postInitDebounce = setTimeout(function() {
+            u.initDebounce = setTimeout(function() {
                 u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
                 go.Events.trigger("go:js_loaded");
             }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
@@ -3803,7 +3834,7 @@ GateOne.Base.update(GateOne.Visual, {
             go.Input.registerShortcut('KEY_N',
                 {'modifiers': {
                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.newWorkspace()'
+                    'action': 'GateOne.Visual.newWorkspaceWorkspace()'
                 });
             go.Input.registerShortcut('KEY_W',
                 {'modifiers': {
@@ -3835,32 +3866,6 @@ GateOne.Base.update(GateOne.Visual, {
                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
                     'action': 'GateOne.Visual.toggleGridView()'
                 });
-            // This is enables keyboard navigation on the New Workspace Workspace:
-//             go.Input.registerShortcut('KEY_ARROW_LEFT',
-//                 {'modifiers': {
-//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
-//                     'action': 'GateOne.Visual.appLeft()'
-//                 });
-//             go.Input.registerShortcut('KEY_ARROW_RIGHT',
-//                 {'modifiers': {
-//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
-//                     'action': 'GateOne.Visual.appRight()'
-//                 });
-//             go.Input.registerShortcut('KEY_ARROW_UP',
-//                 {'modifiers': {
-//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
-//                     'action': 'GateOne.Visual.appUp()'
-//                 });
-//             go.Input.registerShortcut('KEY_ARROW_DOWN',
-//                 {'modifiers': {
-//                     'ctrl': false, 'alt': false, 'meta': false, 'shift': false},
-//                     'action': 'GateOne.Visual.appDown()'
-//                 });
-//             go.Input.registerShortcut('KEY_G',
-//                 {'modifiers': {
-//                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-//                     'action': 'GateOne.Visual.toggleGridView()'
-//                 });
             go.Events.on("go:js_loaded", function() {
                 setTimeout(function() {
                     // If there's no workspaces after a while make the new workspace workspace
@@ -3897,43 +3902,45 @@ GateOne.Base.update(GateOne.Visual, {
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace = v.newWorkspace(),
             workspaceNum = workspace.id.split(prefix+'workspace')[1],
-            callFunc = function(appObj, parentApp, e) {
-                var name = appObj['name'];
+            callFunc = function(settings, parentApp, e) {
+                var name = settings['name'];
                 if (parentApp !== undefined) {
                     name = parentApp['name'];
+                    settings = parentApp;
+                    settings['sub_application'] = settings['name'];
                 }
                 if (go.loadedApplications[name] && go.loadedApplications[name].__new__) {
                     wsContainer.style.opacity = 0;
                     setTimeout(function() {
                         // Remove the New Workspace Workspace container but not the workspace itself
                         u.removeElement(wsContainer);
-                        go.loadedApplications[name].__new__(workspaceNum, appObj);
+                        go.loadedApplications[name].__new__(settings, workspace);
                     }, 1000);
                 } else {
                     v.displayMessage("Error: Application has no __new__() function.");
                 }
             },
-            addIcon = function(appObj, parentApp, spacer) {
-                if (appObj['sub_applications']) {
-                    appObj['sub_applications'].forEach(function(subApp) {
-                        addIcon(subApp, appObj)
+            addIcon = function(settings, parentApp, spacer) {
+                if (settings['sub_applications']) {
+                    settings['sub_applications'].forEach(function(subApp) {
+                        addIcon(subApp, settings)
                     });
                     return;
                 }
-                if (appObj['hidden']) {
+                if (settings['hidden']) {
                     return; // Don't show this one
                 }
-                var name = appObj['name'],
+                var name = settings['name'],
                     combinedName,
                     appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application', 'data-appname': name}),
                     appIcon = u.createElement('div', {'class': '✈appicon'}),
                     appText = u.createElement('p', {'class': '✈application_text'});
                 appText.innerHTML = name;
-                appSquare.title = appObj['description'] || "Opens the " + name + " application.";
+                appSquare.title = settings['description'] || "Opens the " + name + " application.";
                 if (parentApp !== undefined) {
                     combinedName = parentApp['name'] + ": " + name;
                     appText.innerHTML = combinedName;
-                    appSquare.title = appObj['description'] || "Opens the " + combinedName + " sub-application.";
+                    appSquare.title = settings['description'] || "Opens the " + combinedName + " sub-application.";
                     name = parentApp['name'];
                 }
                 if (spacer) {
@@ -3943,7 +3950,7 @@ GateOne.Base.update(GateOne.Visual, {
                 } else {
                     appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
                     appSquare.tabIndex = 0;
-                    appSquare.addEventListener('click', u.partial(callFunc, appObj, parentApp), false);
+                    appSquare.addEventListener('click', u.partial(callFunc, settings, parentApp), false);
                 }
                 appSquare.appendChild(appIcon);
                 appSquare.appendChild(appText);
@@ -3953,30 +3960,30 @@ GateOne.Base.update(GateOne.Visual, {
         apps.forEach(function(appObj) {
             var name = appObj['name'];
             if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
-                filteredApps.push(appObj);
+                filteredApps.push(Object.create(appObj)); // Use a copy so we don't clobber the original when we make modifications
             }
         });
         if (filteredApps.length == 1) {
             // Check for sub-applications
             var subApps = [];
             if (filteredApps[0]['sub_applications']) {
-                filteredApps[0]['sub_applications'].forEach(function(subApp) {
-                    if (!subApp['hidden']) {
-                        subApps.push(subApp);
+                filteredApps[0]['sub_applications'].forEach(function(settings) {
+                    if (!settings['hidden']) {
+                        subApps.push(settings);
                     }
                 });
             }
             if (!subApps.length) {
                 // If there's only one app don't bother making a listing; just launch the app
                 setTimeout(function() {
-                    go.loadedApplications[filteredApps[0]['name']].__new__(workspaceNum, filteredApps[0]);
+                    go.loadedApplications[filteredApps[0]['name']].__new__(filteredApps[0], workspace);
                 }, 10); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
                 return;
             } else if (subApps.length == 1){
                 // There's only one sub-application in one app; launch it
-                var subApp = subApps[0];
+                var settings = subApps[0];
                 setTimeout(function() {
-                    go.loadedApplications[filteredApps[0]['name']].__new__(workspaceNum, subApp);
+                    go.loadedApplications[filteredApps[0]['name']].__new__(settings, workspace);
                 }, 10);
                 return;
             }
@@ -3986,8 +3993,9 @@ GateOne.Base.update(GateOne.Visual, {
         wsContainer.appendChild(titleH2);
         wsContainer.appendChild(wsAppGrid);
         // Enable using the keyboard to navigate the application icons:
-        wsContainer.addEventListener('keydown', function(e) {
+        wsContainer.addEventListener('keyup', function(e) {
             var key = go.Input.key(e),
+                modifiers = go.Input.modifiers(e),
                 appIcons = u.toArray(u.getNodes('.✈application')),
                 numIcons = appIcons.length - spacers,
                 rows = 0,
@@ -3995,49 +4003,51 @@ GateOne.Base.update(GateOne.Visual, {
                 appGrid = [],
                 appTops = [],
                 clickEvent = document.createEvent('MouseEvents');
-            clickEvent.initEvent('click', true, true);
-            if (!selectedApp) {
-                selectedApp = u.getNode('.✈application');
-                selectedApp.focus();
-            }
-            for (var i=0; i<numIcons; i++) {
-                var top = appIcons[i].offsetTop;
-                if (appTops.indexOf(top) == -1) {
-                    appTops.push(top);
+            if (!modifiers.shift) {
+                clickEvent.initEvent('click', true, true);
+                if (!selectedApp) {
+                    selectedApp = u.getNode('.✈application');
+                    selectedApp.focus();
                 }
-            }
-            rows = appTops.length;
-            rowLength = Math.ceil(numIcons/rows);
-            if (key.string == "KEY_ARROW_UP") {
-                go.Visual.lastAppPosition -= rowLength;
-                if (go.Visual.lastAppPosition < 0) {
-                    go.Visual.lastAppPosition = numIcons + go.Visual.lastAppPosition - 1;
+                for (var i=0; i<numIcons; i++) {
+                    var top = appIcons[i].offsetTop;
+                    if (appTops.indexOf(top) == -1) {
+                        appTops.push(top);
+                    }
                 }
-                appIcons[go.Visual.lastAppPosition].focus();
-                selectedApp = appIcons[go.Visual.lastAppPosition];
-            } else if (key.string == "KEY_ARROW_DOWN") {
-                go.Visual.lastAppPosition += rowLength;
-                if (go.Visual.lastAppPosition > (numIcons-1)) {
-                    go.Visual.lastAppPosition = Math.abs(numIcons - go.Visual.lastAppPosition);
+                rows = appTops.length;
+                rowLength = Math.ceil(numIcons/rows);
+                if (key.string == "KEY_ARROW_UP") {
+                    go.Visual.lastAppPosition -= rowLength;
+                    if (go.Visual.lastAppPosition < 0) {
+                        go.Visual.lastAppPosition = numIcons + go.Visual.lastAppPosition - 1;
+                    }
+                    appIcons[go.Visual.lastAppPosition].focus();
+                    selectedApp = appIcons[go.Visual.lastAppPosition];
+                } else if (key.string == "KEY_ARROW_DOWN") {
+                    go.Visual.lastAppPosition += rowLength;
+                    if (go.Visual.lastAppPosition > (numIcons-1)) {
+                        go.Visual.lastAppPosition = Math.abs(numIcons - go.Visual.lastAppPosition);
+                    }
+                    appIcons[go.Visual.lastAppPosition].focus();
+                    selectedApp = appIcons[go.Visual.lastAppPosition];
+                } else if (key.string == "KEY_ARROW_LEFT") {
+                    go.Visual.lastAppPosition -= 1;
+                    if (go.Visual.lastAppPosition < 0) {
+                        go.Visual.lastAppPosition = numIcons - 1;
+                    }
+                    appIcons[go.Visual.lastAppPosition].focus();
+                    selectedApp = appIcons[go.Visual.lastAppPosition];
+                } else if (key.string == "KEY_ARROW_RIGHT") {
+                    go.Visual.lastAppPosition += 1;
+                    if (go.Visual.lastAppPosition > (numIcons - 1)) {
+                        go.Visual.lastAppPosition = 0;
+                    }
+                    appIcons[go.Visual.lastAppPosition].focus();
+                    selectedApp = appIcons[go.Visual.lastAppPosition];
+                } else if (key.string == "KEY_ENTER") {
+                    selectedApp.dispatchEvent(clickEvent);
                 }
-                appIcons[go.Visual.lastAppPosition].focus();
-                selectedApp = appIcons[go.Visual.lastAppPosition];
-            } else if (key.string == "KEY_ARROW_LEFT") {
-                go.Visual.lastAppPosition -= 1;
-                if (go.Visual.lastAppPosition < 0) {
-                    go.Visual.lastAppPosition = numIcons - 1;
-                }
-                appIcons[go.Visual.lastAppPosition].focus();
-                selectedApp = appIcons[go.Visual.lastAppPosition];
-            } else if (key.string == "KEY_ARROW_RIGHT") {
-                go.Visual.lastAppPosition += 1;
-                if (go.Visual.lastAppPosition > (numIcons - 1)) {
-                    go.Visual.lastAppPosition = 0;
-                }
-                appIcons[go.Visual.lastAppPosition].focus();
-                selectedApp = appIcons[go.Visual.lastAppPosition];
-            } else if (key.string == "KEY_ENTER") {
-                selectedApp.dispatchEvent(clickEvent);
             }
         }, true);
         filteredApps.forEach(function(appObj) {
@@ -4054,7 +4064,6 @@ GateOne.Base.update(GateOne.Visual, {
                 rows = 0,
                 rowLength = 0;
             wsContainer.style.opacity = 1;
-            appIcons[go.Visual.lastAppPosition].focus();
             // Figure out how many spacers we need and add them
             for (var i=0; i<appIcons.length; i++) {
                 var top = appIcons[i].offsetTop;
@@ -4069,6 +4078,12 @@ GateOne.Base.update(GateOne.Visual, {
                 var appObj = {'name': 'spacer'};
                 addIcon(appObj, undefined, true);
             }
+            // This little timeout prevents all sorts of graphic nonsense (apparently if you focus() during a transition browsers get all sorts of confused!)
+            setTimeout(function() {
+                if (appIcons[go.Visual.lastAppPosition]) {
+                    appIcons[go.Visual.lastAppPosition].focus();
+                }
+            }, 1000);
         }, 10);
         v.setTitle("New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
@@ -4486,6 +4501,8 @@ GateOne.Base.update(GateOne.Visual, {
         /**:GateOne.Visual.newWorkspace()
 
         Creates a new workspace on the grid and returns the DOM node that is the new workspace.
+
+        If the currently-selected workspace happens to be the New Workspace Workspace it will be emptied and returned instead of creating a new one.
         */
         var u = go.Utils,
             v = go.Visual,
@@ -4493,14 +4510,22 @@ GateOne.Base.update(GateOne.Visual, {
             workspace = 0,
             workspaceNode,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
+            existingWorkspace = u.getNode('#'+prefix+'workspace'+currentWorkspace),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             workspaceObj = {created: new Date()};
+        if (existingWorkspace) {
+            var newWSWS = existingWorkspace.querySelector('.✈new_workspace_workspace');
+            if (newWSWS) {
+                existingWorkspace.innerHTML = ''; // Empty it out
+                return existingWorkspace; // Use it
+            }
+        }
         if (!v.lastWorkspaceNumber) {
             v.lastWorkspaceNumber = 0; // Start at 0 so the first increment will be 1
         }
         v.lastWorkspaceNumber = v.lastWorkspaceNumber + 1;
         workspace = v.lastWorkspaceNumber;
-        currentWorkspace = prefix+'workspace'+v.lastWorkspaceNumber;
+        currentWorkspace = prefix+'workspace'+workspace;
         if (!go.prefs.embedded) {
             // Prepare the workspace div for the grid
             workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
@@ -5850,7 +5875,6 @@ GateOne.Base.update(GateOne.Visual, {
                 valcount = 0;
             table_row.setAttribute('data-index', count);
             row.forEach(function(val) {
-                console.log(val);
                 var table_cell = td();
                 if (u.isBool(val)) {
                     // Make a checkbox for true/false values
