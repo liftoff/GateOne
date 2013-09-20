@@ -2215,12 +2215,12 @@ class TerminalApplication(GOApplication):
 
     def send_print_stylesheet(self):
         """
-        Sends the 'templates/printing/default.css' stylesheet to the client
+        Sends the 'templates/printing/printing.css' stylesheet to the client
         using `ApplicationWebSocket.ws.send_css` with the "media" set to
         "print".
         """
         print_css_path = os.path.join(
-            APPLICATION_PATH, 'templates', 'printing', 'default.css')
+            APPLICATION_PATH, 'templates', 'printing', 'printing.css')
         self.render_and_send_css(
             print_css_path, element_id="terminal_print_css", media="print")
 

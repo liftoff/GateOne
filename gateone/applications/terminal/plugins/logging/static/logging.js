@@ -238,13 +238,13 @@ go.Base.update(GateOne.TermLogging, {
         logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
         logPreviewIframeDoc.close();
         E.on('go:panel_toggle:in', function(panel) {
-            if (panel.id == go.prefs.prefix+'panel_logs') {
+            if (panel && panel.id == go.prefs.prefix+'panel_logs') {
                 // Make the iframe visible
                 u.showElement(logPreviewIframe);
             }
         });
         E.on('go:panel_toggle:out', function(panel) {
-            if (panel.id == go.prefs.prefix+'panel_logs') {
+            if (panel && panel.id == go.prefs.prefix+'panel_logs') {
                 // Make the iframe INvisible
                 u.hideElement(logPreviewIframe);
             }

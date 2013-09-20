@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130919085638" # Gets replaced by git (holds the date/time)
+__commit__ = "20130919221021" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1465,6 +1465,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Make sure we have all prefs ready for checking
         cls = ApplicationWebSocket
         cls.prefs = get_settings(options.settings_dir)
+        if not os.path.exists(self.settings['cache_dir']):
+            mkdir_p(self.settings['cache_dir'])
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
@@ -1666,6 +1668,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # NOTE: This is here so that the client will have all the necessary
         # strings *before* the calls to various init() functions.
         self.send_js_translation()
+        additional_files = [
+            'gateone_utils_extra.js',
+            'gateone_visual_extra.js',
+            'gateone_input.js'
+        ]
+        for js_file in additional_files:
+            self.send_js(os.path.join(GATEONE_DIR, 'static', js_file))
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
@@ -2512,9 +2521,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.sync_log.info('Sync Theme: %s' % settings['theme'])
         use_client_cache = self.prefs['*']['gateone'].get(
             'use_client_cache', True)
-        cache_dir = self.settings['cache_dir']
-        if not os.path.exists(cache_dir):
-            mkdir_p(cache_dir)
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
         go_url = settings['go_url'] # Used to prefix the url_prefix
@@ -2583,6 +2589,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         filename = 'theme.css'
         filename_hash = hashlib.md5(
             filename.encode('utf-8')).hexdigest()[:10]
+        cache_dir = self.settings['cache_dir']
         cached_theme_path = os.path.join(cache_dir, filename)
         new_theme_path = os.path.join(cache_dir, filename+'.new')
         with io.open(new_theme_path, 'wb') as f:
@@ -2761,7 +2768,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         requires = self.file_cache[filename_hash].get('requires', None)
         media = self.file_cache[filename_hash].get('media', 'screen')
         url_prefix = self.settings['url_prefix']
-        self.sync_log.info("Send: {0}".format(filename))
+        self.sync_log.info("Sending: {0}".format(filename))
         out_dict = {
             'result': 'Success',
             'cache': use_client_cache,
@@ -2871,8 +2878,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     if not filename:
                         filename = os.path.split(file_obj.name)[1]
                 self.sync_log.info(
-                    "Sync {kind}: {filename}".format(
-                        kind=kind, filename=filename))
+                    "Sync check: {filename}".format(filename=filename))
                 mtime = os.stat(path).st_mtime
                 filename_hash = hashlib.md5(
                     filename.encode('utf-8')).hexdigest()[:10]
@@ -2914,7 +2920,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if not filename:
                 filename = os.path.split(paths_or_fileobj.name)[1]
         self.sync_log.info(
-            "Sync {kind}: {filename}".format(kind=kind, filename=filename))
+            "Sync check: {filename}".format(filename=filename))
         # NOTE: The .split('.') above is so the hash we generate is always the
         # same.  The tail end of the filename will have its modification date.
         # Cache the metadata for sync
@@ -2967,6 +2973,82 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         self.send_js_or_css(path, 'css', **kwargs)
 
+    def wrap_and_send_js(self, js_path, exports={}, **kwargs):
+        """
+        Wraps the JavaScript code at *js_path* in a (JavaScript) sandbox which
+        exports whatever global variables are provided via *exports* then
+        minifies, caches, and sends the result to the client.
+
+        The provided **kwargs will be passed to the
+        `ApplicationWebSocket.send_js` method.
+
+        The *exports* dict needs to be in the following format::
+
+            exports = {
+                "global": "export_name"
+            }
+
+        For example, if you wanted to use underscore.js but didn't want to
+        overwrite the global ``_`` variable (if already being used by a parent
+        web application)::
+
+            exports = {"_": "GateOne._"}
+            self.wrap_and_send_js('/path/to/underscore.js', exports)
+
+        This would result in the "_" global being exported as "GateOne._".  In
+        other words, this is what will end up at the bottom of the wrapped
+        JavaScript just before the end of the sandbox:
+
+        .. code-block:: javascript
+
+            window.GateOne._ = _;
+
+        This method should make it easy to include any given JavaScript library
+        without having to worry (as much) about namespace conflicts.
+
+        .. note::
+
+            You don't have to prefix your export with 'GateOne'.  You can export
+            the global with whatever name you like.
+        """
+        if not os.path.exists(js_path):
+            self.sync_log.error(_("File does not exist: {0}").format(js_path))
+            return
+        cache_dir = self.settings['cache_dir']
+        mtime = os.stat(js_path).st_mtime
+        filename = os.path.split(js_path)[1]
+        script = {'name': filename}
+        safe_path = js_path.replace('/', '_') # So we can name the file safely
+        rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
+        rendered_path = os.path.join(cache_dir, rendered_filename)
+        if os.path.exists(rendered_path):
+            self.send_js(rendered_path, filename=filename, **kwargs)
+            return
+        libwrapper = os.path.join(GATEONE_DIR, 'templates', 'libwrapper.js')
+        with io.open(js_path, 'rb') as f:
+            script['source'] = f.read()
+        template_loaders = tornado.web.RequestHandler._template_loaders
+        # This wierd little bit empties Tornado's template cache:
+        for web_template_path in template_loaders:
+            template_loaders[web_template_path].reset()
+        rendered = self.render_string(
+            libwrapper,
+            script=script,
+            exports=exports
+        )
+        with io.open(rendered_path, 'wb') as f:
+            f.write(rendered)
+        self.send_js(rendered_path, filename=filename, **kwargs)
+        # Remove older versions of the rendered template if present
+        for fname in os.listdir(cache_dir):
+            if fname == rendered_filename:
+                continue
+            elif safe_path in fname:
+                # Older version present.
+                # Remove it (and it's minified counterpart).
+                os.remove(os.path.join(cache_dir, fname))
+        return rendered_path
+
     def render_and_send_css(self,
             css_path, element_id=None, media="screen", **kwargs):
         """
@@ -2993,6 +3075,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 self.logger.info(_("send_css is false; will not send CSS."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
+            return
+        if not os.path.exists(css_path):
+            self.sync_log.error(_("File does not exist: {0}").format(css_path))
             return
         cache_dir = self.settings['cache_dir']
         mtime = os.stat(css_path).st_mtime

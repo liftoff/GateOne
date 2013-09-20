@@ -68,23 +68,6 @@ if ('webkitIndexedDB' in window) {
 // getUserMedia check
 var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || null);
 
-// Choose appropriate Page Visibility API attribute
-var hidden, visibilityChange;
-if (typeof document.hidden !== "undefined") {
-    hidden = "hidden";
-    visibilityChange = "visibilitychange";
-} else if (typeof document.mozHidden !== "undefined") {
-    hidden = "mozHidden";
-    visibilityChange = "mozvisibilitychange";
-} else if (typeof document.msHidden !== "undefined") {
-    hidden = "msHidden";
-    visibilityChange = "msvisibilitychange";
-} else if (typeof document.webkitHidden !== "undefined") {
-    hidden = "webkitHidden";
-    visibilityChange = "webkitvisibilitychange";
-}
-// NOTE:  If the browser doesn't support the Page Visibility API it isn't a big deal; the user will merely have to click on the page for input to start being captured.
-
 // Sandbox-wide shortcuts
 var noop = function(a) { return a }, // Let's us reference functions that may or may not be available (see logging shortcuts below).
     ESC = String.fromCharCode(27), // Saves a lot of typing and it's easy to read
@@ -104,7 +87,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130919085638";
+GateOne.__commit__ = "20130919221021";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -126,7 +109,6 @@ The Base module is mostly copied from `MochiKit <http://mochikit.com/>`_.
 GateOne.loadedModules = [];
 GateOne.loadedApplications = {};
 GateOne.initializedModules = []; // So we don't accidentally call a plugin's init() or postInit() functions twice
-
 
 GateOne.Base.module = function(parent, name, version, deps) {
     /**:GateOne.Base.module(parent, name, version[, deps])
@@ -335,7 +317,7 @@ var go = GateOne.Base.update(GateOne, {
                     go.Net.connect(callback);
                 } else {
                     // Regular auth.  Clear the cookie and redirect the user...
-                    GateOne.Net.reauthenticate();
+                    go.Net.reauthenticate();
                 }
             };
         // Update GateOne.prefs with the settings provided in the calling page
@@ -678,10 +660,9 @@ var go = GateOne.Base.update(GateOne, {
         // Make sure the gridwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
-        u.runPostInit();
+//         u.runPostInit();
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         go.Visual.togglePanel(); // Scales them all away
-        document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
         go.initialized = true;
         go.Events.trigger("go:initialized");
         setTimeout(function() {
@@ -742,9 +723,6 @@ GateOne.Base.update(GateOne.Utils, {
             * `go:themes_list` -> :js:meth:`GateOne.Utils.enumerateThemes`
         */
         go.Net.addAction('go:save_file', go.Utils.saveAsAction);
-        go.Net.addAction('go:load_style', go.Utils.loadStyleAction);
-        // Commented this out since it wasn't working out but may be useful in the future
-        go.Net.addAction('go:load_js', go.Utils.loadJSAction);
         go.Net.addAction('go:themes_list', go.Utils.enumerateThemes);
     },
     // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
@@ -888,84 +866,6 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return rval;
     },
-    itemgetter: function(name) {
-        /**:GateOne.Utils.itemgetter(name)
-
-        Copied from `MochiKit.Base.itemgetter <http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-itemgetter>`_.  Returns a ``function(obj)`` that returns ``obj[name]``.
-
-        :param value name: The value that will be used as the key when the returned function is called to retrieve an item.
-        :returns: A function.
-
-        To better understand what this function does it is probably best to simply provide the code:
-
-        .. code-block:: javascript
-
-            var itemgetter = function (name) {
-                return function (arg) {
-                    return arg[name];
-                }
-            }
-
-        Here's an example of how to use it:
-
-            >>> var object1 = {};
-            >>> var object2 = {};
-            >>> object1.someNumber = 12;
-            >>> object2.someNumber = 37;
-            >>> var numberGetter = GateOne.Utils.itemgetter("someNumber");
-            >>> numberGetter(object1);
-            12
-            >>> numberGetter(object2);
-            37
-
-        .. note:: Yes, it can be confusing.  Especially when thinking up use cases but it actually is incredibly useful when the need arises!
-        */
-        return function (arg) {
-            return arg[name];
-        };
-    },
-    hasElementClass: function (element, className/*...*/) {
-        /**:GateOne.Utils.hasElementClass(element, className)
-
-        Almost a direct copy of `MochiKit.DOM.hasElementClass <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass>`_...  Returns true if *className* is found on *element*. *element* is looked up with :js:func:`~GateOne.Utils.getNode` so `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-style identifiers or DOM nodes are acceptable.
-
-        :param element: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-        :param className: The name of the class you're checking is applied to *element*.
-        :returns: true/false
-
-        Example:
-
-            >>> GateOne.Utils.hasElementClass('#go_panel_info', 'panel');
-            true
-            >>> GateOne.Utils.hasElementClass('#go_panel_info', 'foo');
-            false
-        */
-        var obj = GateOne.Utils.getNode(element);
-        if (obj == null) {
-            return false;
-        }
-        var cls = obj.className;
-        if (typeof(cls) != "string" && typeof(obj.getAttribute) == "function") {
-            cls = obj.getAttribute("class");
-        }
-        if (typeof(cls) != "string") {
-            return false;
-        }
-        var classes = cls.split(" ");
-        for (var i = 1; i < arguments.length; i++) {
-            var good = false;
-            for (var j = 0; j < classes.length; j++) {
-                if (classes[j] == arguments[i]) {
-                    good = true;
-                    break;
-                }
-            }
-            if (!good) {
-                return false;
-            }
-        }
-        return true;
-    },
     startsWith: function(substr, str) {
         /**:GateOne.Utils.startsWith(substr, str)
 
@@ -1002,34 +902,6 @@ GateOne.Base.update(GateOne.Utils, {
         */
         return str != null && substr != null &&
             str.lastIndexOf(substr) == Math.max(str.length - substr.length, 0);
-    },
-    isBool: function(obj) {
-        /**:GateOne.Utils.isBool(obj)
-
-        Returns ``true`` if *obj* is a Boolean value.
-        */
-        if (typeof obj == typeof true) {
-            return true;
-        }
-        return false;
-    },
-    isFunction: function(obj) {
-        /**:GateOne.Utils.isFunction(obj)
-
-        Returns ``true`` if *obj* is a function.
-        */
-        var getType = {};
-        return obj && getType.toString.call(obj) === '[object Function]';
-    },
-    isString: function(obj) {
-        /**:GateOne.Utils.isString(obj)
-
-        Returns ``true`` if *obj* is a string.
-        */
-        if (obj.substring) {
-            return true;
-        }
-        return false;
     },
     isArray: function(obj) {
         /**:GateOne.Utils.isArray(obj)
@@ -1118,7 +990,7 @@ GateOne.Base.update(GateOne.Utils, {
             >>> GateOne.Utils.removeElement('#go_infocontainer');
         */
         var node = GateOne.Utils.getNode(elem);
-        if (node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
+        if (node && node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
             node.parentNode.removeChild(node);
         }
     },
@@ -1243,23 +1115,27 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
-    getOffset: function(elem) {
-        /**:GateOne.Utils.getOffset(elem)
+    getSelText: function() {
+        /**:GateOne.Utils.getSelText()
 
-        :returns: An object representing ``elem.offsetTop`` and ``elem.offsetLeft``.
+        :returns: The text that is currently highlighted in the browser.
 
         Example:
 
-            >>> GateOne.Utils.getOffset(someNode);
-            {"top":130, "left":50}
+            >>> GateOne.Utils.getSelText();
+            "localhost" // Assuming the user had highlighted the word, "localhost"
         */
-        var node = GateOne.Utils.getNode(elem), x = 0, y = 0;
-        while( node && !isNaN( node.offsetLeft ) && !isNaN( node.offsetTop ) ) {
-            x += node.offsetLeft - node.scrollLeft;
-            y += node.offsetTop - node.scrollTop;
-            node = node.offsetParent;
+        var txt = '';
+        if (window.getSelection) {
+            txt = window.getSelection();
+        } else if (document.getSelection) {
+            txt = document.getSelection();
+        } else if (document.selection) {
+            txt = document.selection.createRange().text;
+        } else {
+            return;
         }
-        return { top: y, left: x };
+        return txt.toString();
     },
     noop: function(a) {
         /**:GateOne.Utils.noop(a)
@@ -1299,79 +1175,6 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return array;
     },
-    scrollLines: function(elem, lines) {
-        /**:GateOne.Utils.scrollLines(elem, lines)
-
-        Scrolls the given element (*elem*) by the number given in *lines*.  It will automatically determine the line height using :js:func:`~GateOne.Utils.getEmDimensions`.  *lines* can be a positive or negative integer (to scroll down or up, respectively).
-
-        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-        :param number lines: The number of lines to scroll *elem* by.  Can be positive or negative.
-
-        Example:
-
-            >>> GateOne.Utils.scrollLines('#go_term1_pre', -3);
-
-        .. note:: There must be a scrollbar visible (and ``overflow-y = "auto"`` or equivalent) for this to work.
-        */
-        // Lines are calculated based on the EM height of text in the element.
-        logDebug('scrollLines(' + elem + ', ' + lines + ')');
-        var node = go.Utils.getNode(elem),
-            emDimensions = go.Utils.getEmDimensions(elem),
-            negative = (lines < 0),
-            absoluteVal = Math.abs(lines),
-            fullPage = emDimensions.h * absoluteVal,
-            scrollTop = node.scrollTop;
-        if (go.Utils.scrollTopTemp) {
-            scrollTop = go.Utils.scrollTopTemp;
-        }
-        if (negative) {
-            node.scrollTop = scrollTop - fullPage;
-        } else {
-            node.scrollTop = scrollTop + fullPage;
-        }
-        go.Utils.scrollTopTemp = node.scrollTop;
-    },
-    scrollToBottom: function(elem) {
-        /**:GateOne.Utils.scrollToBottom(elem)
-
-        Scrolls the given element (*elem*) to the very bottom (all the way down).
-
-        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-
-        Example:
-
-            >>> GateOne.Utils.scrollLines('#term1_pre');
-        */
-        var node = GateOne.Utils.getNode(elem);
-        try {
-            if (node) {
-                if (node.scrollTop != node.scrollHeight) {
-                    node.scrollTop = node.scrollHeight;
-                }
-            }
-        } catch (e) {
-            // *elem* was probably removed or hasn't come up yet.  Ignore
-        } finally {
-            node = null;
-        }
-    },
-    replaceURLWithHTMLLinks: function(text) {
-        /**:GateOne.Utils.replaceURLWithHTMLLinks(text)
-
-        :returns: *text* with URLs transformed into links.
-
-        Turns textual URLs like 'http://whatever.com/' into links.
-
-        :param string text: Any text with or without links in it (no URLs == no changes)
-
-        Example:
-
-            >>> GateOne.Utils.replaceURLWithHTMLLinks('Downloading http://foo.bar.com/some/file.zip');
-            "Downloading <a href='http://foo.bar.com/some/file.zip'>http://foo.bar.com/some/file.zip</a>"
-        */
-        var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return text.replace(exp,"<a href='$1'>$1</a>");
-    },
     isEven: function(someNumber){
         /**:GateOne.Utils.isEven(someNumber)
 
@@ -1388,228 +1191,6 @@ GateOne.Base.update(GateOne.Utils, {
             false
         */
         return (someNumber%2 == 0) ? true : false;
-    },
-    isDescendant: function(parent, child) {
-        /**:GateOne.Utils.isDescendant(parent, child)
-
-        Returns true if *child* is a descendent of *parent* (in the DOM).
-
-        :param node parent: A DOM node.
-        :param node child: A DOM node.
-        :returns: true/false
-
-        Example:
-
-            >>> GateOne.Utils.isDescendant(go.node, pastearea);
-            true
-            >>> GateOne.Utils.isDescendant(go.node, document.body);
-            false
-        */
-        var node = child.parentNode;
-        while (node != null) {
-            if (node == parent) {
-                return true;
-            }
-            node = node.parentNode;
-        }
-        return false;
-    },
-    getSelText: function() {
-        /**:GateOne.Utils.getSelText()
-
-        :returns: The text that is currently highlighted in the browser.
-
-        Example:
-
-            >>> GateOne.Utils.getSelText();
-            "localhost" // Assuming the user had highlighted the word, "localhost"
-        */
-        var txt = '';
-        if (window.getSelection) {
-            txt = window.getSelection();
-        } else if (document.getSelection) {
-            txt = document.getSelection();
-        } else if (document.selection) {
-            txt = document.selection.createRange().text;
-        } else {
-            return;
-        }
-        return txt.toString();
-    },
-    prevEmDimensions: {'w': 7, 'h': 14}, // Used if something goes wrong doing the calculation.  These are just reasonable defaults that will be overwritten
-    getEmDimensions: function(elem, /*opt*/where) {
-        /**:GateOne.Utils.getEmDimensions(elem[, where])
-
-        Returns the height and width of 1em inside the given elem (e.g. '#term1_pre').  The returned object will be in the form of:
-
-        .. code-block:: javascript
-
-            {'w': <width in px>, 'h': <height in px>}
-
-        If *where* (element) is given, the EM dimensions calculation will be based on what sizes would apply if the given *elem* were placed inside *where*.
-
-        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-        :param where: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-        :returns: An object containing the width and height as obj.w and obj.h.
-
-        Example:
-
-            >>> GateOne.Utils.getEmDimensions('#gateone');
-            {'w': 8, 'h': 15}
-        */
-//         logDebug('getEmDimensions('+elem+', id: '+elem.id+')');
-        var u = GateOne.Utils,
-            node = u.getNode(elem).cloneNode(false), // Work on a clone so we can leave the original alone
-            sizingPre = document.createElement("pre"),
-            fillerX = '', fillerY = [],
-            lineCounter = 0;
-        if (!node.style) { // This can happen if the user clicks back and forth really quickly in the middle of running this function
-            return u.prevEmDimensions;
-        }
-        try {
-            // We need to place the cloned node into the DOM for the calculation to work properly
-            node.id = 'sizingNode';
-            if (where) {
-                where = u.getNode(where);
-                where.appendChild(node);
-            } else {
-                document.body.appendChild(node);
-            }
-            if (!u.isVisible(node)) {
-                // Reset so it is visible
-                node.style.display = '';
-                node.style.opacity = 1;
-            }
-            node.className = "✈noanimate ✈terminal";
-            // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
-            for (var i=0; i <= 1023; i++) {
-                fillerX += "M";
-            }
-            fillerY.push(fillerX);
-            for (var i=0; i <= 255; i++) {
-                fillerY.push(fillerX);
-            }
-            sizingPre.innerHTML = fillerY.join('\n');
-            // Set the attributes of our copy to reflect a minimal-size block element
-            node.style.position = 'fixed';
-            node.style.top = 0;
-            node.style.left = 0;
-            node.style.bottom = 'auto';
-            node.style.right = 'auto';
-            node.style.width = 'auto';
-            node.style.height = 'auto';
-            node.style.display = 'block';
-            sizingPre.style.position = 'absolute';
-            sizingPre.style.top = 0;
-            sizingPre.style.left = 0;
-            sizingPre.style.bottom = 'auto';
-            sizingPre.style.right = 'auto';
-            sizingPre.style.width = 'auto';
-            sizingPre.style.height = 'auto';
-            sizingPre.style.display = 'block';
-            sizingPre.style['white-space'] = 'pre'; // Without this the size calculation will be off
-            sizingPre.style['word-wrap'] = 'normal';
-            // Add in our sizingDiv and grab its height
-            node.appendChild(sizingPre);
-            var nodeHeight = sizingPre.scrollHeight,
-                nodeWidth = sizingPre.scrollWidth;
-            nodeHeight = parseInt(nodeHeight)/256;
-            nodeWidth = parseInt(nodeWidth)/1024;
-            // Clean up, clean up
-            node.removeChild(sizingPre);
-            if (where) {
-                where.removeChild(node);
-            } else {
-                document.body.removeChild(node);
-            }
-            u.prevEmDimensions = {'w': nodeWidth, 'h': nodeHeight};
-        } catch(e) {
-            logDebug("Error getting em dimensions (probably just a hidden terminal): " + e);
-            // Cleanup
-            if (where) {
-                where.removeChild(node);
-            } else {
-                document.body.removeChild(node);
-            }
-        }
-        return u.prevEmDimensions;
-    },
-    getRowsAndColumns: function(elem, /*opt*/where) {
-        /**:GateOne.Utils.getRowsAndColumns(elem[, where])
-
-        Calculates and returns the number of text rows and colunmns that will fit in the given element (*elem*) as an object like so:
-
-        .. code-block:: javascript
-
-            {'cols': 165, 'rows': 45}
-
-        :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
-        :param where: An optional location to please a cloned node of the given *elem* before performing calculations.
-        :returns: An object with obj.cols and obj.rows representing the maximum number of columns and rows of text that will fit inside *elem*.
-
-        .. warning:: *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
-
-        .. note::  This function only works properly with monospaced fonts but it does work with high-resolution displays (so users with properly-configured high-DPI displays will be happy =).  Other similar functions I've found on the web had hard-coded pixel widths for known fonts at certain point sizes.  These break on any display with a resolution higher than 96dpi.
-
-        Example:
-
-            >>> GateOne.Utils.getRowsAndColumns('#gateone');
-            {'cols': 165, 'rows': 45}
-        */
-//         logDebug('getRowsAndColumns('+elem+')');
-        where = where || go.node;
-        var u = go.Utils,
-            node = u.getNode(elem),
-            elementDimensions = {
-                h: node.clientHeight,
-                w: node.clientWidth
-            },
-            textDimensions = u.getEmDimensions(elem, where);
-        if (!u.isVisible(node)) {
-            node = node.cloneNode(false); // Work on a clone so we can leave the original alone
-            // Reset so it is visible
-            node.style.display = '';
-            node.style.opacity = 1;
-            where.appendChild(node, true);
-            elementDimensions = {
-                h: node.clientHeight,
-                w: node.clientWidth
-            },
-            textDimensions = u.getEmDimensions(elem, where);
-            where.removeChild(node);
-        }
-        if (!textDimensions) {
-            return; // Nothing to do
-        }
-        // Calculate the rows and columns:
-        var rows = (elementDimensions.h / textDimensions.h),
-            cols = (elementDimensions.w / textDimensions.w);
-        var dimensionsObj = {'rows': rows, 'columns': cols};
-        return dimensionsObj;
-    },
-    // Thanks to Paul Sowden (http://www.alistapart.com/authors/s/paulsowden) at A List Apart for this function.
-    // See: http://www.alistapart.com/articles/alternate/
-    setActiveStyleSheet: function(title) {
-        /**:GateOne.Utils.setActiveStyleSheet(title)
-
-        Sets the stylesheet matching *title* to be active.
-
-        Thanks to `Paul Sowden <http://www.alistapart.com/authors/s/paulsowden>`_ at `A List Apart <http://www.alistapart.com/>`_ for this function.
-        See: http://www.alistapart.com/articles/alternate/ for a great article on how to control active/alternate stylesheets in JavaScript.
-
-        :param string title: The title of the stylesheet to set active.
-
-        Example:
-
-            >>> GateOne.Utils.setActiveStyleSheet("myplugin_stylesheet");
-        */
-        var i, a, main;
-        for (var i=0; (a = document.getElementsByTagName("link")[i]); i++) {
-            if (a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
-                a.disabled = true;
-                if (a.getAttribute("title") == title) a.disabled = false;
-            }
-        }
     },
     _ranPostInit: [], // So we know which modules had their postInit() functions called already
     runPostInit: function() {
@@ -1720,10 +1301,11 @@ GateOne.Base.update(GateOne.Utils, {
                 u.initDebounce = null;
             }
             // If this JS file requires no depdendencies call its init() and postInit() functions right away
-            if (!message['requires']) {
-                logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
-                u.runPostInit();
-            }
+//             if (!message['requires']) {
+//                 logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
+//                 u.runPostInit();
+//                 return;
+//             }
             u.initDebounce = setTimeout(function() {
                 u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
                 go.Events.trigger("go:js_loaded");
@@ -1818,46 +1400,6 @@ GateOne.Base.update(GateOne.Utils, {
             }, 1000);
         }, 100);
     },
-    loadCSS: function(url, id){
-        /**:GateOne.Utils.loadCSS(url, id)
-
-        Loads and applies the CSS at *url*.  When the ``<link>`` element is created it will use *id* like so:
-
-        .. code-block:: javascript
-
-            {'id': GateOne.prefs.prefix + id}
-
-        :param string url: The URL path to the style sheet.
-        :param string id: The 'id' that will be applied to the ``<link>`` element when it is created.
-
-        .. note:: If an existing ``<link>`` element already exists with the same *id* it will be overridden.
-
-        Example:
-
-        .. code-block:: javascript
-
-            GateOne.Utils.loadCSS("static/css/some_app.css", "some_app_css");
-        */
-        if (!id) {
-            id = 'css_file';
-        }
-        var u = go.Utils,
-            prefix = go.prefs.prefix,
-            goURL = go.prefs.url,
-            container = go.prefs.goDiv.split('#')[1],
-            cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
-            styleNode = u.createElement('style', {'id': prefix+id}),
-            existing = u.getNode('#'+prefix+id);
-        if (existing) {
-            u.removeElement(existing);
-        }
-        var themeCSS = u.getNode('#'+prefix+'go_css_theme'); // Theme should always be last so it can override defaults and plugins
-        if (themeCSS) {
-            u.getNode("head").insertBefore(cssNode, themeCSS);
-        } else {
-            u.getNode("head").appendChild(cssNode);
-        }
-    },
     loadTheme: function(theme) {
         /**:GateOne.Utils.loadTheme(theme)
 
@@ -1874,67 +1416,6 @@ GateOne.Base.update(GateOne.Utils, {
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
         go.ws.send(JSON.stringify({'go:get_theme': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': theme}}));
-    },
-    loadPluginCSS: function() {
-        // Tells the Gate One server to send all the plugin CSS files to the client.
-        var u = go.Utils,
-            container = go.prefs.goDiv.split('#')[1];
-        go.ws.send(JSON.stringify({'go:get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
-    },
-    loadScriptError: function(scriptTag, url, callback) {
-        /**:GateOne.Utils.loadScriptError(url, scriptTag, callback)
-
-        Called when :js:meth:`GateOne.Utils.loadScript` fails to load the .js file at the given *url*.  Under the assumption that the user has yet to accept the Gate One server's SSL certificate, it will pop-up an alert that instructs the user they will be redirected to a page where they can accept Gate One's SSL certificate (when they click OK).
-        */
-        var u = go.Utils,
-            acceptURL = go.prefs.url + 'static/accept_certificate.html',
-            okCallback = function() {
-                // Called when the user clicks OK
-                u.acceptWindow = window.open(acceptURL, 'accept');
-                u.windowChecker = setInterval(function() {
-                    if (u.acceptWindow.closed) {
-                        // Re-proceed
-                        u.removeElement(scriptTag);
-                        u.loadScript(url, callback);
-                        clearInterval(u.windowChecker);
-                    }
-                }, 100);
-            };
-        // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
-        GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
-    },
-    loadScript: function(url, callback){
-        /**:GateOne.Utils.loadScript(url[, callback])
-
-        Loads the JavaScript (.js) file at *URL* and appends it to `document.body <https://developer.mozilla.org/en/DOM/document.body>`_.  If *callback* is given, it will be called after the script has been loaded.
-
-        :param string URL: The URL of a JavaScript file.
-        :param function callback:  *Optional:* A function to call after the script has been loaded.
-
-        Example:
-
-        .. code-block:: javascript
-
-            var myfunc = function() { console.log("finished loading whatever.js"); };
-            GateOne.Utils.loadScript("https://someserver.com/static/whatever.js", myfunc);
-        */
-        // Imports the given JS *url*
-        // If *callback* is given, it will be called in the onload() event handler for the script
-        var u = GateOne.Utils,
-            self = this,
-            tag = document.createElement("script");
-        tag.type="text/javascript";
-        tag.src = url;
-        if (callback) {
-            tag.onload = function() {
-                callback();
-            }
-        }
-        document.body.appendChild(tag);
-        setTimeout(function() {
-            // If the URL doesn't load within 5 seconds assume it is an SSL certificate issue
-            u.loadScriptError(tag, url, callback);
-        }, 5000);
     },
     enumerateThemes: function(messageObj) {
         /**:GateOne.Utils.enumerateThemes(messageObj)
@@ -2022,6 +1503,37 @@ GateOne.Base.update(GateOne.Utils, {
         }
         http.send(null); // All done
     },
+    isVisible: function(elem) {
+        /**:GateOne.Utils.isVisible(elem)
+
+        Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
+
+        Example:
+
+            >>> GateOne.Utils.isVisible('#'+GateOne.prefs.prefix+'pastearea1');
+            true
+
+        .. note:: Relies on checking elem.style.opacity and elem.style.display.  Does *not* check transforms.
+        */
+        var node = GateOne.Utils.getNode(elem), style;
+        if (!node) {
+            return false;
+        }
+        if (node === document) {
+            return true;
+        }
+        style = window.getComputedStyle(node, null);
+        if (style && style.display == 'none') {
+            return false;
+        } else if (style && parseInt(style.opacity) == 0) {
+            return false;
+        }
+        if (node.parentNode) {
+            return GateOne.Utils.isVisible(node.parentNode);
+        } else {
+            return true;
+        }
+    },
     getCookie: function(name) {
         /**:GateOne.Utils.getCookie(name)
 
@@ -2081,48 +1593,6 @@ GateOne.Base.update(GateOne.Utils, {
             GateOne.Utils.deleteCookie('gateone_user', '/', ''); // Deletes the 'gateone_user' cookie
         */
         document.cookie = name + "=" + ((path) ? ";path=" + path : "") + ((domain) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
-    },
-    isPrime: function(n) {
-        /**:GateOne.Utils.isPrime(n)
-
-        Returns true if *n* is a prime number.
-
-        :param number n: The number we're checking to see if it is prime or not.
-        :returns: true/false
-
-        Example:
-
-        .. code-block:: javascript
-
-            > GateOne.Utils.isPrime(13);
-            true
-            > GateOne.Utils.isPrime(14);
-            false
-        */
-        // Copied from http://www.javascripter.net/faq/numberisprime.htm (thanks for making the Internet a better place!)
-        if (isNaN(n) || !isFinite(n) || n%1 || n<2) return false;
-        var m=Math.sqrt(n);
-        for (var i=2; i<=m; i++) if (n%i==0) return false;
-        return true;
-    },
-    randomPrime: function() {
-        /**:GateOne.Utils.randomPrime()
-
-        :returns: A random prime number <= 9 digits.
-
-        Example:
-
-        .. code-block:: javascript
-
-            > GateOne.Utils.randomPrime();
-            618690239
-        */
-        // Returns a random prime number <= 9 digits
-        var i = 10;
-        while (!GateOne.Utils.isPrime(i)) {
-            i = Math.floor(Math.random()*1000000000);
-        }
-        return i;
     },
     randomString: function(length, chars) {
         /**:GateOne.Utils.randomString(length[, chars])
@@ -2192,23 +1662,6 @@ GateOne.Base.update(GateOne.Utils, {
             go.Visual.displayMessage(message['result']);
         }
     },
-    // NOTE: getToken() is a work-in-progress and ultimately may not be necessary thanks to the security of the WebSocket.
-    // NOTE: The token-based approach prevents an attacker from copying a user's session ID to another host and using it to login but it has the disadvantage of requiring that the user re-login if they reload the page or close their tab.
-    // NOTE: If we save the seed in sessionStorage, the user can see it but their session could persist as long as they didn't close the tab (saving them from the reload problem).  This would leave the seeds visible to attackers that had access to the JavaScript console on the client though.  So we would need to change the seeds on a fairly regular basis (say, every minute) to mitigate this.
-    getToken: function() {
-        // Generates a token using the global, *seed* based on the current date/time that can be used to validate the client
-        // NOTE: *seed* must be a 9-digit (or less) integer
-        //  In order for this to prevent session hijacking the seed must be re-used every single time and cannot be stored in a way that is easily retrievable from regular web development tools (make the attacker dump memory and find the seed before it expires).
-        var time = new Date().getTime(),
-            downToTenSecond = Math.round(time/10000);
-        // NOTE: On the server we should check forward/backward in time 10 seconds to provide the client with a 30-second window of drift.
-        if (!seed1) { // Seeds haven't been defined yet.  Set them.
-            seed1 = Math.floor(Math.random()*1000000000);
-            seed2 = Math.floor(Math.random()*1000000000);
-        }
-        var digest = Crypto.MD5(seed1*seed2*downToTenSecond+'');
-        return digest.slice(2,11); // Only need a subset of the md5
-    },
     isPageHidden: function() {
         /**:GateOne.Utils.isPageHidden()
 
@@ -2253,81 +1706,6 @@ GateOne.Base.update(GateOne.Utils, {
             var bb = new BlobBuilder();
             bb.push.apply(bb, array)
             return bb.getBlob(mimetype);
-        }
-    },
-    rtrim: function(string) {
-        /**:GateOne.Utils.rtrim(string)
-
-        Returns *string* minus right-hand whitespace
-        */
-        return string.replace(/\s+$/,"");
-    },
-    ltrim: function(string) {
-        /**:GateOne.Utils.ltrim(string)
-
-        Returns *string* minus left-hand whitespace
-        */
-        return string.replace(/^\s+/,"");
-    },
-    stripHTML: function(html) {
-        /**:GateOne.Utils.stripHTML(html)
-
-        Returns the contents of *html* minus the HTML.
-        */
-        var tmp = document.createElement("DIV");
-        tmp.innerHTML = html;
-        return tmp.textContent||tmp.innerText;
-    },
-    isVisible: function(elem) {
-        /**:GateOne.Utils.isVisible(elem)
-
-        Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
-
-        Example:
-
-            >>> GateOne.Utils.isVisible('#'+GateOne.prefs.prefix+'pastearea1');
-            true
-
-        .. note:: Relies on checking elem.style.opacity and elem.style.display.  Does *not* check transforms.
-        */
-        var node = GateOne.Utils.getNode(elem), style;
-        if (!node) {
-            return false;
-        }
-        if (node === document) {
-            return true;
-        }
-        style = window.getComputedStyle(node, null);
-        if (style && style.display == 'none') {
-            return false;
-        } else if (style && parseInt(style.opacity) == 0) {
-            return false;
-        }
-        if (node.parentNode) {
-            return GateOne.Utils.isVisible(node.parentNode);
-        } else {
-            return true;
-        }
-    },
-    humanReadableBytes: function(bytes, /*opt*/precision) {
-        // Returns *bytes* as a human-readable string in a similar fashion to how it would be displayed by 'ls -lh' or 'df -h'.
-        // If *precision* (integer) is given, it will be used to determine the number of decimal points to use when rounding.  Otherwise it will default to 0
-        var sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
-            postfix = 0;
-        bytes = parseInt(bytes); // Just in case we get passed *bytes* as a string
-        if (!precision) {
-            precision = 0;
-        }
-        if (bytes == 0) return 'n/a';
-        if (bytes > 1024) {
-            while( bytes >= 1024 ) {
-                postfix++;
-                bytes = bytes / 1024;
-            }
-            return bytes.toFixed(precision) + sizes[postfix];
-        } else {
-            // Just return the bytes as-is (as a string)
-            return bytes + "";
         }
     },
     getQueryVariable: function(variable, /*opt*/url) {
@@ -2381,25 +1759,6 @@ GateOne.Base.update(GateOne.Utils, {
         newString = newString.substring(0, newString.length - 1);
         window.history.replaceState("Replace", "Page Title", "/" + newString);
         return newString;
-    },
-    last: function(iterable, n, guard) {
-        /**:GateOne.Utils.last(iterable, n, guard)
-
-        Returns the last element of the given *iterable*.
-
-        If *n* is given it will return the last N values in the array.  Example:
-
-            >>> GateOne.Utils.last("foobar", 3);
-            ["b", "a", "r"]
-
-        .. note:: The *guard* variable is there so it will work with :js:meth:`Array.prototype.map`.
-        */
-        if (iterable == null) return void 0;
-        if ((n != null) && !guard) {
-            return Array.prototype.slice.call(iterable, Math.max(iterable.length - n, 0));
-        } else {
-            return iterable.slice(-1)[0];
-        }
     },
     insertAfter: function(newElement, targetElement) {
         /**:GateOne.Utils.insertAfter(newElement, targetElement)
@@ -2501,17 +1860,14 @@ GateOne.Base.update(GateOne.Logging, {
 
         Also, if :js:attr:`GateOne.prefs.logToServer` is ``false`` :js:meth:`GateOne.Logging.logToConsole` will be removed from :js:attr:`GateOne.Logging.destinations`.
         */
-        var go = GateOne;
-        if (typeof(go.prefs.logLevel) == "undefined") {
-            go.prefs.logLevel = 'INFO';
-        }
-        // Initialize the logger
-        go.Logging.setLevel(go.prefs.logLevel);
         // The default is to send all client-side log messages to the server but this can be disabled by setting `GateOne.prefs.logToServer = false`
         if (!go.prefs.logToServer) {
             // Remove the logToServer destination
             go.Logging.removeDestination('server');
         }
+        go.prefs.logLevel = go.prefs.logLevel || 'INFO';
+        // Initialize the logger
+        go.Logging.setLevel(go.prefs.logLevel);
     },
     setLevel: function(level) {
         /**:GateOne.Logging.setLevel(level)
@@ -2794,8 +2150,6 @@ GateOne.Base.update(GateOne.Net, {
 
         Adds the `go:timeout` and `go:locations` WebSocket actions as well as the `go:ping_timeout` event (which just displays a message to the user indicating as such).
         */
-        go.Net.addAction('go:timeout', go.Net.timeoutAction);
-        go.Net.addAction('go:locations', GateOne.Net.locationsAction);
         go.Events.on("go:ping_timeout", function() {
             go.Visual.displayMessage("A keepalive ping has timed out.  Attempting to reconnect...");
         });
@@ -2954,12 +2308,7 @@ GateOne.Base.update(GateOne.Net, {
         go.Net.pingTimeout = null;
         var u = go.Utils,
             v = go.Visual,
-//             workspaces = u.toArray(u.getNodes('.✈workspace')),
             message = gettext("Attempting to connect to the Gate One server...");
-//         workspaces.forEach(function(wsObj) {
-//             v.closeWorkspace(wsObj.id.split('workspace')[1]);
-//         });
-//         v.lastWorkspaceNumber = 0; // Reset it (applications will create their own workspaces)
         v.enableOverlay(); // So it is obvious that we're disconnected
         if (msg) {
             message = "<p>" + msg + "</p>";
@@ -3276,475 +2625,17 @@ GateOne.Base.update(GateOne.Net, {
     }
 });
 // Protocol actions
-GateOne.Net.actions = {
+go.Net.actions = {
 // These are what will get called when the server sends us each respective action
-    'go:log': GateOne.Net.log,
-    'go:ping': GateOne.Net.ping,
-    'go:pong': GateOne.Net.pong,
-    'go:reauthenticate': GateOne.Net.reauthenticate,
- // This is here because it needs to happen before most calls to init()
-    'go:register_translation': GateOne.i18n.registerTranslationAction
+    'go:log': go.Net.log,
+    'go:ping': go.Net.ping,
+    'go:pong': go.Net.pong,
+    'go:timeout': go.Net.timeoutAction,
+    'go:locations': go.Net.locationsAction,
+    'go:reauthenticate': go.Net.reauthenticate,
+ // This is here because it needs to happen before most calls to init():
+    'go:register_translation': go.i18n.registerTranslationAction
 }
-GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
-// GateOne.Input.charBuffer = []; // Queue for sending characters to the server
-GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
-GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
-GateOne.Input.globalShortcuts = {}; // Global shortcuts added via registerGlobalShortcut() wind up here.
-GateOne.Input.handledGlobal = false; // Used to detect when a global shortcut needs to override a local (regular) one.
-GateOne.Base.update(GateOne.Input, {
-    /**:GateOne.Input
-
-    GateOne.Input is in charge of all keyboard input as well as copy & paste stuff and touch events.
-    */
-    init: function() {
-        /**:GateOne.Input.init()
-
-        Attaches our global keydown/keyup events and touch events
-        */
-        var u = go.Utils,
-            v = go.Visual;
-        // Attach our global shortcut handler to window
-        window.addEventListener('keydown', go.Input.onGlobalKeyDown, true);
-        go.node.addEventListener('keydown', go.Input.onKeyDown, true);
-        go.node.addEventListener('keyup', go.Input.onKeyUp, true);
-        // Add some useful touchscreen events
-        if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
-            v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch workspaces.");
-            var style = window.getComputedStyle(go.node, null);
-            go.node.addEventListener('touchstart', function(e) {
-                v.displayMessage("touchstart");
-                var touch = e.touches[0];
-                go.Input.touchstartX = touch.pageX;
-                go.Input.touchstartY = touch.pageY;
-            }, true);
-            go.node.addEventListener('touchmove', function(e) {
-                v.displayMessage("touchmove");
-                var touch = e.touches[0];
-                if (touch.pageX < go.Input.touchstartX && (go.Input.touchstartX - touch.pageX) > 20) {
-                    v.slideRight();
-                } else if (touch.pageX > go.Input.touchstartX && (touch.pageX - go.Input.touchstartX) > 20) {
-                    v.slideLeft();
-                } else if (touch.pageY < go.Input.touchstartY && (go.Input.touchstartY - touch.pageY) > 20) {
-                    v.slideDown();
-                } else if (touch.pageY > go.Input.touchstartY && (touch.pageY - go.Input.touchstartY) > 20) {
-                    v.slideUp();
-                }
-                e.preventDefault();
-            }, true);
-            setTimeout(function() {
-                u.hideElements('.✈pastearea');
-            }, 3000);
-        }
-    },
-    modifiers: function(e) {
-        // Given an event object, returns an object with booleans for each modifier key (shift, alt, ctrl, meta)
-        var out = {
-            shift: false,
-            alt: false,
-            ctrl: false,
-            meta: false
-        }
-        if (e.altKey) out.alt = true;
-        if (e.shiftKey) out.shift = true;
-        if (e.ctrlKey) out.ctrl = true;
-        if (e.metaKey) out.meta = true;
-        // Only emulate the meta modifier if it isn't working
-        if (out.meta == false && GateOne.Input.metaHeld) {
-            // Gotta emulate it
-            out.meta = true;
-        }
-        return out;
-    },
-    specialKeys: { // Note: Copied from MochiKit.Signal
-        // Also note:  This lookup table is expanded further on in the code
-        8: 'KEY_BACKSPACE',
-        9: 'KEY_TAB',
-        12: 'KEY_NUM_PAD_CLEAR', // weird, for Safari and Mac FF only
-        13: 'KEY_ENTER',
-        16: 'KEY_SHIFT',
-        17: 'KEY_CTRL',
-        18: 'KEY_ALT',
-        19: 'KEY_PAUSE',
-        20: 'KEY_CAPS_LOCK',
-        27: 'KEY_ESCAPE',
-        32: 'KEY_SPACEBAR',
-        33: 'KEY_PAGE_UP',
-        34: 'KEY_PAGE_DOWN',
-        35: 'KEY_END',
-        36: 'KEY_HOME',
-        37: 'KEY_ARROW_LEFT',
-        38: 'KEY_ARROW_UP',
-        39: 'KEY_ARROW_RIGHT',
-        40: 'KEY_ARROW_DOWN',
-        42: 'KEY_PRINT_SCREEN', // Might actually be the code for F13
-        44: 'KEY_PRINT_SCREEN',
-        45: 'KEY_INSERT',
-        46: 'KEY_DELETE',
-        59: 'KEY_SEMICOLON', // weird, for Safari and IE only
-        61: 'KEY_EQUALS_SIGN', // Strange: In Firefox this is 61, in Chrome it is 187
-        91: 'KEY_WINDOWS_LEFT',
-        92: 'KEY_WINDOWS_RIGHT',
-        93: 'KEY_SELECT',
-        106: 'KEY_NUM_PAD_ASTERISK',
-        107: 'KEY_NUM_PAD_PLUS_SIGN',
-        109: 'KEY_NUM_PAD_HYPHEN-MINUS', // Strange: Firefox has this the regular hyphen key (i.e. not the one on the num pad)
-        110: 'KEY_NUM_PAD_FULL_STOP',
-        111: 'KEY_NUM_PAD_SOLIDUS',
-        144: 'KEY_NUM_LOCK',
-        145: 'KEY_SCROLL_LOCK',
-        186: 'KEY_SEMICOLON',
-        187: 'KEY_EQUALS_SIGN',
-        188: 'KEY_COMMA',
-        189: 'KEY_HYPHEN-MINUS',
-        190: 'KEY_FULL_STOP',
-        191: 'KEY_SOLIDUS',
-        192: 'KEY_GRAVE_ACCENT',
-        219: 'KEY_LEFT_SQUARE_BRACKET',
-        220: 'KEY_REVERSE_SOLIDUS',
-        221: 'KEY_RIGHT_SQUARE_BRACKET',
-        222: 'KEY_APOSTROPHE',
-        229: 'KEY_COMPOSE' // NOTE: Firefox doesn't register a key code for the compose key!
-        // undefined: 'KEY_UNKNOWN'
-    },
-    specialMacKeys: { // Note: Copied from MochiKit.Signal
-        3: 'KEY_ENTER',
-        63289: 'KEY_NUM_PAD_CLEAR',
-        63276: 'KEY_PAGE_UP',
-        63277: 'KEY_PAGE_DOWN',
-        63275: 'KEY_END',
-        63273: 'KEY_HOME',
-        63234: 'KEY_ARROW_LEFT',
-        63232: 'KEY_ARROW_UP',
-        63235: 'KEY_ARROW_RIGHT',
-        63233: 'KEY_ARROW_DOWN',
-        63302: 'KEY_INSERT',
-        63272: 'KEY_DELETE'
-    },
-    key: function(e) {
-        // Given an event object, returns an object:
-        // {
-        //    type: <event type>, // Just preserves it
-        //    code: <the key code>,
-        //    string: 'KEY_<key string>'
-        // }
-        var goIn = GateOne.Input,
-            k = { type: e.type };
-        if (e.type == 'keydown' || e.type == 'keyup') {
-            k.code = e.keyCode;
-            k.string = (goIn.specialKeys[k.code] || goIn.specialMacKeys[k.code] || 'KEY_UNKNOWN');
-            return k;
-        } else if (typeof(e.charCode) != 'undefined' && e.charCode !== 0 && !goIn.specialMacKeys[e.charCode]) {
-            k.code = e.charCode;
-            k.string = String.fromCharCode(k.code);
-            return k;
-        } else if (e.keyCode && typeof(e.charCode) == 'undefined') { // IE
-            k.code = e.keyCode;
-            k.string = String.fromCharCode(k.code);
-            return k;
-        }
-        return undefined;
-    },
-    mouse: function(e) {
-        // Given an event object, returns an object:
-        // {
-        //    type:   <event type>, // Just preserves it
-        //    left:   <true/false>,
-        //    right:  <true/false>,
-        //    middle: <true/false>,
-        // }
-        // Note: Based on functions from MochiKit.Signal
-        var m = { type: e.type, button: {} };
-        if (e.type != 'mousemove' && e.type != 'mousewheel') {
-            if (e.which) { // Use 'which' if possible (modern and consistent)
-                m.button.left = (e.which == 1);
-                m.button.middle = (e.which == 2);
-                m.button.right = (e.which == 3);
-            } else { // Have to use button
-                m.button.left = !!(e.button & 1);
-                m.button.right = !!(e.button & 2);
-                m.button.middle = !!(e.button & 4);
-            }
-        }
-        if (e.type == 'mousewheel' || e.type == 'DOMMouseScroll') {
-            m.wheel = { x: 0, y: 0 };
-            if (e.wheelDeltaX || e.wheelDeltaY) {
-                m.wheel.x = e.wheelDeltaX / -40 || 0;
-                m.wheel.y = e.wheelDeltaY / -40 || 0;
-            } else if (e.wheelDelta) {
-                m.wheel.y = e.wheelDelta / -40;
-            } else {
-                m.wheel.y = e.detail || 0;
-            }
-        }
-        return m;
-    },
-    onKeyUp: function(e) {
-        /**:GateOne.Input.onKeyUp(e)
-
-        Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
-        */
-        var goIn = go.Input,
-            key = goIn.key(e);
-        logDebug('onKeyUp()');
-        if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
-            goIn.metaHeld = false;
-        }
-        if (goIn.handledShortcut) {
-            // This key has already been taken care of
-            goIn.handledShortcut = false;
-            return;
-        }
-    },
-    onKeyDown: function(e) {
-        /**:GateOne.Input.onKeyDown(e)
-
-        Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
-        */
-        // NOTE:  In order for e.preventDefault() to work in canceling browser keystrokes like Ctrl-C it must be called before keyup.
-        var goIn = go.Input,
-            u = go.Utils,
-            container = go.node,
-            key = goIn.key(e),
-            modifiers = goIn.modifiers(e);
-        logDebug("onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        if (goIn.handledGlobal) {
-            // Global shortcuts take precedence
-            return;
-        }
-        if (container) { // This display check prevents an exception when someone presses a key before the document has been fully loaded
-            goIn.execKeystroke(e);
-        }
-    },
-    onGlobalKeyDown: function(e) {
-        /**:GateOne.Input.onGlobalKeyDown(e)
-
-        Handles global keystroke events (i.e. those attached to the window object).
-        */
-        var goIn = go.Input,
-            key = goIn.key(e),
-            modifiers = goIn.modifiers(e);
-        logDebug("onGlobalKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        goIn.execKeystroke(e, true);
-    },
-    execKeystroke: function(e, /*opt*/global) {
-        /**:GateOne.Input.execKeystroke(e, global)
-
-        Executes the keystroke or shortcut associated with the given keydown event (*e*).  If *global* is true, will only execute global shortcuts (no regular keystroke overrides).
-        */
-        logDebug('execKeystroke(global=='+global+')');
-        var goIn = go.Input,
-            key = goIn.key(e),
-            modifiers = goIn.modifiers(e),
-            shortcuts = goIn.shortcuts;
-        if (global) {
-            shortcuts = goIn.globalShortcuts;
-        }
-        if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
-            goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
-            setTimeout(function() {
-                // Reset it after three seconds regardless of whether or not we get a keyup event.
-                // This is necessary because when Macs execute meta-tab (Cmnd-tab) the keyup event never fires and Gate One can get stuck thinking meta is down.
-                goIn.metaHeld = false;
-            }, 3000);
-            return true; // Save some CPU
-        }
-        if (goIn.composition) {
-            return true; // Let the IME handle this keystroke
-        }
-        if (modifiers.shift) {
-            // Reset go.Utils.scrollTopTemp if something other than PgUp or PgDown was pressed
-            if (key.string != 'KEY_PAGE_UP' && key.string != 'KEY_PAGE_DOWN') {
-                delete go.Utils.scrollTopTemp;
-            }
-        } else {
-            delete go.Utils.scrollTopTemp; // Reset it for everything else
-        }
-        // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
-        for (var k in shortcuts) {
-            if (key.string == k) {
-                var matched = false;
-                shortcuts[k].forEach(function(shortcut) {
-                    var match = true; // Have to use some reverse logic here...  Slightly confusing but if you can think of a better way by all means send in a patch!
-                    for (var mod in modifiers) {
-                        if (modifiers[mod] != shortcut.modifiers[mod]) {
-                            match = false;
-                        }
-                    }
-                    if (match) {
-                        if (typeof(shortcut.preventDefault) == 'undefined') {
-                            // if not set in the shortcut object assume preventDefault() is desired.
-                            e.preventDefault();
-                        } else if (shortcut.preventDefault == true) {
-                            // Explicitly set
-                            e.preventDefault();
-                        }
-                        if (typeof(shortcut['action']) == 'string') {
-                            eval(shortcut['action']);
-                        } else if (typeof(shortcut['action']) == 'function') {
-                            shortcut['action'](e); // Pass it the event
-                        }
-                        goIn.handledShortcut = true;
-                        goIn.handledGlobal = true;
-                        matched = true;
-                    }
-                });
-                if (matched) {
-                    setTimeout(function() {
-                        goIn.handledGlobal = false;
-                    }, 250);
-                    // Stop further processing of this keystroke
-                    return true;
-                }
-            }
-        }
-    },
-    registerShortcut: function(keyString, shortcutObj) {
-        // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
-        // Example usage:  GateOne.Input.registerShortcut('KEY_G', {
-        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-        //     'action': 'GateOne.Visual.toggleGridView()',
-        //     'preventDefault': true
-        // });
-        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
-        if (GateOne.Input.shortcuts[keyString]) {
-            // Already exists, overwrite existing if conflict (and log it) or append it
-            var overwrote = false;
-            GateOne.Input.shortcuts[keyString].forEach(function(shortcut) {
-                var match = true;
-                for (var mod in shortcutObj.modifiers) {
-                    if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
-                        match = false;
-                    }
-                }
-                if (match) {
-                    // There's a match...  Log and overwrite it
-                    logWarning("Overwriting existing shortcut for: " + keyString);
-                    shortcut = shortcutObj;
-                    overwrote = true;
-                }
-            });
-            if (!overwrote) {
-                // No existing shortcut matches, append the new one
-                GateOne.Input.shortcuts[keyString].push(shortcutObj);
-            }
-        } else {
-            // Create a new shortcut with the given parameters
-            GateOne.Input.shortcuts[keyString] = [shortcutObj];
-        }
-    },
-    registerGlobalShortcut: function(keyString, shortcutObj) {
-        /**:GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
-
-        Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus (i.e. it will work even after disableCapture() is called).
-        */
-        // Example usage:  GateOne.Input.registerGlobalShortcut('KEY_G', {
-        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-        //     'action': 'GateOne.Visual.toggleGridView()',
-        //     'preventDefault': true
-        // });
-        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
-        if (GateOne.Input.globalShortcuts[keyString]) {
-            // Already exists, overwrite existing if conflict (and log it) or append it
-            var overwrote = false;
-            GateOne.Input.globalShortcuts[keyString].forEach(function(shortcut) {
-                var match = true;
-                for (var mod in shortcutObj.modifiers) {
-                    if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
-                        match = false;
-                    }
-                }
-                if (match) {
-                    // There's a match...  Log and overwrite it
-                    logWarning("Overwriting existing shortcut for: " + keyString);
-                    shortcut = shortcutObj;
-                    overwrote = true;
-                }
-            });
-            if (!overwrote) {
-                // No existing shortcut matches, append the new one
-                GateOne.Input.globalShortcuts[keyString].push(shortcutObj);
-            }
-        } else {
-            // Create a new shortcut with the given parameters
-            GateOne.Input.globalShortcuts[keyString] = [shortcutObj];
-        }
-    },
-    // TODO: This...
-    humanReadableShortcuts: function() {
-        // Returns a human-readable string representing the objects inside of GateOne.Input.shortcuts. Each string will be in the form of:
-        //  <modifiers>-<key>
-        // Example:
-        //  Ctrl-Alt-Delete
-        var goIn = GateOne.Input,
-            out = [];
-        for (var i in goIn.shortcuts) {
-            console.log('i: ' + i);
-            var splitKey = i.split('_'),
-                keyName = '',
-                outStr = '';
-            splitKey.splice(0,1); // Get rid of the KEY part
-            for (var j in splitKey) {
-                keyName += splitKey[j].toLowerCase() + ' ';
-            }
-            keyName.trim();
-            for (var j in goIn.shortcuts[i]) {
-                if (goIn.shortcuts[i][j].modifiers) {
-                    outStr += j + '-';
-                }
-            }
-            outStr += keyName;
-            out.push(outStr);
-        }
-        return out;
-    },
-    handleVisibility: function(e) {
-        // Calls GateOne.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
-        var go = GateOne,
-            u = go.Utils;
-        if (!u.isPageHidden()) {
-            // Page has become visibile again
-            logDebug("Ninja Mode disabled.");
-            if (document.activeElement == go.node) {
-                // Gate One was active when the page became hidden
-                go.Events.trigger("go:visible");
-            }
-        } else {
-            logDebug("Ninja Mode!  Gate One has become hidden.");
-            go.Events.trigger("go:invisible");
-        }
-    }
-});
-// Expand GateOne.Input.specialKeys to be more complete:
-(function () { // Note:  Copied from MochiKit.Signal.
-// Jonathan Gardner, Beau Hartshorne, and Bob Ippolito are JavaScript heroes!
-    /* for KEY_0 - KEY_9 */
-    var specialKeys = GateOne.Input.specialKeys;
-    for (var i = 48; i <= 57; i++) {
-        specialKeys[i] = 'KEY_' + (i - 48);
-    }
-
-    /* for KEY_A - KEY_Z */
-    for (var i = 65; i <= 90; i++) {
-        specialKeys[i] = 'KEY_' + String.fromCharCode(i);
-    }
-
-    /* for KEY_NUM_PAD_0 - KEY_NUM_PAD_9 */
-    for (var i = 96; i <= 105; i++) {
-        specialKeys[i] = 'KEY_NUM_PAD_' + (i - 96);
-    }
-
-    /* for KEY_F1 - KEY_F12 */
-    for (var i = 112; i <= 123; i++) {
-        specialKeys[i] = 'KEY_F' + (i - 112 + 1);
-    }
-})();
-// Fill out the special Mac keys:
-(function () {
-    var specialMacKeys = GateOne.Input.specialMacKeys;
-    for (var i = 63236; i <= 63242; i++) {
-        specialMacKeys[i] = 'KEY_F' + (i - 63236 + 1);
-    }
-})();
 
 GateOne.Base.module(GateOne, 'Visual', '1.1', ['Base', 'Net', 'Utils']);
 /**:GateOne.Visual
@@ -3796,20 +2687,6 @@ GateOne.Base.update(GateOne.Visual, {
             ========    =========     ============================================
             `window`    `resize`      :js:meth:`GateOne.Visual.updateDimensions`
             ========    =========     ============================================
-
-        Registers the following keyboard shortcuts:
-
-            ===================================  =======================
-            Function                             Shortcut
-            ===================================  =======================
-            New Workspace                        :kbd:`Control-Alt-N`
-            Close Workspace                      :kbd:`Control-Alt-W`
-            Show Grid                            :kbd:`Control-Alt-G`
-            Switch to the workspace on the left  :kbd:`Shift-LeftArrow`
-            Switch to the workspace on the right :kbd:`Shift-RightArrow`
-            Switch to the workspace above        :kbd:`Shift-UpArrow`
-            Switch to the workspace below        :kbd:`Shift-DownArrow`
-            ===================================  =======================
         */
         var u = go.Utils,
             v = go.Visual,
@@ -3829,7 +2706,33 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarGrid);
-        // Register our keyboard shortcuts (Shift-<arrow keys> to switch workspaces, ctrl-alt-G to toggle grid view)
+        go.Net.addAction('go:notice', v.serverMessageAction);
+        go.Net.addAction('go:user_message', v.userMessageAction);
+        go.Events.on('go:switch_workspace', v.slideToWorkspace);
+        go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
+        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
+        window.addEventListener('resize', go.Visual.updateDimensions, false);
+    },
+    postInit: function() {
+        /**:GateOne.Visual.postInit()
+
+        Sets up our default keyboard shortcuts and opens the New Workspace Workspace if no other applications have opened themselves after a short timeout (500ms).
+
+        Registers the following keyboard shortcuts:
+
+            ===================================  =======================
+            Function                             Shortcut
+            ===================================  =======================
+            New Workspace                        :kbd:`Control-Alt-N`
+            Close Workspace                      :kbd:`Control-Alt-W`
+            Show Grid                            :kbd:`Control-Alt-G`
+            Switch to the workspace on the left  :kbd:`Shift-LeftArrow`
+            Switch to the workspace on the right :kbd:`Shift-RightArrow`
+            Switch to the workspace above        :kbd:`Shift-UpArrow`
+            Switch to the workspace below        :kbd:`Shift-DownArrow`
+            ===================================  =======================
+        */
+        logDebug("GateOne.Visual.postInit()");
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_N',
                 {'modifiers': {
@@ -3839,7 +2742,7 @@ GateOne.Base.update(GateOne.Visual, {
             go.Input.registerShortcut('KEY_W',
                 {'modifiers': {
                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Terminal.closeWorkspace(localStorage[GateOne.prefs.prefix+"selectedWorkspace"])'
+                    'action': 'GateOne.Visual.closeWorkspace(localStorage[GateOne.prefs.prefix+"selectedWorkspace"])'
                 });
             go.Input.registerShortcut('KEY_ARROW_LEFT',
                 {'modifiers': {
@@ -3866,20 +2769,12 @@ GateOne.Base.update(GateOne.Visual, {
                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
                     'action': 'GateOne.Visual.toggleGridView()'
                 });
-            go.Events.on("go:js_loaded", function() {
-                setTimeout(function() {
-                    // If there's no workspaces after a while make the new workspace workspace
-                    var workspaces = u.getNodes('.✈workspace');
-                    if (!workspaces.length) {v.newWorkspaceWorkspace();}
-                }, 1000);
-            });
+            setTimeout(function() {
+                // If there's no workspaces after a while make the new workspace workspace
+                var workspaces = u.getNodes('.✈workspace');
+                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+            }, 500);
         }
-        go.Net.addAction('go:notice', v.serverMessageAction);
-        go.Net.addAction('go:user_message', v.userMessageAction);
-        go.Events.on('go:switch_workspace', v.slideToWorkspace);
-        go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
-        window.addEventListener('resize', go.Visual.updateDimensions, false);
     },
     lastAppPosition: 0, // Used by newWorkspaceWorkspace() below
     newWorkspaceWorkspace: function() {
@@ -3889,6 +2784,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         If only one application is enabled (for this user) it will be opened automatically *unless* it has more than one non-hidden sub-application.
         */
+        logDebug("GateOne.Visual.newWorkspaceWorkspace()");
         var u = go.Utils,
             v = go.Visual,
             E = go.Events,
@@ -3958,9 +2854,11 @@ GateOne.Base.update(GateOne.Visual, {
             };
         // Remove any apps that are missing the __appinfo__ object
         apps.forEach(function(appObj) {
-            var name = appObj['name'];
-            if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
-                filteredApps.push(Object.create(appObj)); // Use a copy so we don't clobber the original when we make modifications
+            if (!appObj['hidden']) {
+                var name = appObj['name'];
+                if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
+                    filteredApps.push(Object.create(appObj)); // Use a copy so we don't clobber the original when we make modifications
+                }
             }
         });
         if (filteredApps.length == 1) {
@@ -4320,7 +3218,7 @@ GateOne.Base.update(GateOne.Visual, {
             if (panels[i] && v.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
-                E.trigger("go:panel_toggle:out", panel);
+                E.trigger("go:panel_toggle:out", panels[i]);
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                     for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                         if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
@@ -4417,7 +3315,7 @@ GateOne.Base.update(GateOne.Visual, {
             notice = u.createElement('div', {'id': prefix+id, 'class': '✈notice'}),
             messageSpan = u.createElement('span'),
             closeX = u.createElement('span', {'class': '✈close_notice'}),
-            unique = u.randomPrime(),
+            unique = u.randomString(8, 'abcdefghijklmnopqrstuvwxyz'),
             logTemp = u.createElement('div'), // Used to strip HTML from messages before we log them (because they're hard to read otherwise)
             removeFunc = function(now) {
                 v.noticeTimers[unique] = setTimeout(function() {
@@ -5223,362 +4121,6 @@ GateOne.Base.update(GateOne.Visual, {
         }, 250);
         go.Events.trigger('go:alert', title, message, closeDialog);
     },
-    widget: function(title, content, /*opt*/options) {
-        /**:GateOne.Visual.widget(title, content[, options])
-
-        Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
-
-        Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).
-
-        Widgets can be attached to a specific element by specifying a DOM object or querySelector string in *options['where']*.  Otherwise the widget will be attached to the currently-selected workspace.
-
-        Widgets can be 'global' (attached to document.body) by setting *options['where']* to 'global'.
-
-        By default widgets will appear in the upper-right corner of a given workspace.
-
-        :param string title:  Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
-        :param string content:  HTML string or JavaScript DOM node:  The content of the widget.
-        :param object options:  An associative array of parameters that change the look and/or behavior of the widget.
-
-        Here's the possible options:
-
-             :onopen:  Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
-             :onclose:  Assign a function to this option and it will be called when the widget is closed.
-             :onconfig:  If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
-             :where:  The node where we'll be attaching this widget or 'global' to add the widget to document.body.
-        */
-        options = options || {};
-        var prefix = go.prefs.prefix,
-            u = go.Utils,
-            v = go.Visual,
-            goDiv = u.getNode(go.prefs.goDiv),
-            unique = u.randomPrime(), // Need something unique to enable having more than one widget on the same page.
-            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': '✈halfsectrans ✈widgetcontainer', 'name': 'widget', 'title': title}),
-            widgetDiv = u.createElement('div', {'id': 'widgetdiv', 'class': '✈widgetdiv'}),
-            widgetContent = u.createElement('div', {'id': 'widgetcontent', 'class': '✈widgetcontent'}),
-            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': '✈halfsectrans ✈originbottommiddle ✈widgettitle'}),
-            close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_close'}),
-            configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_configure'}),
-            widgetToForeground = function(e) {
-                // Move this widget to the front of our array and fix all the z-index of all the widgets
-                for (var i in v.widgets) {
-                    if (widgetContainer == v.widgets[i]) {
-                        v.widgets.splice(i, 1); // Remove it
-                        v.widgets.unshift(widgetContainer); // Add it to the front
-                        widgetContainer.style.opacity = 1; // Make sure it is visible
-                    }
-                }
-                // Set the z-index of each widget to be its original z-index - its position in the array (should ensure the first item in the array has the highest z-index and so on)
-                for (var i in v.widgets) {
-                    if (i != 0) {
-                        // Set all non-foreground widgets opacity to be slightly less than 1 to make the active widget more obvious
-                        v.widgets[i].style.opacity = 0.75;
-                    }
-                    v.widgets[i].style.zIndex = v.widgetZIndex - i;
-                }
-                // Remove the event that called us so we're not constantly looping over the widgets array
-                widgetContainer.removeEventListener("mousedown", widgetToForeground, true);
-            },
-            containerMouseUp = function(e) {
-                // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the widgets array)
-                widgetContainer.addEventListener("mousedown", widgetToForeground, true);
-                widgetContainer.style.opacity = 1;
-            },
-            widgetMouseOver = function(e) {
-                // Show the border and titlebar after a timeout
-                var v = go.Visual;
-                if (v.widgetHoverTimeout) {
-                    clearTimeout(v.widgetHoverTimeout);
-                    v.widgetHoverTimeout = null;
-                }
-                v.widgetHoverTimeout = setTimeout(function() {
-                    // De-bounce
-                    widgetTitle.style.opacity = 1;
-                    v.widgetHoverTimeout = null;
-                }, 1000);
-            },
-            widgetMouseOut = function(e) {
-                // Hide the border and titlebar
-                var v = go.Visual;
-                if (!widgetContainer.dragging) {
-                    if (v.widgetHoverTimeout) {
-                        clearTimeout(v.widgetHoverTimeout);
-                        v.widgetHoverTimeout = null;
-                    }
-                    v.widgetHoverTimeout = setTimeout(function() {
-                        // De-bounce
-                        widgetTitle.style.opacity = 0;
-                        v.widgetHoverTimeout = null;
-                    }, 500);
-                }
-            },
-            widgetMouseDown = function(e) {
-                var m = go.Input.mouse(e); // Get the properties of the mouse event
-                if (m.button.left) { // Only if left button is depressed
-                    var left = window.getComputedStyle(widgetContainer, null)['left'],
-                        top = window.getComputedStyle(widgetContainer, null)['top'];
-                    widgetContainer.dragging = true;
-                    e.preventDefault();
-                    v.dragOrigin.X = e.clientX + window.scrollX;
-                    v.dragOrigin.Y = e.clientY + window.scrollY;
-                    if (left.indexOf('%') != -1) {
-                        // Have to convert a percent to an actual pixel value
-                        var percent = parseInt(left.substring(0, left.length-1)),
-                            bodyWidth = window.getComputedStyle(document.body, null)['width'],
-                            bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
-                        v.dragOrigin.widgetX = Math.floor(bodyWidth * (percent*.01));
-                    } else {
-                        v.dragOrigin.widgetX = parseInt(left.substring(0, left.length-2)); // Remove the 'px'
-                    }
-                    if (top.indexOf('%') != -1) {
-                        // Have to convert a percent to an actual pixel value
-                        var percent = parseInt(top.substring(0, top.length-1)),
-                            bodyHeight = document.body.scrollHeight;
-                        v.dragOrigin.widgetY = Math.floor(bodyHeight * (percent*.01));
-                    } else {
-                        v.dragOrigin.widgetY = parseInt(top.substring(0, top.length-2));
-                    }
-                    widgetContainer.style.opacity = 0.75; // Make it see-through to make it possible to see things behind it for a quick glance.
-                }
-            },
-            moveWidget = function(e) {
-                // Called when the widget is dragged
-                if (widgetContainer.dragging) {
-                    widgetContainer.className = '✈widgetcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
-                    var X = e.clientX + window.scrollX,
-                        Y = e.clientY + window.scrollY,
-                        xMoved = X - v.dragOrigin.X,
-                        yMoved = Y - v.dragOrigin.Y,
-                        newX = 0,
-                        newY = 0;
-                    if (isNaN(v.dragOrigin.widgetX)) {
-                        v.dragOrigin.widgetX = 0;
-                    }
-                    if (isNaN(v.dragOrigin.widgetY)) {
-                        v.dragOrigin.widgetY = 0;
-                    }
-                    newX = v.dragOrigin.widgetX + xMoved;
-                    newY = v.dragOrigin.widgetY + yMoved;
-                    if (widgetContainer.dragging) {
-                        widgetContainer.style.left = newX + 'px';
-                        widgetContainer.style.top = newY + 'px';
-                    }
-                }
-            },
-            closeWidget = function(e) {
-                if (e) { e.preventDefault() }
-                widgetContainer.className = '✈halfsectrans ✈widgetcontainer';
-                widgetContainer.style.opacity = 0;
-                setTimeout(function() {
-                    u.removeElement(widgetContainer);
-                }, 1000);
-                document.body.removeEventListener("mousemove", moveWidget, true);
-                document.body.removeEventListener("mouseup", function(e) {widgetContainer.dragging = false;}, true);
-                widgetContainer.removeEventListener("mousedown", widgetToForeground, true); // Just in case--to ensure garbage collection
-                widgetTitle.removeEventListener("mousedown", widgetMouseDown, true); // Ditto
-                for (var i in v.widgets) {
-                    if (widgetContainer == v.widgets[i]) {
-                        v.widgets.splice(i, 1);
-                    }
-                }
-                if (v.widgets.length) {
-                    v.widgets[0].style.opacity = 1; // Set the new-first widget back to fully visible
-                }
-                // Call the onclose function
-                if (options['onclose']) {
-                    options['onclose']();
-                }
-            };
-        // Sanitize options and apply defaults if necessary
-        options.onopen = options.onopen || null;
-        options.onclose = options.onclose || null;
-        options.onconfig = options.onconfig || null;
-        options.where = options.where || '#'+prefix+'workspace'+localStorage[prefix+'selectedWorkspace'];
-        // Keep track of all open widgets so we can determine the foreground order
-        if (!v.widgets) {
-            v.widgets = [];
-        }
-        v.widgets.push(widgetContainer);
-        widgetDiv.appendChild(widgetContent);
-        // Enable drag-to-move on the widget title
-        if (!widgetContainer.dragging) {
-            widgetContainer.dragging = false;
-            v.dragOrigin = {};
-        }
-        widgetContainer.addEventListener("mousedown", widgetMouseDown, true);
-        widgetContainer.addEventListener("mouseover", widgetMouseOver, true);
-        widgetContainer.addEventListener("mouseout", widgetMouseOut, true);
-        // These have to be attached to document.body otherwise the widgets will be constrained within #gateone which could just be a small portion of a larger web page.
-        document.body.addEventListener("mousemove", moveWidget, true);
-        document.body.addEventListener("mouseup", function(e) {widgetContainer.dragging = false;}, true);
-        widgetContainer.addEventListener("mousedown", widgetToForeground, true); // Ensure that clicking on a widget brings it to the foreground
-        widgetContainer.addEventListener("mouseup", containerMouseUp, true);
-        widgetContainer.style.opacity = 0;
-        setTimeout(function() {
-            // This fades the widget in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
-            widgetContainer.style.opacity = 1;
-        }, 50);
-        close.innerHTML = go.Icons['panelclose'];
-        close.onclick = closeWidget;
-        configure.innerHTML = go.Icons['prefs'].replace('prefsGradient', 'widgetGradient' + u.randomPrime());
-        widgetTitle.innerHTML = title;
-        if (options.onconfig) {
-            configure.onclick = options.onconfig;
-            widgetTitle.appendChild(configure);
-        }
-        widgetContainer.appendChild(widgetTitle);
-        widgetTitle.appendChild(close);
-        if (typeof(content) == "string") {
-            widgetContent.innerHTML = content;
-        } else {
-            widgetContent.appendChild(content);
-        }
-        widgetContainer.appendChild(widgetDiv);
-        // Determine where we should put this widget
-        if (options['where'] == 'global') {
-            // global widgets are fixed to the page as a whole
-            document.body.appendChild(widgetContainer);
-        } else if (options['where']) {
-            u.getNode(options['where']).appendChild(widgetContainer);
-        }
-        v.widgetZIndex = parseInt(getComputedStyle(widgetContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
-        widgetToForeground();
-        if (options.onopen) {
-            options.onopen(widgetContainer);
-        }
-        return closeWidget;
-    },
-    // Example pane usage scenarios:
-    //   var testPane = GateOne.Visual.Pane();
-    //   testPane.innerHTML = "<p>Test pane</p>";
-    //   testPane.appendChild('#some_element');
-
-    //   var term1Pane = GateOne.Visual.Pane('#go_default_term1_pre'); <-- Creates a new Pane from term1_pre.  Doesn't make any changes to term1_pre unless specified in options.
-    //   term1Pane.vsplit(); <-- Splits into two panes 50/50 left-and-right with the existing pane winding up on the left (default).
-    //   term1Pane = term1Pane.hsplit(); <-- Splits into two panes 50/50 top-and-bottom with the existing pane winding up on the top (default).
-    //   term1Pane.relocate('#some_id'); <-- Removes term1Pane from its existing location and places it into #some_id.  If #some_id is also a Pane it will be split.
-    // NOTE:  I had to remove the (elem, options) part of the docstring below because sphinxcontrib-autojs doesn't like methods that also contain their own methods.  I'm still working on fixing it.
-    Pane: function(elem, options) {
-        /**:GateOne.Visual.Pane
-
-            :elem: A querySelector-like string or a DOM node.
-            :options: A JavaScript object which may contain a number of configurable options (see below).
-
-        An object that represents a pane on the page.  A new Pane may be created like so:
-
-            >>> var pane = GateOne.Visual.Pane(elem, options);
-
-        Options:
-
-            :name: What to call this Pane so you can reference it later.
-            :scroll: A boolean value representing whether or not this Pane will be scrollable.
-        */
-        // Enforce 'new' to ensure unique instances
-        if (!(this instanceof GateOne.Visual.Pane)) {return new GateOne.Visual.Pane(elem, options);}
-        options = (options || {});
-        var self = this,
-            u = GateOne.Utils;
-        self.node = u.getNode(elem);
-        self.scroll = (options['scroll'] || false);
-//         if (!('✈pane' in self.node.classList)) {
-//             // Converting existing element into a Pane.
-//             self.node.classList.add('✈pane');
-//             // TODO: Probably need to add more stuff here
-//         }
-        self.split = function(axis, way, /*opt*/newNode) {
-            /**:GateOne.Visual.Pane.split(axis, way[, newNode])
-
-            Split this Pane into two.  The *axis* argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.
-
-            The *way* argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.
-
-            If provided, the given *newNode* will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using `cloneNode(false)`).
-
-            .. note:: If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.
-            */
-            var barWidth = 6, // TODO: Change this to figure out what the width of the splitbar is based on the theme
-                node = self.node,
-                paneContainer = u.createElement('div', {'class': '✈pane'}),
-                newWidth = parseInt(node.clientWidth/2) - parseInt(barWidth/2),
-                newHeight = parseInt(node.clientHeight/2) - parseInt(barWidth/2),
-                bar = u.createElement('div');
-            node.style.position = 'absolute';
-            node.style.top = 0;
-            node.style.left = 0;
-            if (axis == 'vertical') {
-                bar.className = '✈vsplitbar';
-                way = way || 'left';
-                node.style.width = newWidth + 'px';
-            } else {
-                bar.className = '✈hsplitbar';
-                way = way || 'top';
-                node.style.height = newHeight + 'px';
-            }
-            if (!newNode) {
-                newNode = node.cloneNode(false);
-            }
-            if (way == 'left') {
-                newNode.style.left = (newWidth + barWidth) + 'px';
-                bar.style.left = newWidth + 'px';
-            } else {
-                newNode.style.top = (newHeight + barWidth) + 'px';
-                bar.style.left = newHeight + 'px';
-            }
-            node.parentNode.appendChild(paneContainer);
-//             u.removeElement(node);
-            if (way == 'left' || way == 'top') {
-                paneContainer.appendChild(node);
-                paneContainer.appendChild(bar);
-                paneContainer.appendChild(newNode);
-            } else {
-                paneContainer.appendChild(newNode);
-                paneContainer.appendChild(bar);
-                paneContainer.appendChild(node);
-            }
-            // NOTE: TEMP:
-//             duplicated.innerHTML = "This is the duplicated container";
-            setTimeout(function() {
-                u.scrollToBottom(node);
-                u.scrollToBottom(newNode);
-            }, 10);
-            return newNode;
-        }
-        self.vsplit = function(/*opt*/newNode) {
-            /**:GateOne.Visual.Pane.vsplit([newNode])
-
-            A shortcut for `GateOne.Visual.Pane.split('vertical')`
-            */
-            go.Visual.Pane.split('vertical', null, newNode);
-        }
-        self.hsplit = function(/*opt*/newNode) {
-            /**:GateOne.Visual.Pane.hsplit([newNode])
-
-            A shortcut for `GateOne.Visual.Pane.split('horizontal')`
-            */
-            go.Visual.Pane.split('horizontal', null, newNode);
-        }
-        self.relocate = function(where, /*opt*/splitAxis) {
-            /**:GateOne.Visual.Pane.relocate(where)
-
-            Moves the Pane from wherever it currently resides into the element at *where*.  The *splitAxis* argument will be used to determine how to split *where* to accomodate this Pane.
-            */
-        }
-        self.minimize = function(way) {
-            /**:GateOne.Visual.Pane.minimize()
-
-            Minimizes the Pane by docking it to the 'top', 'bottom', 'left', or 'right' of the view depending on *way*.
-            */
-        }
-        self.remove = function() {
-            /**:GateOne.Visual.Pane.remove()
-
-            Removes the Pane from the page.
-            */
-            u.removeElement(self.node);
-            // TODO: Add logic here to remove the splitbar(s)
-        }
-        return self;
-    },
     toggleOverlay: function() {
         /**:GateOne.Visual.toggleOverlay()
 
@@ -5636,301 +4178,6 @@ GateOne.Base.update(GateOne.Visual, {
             v.overlay = false;
             go.Events.trigger('go:overlay_disabled');
         }
-    },
-    // NOTE: Below is a work in progress.  Not used by anything yet.
-//     fitWindow: function(elem, parent) {
-//         // Scales the given *elem* to fit within the given *parent*.
-//         // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
-//         var termPre = GateOne.Terminal.terminals[term].node,
-//             screenSpan = GateOne.Terminal.terminals[term].screenNode;
-//         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-//             var nodeHeight = screenSpan.offsetHeight;
-//             if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
-//                 var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
-//                     transform = "scale(" + scale + ", " + scale + ")";
-//                 GateOne.Visual.applyTransform(termPre, transform);
-//             } else if (nodeHeight > document.documentElement.clientHeight) { // Shrink to fit
-//
-//             }
-//         }
-//     },
-    nodeThumb: function(elem, scale) {
-        /**:GateOne.Visual.nodeThumb(elem, scale)
-
-        Returns a miniature clone of the given *elem* that is reduced in size by the amount given by *scale* (e.g. 0.25 for 1/4 size).
-        */
-        var u = go.Utils,
-            clone = u.getNode(elem).cloneNode(true);
-        go.Visual.applyTransform(clone, 'scale('+scale+')');
-        clone.id = clone.id + '_mini';
-        return clone;
-    },
-    table: function(settings, data) {
-        /**:GateOne.Visual.table(settings, data)
-
-        :settings: A JavaScript object that controls the display and creation of this table (see below).
-        :data: A JavaScript Array *or* a function which returns a JavaScript Array (more on that below) representing the data in the table.
-
-        :returns: The table node.
-
-        Creates or updates-in-place an HTML table from the given *settings* and *data* that will use Gate One defaults for style (which means appearance will be controlled via themes).
-
-        The *settings* are described below:
-
-            :id: **Required** - A unique name to identify this table.  Will be assigned to the 'id' attribute, prefixed with :js:attr:`GateOne.prefs.prefix`.  If a table with this `id` already exists it will be replaced with a new table using *data*.
-            :header: An array of column headers.
-            :footer: An array of column footers.  Footers may be passed as functions.
-            :table_attrs: Any extra attributes you wish to be applied to the ``<table>`` element.
-            :thead_attrs: Any extra attributes you wish to be applied to the ``<thead>`` element.
-            :tbody_attrs: Any extra attributes you wish to be applied to the ``<tbody>`` element.
-            :th_attrs: Any extra attributes you wish to be applied to ``<th>`` elements.
-            :tr_attrs: Any extra attributes you wish to be applied to ``<tr>`` elements.
-            :td_attrs: Any extra attributes you wish to be applied to ``<td>`` elements.
-            :readonly: If ``true`` any automatically-created form elements (e.g. checkboxes) in the table will be marked as disabled (read-only).
-
-        Examples::
-
-            >>> var mydata = [
-                ["John", "Smith", true],
-                ["Jane", "Austin", false]
-            ];
-            >>> var settings = {
-                'id': "example",
-                'header': ["First Name", "Last Name", "Marital Status"]
-            };
-            >>> var mytable = GateOne.Visual.table(settings, mydata);
-
-        The above example would result in HTML looking like this:
-
-        .. code-block:: html
-
-            <table id="go_default_example" class="✈table">
-                <thead class="✈table_head">
-                <tr class="✈table_row">
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Marital Status</th>
-                </tr>
-                </thead>
-
-                <tbody class="✈table_body">
-                <tr class="✈table_row" data-index="0">
-                    <td class="✈table_cell" data-column="First Name">John</td>
-                    <td class="✈table_cell" data-column="Last Name">Doe</td>
-                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status" checked></td>
-                </tr>
-
-                <tr class="✈table_row" data-index="1">
-                    <td class="✈table_cell" data-column="First Name">Jane</td>
-                    <td class="✈table_cell" data-column="Last Name">Austin</td>
-                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status"></td>
-                </tr>
-                </tbody>
-            </table>
-
-        .. note:: All 'id' attributes will be prefixed with `GateOne.Prefs.prefix`.
-
-        .. note:: In order to facilitate theming all tables, rows, and cells will be assigned the '✈table', '✈table_row' and '✈table_cell' classes, respectively.
-
-        Tables can be created using two-way data binding if you provide a function instead of an Array as ``settings['data']``.  It works like this:
-
-            * The function will be called to populate the initial table.
-            * The function will be attached to the `go:table:<table id>:render` event.  To update the table with the latest data simply trigger it: `GateOne.Events.trigger('go:table:<table id>:render')`.  Any extra arguments supplied will be passed to the attached function.
-            * Appropriate (DOM) event hadlers will be attached to each element of the table that trigger the `go:table:<table id>:interact` event.  The element and the event object will be passed as the only arguments.
-
-        So if a user clicks on a cell in the table the `go:table:<table id>` event will be fired three times:  Once with the table, once with the row, and once with the cell; each with their respective DOM event objects as the second argument.
-
-        If you make a change to your data you simply need to call `GateOne.Events.trigger('go:table:<table id>:render')` and your bound function will be called and the table updated automatically.
-
-        As an alternative to providing a simple Array of Arrays of strings as the table data, an Array of Objects may be used instead.  Here's an example demonstrating the format::
-
-            >>> var mydata = [
-                [{'content': "John", 'class': "firstname", 'data-alternatives': "Jon, Jonathan"}, {'content': "Doe", 'class': "lastname"}, true],
-                [{'content': "Jane", 'class': "firstname"}, {'content': "Austin", 'class': "lastname"}, false]
-            ]
-            >>> var settings = {
-                'id': "example2",
-                'header': ["First Name", "Last Name", "Marital Status"],
-                'table_attrs': {'class': '✈my_table'}
-            };
-            >>> var mytable = GateOne.Visual.table(settings, mydata);
-
-        The format above would generate HTML that looks like this:
-
-        .. code-block:: html
-
-            <table id="go_default_example2" class="✈table ✈my_table">
-                <thead class="✈table_head">
-                <tr class="✈table_row">
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Marital Status</th>
-                </tr>
-                </thead>
-
-                <tbody class="✈table_body">
-                <tr class="✈table_row" data-index="0">
-                    <td class="✈table_cell firstname" data-column="First Name" data-alternatives="Jon, Jonathan">John</td>
-                    <td class="✈table_cell lastname" data-column="Last Name">Doe</td>
-                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status" checked></td>
-                </tr>
-
-                <tr class="✈table_row" data-index="1">
-                    <td class="✈table_cell firstname" data-column="First Name">Jane</td>
-                    <td class="✈table_cell lastname" data-column="Last Name">Austin</td>
-                    <td class="✈table_cell" data-column="Marital Status"><input type="checkbox" name="marital-status"></td>
-                </tr>
-                </tbody>
-            </table>
-
-        Any extra attributes assigned to each cell's object will be passed to the second argument of :js:meth:`GateOne.Utils.createElement`.  The only exception being the "content" attribute which will be used inside the cell.
-
-        .. note:: If you're using the object notation for cells you *must* include a "content" attribute.
-        */
-        if (!settings['id']) {
-            logError(gettext("GateOne.Visual.table(): You must pass in settings['id'] to this function."));
-            return
-        }
-        var prefix = go.prefs.prefix,
-            u = go.Utils,
-            E = go.Events,
-            v = go.Visual,
-            existing = u.getNode('#'+prefix+settings['id']),
-            table, thead, tbody, tr, th, td, datafunc,
-            count = 0,
-            prependClass = function(attrs, _class) {
-                // This just makes sure that _class is in attrs (and it's first if not already present)
-                if ('class' in attrs) {
-                    if (attrs['class'].indexOf(_class) == -1) {
-                        // Prepend the missing class (e.g. '✈table')
-                        attrs['class'] = _class + ' ' + attrs['class'];
-                    }
-                } else {
-                    attrs['class'] = _class;
-                }
-            };
-        datafunc = data;
-        if (u.isFunction(data)) {
-            data = data();
-        }
-        if (settings["table_attrs"]) {
-            prependClass(settings["table_attrs"], '✈table');
-        } else {
-            settings["table_attrs"] = {'class': '✈table'};
-        }
-        if (existing) {
-            // Empty it out because we'll be replacing it with all new stuff (in two operations:  First the thead then then the tbody)
-            existing.innerHTML = '';
-        }
-        table = existing || u.createElement('table', settings["table_attrs"]);
-        // Attach our data update func to the appropriate event
-        if (!("go:table:"+settings['id']+":render" in E.callbacks)) {
-            E.on("go:table:"+settings['id']+":render", u.partial(v.table, settings, datafunc, table));
-        }
-        if (settings['id']) {
-            table.id = prefix+settings['id'];
-        }
-        if (settings["thead_attrs"]) {
-            prependClass(settings["thead_attrs"], '✈table_head');
-        } else {
-            settings["thead_attrs"] = {'class': '✈table_head'};
-        }
-        thead = u.createElement('thead', settings["thead_attrs"]);
-        if (settings["tbody_attrs"]) {
-            prependClass(settings["tbody_attrs"], '✈table_body');
-        } else {
-            settings["tbody_attrs"] = {'class': '✈table_body'};
-        }
-        tbody = u.createElement('tbody', settings["tbody_attrs"]);
-        if (settings["th_attrs"]) {
-            prependClass(settings["th_attrs"], '✈table_th');
-        } else {
-            settings["th_attrs"] = {'class': '✈table_th'};
-        }
-        th = u.partial(u.createElement, 'th', settings["th_attrs"]);
-        if (settings["tr_attrs"]) {
-            prependClass(settings["tr_attrs"], '✈table_row');
-        } else {
-            settings["tr_attrs"] = {'class': '✈table_row'};
-        }
-        tr = u.partial(u.createElement, 'tr', settings["tr_attrs"]);
-        if (settings["td_attrs"]) {
-            prependClass(settings["td_attrs"], '✈table_cell');
-        } else {
-            settings["td_attrs"] = {'class': '✈table_cell'};
-        }
-        td = u.partial(u.createElement, 'td', settings["td_attrs"]);
-        // Add the header
-        if (settings['header']) {
-            var thead_tr = u.createElement('tr', settings["tr_attrs"]);
-            settings['header'].forEach(function(name) {
-                var th_cell = th();
-                th_cell.innerHTML = name;
-                thead_tr.appendChild(th_cell);
-            });
-            thead.appendChild(thead_tr);
-        }
-        data.forEach(function(row) {
-            var table_row = tr(),
-                valcount = 0;
-            table_row.setAttribute('data-index', count);
-            row.forEach(function(val) {
-                var table_cell = td();
-                if (u.isBool(val)) {
-                    // Make a checkbox for true/false values
-                    var checkbox = u.createElement('input', {'type': 'checkbox'});
-                    checkbox.disabled = settings['readonly'] || false;
-                    checkbox.checked = val;
-                    table_cell.appendChild(checkbox);
-                } else if (val['content']) {
-                    // This is an object (as opposed to just a string or bool); treat it appropriately
-                    var contentNode;
-                    if (!u.isString(val['content'])) {
-                        // Remove it temporarily
-                        contentNode = val['content'];
-                        delete val['content'];
-                    }
-                    if (val["class"]) {
-                        prependClass(val, '✈table_cell');
-                    } else {
-                        val["class"] = '✈table_cell';
-                    }
-                    // Replace the table_cell we just created with a new one that uses the given attributes:
-                    table_cell = u.createElement('td', val);
-                    // Remove the 'content' attribute before we place it in the DOM:
-                    table_cell.removeAttribute('content');
-                    // Add the content node back if necessary
-                    if (contentNode) {
-                        val['content'] = contentNode;
-                    }
-                    if (u.isString(val['content'])) {
-                        table_cell.innerHTML = val['content'];
-                    } else {
-                        // A DOM node; handle it appropriately
-                        table_cell.appendChild(val['content']);
-                    }
-                } else {
-                    if (u.isString(val)) {
-                        table_cell.innerHTML = val;
-                    } else {
-                        // Assume a DOM node; handle it appropriately
-                        table_cell.appendChild(val);
-                    }
-                }
-                // Add the data-column attribute
-                if (settings['header']) {
-                    table_cell.setAttribute('data-column', settings["header"][valcount]);
-                }
-                table_row.appendChild(table_cell);
-                valcount += 1;
-            });
-            tbody.appendChild(table_row);
-            count += 1;
-        });
-        // Do these last to cut down on DOM reflows
-        table.appendChild(thead);
-        table.appendChild(tbody);
-        return table;
     }
 });
 
@@ -6065,9 +4312,7 @@ GateOne.Base.update(GateOne.Storage, {
 
         Registers the `go:file_sync` and `go:cache_expired` WebSocket actions and opens our 'fileCache' DB.
         */
-        go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
-        go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
-        go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel, go.Storage.dbVersion);
+
     },
     cacheReady: function() {
         /**:GateOne.Storage.cacheReady()
@@ -6443,6 +4688,13 @@ GateOne.Base.update(GateOne.Storage, {
     }
 });
 
+// Load some early-stage required WebSocket actions
+go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel, go.Storage.dbVersion);
+go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
+go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
+go.Net.addAction('go:load_style', go.Utils.loadStyleAction);
+go.Net.addAction('go:load_js', go.Utils.loadJSAction);
+
 window.GateOne = GateOne; // Make everything usable
 
 })(window);
@@ -6506,11 +4758,6 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserLogout.insertAdjacentHTML("beforeBegin", "(");
             prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         }
-        // Register our actions
-        go.Net.addAction('go:gateone_user', go.User.storeSessionAction);
-        go.Net.addAction('go:set_username', go.User.setUsernameAction);
-        go.Net.addAction('go:applications', go.User.applicationsAction);
-        go.Net.addAction('go:user_list', go.User.userListAction);
     },
     setUsernameAction: function(username) {
         /**:GateOne.User.setUsernameAction(username)
@@ -6677,6 +4924,11 @@ GateOne.Base.update(GateOne.User, {
         go.Events.trigger("go:user_list", userList);
     }
 });
+// Register our GateOne.User actions (needs to be called immediately; before init() functions)
+go.Net.addAction('go:gateone_user', go.User.storeSessionAction);
+go.Net.addAction('go:set_username', go.User.setUsernameAction);
+go.Net.addAction('go:applications', go.User.applicationsAction);
+go.Net.addAction('go:user_list', go.User.userListAction);
 
 GateOne.Base.module(GateOne, "Events", '1.0', ['Base', 'Utils']);
 /**:GateOne.Events
@@ -6909,15 +5161,5 @@ GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-
 GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);
-
-// This is helpful when debugging
-GateOne.exportShortcuts = function() {
-    window.go = GateOne;
-    window.prefix = GateOne.prefs.prefix;
-    window.u = GateOne.Utils;
-    window.v = GateOne.Visual;
-    window.E = GateOne.Events;
-    window.t = GateOne.Terminal;
-}
 
 //# sourceURL=/static/gateone.js

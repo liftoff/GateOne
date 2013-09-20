@@ -114,7 +114,7 @@ go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
-        'icon': go.Icons['terminal'] + ''
+        'icon': go.Icons['terminal']
     },
     __new__: function(settings, /*opt*/where) {
         /**:GateOne.Terminal.__new__(settings[, where])
@@ -148,7 +148,7 @@ go.Base.update(GateOne.Terminal, {
             div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
+//             toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': '✈panel'}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
             infoPanelRow1 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow1'}),
@@ -182,8 +182,8 @@ go.Base.update(GateOne.Terminal, {
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
             resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
-            toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
-            toolbar = u.getNode('#'+prefix+'toolbar'),
+//             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
+//             toolbar = u.getNode('#'+prefix+'toolbar'),
             cmdQueryString = u.getQueryVariable('terminal_cmd'),
             switchTerm = function() {
                 if (localStorage[prefix+'selectedTerminal']) {
@@ -200,7 +200,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.defaultCommand = cmdQueryString;
         }
         // Create our Terminal panel
-        toolbarInfo.innerHTML = go.Icons['terminal'];
+//         toolbarInfo.innerHTML = go.Icons['terminal'];
         infoPanelH2.innerHTML = "Gate One";
         infoPanelH2.title = "Click to edit.  Leave blank for default.";
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -361,16 +361,16 @@ go.Base.update(GateOne.Terminal, {
         }
         infoPanelH2.onclick = editTitle;
         // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
-        var showInfo = function() {
-            var term = localStorage[prefix+'selectedTerminal'],
-                termObj = go.Terminal.terminals[term];
-            u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
-            u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
-            u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
-            go.Visual.togglePanel('#'+prefix+'panel_info');
-        }
-        toolbarInfo.onclick = showInfo;
-        toolbar.insertBefore(toolbarInfo, toolbarPrefs);
+//         var showInfo = function() {
+//             var term = localStorage[prefix+'selectedTerminal'],
+//                 termObj = go.Terminal.terminals[term];
+//             u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
+//             u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
+//             u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
+//             go.Visual.togglePanel('#'+prefix+'panel_info');
+//         }
+//         toolbarInfo.onclick = showInfo;
+//         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         resetTermButton.innerHTML = "Rescue Terminal";
         resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
         resetTermButton.onclick = function() {
@@ -393,6 +393,7 @@ go.Base.update(GateOne.Terminal, {
                     'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
                     'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'
                 });
+            E.on("terminal:new_terminal", go.Terminal.showIcons);
         }
         // Load the bell sound from the cache.  If that fails ask the server to send us the file.
         if (go.prefs.bellSound.length) {
@@ -1108,7 +1109,6 @@ go.Base.update(GateOne.Terminal, {
             }
         }
     },
-    // TODO: Investigate why the scollback buffer sometimes gets cut off.
     termUpdateFromWorker: function(e) {
         /**:GateOne.Terminal.termUpdateFromWorker(e)
 

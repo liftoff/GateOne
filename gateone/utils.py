@@ -851,7 +851,10 @@ def short_hash(to_shorten):
     import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
     # Take the first eight characters to create a shortened version.
-    return base64.urlsafe_b64encode(hashed.digest())[:8].decode('utf-8')
+    hashed = base64.urlsafe_b64encode(hashed.digest())[:8].decode('utf-8')
+    if hashed.startswith('-'):
+        hashed = hashed.replace('-', 'A', 1)
+    return hashed
 
 def get_process_tree(parent_pid):
     """

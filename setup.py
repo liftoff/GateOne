@@ -252,9 +252,21 @@ setup(
     **extra
 )
 
-# TODO: This is a work-in-progress
-# Update the version string of gateone.py (so we can tell which git revision)
-#retcode, output = getstatusoutput("git describe")
+
+# Try minifying gateone.js
+try:
+    import slimit
+    gateone_js = os.path.join(static_dir, 'gateone.js')
+    with open(gateone_js, 'rb') as f:
+        data = f.read()
+    out = slimit.minify(data)
+    destination = os.path.join(prefix, 'gateone', 'static', 'gateone.min.js')
+    with open(destination, 'wb') as f:
+        f.write(out)
+        f.write('\n//# sourceURL=/static/gateone.js\n')
+except ImportError:
+    pass
+
 
 # Python3 support stuff is below
 def fix_shebang(filepath):

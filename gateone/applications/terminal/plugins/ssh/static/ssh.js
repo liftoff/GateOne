@@ -89,13 +89,13 @@ go.Base.update(go.SSH, {
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
         E.on('go:panel_toggle:in', function(panel) {
-            if (panel.id == prefix+'panel_ssh_ids') {
+            if (panel && panel.id == prefix+'panel_ssh_ids') {
                 go.Terminal.Input.disableCapture();
             }
         });
         // Setup a callback that runs capture() whenever the panel is closed
         E.on('go:panel_toggle:out', function(panel) {
-            if (panel.id == prefix+'panel_ssh_ids') {
+            if (panel && panel.id == prefix+'panel_ssh_ids') {
                 go.Terminal.Input.capture();
             }
         });
