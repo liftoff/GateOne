@@ -114,6 +114,9 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
             }
         }
     }
+    for (var i=0; i<scrollback.length; i++) {
+        scrollback[i] = '<span>' + scrollback[i] + '</span>';
+    }
     textTransforms['contenteditable cursor'] = {
         'name': 'contentenditable cursor',
         'pattern': '/\<span class="✈cursor"\>/g',

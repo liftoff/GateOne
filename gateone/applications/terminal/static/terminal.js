@@ -2541,7 +2541,7 @@ go.Base.update(GateOne.Terminal, {
     highlight: function(text, term) {
         /**:GateOne.Terminal.highlight(text[, term])
 
-        Highlights all occurrences the given *text* inside the given *term* by wrapping it in a span like so:
+        Highlights all occurrences of the given *text* inside the given *term* by wrapping it in a span like so:
 
         .. code-block:: html
 
@@ -2565,26 +2565,19 @@ go.Base.update(GateOne.Terminal, {
                 }
                 return false;
             },
-            elementContainsSelection = function(el) {
+            elementContainsSelection = function(node) {
                 var sel;
                 if (window.getSelection) {
                     sel = window.getSelection();
-                    if (sel.rangeCount > 0) {
-                        for (var i = 0; i < sel.rangeCount; ++i) {
-                            if (!isOrContains(sel.getRangeAt(i).commonAncestorContainer, el)) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                } else if ( (sel = document.selection) && sel.type != "Control") {
-                    return isOrContains(sel.createRange().parentNode(), el);
+                    return u.isDescendant(node, sel.anchorNode);
+                } else if ((sel = document.selection) && sel.type != "Control") {
+                    return isOrContains(sel.createRange().parentNode(), node);
                 }
                 return false;
             },
             recurReplacement = function(node) {
                 if (node.nodeType === 3 && node.parentNode) {
-                    if (!elementContainsSelection(node)) {
+                    if (!elementContainsSelection(node.parentNode)) {
                         var replaced = node.nodeValue.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl);
                         if (node.nodeValue != replaced) {
                             node.parentNode.innerHTML = node.parentNode.innerHTML.replace(pattern, repl);
