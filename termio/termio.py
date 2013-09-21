@@ -1703,7 +1703,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 logging.debug("Starting self.scheduler to check for timeouts")
                 self.scheduler.start()
             self.isalive() # This just ensures the exitfunc is called (if necessary)
-            pid, status = os.waitpid(self.pid, os.WNOHANG)
+            try:
+                pid, status = os.waitpid(self.pid, os.WNOHANG)
+            except OSError:
+                # Process is dead; call terminate() to clean things up
+                self.terminate()
+                return result
             if pid: # pid is 0 if the process is still running
                 self.exitstatus = os.WEXITSTATUS(status)
             return result
