@@ -1864,14 +1864,17 @@ go.Base.update(GateOne.Terminal, {
         */
         term = term || localStorage[prefix+'selectedTerminal'];
         var terms = u.toArray(u.getNodes('.✈terminal')),
+            termNode;
+        if (go.Terminal.terminals[term] && go.Terminal.terminals[term]['terminal']) {
             termNode = go.Terminal.terminals[term]['terminal'];
-        terms.forEach(function(terminalNode) {
-            if (terminalNode == termNode) {
-                terminalNode.classList.remove('✈inactive');
-            } else {
-                terminalNode.classList.add('✈inactive');
-            }
-        });
+            terms.forEach(function(terminalNode) {
+                if (terminalNode == termNode) {
+                    terminalNode.classList.remove('✈inactive');
+                } else {
+                    terminalNode.classList.add('✈inactive');
+                }
+            });
+        }
     },
     switchTerminalEvent: function(term) {
         /**:GateOne.Terminal.switchTerminalEvent(term)

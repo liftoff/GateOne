@@ -87,7 +87,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130920215719";
+GateOne.__commit__ = "20130921180952";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -659,11 +659,10 @@ var go = GateOne.Base.update(GateOne, {
         go.Events.on("go:panel_toggle:in", updateCSSfunc);
         // Make sure the gridwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
-        // This calls plugins init() and postInit() functions:
-//         u.runPostInit();
+        // NOTE:  Application and plugin init() and postInit() functions will get called as part of the file sync process.
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         go.Visual.togglePanel(); // Scales them all away
-        go.initialized = true;
+        go.initialized = true; // Don't use this to determine if everything is loaded yet.  Use the "go:js_loaded" event for that.
         go.Events.trigger("go:initialized");
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
@@ -1231,6 +1230,7 @@ GateOne.Base.update(GateOne.Utils, {
                     go.Utils._ranPostInit.push(moduleObj.__name__);
                 }
             });
+            go.Events.trigger("go:js_loaded");
         }, 500); // postInit() functions need to de-bounced separately from init() functions
     },
     loadJSAction: function(message, /*opt*/noCache) {
@@ -1300,15 +1300,8 @@ GateOne.Base.update(GateOne.Utils, {
                 clearTimeout(u.initDebounce);
                 u.initDebounce = null;
             }
-            // If this JS file requires no depdendencies call its init() and postInit() functions right away
-//             if (!message['requires']) {
-//                 logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
-//                 u.runPostInit();
-//                 return;
-//             }
             u.initDebounce = setTimeout(function() {
                 u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
-                go.Events.trigger("go:js_loaded");
             }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
             // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
         }
@@ -4766,21 +4759,23 @@ GateOne.Base.update(GateOne.User, {
 
         .. tip:: If you want to call a function after the user has successfully loaded Gate One and authenticated attach it to the `go:user_login` event.
         */
-        // NOTE:  Primarily here to present something more easy to understand than the session ID :)
-        var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
-        logDebug("setUsernameAction(" + username + ")");
+        // NOTE: This will normally get run before Gate One's logger is initialized so uncomment below to debug
+//         console.log("setUsernameAction(" + username + ")");
         go.User.username = username;
-        if (prefsPanelUserID) {
-            prefsPanelUserID.innerHTML = username + " ";
-        }
-        go.Events.trigger("go:user_login", username);
-        if (go.User.userLoginCallbacks.length) {
-            // Call any registered callbacks
-            go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('go:user_login', func) instead.");
-            go.User.userLoginCallbacks.forEach(function(callback) {
-                callback(username);
-            });
-        }
+        go.Events.on("go:js_loaded", function() {
+            var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
+            if (prefsPanelUserID) {
+                prefsPanelUserID.innerHTML = username + " ";
+            }
+            go.Events.trigger("go:user_login", username);
+            if (go.User.userLoginCallbacks.length) {
+                // Call any registered callbacks
+                go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('go:user_login', func) instead.");
+                go.User.userLoginCallbacks.forEach(function(callback) {
+                    callback(username);
+                });
+            }
+        });
     },
     logout: function(redirectURL) {
         /**:GateOne.User.logout(redirectURL)
@@ -4802,6 +4797,8 @@ GateOne.Base.update(GateOne.User, {
         } else {
             redirectURL = '';
         }
+        // This only works in IE but fortunately only IE needs it:
+        document.execCommand("ClearAuthenticationCache");
         go.Events.trigger("go:user_logout", go.User.username);
         // NOTE: This takes care of deleting the "user" cookie
         u.xhrGet(go.prefs.url+'auth?logout=True&redirect='+redirectURL, function(response) {
