@@ -483,6 +483,12 @@ class TerminalApplication(GOApplication):
         # Get our user-specific settings/policies for quick reference
         self.policy = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
+        # NOTE: If you want to be able to check policies on-the-fly without
+        # requiring the user reload the page when a change is made make sure
+        # call applicable_policies() on your own using self.ws.prefs every time
+        # you want to check them.  This will ensure it's always up-to-date.
+        # NOTE:  applicable_policies() is memoized so calling it over and over
+        # again shouldn't slow anything down.
         # Start by determining if the user can even login to the terminal app
         if 'allow' in self.policy:
             if not self.policy['allow']:
@@ -859,6 +865,7 @@ class TerminalApplication(GOApplication):
         import termio
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
+        shell_command = policies.get('shell_command', None)
         user_dir = self.settings['user_dir']
         try:
             user = self.current_user['upn']
@@ -907,6 +914,8 @@ class TerminalApplication(GOApplication):
             additional_metadata=additional_log_metadata,
             encoding=encoding
         )
+        if shell_command:
+            m.shell_command = shell_command
         if self.plugin_new_multiplex_hooks:
             for func in self.plugin_new_multiplex_hooks:
                 func(self, m)

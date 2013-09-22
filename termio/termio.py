@@ -1183,6 +1183,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         from tornado import ioloop
         self.terminating = False
         self.sent_sigint = False
+        self.shell_command = ['/bin/sh', '-c']
         self.env = {}
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
@@ -1331,7 +1332,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             #      setting the title when the command first runs).
             #   2) Ensures we capture all output from the fd before it gets
             #      closed.
-            cmd = ['/bin/sh', '-c', self.cmd + '; sleep .1']
+            if not isinstance(self.shell_command, list):
+                import shlex
+                self.shell_command = shlex.split(self.shell_command)
+            cmd = self.shell_command + [self.cmd + '; sleep .1']
             os.dup2(stderr, stdout) # Copy stderr to stdout (equivalent to 2>&1)
             os.execvpe(cmd[0], cmd, env)
             os._exit(0)
