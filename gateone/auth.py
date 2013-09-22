@@ -79,7 +79,7 @@ import os, logging, re
 
 # Import our own stuff
 from utils import mkdir_p, generate_session_id, noop, RUDict
-from utils import get_translation, memoize
+from utils import get_translation, memoize, convert_to_timedelta, total_seconds
 from golog import go_logger
 
 # 3rd party imports
@@ -324,7 +324,13 @@ class BaseAuthHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
-        user_json = self.get_secure_cookie("gateone_user")
+        expiration = self.settings.get('auth_timeout', "14d")
+        # Need the expiration in days (which is a bit silly but whatever):
+        expiration = (
+            float(total_seconds(convert_to_timedelta(expiration)))
+            / float(86400))
+        user_json = self.get_secure_cookie(
+            "gateone_user", max_age_days=expiration)
         if not user_json: return None
         user = tornado.escape.json_decode(user_json)
         # Add the IP attribute

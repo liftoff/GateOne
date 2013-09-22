@@ -1280,6 +1280,15 @@ def convert_to_bytes(size_val):
         prefix[size_val] = 1 << (i+1)*10
     return int(num * prefix[letter])
 
+def total_seconds(td):
+    """
+    Given a timedelta (*td*) return an integer representing the equivalent of
+    Python 2.7's :meth:`datetime.timdelta.total_seconds`.
+    """
+    return (((
+        td.microseconds +
+        (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6))
+
 def process_opt_esc_sequence(chars):
     """
     Parse the *chars* passed from :class:`terminal.Terminal` by way of the

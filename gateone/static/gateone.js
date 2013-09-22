@@ -87,7 +87,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130921184738";
+GateOne.__commit__ = "20130921202703";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2703,6 +2703,14 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('go:user_message', v.userMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
+        go.Events.on("go:connnection_established", function() {
+            // This is really for reconnect events
+            setTimeout(function() {
+                // If there's no workspaces after a while make the new workspace workspace
+                var workspaces = u.getNodes('.✈workspace');
+                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+            }, 500);
+        });
         go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
         window.addEventListener('resize', go.Visual.updateDimensions, false);
     },
@@ -3916,7 +3924,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             goDiv = go.node,
             prevActiveElement = document.activeElement,
-            unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
+            unique = u.randomString(), // Need something unique to enable having more than one dialog on the same page.
             dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': '✈halfsectrans ✈dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
             dialogDiv = u.createElement('div', {'id': 'dialogdiv', 'class': '✈dialogdiv'}),

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130921184738" # Gets replaced by git (holds the date/time)
+__commit__ = "20130921202703" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -198,7 +198,8 @@ well as descriptions of what each configurable option does:
 
     --address                       Run on the given address.  Default is all
                                     addresses (IPv6 included).  Multiple address
-                                    can be specified using a semicolon as a
+                                    can be s
+                                    pecified using a semicolon as a
                                     separator (e.g. '127.0.0.1;::1;10.1.1.100').
     --api_keys                      The 'key:secret,...' API key pairs you wish
                                     to use (only applies if using API
@@ -543,6 +544,7 @@ from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, get_or_cache
 from utils import check_write_permissions, get_applications, get_settings
+from utils import total_seconds
 from onoff import OnOffMixin
 
 # Setup our base loggers (these get overwritten in main())
@@ -914,7 +916,13 @@ class BaseHandler(tornado.web.RequestHandler):
         """Tornado standard method--implemented our way."""
         # NOTE: self.current_user is actually an @property that calls
         #       self.get_current_user() and caches the result.
-        user_json = self.get_secure_cookie("gateone_user")
+        expiration = self.settings.get('auth_timeout', "14d")
+        # Need the expiration in days (which is a bit silly but whatever):
+        expiration = (
+            float(total_seconds(convert_to_timedelta(expiration)))
+            / float(86400))
+        user_json = self.get_secure_cookie(
+            "gateone_user", max_age_days=expiration)
         if user_json:
             user = json_decode(user_json)
             user['ip_address'] = self.request.remote_ip
@@ -1540,7 +1548,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         if self.user:
             return self.user
-        user_json = self.get_secure_cookie("gateone_user")
+        expiration = self.settings.get('auth_timeout', "14d")
+        # Need the expiration in days (which is a bit silly but whatever):
+        expiration = (
+            float(total_seconds(convert_to_timedelta(expiration)))
+            / float(86400))
+        user_json = self.get_secure_cookie(
+            "gateone_user", max_age_days=expiration)
         if not user_json:
             if not self.settings['auth']:
                 # This can happen if the user's browser isn't allowing
@@ -2084,8 +2098,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # Regular, non-API authentication
             if settings['auth']:
                 # Try authenticating with the given (encrypted) 'auth' value
-                auth_data = self.get_secure_cookie(
-                    'gateone_user', value=settings['auth'])
+                expiration = self.settings.get('auth_timeout', "14d")
+                expiration = (
+                    float(total_seconds(convert_to_timedelta(expiration)))
+                    / float(86400))
+                auth_data = self.get_secure_cookie("gateone_user",
+                    value=settings['auth'], max_age_days=expiration)
                 # NOTE:  This will override whatever is in the cookie.
                 # Why?  Because we'll eventually transition to not using cookies
                 if auth_data:
@@ -2131,8 +2149,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     # The client is trying to authenticate using the
                     # 'gateone_user' parameter in localStorage.
                     # Authenticate/decode the encoded auth info
-                    cookie_data = self.get_secure_cookie(
-                        'gateone_user', value=settings['auth'])
+                    expiration = self.settings.get('auth_timeout', "14d")
+                    expiration = (
+                        float(total_seconds(convert_to_timedelta(expiration)))
+                        / float(86400))
+                    cookie_data = self.get_secure_cookie("gateone_user",
+                        value=settings['auth'], max_age_days=expiration)
                     # NOTE: The above doesn't actually touch any cookies
                 else:
                     # Someone is attempting to perform API-based authentication
@@ -2268,9 +2290,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             interval = self.prefs['*']['gateone'].get(
                 'session_timeout_check_interval', "30s") # 30s default
             td = convert_to_timedelta(interval)
-            interval = ((
-                (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-                / 10**6) * 1000)
+            interval = total_seconds(td) * 1000 # milliseconds
             SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
                 timeout_sessions, interval)
             SESSION_WATCHER.start()

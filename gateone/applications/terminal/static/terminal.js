@@ -2378,16 +2378,7 @@ go.Base.update(GateOne.Terminal, {
                         go.Terminal.lastTermNumber = termNum;
                     }
                 });
-            } /*else {
-                // Create a new terminal
-                go.Terminal.lastTermNumber = 0; // Reset to 0
-                E.on("terminal:new_terminal", function(term) {
-                    if (!go.Terminal.terminals[term]) { return; }
-                    v.switchWorkspace(go.Terminal.terminals[term]['workspace']);
-                    go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
-                });
-                go.Terminal.newTerminal();
-            }*/
+            }
         }
         E.trigger("terminal:term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {
