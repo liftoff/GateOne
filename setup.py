@@ -92,6 +92,7 @@ gateone_files=[ # Start with the basics...
         os.path.join(setup_dir, 'gateone', 'auth.py'),
         os.path.join(setup_dir, 'gateone', 'gateone.py'),
         os.path.join(setup_dir, 'gateone', 'golog.py'),
+        os.path.join(setup_dir, 'gateone', 'go_async.py'),
         os.path.join(setup_dir, 'gateone', 'gopam.py'),
         os.path.join(setup_dir, 'gateone', 'logviewer.py'),
         os.path.join(setup_dir, 'gateone', 'sso.py'),

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130921202703" # Gets replaced by git (holds the date/time)
+__commit__ = "20130921223026" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -481,7 +481,7 @@ import atexit
 import ssl
 import hashlib
 import tempfile
-from functools import wraps, partial
+from functools import partial
 from datetime import datetime, timedelta
 
 # This is used as a way to ensure users get a friendly message about missing
@@ -544,7 +544,7 @@ from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, get_or_cache
 from utils import check_write_permissions, get_applications, get_settings
-from utils import total_seconds
+from utils import total_seconds, MEMO
 from onoff import OnOffMixin
 
 # Setup our base loggers (these get overwritten in main())
@@ -566,6 +566,9 @@ def _(string):
         return user_locale.translate(string)
     else:
         return string
+
+from go_async import MultiprocessRunner
+CPU_ASYNC = MultiprocessRunner()
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -619,20 +622,6 @@ PLUGIN_NEW_MULTIPLEX_HOOKS = []
 locale_dir = os.path.join(GATEONE_DIR, 'i18n')
 locale.load_gettext_translations(locale_dir, 'gateone')
 # NOTE: The locale gets set in __main__
-
-# Helper functions
-def require_auth(method):
-    """
-    An equivalent to `tornado.web.authenticated` for WebSockets
-    (`ApplicationWebSocket`, specifically).
-    """
-    @wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if not self.current_user:
-            self.write_message(_("Only valid users please.  Thanks!"))
-            self.close() # Close the WebSocket
-        return method(self, *args, **kwargs)
-    return wrapper
 
 def cleanup_user_logs():
     """
@@ -976,7 +965,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if not enabled_applications:
             # List all installed apps
             for app in APPLICATIONS:
-                enabled_applications.append(app.name)
+                enabled_applications.append(app.name.lower())
         self.set_status(200)
         self.set_header('Access-Control-Allow-Origin', '*')
         self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
@@ -1186,6 +1175,7 @@ class GOApplication(OnOffMixin):
     # NOTE: The icon value will be replaced with the actual icon data.
     def __init__(self, ws):
         self.ws = ws # WebSocket instance
+        self.current_user = ws.current_user
         # Setup some shortcuts to make things more natural and convenient
         self.write_message = ws.write_message
         self.write_binary = ws.write_binary
@@ -1397,6 +1387,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Only overwrite our settings if everything is proper
         if 'gateone' in prefs['*']:
             cls.prefs = prefs
+            # Reset the memoization dict so that everything using
+            # applicable_policies() gets the latest & greatest settings
+            MEMO.clear()
         else:
             # NOTE: get_settings() records its own errors too
             logger.info(_("Settings have NOT been loaded."))
@@ -1671,7 +1664,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # NOTE: Why store prefs in the class itself?  No need for redundancy.
         if 'cache_dir' not in cls.prefs['*']['gateone']:
             # Set the cache dir to a default if not set in the prefs
-            #cache_dir = os.path.join(tempfile.gettempdir(), 'gateone_cache')
             cache_dir = self.settings['cache_dir']
             cls.prefs['*']['gateone']['cache_dir'] = cache_dir
             if self.settings['debug']:
@@ -2416,25 +2408,17 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         policy = applicable_policies("gateone", self.current_user, self.prefs)
         enabled_applications = policy.get('enabled_applications', [])
+        enabled_applications = [a.lower() for a in enabled_applications]
         applications = []
         if not enabled_applications: # Load all apps
             for app in self.apps: # Use the app's name attribute
                 info_dict = app.info.copy() # Make a copy so we can change it
                 applications.append(info_dict)
         else:
-            app_dict = {} # Temporary name:app storage
-            [app_dict.update({a.info['name']: a}) for a in self.apps]
-            for name, app in app_dict.items():
-                if name in enabled_applications:
-                    applications.append(app)
-        # I've been using these for testing stuff...  Ignore
-        #enabled_applications.append("Bookmarks")
-        #enabled_applications.append("Admin")
-        #enabled_applications.append("Chat")
-        #enabled_applications.append("Log Viewer")
-        #enabled_applications.append("Help")
-        #enabled_applications.append("X11: RDP")
-        #enabled_applications.append("X11: VNC")
+            for app in self.apps: # Use the app's name attribute
+                info_dict = app.info.copy() # Make a copy so we can change it
+                if info_dict['name'].lower() in enabled_applications:
+                    applications.append(info_dict)
         applications.sort()
         # Use this user's specific allowed list of applications if possible:
         #user_apps = policy.get('user_applications', applications)
@@ -2801,39 +2785,50 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'media': media
         }
         cache_dir = self.settings['cache_dir']
+        def send_file(result):
+            """
+            Adds our minified data to the out_dict and sends it to the
+            client.
+            """
+            out_dict['data'] = result
+            if kind == 'js':
+                source_url = None
+                if 'gateone/applications/' in path:
+                    application = path.split('applications/')[1].split('/')[0]
+                    if 'plugins' in path:
+                        static_path = path.split("%s/plugins/" % application)[1]
+                        # /terminal/ssh/static/
+                        source_url = "%s%s/%s" % (
+                            url_prefix, application, static_path)
+                    else:
+                        static_path = path.split("%s/static/" % application)[1]
+                        source_url = "%s%s/static/%s" % (
+                            url_prefix, application, static_path)
+                elif 'gateone/plugins/' in path:
+                    plugin_name = path.split(
+                        'gateone/plugins/')[1].split('/')[0]
+                    static_path = path.split("%s/static/" % plugin_name)[1]
+                    source_url = "%splugins/%s/static/%s" % (
+                        url_prefix, plugin_name, static_path)
+                if source_url:
+                    out_dict['data'] += "\n//# sourceURL={source_url}\n".format(
+                        source_url=source_url)
+                message = {'go:load_js': out_dict}
+            elif kind == 'css':
+                out_dict['css'] = True # So loadStyleAction() knows what to do
+                message = {'go:load_style': out_dict}
+            elif kind == 'theme':
+                out_dict['theme'] = True
+                message = {'go:load_theme': out_dict}
+            self.write_message(message)
         if self.settings['debug']:
-            out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
+            result = get_or_cache(cache_dir, path, minify=False)
+            send_file(result)
         else:
-            out_dict['data'] = get_or_cache(cache_dir, path, minify=True)
-        if kind == 'js':
-            source_url = None
-            if 'gateone/applications/' in path:
-                application = path.split('applications/')[1].split('/')[0]
-                if 'plugins' in path:
-                    static_path = path.split("%s/plugins/" % application)[1]
-                    # /terminal/ssh/static/
-                    source_url = "%s%s/%s" % (
-                        url_prefix, application, static_path)
-                else:
-                    static_path = path.split("%s/static/" % application)[1]
-                    source_url = "%s%s/static/%s" % (
-                        url_prefix, application, static_path)
-            elif 'gateone/plugins/' in path:
-                plugin_name = path.split('gateone/plugins/')[1].split('/')[0]
-                static_path = path.split("%s/static/" % plugin_name)[1]
-                source_url = "%splugins/%s/static/%s" % (
-                    url_prefix, plugin_name, static_path)
-            if source_url:
-                out_dict['data'] += "\n//# sourceURL={source_url}\n".format(
-                    source_url=source_url)
-            message = {'go:load_js': out_dict}
-        elif kind == 'css':
-            out_dict['css'] = True # So loadStyleAction() knows what to do
-            message = {'go:load_style': out_dict}
-        elif kind == 'theme':
-            out_dict['theme'] = True
-            message = {'go:load_theme': out_dict}
-        self.write_message(message)
+            CPU_ASYNC.call(get_or_cache, cache_dir, path,
+                           minify=True, callback=send_file)
+            #result = get_or_cache(cache_dir, path, minify=True)
+            #send_file(result)
 
     def send_js_or_css(self, paths_or_fileobj, kind,
             element_id=None, requires=None, media="screen", filename=None):
@@ -4267,8 +4262,10 @@ def main():
         # The check above will fail in first-run situations
         enabled_plugins = all_settings['*']['gateone'].get(
             'enabled_plugins', [])
+        enabled_plugins = [a.lower() for a in enabled_plugins]
         enabled_applications = all_settings['*']['gateone'].get(
             'enabled_applications', [])
+        enabled_applications = [a.lower() for a in enabled_applications]
         go_settings = all_settings['*']['gateone']
     PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
     imported = load_modules(PLUGINS['py'])
@@ -4621,9 +4618,6 @@ def main():
                 https_server.listen(port=go_settings['port'], address="0.0.0.0")
         # NOTE:  To have Gate One *not* listen on a TCP/IP address you may set
         #        address=None
-        write_pid(go_settings['pid_file'])
-        pid = read_pid(go_settings['pid_file'])
-        logger.info(_("Process running with pid " + pid))
         # Check to see what group owns /dev/pts and use that for supl_groups
         # First we have to make sure there's at least one pty present
         tempfd1, tempfd2 = pty.openpty()
@@ -4635,11 +4629,18 @@ def main():
         os.close(tempfd2)
         if uid != os.getuid():
             drop_privileges(uid, gid, [tty_gid])
+        write_pid(go_settings['pid_file'])
+        pid = read_pid(go_settings['pid_file'])
+        logger.info(_("Process running with pid " + pid))
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logger.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
     finally:
         tornado.ioloop.IOLoop.instance().stop()
+        import shutil
+        logger.info(_(
+            "Clearing cache_dir: {0}").format(go_settings['cache_dir']))
+        shutil.rmtree(go_settings['cache_dir'], ignore_errors=True)
         remove_pid(go_settings['pid_file'])
         logger.info(_("pid file removed."))
         # TODO: Move this dtach stuff to app_terminal.py
@@ -4651,7 +4652,6 @@ def main():
             # specific situation.
             killall(go_settings['session_dir'], go_settings['pid_file'])
             # Cleanup the session_dir (it's supposed to only contain temp stuff)
-            import shutil
             shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
 
 if __name__ == "__main__":

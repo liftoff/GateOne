@@ -326,6 +326,7 @@ class TerminalApplication(GOApplication):
         term_log.debug("TerminalApplication.__init__(%s)" % ws)
         self.policy = {} # Gets set in authenticate() below
         self.terms = {}
+        self.loc_terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
         self.em_dimensions = None
@@ -337,7 +338,8 @@ class TerminalApplication(GOApplication):
         Called when the WebSocket is instantiated, sets up our WebSocket
         actions, security policies, and attaches all of our plugin hooks/events.
         """
-        term_log.debug("TerminalApplication.initialize()")
+        self.term_log = go_logger("gateone.terminal")
+        self.term_log.debug("TerminalApplication.initialize()")
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
         # Register our WebSocket actions
@@ -589,7 +591,13 @@ class TerminalApplication(GOApplication):
         Tell the client which 'commands' (from settings/policy) that are
         available via the `terminal:commands_list` WebSocket action.
         """
-        commands = list(self.policy['commands'].keys())
+        # Get the current settings in case they've changed:
+        policy = applicable_policies(
+            'terminal', self.current_user, self.ws.prefs)
+        commands = list(policy.get('commands', {}).keys())
+        if not commands:
+            self.term_log.error(_("You're missing the 'commands' setting!"))
+            return
         message = {'terminal:commands_list': {'commands': commands}}
         self.write_message(message)
 
@@ -957,8 +965,10 @@ class TerminalApplication(GOApplication):
             rows = 24
             cols = 80
         default_env = {"TERM": 'xterm-256color'} # Only one default
-        environment_vars = self.policy.get('environment_vars', default_env)
-        default_encoding = self.policy.get('default_encoding', 'utf-8')
+        policy = applicable_policies(
+            'terminal', self.current_user, self.ws.prefs)
+        environment_vars = policy.get('environment_vars', default_env)
+        default_encoding = policy.get('default_encoding', 'utf-8')
         encoding = settings.get('encoding', default_encoding)
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
@@ -967,7 +977,7 @@ class TerminalApplication(GOApplication):
             command = settings['command']
         else:
             try:
-                command = self.policy['default_command']
+                command = policy['default_command']
             except KeyError:
                 self.term_log.error(_(
                    "You are missing a 'default_command' in your terminal "
@@ -976,7 +986,7 @@ class TerminalApplication(GOApplication):
                 return
         # Get the full command
         try:
-            full_command = self.policy['commands'][command]
+            full_command = policy['commands'][command]
         except KeyError:
             # The given command isn't an option
             self.term_log.error(_(

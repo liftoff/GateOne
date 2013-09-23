@@ -202,7 +202,7 @@ GateOne.Base.update(GateOne.Help, {
                         u.removeElement(child);
                     };
                     v.applyTransform(child, 'translateX(-200%)');
-                    child.addEventListener('transitionend', removeIt, false);
+                    child.addEventListener(v.transitionEndName, removeIt, false);
                 });
                 helpNav.innerHTML = "";
                 helpNav.appendChild(helpBack);

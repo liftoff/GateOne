@@ -1,32 +1,6 @@
 
 // TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
-// NOTE:  This transitionEnd stuff needs to go outside the "use strict" below
-var transitionEndSupported = false,
-    transitionEndName = null;
-
-// This detects the proper transitionend event name (used by alignTerminal()):
-(function() {
-    var div = document.createElement('div'),
-    handler = function(e) {
-        transitionEndName = e.type;
-        transitionEndSupported = true;
-        this.removeEventListener('webkitTransitionEnd', arguments.callee);
-        this.removeEventListener('transitionend', arguments.callee);
-    };
-    div.setAttribute('style', 'position:absolute;top:0px;transition:top 1ms ease;-webkit-transition:top 1ms ease;-moz-transition:top 1ms ease');
-    div.addEventListener('webkitTransitionEnd', handler, false);
-    div.addEventListener('transitionend', handler, false);
-    document.documentElement.appendChild(div);
-    setTimeout(function() {
-        div.style.top = '100px';
-        setTimeout(function() {
-            div.parentNode.removeChild(div);
-            div = handler = null;
-        }, 100);
-    }, 0);
-})();
-
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
 (function(window, undefined) {
 "use strict";

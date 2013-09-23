@@ -18,31 +18,6 @@ http://www.gosquared.com/liquidicity/archives/122
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
 // TODO: This is a big one:  Support multiple simultaneous Gate One server connections/instances.
 
-// This detects the proper transitionend event name:
-var transitionEndSupported = false,
-    transitionEndName = null;
-(function() {
-    // NOTE:  This must be called outside of the "use strict" below for it to work
-    var div = document.createElement('div'),
-    handler = function(e) {
-        transitionEndName = e.type;
-        transitionEndSupported = true;
-        this.removeEventListener('webkitTransitionEnd', arguments.callee);
-        this.removeEventListener('transitionend', arguments.callee);
-    };
-    div.setAttribute('style', 'position:absolute;top:0px;transition:top 1ms ease;-webkit-transition:top 1ms ease;-moz-transition:top 1ms ease');
-    div.addEventListener('webkitTransitionEnd', handler, false);
-    div.addEventListener('transitionend', handler, false);
-    document.documentElement.appendChild(div);
-    setTimeout(function() {
-        div.style.top = '100px';
-        setTimeout(function() {
-            div.parentNode.removeChild(div);
-            div = handler = null;
-        }, 100);
-    }, 0);
-})();
-
 // Everything goes in GateOne
 (function(window, undefined) {
 "use strict";
@@ -87,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130921202703";
+GateOne.__commit__ = "20130921223026";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1340,7 +1315,7 @@ GateOne.Base.update(GateOne.Utils, {
                     go.Utils.loadStyleTimer = null;
                 }
                 go.Visual.updateDimensions(); // In case the styles changed the size of text
-                go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
+                go.node.removeEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
                 go.Events.trigger("go:css_loaded");
             };
         if (message['result'] == 'Success') {
@@ -1384,8 +1359,8 @@ GateOne.Base.update(GateOne.Utils, {
             u.cssLoadedDebounce = null;
         }
         u.cssLoadedDebounce = setTimeout(function() {
-            go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
-            go.node.addEventListener(transitionEndName, transitionEndFunc, false);
+            go.node.removeEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
+            go.node.addEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
             clearTimeout(go.Utils.loadStyleTimer);
             go.Utils.loadStyleTimer = setTimeout(function() {
                 // This should only get called if the transitionend event never fires
@@ -3046,6 +3021,29 @@ GateOne.Base.update(GateOne.Visual, {
             }
             go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
     },
+    transitionEvent: function() {
+        /**:GateOne.Visual.transitionEvent()
+
+        Returns the correct name of the 'transitionend' event for the current browser.  Example:
+
+            >>> console.log(GateOne.Visual.transitionEvent()); // Pretend we're using Chrome
+            'webkitTransitionEnd'
+            >>> console.log(GateOne.Visual.transitionEvent()); // Pretend we're using Firefox
+            'transitionend'
+        */
+        var t, el = document.createElement('fakeelement'),
+            transitions = {
+                'transition':'transitionend',
+                'OTransition':'oTransitionEnd',
+                'MozTransition':'transitionend',
+                'WebkitTransition':'webkitTransitionEnd'
+            };
+        for(t in transitions){
+            if( el.style[t] !== undefined ){
+                return transitions[t];
+            }
+        }
+    },
     applyTransform: function (obj, transform) {
         /**:GateOne.Visual.applyTransform(obj, transform[, callback1[, callbackN]])
 
@@ -3095,13 +3093,13 @@ GateOne.Base.update(GateOne.Visual, {
                 var callback = callbacks.pop(),
                     next = function() {
                         callback();
-                        node.removeEventListener(transitionEndName, next, false); // Clean up
+                        node.removeEventListener(go.Visual.transitionEvent(), next, false); // Clean up
                         if (callbacks.length) {
                             // To iterate is human; to recur, divine.
                             chain(node);
                         }
                     };
-                node.addEventListener(transitionEndName, next, false);
+                node.addEventListener(go.Visual.transitionEvent(), next, false);
             };
         if (go.Utils.isNodeList(obj) || go.Utils.isHTMLCollection(obj) || go.Utils.isArray(obj)) {
             go.Utils.toArray(obj).forEach(function(node) {
@@ -3594,14 +3592,19 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             prefix = go.prefs.prefix,
             stopIndicator = u.createElement('div', {'class': '✈ws_stop ✈ws_stop_'+direction}),
-            gridwrapper = u.getNode('#'+prefix+'gridwrapper');
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
+            transitionEndFunc = function(e) {
+                u.removeElement(stopIndicator);
+            };
+        stopIndicator.addEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
+        setTimeout(function() {
+            // This is only fired if the transitionend event doesn't work (e.g. Firefox, I'm looking at you)
+            transitionEndFunc();
+        }, 1000);
         gridwrapper.appendChild(stopIndicator);
         setTimeout(function() {
             stopIndicator.style.opacity = 0;
-        }, 1);
-        stopIndicator.addEventListener(transitionEndName, function() {
-            u.removeElement(stopIndicator);
-        }, false);
+        }, 10);
     },
     slideLeft: function() {
         /**:GateOne.Visual.slideLeft()
@@ -4181,6 +4184,9 @@ GateOne.Base.update(GateOne.Visual, {
         }
     }
 });
+
+// Set our transitionend name right away
+go.Visual.transitionEndName = go.Visual.transitionEvent();
 
 // GateOne.Storage (for storing/synchronizing stuff at the client)
 GateOne.Base.module(GateOne, "Storage", "1.0", ['Base']);

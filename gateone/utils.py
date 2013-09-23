@@ -208,7 +208,7 @@ class AutoExpireDict(dict):
     """
     An override of Python's `dict` that expires keys after a given
     *_expire_timeout* timeout (`datetime.timedelta`).  The default expiration
-    is one day.  It is used like so::
+    is one hour.  It is used like so::
 
         >>> expiring_dict = AutoExpireDict(timeout=timedelta(minutes=10))
         >>> expiring_dict['somekey'] = 'some value'
@@ -221,37 +221,95 @@ class AutoExpireDict(dict):
         >>> 'somekey' in expiring_dict
         False
 
+    The 'timeout' may be be given as a `datetime.timedelta` object or a string
+    like, "1d", "30s" (will be passed through the `convert_to_timedelta`
+    function).
+
     By default `AutoExpireDict` will check for expired keys every 30 seconds but
-    this can be changed by setting the '_check_interval' key::
+    this can be changed by setting the 'interval'::
 
         >>> expiring_dict = AutoExpireDict(interval=5000) # 5 secs
+        >>> # Or to change it after you've created one:
+        >>> expiring_dict.interval = "10s"
+
+    The 'interval' may be an integer, a `datetime.timedelta` object, or a string
+    such as '10s' or '5m' (will be passed through the `convert_to_timedelta`
+    function).
+
+    If there are no keys remaining the `tornado.ioloop.PeriodicCallback` (
+    ``self._key_watcher``) that checks expiration will be automatically stopped.
+    As soon as a new key is added it will be started back up again.
 
     .. note::
 
         Only works if there's a running instances of `tornado.ioloop.IOLoop`.
     """
     def __init__(self, *args, **kwargs):
-        self.timeout = timedelta(hours=1) # Default is 1-hour timeout
-        self.interval = 10000 # 10-second check interval default
+        self.io_loop = IOLoop.current()
+        self.creation_times = {}
         if 'timeout' in kwargs:
             self.timeout = kwargs.pop('timeout')
         if 'interval' in kwargs:
             self.interval = kwargs.pop('interval')
         super(AutoExpireDict, self).__init__(*args, **kwargs)
-        self.creation_times = {}
         # Set the start time on every key
         for k in self.keys():
             self.creation_times[k] = datetime.now()
-        self.io_loop = IOLoop.current()
         self._key_watcher = PeriodicCallback(
             self._timeout_checker, self.interval, io_loop=self.io_loop)
-        self._key_watcher.start()
+        self._key_watcher.start() # Will shut down at the next interval if empty
+
+    @property
+    def timeout(self):
+        """
+        A `property` that controls how long a key will last before being
+        automatically removed.  May be be given as a `datetime.timedelta`
+        object or a string like, "1d", "30s" (will be passed through the
+        `convert_to_timedelta` function).
+        """
+        if not hasattr(self, "_timeout"):
+            self._timeout = timedelta(hours=1) # Default is 1-hour timeout
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        if isinstance(value, basestring):
+            value = convert_to_timedelta(value)
+        self._timeout = value
+
+    @property
+    def interval(self):
+        """
+        A `property` that controls how often we check for expired keys.  May be
+        given as milliseconds (integer), a `datetime.timedelta` object, or a
+        string like, "1d", "30s" (will be passed through the
+        `convert_to_timedelta` function).
+        """
+        if not hasattr(self, "_timeout"):
+            self._interval = 10000 # Default is every 10 seconds
+        return self._interval
+
+    @interval.setter
+    def interval(self, value):
+        if isinstance(value, basestring):
+            value = convert_to_timedelta(value)
+        if isinstance(value, timedelta):
+            value = total_seconds(value) * 1000 # PeriodicCallback uses ms
+        self._interval = value
+        # Restart the PeriodicCallback
+        if hasattr(self, '_key_watcher'):
+            self._key_watcher.stop()
+        self._key_watcher = PeriodicCallback(
+            self._timeout_checker, value, io_loop=self.io_loop)
 
     def renew(self, key):
         """
         Resets the timeout on the given *key*; like it was just created.
         """
         self.creation_times[key] = datetime.now() # Set/renew the start time
+        # Start up the key watcher if it isn't already running
+        if not self._key_watcher._running:
+            self._key_watcher.start()
 
     def __setitem__(self, key, value):
         """
@@ -276,18 +334,29 @@ class AutoExpireDict(dict):
         self._key_watcher.stop()
 
     def update(self, *args, **kwargs):
+        """
+        An override that calls ``self.renew()`` for every key that gets updated.
+        """
         super(AutoExpireDict, self).update(*args, **kwargs)
-        if 'timeout' in kwargs:
-            self.timeout = kwargs.pop('timeout')
-        if 'interval' in kwargs:
-            self.interval = kwargs.pop('interval')
         for key, value in kwargs.items():
             self.renew(key)
+
+    def clear(self):
+        """
+        An override that empties ``self.creation_times`` and calls
+        ``self._key_watcher.stop()``.
+        """
+        super(AutoExpireDict, self).clear()
+        self.creation_times.clear()
+        # Shut down the key watcher right away
+        self._key_watcher.stop()
 
     def _timeout_checker(self):
         """
         Walks ``self`` and removes keys that have passed the expiration point.
         """
+        if not self.creation_times:
+            self._key_watcher.stop() # Nothing left to watch
         for key, starttime in list(self.creation_times.items()):
             if datetime.now() - starttime > self.timeout:
                 del self[key]
@@ -310,7 +379,7 @@ class memoize(object):
             timeout = timedelta(minutes=5)
         global MEMO # Use a global so that instances can share the cache
         if not MEMO:
-            MEMO = AutoExpireDict(timeout=timeout, interval=30000) # 30 sec
+            MEMO = AutoExpireDict(timeout=timeout, interval="30s")
 
     def __call__(self, *args, **kwargs):
         string = pickle.dumps(args, 0) + pickle.dumps(kwargs, 0)
@@ -1033,6 +1102,7 @@ def get_applications(application_dir, enabled=None):
     for directory in os.listdir(application_dir):
         application = directory
         directory = os.path.join(application_dir, directory) # Make absolute
+        directory = directory.lower()
         if not os.path.isdir(directory):
             continue
         if enabled and application not in enabled:
@@ -1093,6 +1163,7 @@ def get_plugins(plugin_dir, enabled=None):
     if not os.path.exists(plugin_dir):
         return out_dict
     for directory in os.listdir(plugin_dir):
+        directory = directory.lower()
         if enabled and directory not in enabled:
             continue
         plugin = directory
