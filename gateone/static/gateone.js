@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130921223026";
+GateOne.__commit__ = "20130922223847";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2775,11 +2775,11 @@ GateOne.Base.update(GateOne.Visual, {
             workspace = v.newWorkspace(),
             workspaceNum = workspace.id.split(prefix+'workspace')[1],
             callFunc = function(settings, parentApp, e) {
-                var name = settings['name'];
+                var subAppName = name = settings['name'];
                 if (parentApp !== undefined) {
                     name = parentApp['name'];
                     settings = parentApp;
-                    settings['sub_application'] = settings['name'];
+                    settings['sub_application'] = subAppName;
                 }
                 if (go.loadedApplications[name] && go.loadedApplications[name].__new__) {
                     wsContainer.style.opacity = 0;
