@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130922223847" # Gets replaced by git (holds the date/time)
+__commit__ = "20130923085621" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -481,6 +481,7 @@ import atexit
 import ssl
 import hashlib
 import tempfile
+from contextlib import contextmanager
 from functools import partial
 from datetime import datetime, timedelta
 
@@ -567,8 +568,13 @@ def _(string):
     else:
         return string
 
-from go_async import MultiprocessRunner
-CPU_ASYNC = MultiprocessRunner()
+from go_async import MultiprocessRunner, ThreadedRunner
+try:
+    CPU_ASYNC = MultiprocessRunner()
+except NotImplementedError:
+    # System doesn't support multiprocessing (for whatever reason).
+    CPU_ASYNC = ThreadedRunner() # Fake it using threads
+IO_ASYNC = ThreadedRunner()
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -762,6 +768,16 @@ def kill_all_sessions(timeout=False):
                 if SESSIONS[session]["kill_session_callbacks"]:
                     for callback in SESSIONS[session]["kill_session_callbacks"]:
                         callback(session)
+
+@atexit.register
+def shutdown_async():
+    """
+    Shuts down our asynchronous processes/threads.  Specifically, calls
+    ``CPU_ASYNC.shutdown()`` and ``IO_ASYNC.shutdown()``.
+    """
+    logging.debug(_("Shutting down asynchronous processes/threads..."))
+    CPU_ASYNC.shutdown(wait=False)
+    IO_ASYNC.shutdown(wait=False)
 
 def timeout_sessions():
     """

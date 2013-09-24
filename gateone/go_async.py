@@ -16,19 +16,16 @@ except ImportError:
     print('\tsudo pip install futures')
     import sys
     sys.exit(1)
-import pickle
+import pickle, signal, os
 from functools import wraps
 from datetime import timedelta
 from itertools import count
-from multiprocessing import cpu_count
-from tornado.concurrent import run_on_executor
 from tornado.ioloop import IOLoop
 from utils import AutoExpireDict, convert_to_timedelta
 
-CPUS = cpu_count() + 1
-
 # A global to old memoized results (so multiple instances can share)
 MEMO = {}
+PID = os.getpid() # So we can tell if we're in the parent process or not
 
 def restart_executor(fn):
     """
@@ -39,8 +36,55 @@ def restart_executor(fn):
     def wrapper(self, *args, **kwargs):
         if not self.running:
             self.run()
+        self.restart_shutdown_timeout()
         return fn(self, *args, **kwargs)
     return wrapper
+
+def safe_call(function, *args, **kwargs):
+    """
+    If we're not in the main process, sets the default signal handler
+    (`signal.SIG_DFL`) for the ``SIGINT`` signal before calling *function*
+    using the given *args* and *kwargs*.  Otherwise *function* will just be
+    called and returned normally.
+
+    The point being to prevent loads of unnecessary tracebacks from being
+    printed to stdout when the user executes a :kbd:`Ctrl-C` on a running
+    gateone.py process.
+
+    ..  note::
+
+        This function is only meant to be used to wrap calls made inside of
+        `MultiprocessRunner` instances.
+    """
+    if os.getpid() != PID:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+    return function(*args, **kwargs)
+
+def append_results(results, function, *args, **kwargs):
+    """
+    Calls *function* with the given *args* and *kwargs* then appends the result
+    to *results* (which must be a list).  If we're not in the main process the
+    given *function* will be called using `safe_call`.
+    """
+    if os.getpid() != PID:
+        results.append(safe_call(function, *args, **kwargs))
+    else:
+        results.append(function(*args, **kwargs))
+
+def callback_when_complete(futures, callback):
+    """
+    Calls *callback* after all *futures* (list) have completed running.
+    """
+    counter = count(1)
+    io_loop = IOLoop.instance()
+    results = []
+    def add_one(f):
+        c = counter.next()
+        results.append(f.result())
+        if c >= len(futures):
+            return callback(results)
+    for future in futures:
+        io_loop.add_future(future, add_one)
 
 def _cache_result(future, args_string):
     """
@@ -103,7 +147,9 @@ class AsyncRunner(object):
         """
         Calls :meth:`self.executor.shutdown(wait)`
         """
-        self.executor.shutdown(wait)
+        if self.shutdown_timeout:
+            self.io_loop.remove_timeout(self.shutdown_timeout)
+        self.executor.shutdown(wait=wait)
         self.running = False
 
     def restart_shutdown_timeout(self):
@@ -115,6 +161,14 @@ class AsyncRunner(object):
         self.shutdown_timeout = self.io_loop.add_timeout(
             self.timeout, self.shutdown)
 
+    def __del__(self):
+        """
+        Shuts down ``self.executor`` and clears the memoization cache.
+        """
+        if hasattr(MEMO, 'clear'):
+            MEMO.clear()
+        self.shutdown()
+
     @restart_executor
     def call(self, function, *args, **kwargs):
         """
@@ -123,7 +177,6 @@ class AsyncRunner(object):
         complete.
         """
         string = ""
-        self.restart_shutdown_timeout()
         callback = kwargs.pop('callback', None)
         if hasattr(function, '__name__'):
             string = function.__name__
@@ -135,7 +188,7 @@ class AsyncRunner(object):
             else:
                 f.set_result(MEMO[string])
             return f
-        future = self.executor.submit(function, *args, **kwargs)
+        future = self.executor.submit(safe_call, function, *args, **kwargs)
         if callback:
             self.io_loop.add_future(
                 future, lambda future: callback(future.result()))
@@ -143,43 +196,35 @@ class AsyncRunner(object):
             future, lambda future: _cache_result(future, string))
         return future
 
+    @restart_executor
+    def map(self, function, *iterables, **kwargs):
+        """
+        Calls *function* for every item in *iterables* then calls *callback* (
+        if provided as a keyword argument via *kwargs*) with a list containing
+        the results when complete.  The results list will be in the order in
+        which *iterables* was passed to *function* (not random or based on how
+        long they took to complete).
+
+        Any additional *kwargs* will be passed to the *function* with each
+        iteration of *iterables*.
+        """
+        callback = kwargs.pop('callback', None)
+        futures = []
+        for i in iterables:
+            futures.append(self.executor.submit(
+                safe_call, function, i, **kwargs))
+        if callback:
+            callback_when_complete(futures, callback)
+        return futures
+
 # The stuff below needs to be converted to use the new self-restarting executor
 # style of AsyncRunner.  It's a work-in-progress (I know what to do--just not a
 # priority at the moment since these functions aren't used yet).
-    #@restart_executor
-    #def itercall(self, functions, callback=None):
-        #"""
-        #Executes *functions* (iterable) in a serial fashion and calls *callback*
-        #with the results (as a list) when complete.
-
-        #.. note::
-
-            #Uses the `tornado.concurrent.run_on_executor` decorator to work in
-            #a non-blocking fashion.
-        #"""
-        #results = []
-        #self.restart_shutdown_timeout()
-        #callback = kwargs.pop('callback', None)
-        #def append_result(result):
-            #results.append(result)
-        #def callback_result(result):
-            #callback(results)
-        #for function in functions:
-            #future = self.executor.submit(function, *args, **kwargs)
-            #if callback:
-                #self.io_loop.add_future(
-                    #future, lambda future: append_result(future.result()))
-            #return results
-        ##for function in functions:
-            ##results.append(function())
-        ##if callback:
-            ##callback(results)
-        ##return results
 
     #@restart_executor
     #def argchain(self, functions, callback=None):
         #"""
-        #Like `AsyncRunner.itercall` but will pass the result of each function
+        #Like `AsyncRunner.map` but will pass the result of each function
         #in *functions* as the argument to the next function in the chain.  Calls
         #*callback* when the chain of functions has completed executing.
         #Equivalent to::
@@ -264,7 +309,7 @@ class ThreadedRunner(AsyncRunner):
         super(ThreadedRunner, self).__init__(**kwargs)
 
     def run(self):
-        self.executor = futures.ThreadPoolExecutor(self.max_workers)
+        self.executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
 
 class MultiprocessRunner(AsyncRunner):
     """
@@ -274,11 +319,12 @@ class MultiprocessRunner(AsyncRunner):
 
     .. warn:: Only works when all objects used by the function(s) are picklable!
     """
-    def __init__(self, max_workers=CPUS, **kwargs):
+    def __init__(self, max_workers=None, **kwargs):
         self.io_loop = IOLoop.current()
         self.max_workers = max_workers
         self.run()
         super(MultiprocessRunner, self).__init__(**kwargs)
 
     def run(self):
-        self.executor = futures.ProcessPoolExecutor(self.max_workers)
+        self.executor = futures.ProcessPoolExecutor(
+            max_workers=self.max_workers)
