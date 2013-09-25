@@ -752,6 +752,8 @@ class TerminalApplication(GOApplication):
         session_dir = options.session_dir
         session_dir = os.path.join(session_dir, self.ws.session)
         settings_path = os.path.join(session_dir, 'term_settings.json')
+        if not os.path.exists(settings_path):
+            return # Nothing to do
         with io.open(settings_path, encoding='utf-8') as f:
             settings = json_decode(f.read())
         if self.ws.location in settings and term in settings[self.ws.location]:
@@ -771,6 +773,8 @@ class TerminalApplication(GOApplication):
         session_dir = options.session_dir
         session_dir = os.path.join(session_dir, self.ws.session)
         settings_path = os.path.join(session_dir, 'term_settings.json')
+        if not os.path.exists(settings_path):
+            return # Nothing to do
         # First we read in the existing settings and then update them.
         if os.path.exists(settings_path):
             with io.open(settings_path, encoding='utf-8') as f:
