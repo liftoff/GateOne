@@ -256,6 +256,7 @@ def openssh_connect(
         env['COLUMNS'] = os.environ['COLUMNS']
         # Also pass on some useful (but harmless) Gate One-specific vars:
         env['GO_TERM'] = os.environ['GO_TERM']
+        env['GO_LOCATION'] = os.environ['GO_LOCATION']
         env['GO_SESSION'] = os.environ['GO_SESSION']
     except KeyError:
         pass # These variables aren't set
@@ -290,7 +291,7 @@ def openssh_connect(
         "-oIdentityFile='/dev/null'",
         # This ensures the other end can tell we're a Gate One terminal and
         # possibly use the session ID with plugins (could be interesting).
-        "-oSendEnv='GO_TERM GO_SESSION'",
+        "-oSendEnv='GO_TERM GO_LOCATION GO_SESSION'",
         "-p", str(port),
         "-l", user,
     ]
@@ -392,10 +393,16 @@ def openssh_connect(
         # likely to fail
     script_path = None
     if 'GO_TERM' in os.environ.keys():
+        term = os.environ['GO_TERM']
+        location = os.environ['GO_LOCATION']
+        if socket:
+            # Emit our special optional escape sequence to tell ssh.py the path
+            # to the SSH socket
+            print("\x1b]_;ssh|set;ssh_socket;{0};{1}\007".format(term, socket))
         if 'GO_SESSION_DIR' in os.environ.keys():
             # Save a file indicating our session is attached to GO_TERM
-            term = os.environ['GO_TERM']
-            ssh_session = 'ssh:%s:%s@%s:%s' % (term, user, host, port)
+            ssh_session = 'ssh:%s:%s:%s@%s:%s' % (
+                location, term, user, host, port)
             script_path = os.path.join(
                 os.environ['GO_SESSION_DIR'], ssh_session)
     if not script_path:
@@ -457,8 +464,8 @@ def telnet_connect(user, host, port=23, env=None):
         env['PATH'] = os.environ['PATH']
         command = which("telnet", path=env['PATH'])
     if not command: # telnet command not found
-        print(_('Error: Could not find %r binary in path %r' % (
-            binary, env['PATH'])))
+        print(_(
+            'Error: Could not find telnet binary in path %r' % (env['PATH'])))
         sys.exit(1)
     args = [host, str(port)]
     if user:
@@ -772,7 +779,10 @@ if __name__ == "__main__":
             print("\x1b]0;ssh://%s@%s\007" % (user, host))
             # Special escape handler (so the rest of the plugin knows the
             # connect string)
-            print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
+            term = os.environ.get('GO_TERM', '0')
+            connect_string = "{0}@{1}:{2}".format(user, host, port)
+            print("\x1b]_;ssh|set;connect_string;{0};{1}\007".format(
+                term, connect_string))
             openssh_connect(user, host, port,
                 command=options.command,
                 password=password,

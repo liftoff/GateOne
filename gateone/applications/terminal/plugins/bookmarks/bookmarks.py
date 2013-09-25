@@ -645,7 +645,7 @@ def save_bookmarks(self, bookmarks):
         out_dict['updateSequenceNum'] = bookmarks_db.get_highest_USN()
     except Exception as e:
         import traceback
-        logging.error("Got exception synchronizing bookmarks: %s" % e)
+        self.term_log.error("Got exception synchronizing bookmarks: %s" % e)
         traceback.print_exc(file=sys.stdout)
         out_dict['errors'].append(str(e))
     if out_dict['errors']:

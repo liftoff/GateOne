@@ -1005,21 +1005,16 @@ go.Base.update(go.SSH, {
         t.terminals[term]['sshConnectString'] = connectString;
         go.ws.send(JSON.stringify({'terminal:ssh_get_host_fingerprint': message}));
     },
-    handleReconnect: function(jsonDoc) {
-        /**:GateOne.SSH.handleReconnect(jsonDoc)
+    handleReconnect: function(message) {
+        /**:GateOne.SSH.handleReconnect(message)
 
-        Handles the `terminal:sshjs_reconnect` WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example *jsonDoc*::
+        Handles the `terminal:sshjs_reconnect` WebSocket action which should provide an object containing each terminal's SSH connection string.  Example *message*::
 
-            {1: 'user@host1:22', 2: 'user@host2:22'}
+            {"term": 1, "connect_string": "user@host1:22"}
         */
-        var go = GateOne,
-            dict = JSON.parse(jsonDoc);
-        for (var term in dict) {
-            try {
-                go.Terminal.terminals[term]['sshConnectString'] = dict[term];
-            } catch (e) {
-                logError("GateOne.SSH.handleReconnect() encountered an exception: " + e);
-            }
+        var term = message['term'];
+        if (t.terminals[term]) {
+            t.terminals[term]['sshConnectString'] = message['connect_string'];
         }
     },
     keygenComplete: function(message) {

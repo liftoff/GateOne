@@ -43,8 +43,7 @@ __version_info__ = (1, 1)
 __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
-import os
-import re
+import os, re, logging
 import terminal
 from utils import get_translation
 
@@ -97,7 +96,7 @@ class HTMLOutput(terminal.FileType):
         Captures the raw HTML and stores it in a temporary location returning
         that file object.
         """
-        self.term_log.debug('HTMLOutput.capture() len(data) %s' % len(data))
+        logging.debug('HTMLOutput.capture() len(data) %s' % len(data))
         import tempfile
         # A bit of output cleanup
         html = str(data).replace('\r\n', '\n')

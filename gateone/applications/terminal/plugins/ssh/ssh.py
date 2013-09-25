@@ -156,15 +156,7 @@ def open_sub_channel(self, term):
     if not session_path:
         raise SSHMultiplexingException(_(
             "SSH Plugin: Unable to open slave sub-channel."))
-    socket_path = None
-    # Find the SSH socket path...
-    for f in os.listdir(session_path):
-        if f.startswith('ssh:%s:' % term):
-            # Grab the SSH socket path from the file
-            for line in open(os.path.join(session_path, f)):
-                if line.startswith('SSH_SOCKET'):
-                    # NOTE: This will includes quotes (which is fine):
-                    socket_path = line.split('=')[1].strip()
+    socket_path = self.loc_terms[term]['ssh_socket']
     # Interesting: When using an existing socket you don't need to give it all
     # the same options as you used to open it but you still need to give it
     # *something* in place of the hostname or it will report a syntax error and
@@ -453,20 +445,16 @@ def get_connect_string(self, term):
     `GateOne.Terminal.terminals[*term*]['sshConnectString']`.
     """
     self.term_log.debug("get_connect_string() term: %s" % term)
-    session = self.ws.session
-    session_dir = self.ws.settings['session_dir']
-    for f in os.listdir(os.path.join(session_dir, session)):
-        if f.startswith('ssh:'):
-            terminal, a_colon, connect_string = f[4:].partition(':')
-            terminal = int(terminal)
-            if terminal == term:
-                # TODO: Make it so we don't have to use json_encode below...
-                message = {
-                    'terminal:sshjs_reconnect': json_encode(
-                    {term: connect_string})
-                }
-                self.write_message(message)
-                return # All done
+    term = int(term)
+    connect_string = self.loc_terms[term].get('ssh_connect_string', None)
+    if connect_string:
+        message = {
+            'terminal:sshjs_reconnect': {
+                'term': term,
+                'connect_string': connect_string
+            }
+        }
+        self.write_message(message)
 
 def get_key(self, name, public):
     """
@@ -1039,6 +1027,31 @@ def set_default_identities(self, identities):
         with open(default_ids_path, 'w') as f:
             f.write('\n'.join(identities) + '\n') # Need that trailing newline
 
+def set_ssh_socket(self, term, path):
+    """
+    Given a *term* and *path*, sets
+    ``self.loc_terms[term]['ssh_socket'] = path``.
+    """
+    self.term_log.debug("set_ssh_socket(): %s, %s" % (term, path))
+    term = int(term)
+    if term in self.loc_terms:
+        self.loc_terms[term]['ssh_socket'] = path
+        self.save_term_settings(term, {'ssh_socket': path})
+
+def set_ssh_connect_string(self, term, connect_string):
+    """
+    Given a *term* and *connect_string*, sets
+    ``self.loc_terms[term]['ssh_connect_string'] = connect_string``.
+    """
+    self.term_log.debug(
+        'set_ssh_connect_string: %s, %s' % (term, connect_string))
+    term = int(term)
+    if term in self.loc_terms:
+        self.loc_terms[term]['ssh_connect_string'] = connect_string
+        self.save_term_settings(term, {'ssh_connect_string': connect_string})
+    message = {'terminal:sshjs_connect': connect_string}
+    self.write_message(message)
+
 # Special optional escape sequence handler (see docs on how it works)
 def opt_esc_handler(self, text):
     """
@@ -1047,15 +1060,25 @@ def opt_esc_handler(self, text):
     information to duplicate sessions (if the user so desires).  For reference,
     the specific string which will call this function from a terminal app is::
 
-        \\x1b]_;ssh|<whatever>\x07
+        \\x1b]_;ssh|<whatever>\\x07
 
     .. seealso::
 
         :class:`gateone.TerminalWebSocket.esc_opt_handler` and
         :func:`terminal.Terminal._opt_handler`
     """
-    message = {'terminal:sshjs_connect': text}
-    self.write_message(message)
+    supported_assignments = {
+        'ssh_socket': set_ssh_socket,
+        'connect_string': set_ssh_connect_string
+    }
+    if text.startswith('set;'):
+        values = text.split(';')
+        assignment = values[1]
+        data = values[2:]
+        func = supported_assignments.get(assignment, None)
+        if func:
+            func(self, *data)
+        return
 
 def create_user_ssh_dir(self):
     """
@@ -1106,7 +1129,7 @@ hooks = {
         'terminal:ssh_gen_new_keypair': generate_new_keypair,
         'terminal:ssh_store_id_file': store_id_file,
         'terminal:ssh_delete_identity': delete_identity,
-        'terminal:ssh_set_default_identities': set_default_identities
+        'terminal:ssh_set_default_identities': set_default_identities,
     },
     'Escape': opt_esc_handler,
 }

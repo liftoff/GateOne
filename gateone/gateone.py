@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130923085621" # Gets replaced by git (holds the date/time)
+__commit__ = "20130923222228" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -481,7 +481,6 @@ import atexit
 import ssl
 import hashlib
 import tempfile
-from contextlib import contextmanager
 from functools import partial
 from datetime import datetime, timedelta
 
@@ -2019,61 +2018,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 f.write(session_info_json)
         return user
 
-# Work-in-progress...  New session-re-key stuff
-    #def new_session_id(self, existing_session=None):
-        #"""
-        #Creates a new session ID for the user and stores it in the `SESSIONS`
-        #global.  If the user already has an existing session it will be renamed.
-        #"""
-        #user = self.current_user
-        #if 'session' not in user:
-
-        #session = user['session']
-        #if self.session not in SESSIONS:
-            ## Start a new session:
-            #SESSIONS[self.session] = {
-                #'last_seen': 'connected',
-                #'user': self.current_user,
-                #'kill_session_callbacks': [
-                    #partial(self.send_message,
-                        #_("Please wait while the server is restarted..."))
-                #],
-                #'timeout_callbacks': [],
-                ## Locations are virtual containers that indirectly correlate
-                ## with browser windows/tabs.  The point is to allow things like
-                ## opening/moving applications/terminals in/to new windows/tabs.
-                #'locations': {self.location: {}}
-            #}
-        #else:
-            #SESSIONS[self.session]['last_seen'] = 'connected'
-            #if self.location not in SESSIONS[self.session]['locations']:
-                #SESSIONS[self.session]['locations'][self.location] = {}
-        #user_dir = os.path.join(
-            #self.prefs['*']['gateone']['user_dir'], user['upn'])
-        #if not os.path.exists(user_dir):
-            #logging.info(_("Creating user directory: %s" % user_dir))
-            #mkdir_p(user_dir)
-            #os.chmod(user_dir, 0o700)
-        #session_file = os.path.join(user_dir, 'session')
-        #session_file_exists = os.path.exists(session_file)
-        #if session_file_exists:
-            #session_data = open(session_file).read()
-            #try:
-                #session_info = tornado.escape.json_decode(session_data)
-            #except ValueError: # Something wrong with the file
-                #session_file_exists = False # Overwrite it below
-        #if not session_file_exists:
-            #with open(session_file, 'w') as f:
-                ## Save it so we can keep track across multiple clients
-                #session_info = {
-                    #'session': generate_session_id(),
-                #}
-                #session_info.update(user)
-                #session_info_json = tornado.escape.json_encode(session_info)
-                #f.write(session_info_json)
-        #self.set_secure_cookie(
-            #"gateone_user", tornado.escape.json_encode(session_info))
-
     def authenticate(self, settings):
         """
         Authenticates the client by first trying to use the 'gateone_user'
@@ -2841,10 +2785,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             result = get_or_cache(cache_dir, path, minify=False)
             send_file(result)
         else:
+            # NOTE: We disable memoization below because get_or_cache() does its
+            # own check to see if processing the file is necessary.
             CPU_ASYNC.call(get_or_cache, cache_dir, path,
-                           minify=True, callback=send_file)
-            #result = get_or_cache(cache_dir, path, minify=True)
-            #send_file(result)
+                           minify=True, callback=send_file, memoize=False)
 
     def send_js_or_css(self, paths_or_fileobj, kind,
             element_id=None, requires=None, media="screen", filename=None):
@@ -4660,7 +4604,7 @@ def main():
         remove_pid(go_settings['pid_file'])
         logger.info(_("pid file removed."))
         # TODO: Move this dtach stuff to app_terminal.py
-        if not all_settings['*']['terminal']['dtach']:
+        if not options.dtach:
             # If we're not using dtach play it safe by cleaning up any leftover
             # processes.  When passwords are used with the ssh_conenct.py script
             # it runs os.setsid() on the child process which means it won't die

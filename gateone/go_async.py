@@ -172,22 +172,27 @@ class AsyncRunner(object):
     @restart_executor
     def call(self, function, *args, **kwargs):
         """
-        Executes *function* with *args* and *kwargs*.  If one of those *kwargs*
-        is 'callback' it will be called *callback* with the result when
-        complete.
+        Executes *function* with *args* and *kwargs*.  Calls are automatically
+        memoized and recalled from a cache unless ``memoize=False`` is passed as
+        a keyword argument.
+
+        If 'callback' is passed as a keyword argument (*kwargs*) it will be
+        called with the result when complete.
         """
         string = ""
         callback = kwargs.pop('callback', None)
-        if hasattr(function, '__name__'):
-            string = function.__name__
-        string += pickle.dumps(args, 0) + pickle.dumps(kwargs, 0)
-        if string in MEMO:
-            f = futures.Future() # Emulate a completed Future()
-            if callback:
-                f.set_result(callback(MEMO[string]))
-            else:
-                f.set_result(MEMO[string])
-            return f
+        memoize = kwargs.pop('memoize', True)
+        if memoize:
+            if hasattr(function, '__name__'):
+                string = function.__name__
+            string += pickle.dumps(args, 0) + pickle.dumps(kwargs, 0)
+            if string in MEMO:
+                f = futures.Future() # Emulate a completed Future()
+                if callback:
+                    f.set_result(callback(MEMO[string]))
+                else:
+                    f.set_result(MEMO[string])
+                return f
         future = self.executor.submit(safe_call, function, *args, **kwargs)
         if callback:
             self.io_loop.add_future(

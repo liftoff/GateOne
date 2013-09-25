@@ -1663,8 +1663,8 @@ go.Base.update(GateOne.Bookmarks, {
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'}),
             bmHelp = u.createElement('p');
-        bmSubmit.innerHTML = "Submit";
-        bmCancel.innerHTML = "Cancel";
+        bmSubmit.innerHTML = gettext("Submit");
+        bmCancel.innerHTML = gettext("Cancel");
         importLabel.innerHTML = "Upload bookmarks.html or bookmarks.json";
         importLabel.htmlFor = prefix+'bookmarks_upload';
         bmForm.appendChild(importLabel);
@@ -1813,8 +1813,8 @@ go.Base.update(GateOne.Bookmarks, {
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'});
-        bmSubmit.innerHTML = "Submit";
-        bmCancel.innerHTML = "Cancel";
+        bmSubmit.innerHTML = gettext("Save");
+        bmCancel.innerHTML = gettext("Cancel");
         urlLabel.innerHTML = "URL";
         urlLabel.htmlFor = prefix+'bm_newurl';
         nameLabel.innerHTML = "Name";
@@ -2424,8 +2424,8 @@ go.Base.update(GateOne.Bookmarks, {
         bmCancel.onclick = closeDialog;
         bmForm.appendChild(bmSubmit);
         bmForm.appendChild(bmCancel);
-        bmSubmit.innerHTML = "Submit";
-        bmCancel.innerHTML = "Cancel";
+        bmSubmit.innerHTML = gettext("Save");
+        bmCancel.innerHTML = gettext("Cancel");
         var closeDialog = go.Visual.dialog("Rename Tag: " + tagName, bmForm);
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
@@ -2489,8 +2489,8 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
         bmForm.appendChild(bmSubmit);
         bmForm.appendChild(bmCancel);
-        bmSubmit.innerHTML = "Submit";
-        bmCancel.innerHTML = "Cancel";
+        bmSubmit.innerHTML = gettext("Go");
+        bmCancel.innerHTML = gettext("Cancel");
         var closeDialog = go.Visual.dialog("Keyword Search: " + title, bmForm);
         bmCancel.onclick = closeDialog;
         bmForm.onsubmit = function(e) {

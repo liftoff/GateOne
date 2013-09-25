@@ -25,7 +25,7 @@ from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import which, get_translation
+from utils import which, get_translation, json_decode, RUDict
 from golog import go_logger
 
 # 3rd party imports
@@ -713,6 +713,73 @@ class TerminalApplication(GOApplication):
         message = {'terminal:colors_list': {'colors': colors}}
         self.write_message(message)
 
+    def save_term_settings(self, term, settings):
+        """
+        Saves whatever *settings* (must be JSON-encodable) are provided in the
+        user's session directory; associated with the given *term*.
+
+        The `restore_term_setings` function can be used to restore the provided
+        settings.
+
+        .. note:: This method is primarily to aid dtach support.
+        """
+        self.term_log.debug("save_term_settings(%s, %s)" % (term, settings))
+        term = str(term) # JSON wants strings as keys
+        term_settings = RUDict()
+        term_settings[self.ws.location] = {term: settings}
+        session_dir = options.session_dir
+        session_dir = os.path.join(session_dir, self.ws.session)
+        settings_path = os.path.join(session_dir, 'term_settings.json')
+        # First we read in the existing settings and then update them.
+        if os.path.exists(settings_path):
+            with io.open(settings_path, encoding='utf-8') as f:
+                term_settings.update(json_decode(f.read()))
+            term_settings[self.ws.location][term].update(settings)
+        with io.open(settings_path, 'w', encoding='utf-8') as f:
+            f.write(json_encode(term_settings))
+        self.trigger("terminal:save_term_setings", term, settings)
+
+    def restore_term_settings(self, term):
+        """
+        Reads the settings associated with the given *term* that are stored in
+        the user's session directory and applies them to
+        ``self.loc_terms[term]``
+
+        .. note:: This method is primarily to aid dtach support.
+        """
+        term = str(term) # JSON wants strings as keys
+        self.term_log.debug("restore_term_settings(%s)" % term)
+        session_dir = options.session_dir
+        session_dir = os.path.join(session_dir, self.ws.session)
+        settings_path = os.path.join(session_dir, 'term_settings.json')
+        with io.open(settings_path, encoding='utf-8') as f:
+            settings = json_decode(f.read())
+        if self.ws.location in settings and term in settings[self.ws.location]:
+            self.loc_terms[int(term)].update(settings[self.ws.location][term])
+        self.trigger("terminal:restore_term_settings", term, settings)
+        return settings
+
+    def clear_term_settings(self, term):
+        """
+        Removes any settings associated with the given *term* in the user's
+        term_settings.json file (in their session directory).
+        """
+        term = str(term)
+        self.term_log.debug("clear_term_settings(%s)" % term)
+        term_settings = RUDict()
+        term_settings[self.ws.location] = {term: {}}
+        session_dir = options.session_dir
+        session_dir = os.path.join(session_dir, self.ws.session)
+        settings_path = os.path.join(session_dir, 'term_settings.json')
+        # First we read in the existing settings and then update them.
+        if os.path.exists(settings_path):
+            with io.open(settings_path, encoding='utf-8') as f:
+                term_settings.update(json_decode(f.read()))
+        del term_settings[self.ws.location][term]
+        with io.open(settings_path, 'w', encoding='utf-8') as f:
+            f.write(json_encode(term_settings))
+        self.trigger("terminal:clear_term_settings", term)
+
     @require(authenticated(), policies('terminal'))
     def terminals(self, *args, **kwargs):
         """
@@ -732,8 +799,8 @@ class TerminalApplication(GOApplication):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
         # Check for any dtach'd terminals we might have missed
-        if self.ws.settings['dtach'] and which('dtach'):
-            session_dir = self.ws.settings['session_dir']
+        if options.dtach and which('dtach'):
+            session_dir = options.session_dir
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
@@ -810,7 +877,7 @@ class TerminalApplication(GOApplication):
         set_title = partial(self.set_title, term)
         term_emulator.add_callback(
             terminal.CALLBACK_TITLE, set_title, callback_id)
-        set_title() # Set initial title
+        #set_title() # Set initial title
         bell = partial(self.bell, term)
         term_emulator.add_callback(
             terminal.CALLBACK_BELL, bell, callback_id)
@@ -880,7 +947,7 @@ class TerminalApplication(GOApplication):
         except:
             # No auth, use ANONYMOUS (% is there to prevent conflicts)
             user = r'ANONYMOUS' # Don't get on this guy's bad side
-        session_dir = self.settings['session_dir']
+        session_dir = options.session_dir
         session_dir = os.path.join(session_dir, self.ws.session)
         log_path = None
         syslog_logging = False
@@ -970,6 +1037,8 @@ class TerminalApplication(GOApplication):
         environment_vars = policy.get('environment_vars', default_env)
         default_encoding = policy.get('default_encoding', 'utf-8')
         encoding = settings.get('encoding', default_encoding)
+        settings_dir = self.settings['settings_dir']
+        user_session_dir = os.path.join(options.session_dir, self.ws.session)
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
         #       terminal settings.
@@ -982,7 +1051,7 @@ class TerminalApplication(GOApplication):
                 self.term_log.error(_(
                    "You are missing a 'default_command' in your terminal "
                    "settings (usually 50terminal.conf in %s)"
-                   % self.ws.settings['settings_dir']))
+                   % settings_dir))
                 return
         # Get the full command
         try:
@@ -1040,27 +1109,25 @@ class TerminalApplication(GOApplication):
             cmd = cmd_var_swap(full_command,# Swap out variables like %USER%
                 gateone_dir=GATEONE_DIR,
                 session=self.ws.session, # with their real-world values.
-                session_dir=self.ws.settings['session_dir'],
+                session_dir=options.session_dir,
                 session_hash=short_hash(self.ws.session),
                 userdir=user_dir,
                 user=user,
                 time=now
             )
             resumed_dtach = False
-            session_dir = self.settings['session_dir']
-            session_dir = os.path.join(session_dir, self.ws.session)
-            # Create the session dir if not already present
-            if not os.path.exists(session_dir):
-                mkdir_p(session_dir)
-                os.chmod(session_dir, 0o770)
-            if self.ws.settings['dtach'] and which('dtach'):
+            # Create the user's session dir if not already present
+            if not os.path.exists(user_session_dir):
+                mkdir_p(user_session_dir)
+                os.chmod(user_session_dir, 0o770)
+            if options.dtach and which('dtach'):
                 # Wrap in dtach (love this tool!)
                 dtach_path = "{session_dir}/dtach_{location}_{term}".format(
-                    session_dir=session_dir,
+                    session_dir=user_session_dir,
                     location=self.ws.location,
                     term=term)
                 if os.path.exists(dtach_path):
-                    # Using 'none' for the refresh because the EVIL termio
+                    # Using 'none' for the refresh because termio
                     # likes to manage things like that on his own...
                     cmd = "dtach -a %s -E -z -r none" % dtach_path
                     resumed_dtach = True
@@ -1073,12 +1140,13 @@ class TerminalApplication(GOApplication):
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
                 'GO_DIR': GATEONE_DIR,
-                'GO_SETTINGS_DIR': self.ws.settings['settings_dir'],
+                'GO_SETTINGS_DIR': settings_dir,
                 'GO_USER_DIR': user_dir,
                 'GO_USER': user,
                 'GO_TERM': str(term),
+                'GO_LOCATION': self.ws.location,
                 'GO_SESSION': self.ws.session,
-                'GO_SESSION_DIR': session_dir
+                'GO_SESSION_DIR': options.session_dir
             }
             env.update(environment_vars) # Apply policy-based environment
             if self.plugin_env_hooks:
@@ -1086,7 +1154,7 @@ class TerminalApplication(GOApplication):
                 env.update(self.plugin_env_hooks)
             m.spawn(rows, cols, env=env, em_dimensions=self.em_dimensions)
             # Give the terminal emulator a path to store temporary files
-            m.term.temppath = os.path.join(session_dir, 'downloads')
+            m.term.temppath = os.path.join(user_session_dir, 'downloads')
             if not os.path.exists(m.term.temppath):
                 os.mkdir(m.term.temppath)
             # Tell it how to serve them up (origin ensures correct link)
@@ -1109,8 +1177,6 @@ class TerminalApplication(GOApplication):
                 self.write_message(json_encode(message))
                 # This resets the screen diff
                 m.prev_output[self.ws.client_id] = [None] * rows
-                # Remind the client about this terminal's title
-                self.set_title(term, force=True)
             else:
                 # Tell the client this terminal is no more
                 self.term_ended(term)
@@ -1118,7 +1184,6 @@ class TerminalApplication(GOApplication):
         # Setup callbacks so that everything gets called when it should
         self.add_terminal_callbacks(
             term, term_obj['multiplex'], self.callback_id)
-        self.set_title(term, force=True)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -1131,6 +1196,12 @@ class TerminalApplication(GOApplication):
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
                 "logged!"))
         self.send_term_encoding(term, encoding)
+        if self.loc_terms[term]['multiplex'].cmd.startswith('dtach -a'):
+            # This dtach session was resumed; restore terminal settings
+            self.restore_term_settings(term)
+            # The multiplex instance needs the title set by hand (it's special)
+            term_obj['multiplex'].term.title = self.loc_terms[term]['title']
+            self.set_title(term, force=True)
         self.trigger("terminal:new_terminal", term)
 
     @require(authenticated())
@@ -1293,16 +1364,17 @@ class TerminalApplication(GOApplication):
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
-            if self.ws.settings['dtach']: # dtach needs special love
+            if options.dtach: # dtach needs special love
                 from utils import kill_dtached_proc
                 kill_dtached_proc(self.ws.session, self.ws.location, term)
             if multiplex.isalive():
                 multiplex.terminate()
         except KeyError:
             pass # The EVIL termio has killed my child!  Wait, that's good...
-                    # Because now I don't have to worry about it!
+                 # Because now I don't have to worry about it!
         finally:
             del self.loc_terms[term]
+            self.clear_term_settings(term)
         self.trigger("terminal:kill_terminal", term)
 
     @require(authenticated())
@@ -1379,6 +1451,8 @@ class TerminalApplication(GOApplication):
             title_message = {
                 'terminal:set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
+            # Save it in case we're restarted (only matters for dtach)
+            self.save_term_settings(term, {'title': title})
         self.trigger("terminal:set_title", title)
 
     @require(authenticated())
@@ -1400,6 +1474,8 @@ class TerminalApplication(GOApplication):
         term_obj['title'] = title
         title_message = {'terminal:set_title': {'term': term, 'title': title}}
         self.write_message(json_encode(title_message))
+        # Save it in case we're restarted (only matters for dtach)
+        self.save_term_settings(term, {'title': title})
         self.trigger("terminal:manual_title", title)
 
     @require(authenticated())
@@ -2273,18 +2349,46 @@ class TerminalApplication(GOApplication):
             pass # No biggie
         self.ws.debug() # Do regular debugging as well
 
+def apply_cli_overrides(settings):
+    """
+    Updates *settings* in-place with values given on the command line and
+    updates the `options` global with the values from *settings* if not provided
+    on the command line.
+    """
+    # Figure out which options are being overridden on the command line
+    arguments = []
+    terminal_options = ['dtach', 'syslog_session_logging', 'session_logging']
+    for arg in list(sys.argv)[1:]:
+        if not arg.startswith('-'):
+            break
+        else:
+            arguments.append(arg.lstrip('-').split('=', 1)[0])
+    for argument in arguments:
+        if argument not in terminal_options:
+            continue
+        if argument in list(options._options.keys()):
+            settings[argument] = options._options[argument].value()
+    for key, value in settings.items():
+        if key in options._options:
+            if str == bytes: # Python 2
+                if isinstance(value, unicode):
+                    # For whatever reason Tornado doesn't like unicode values
+                    # for its own settings unless you're using Python 3...
+                    value = str(value)
+            options._options[key].set(value)
+
 def init(settings):
     """
     Checks to make sure 50terminal.conf is created if terminal-specific settings
     are not found in the settings directory.
     """
+    terminal_options = [ # These are now terminal-app-specific setttings
+        'command', 'dtach', 'session_logging', 'session_logs_max_age',
+        'syslog_session_logging'
+    ]
     if os.path.exists(options.config):
         # Get the old settings from the old config file and use them to generate
         # a new 50terminal.conf
-        terminal_options = [ # These are now terminal-app-specific setttings
-            'command', 'dtach', 'session_logging', 'session_logs_max_age',
-            'syslog_session_logging'
-        ]
         if 'terminal' not in settings['*']:
             settings['*']['terminal'] = {}
         with open(options.config) as f:
@@ -2361,6 +2465,7 @@ def init(settings):
     if not which('dtach'):
         term_log.warning(
             _("dtach command not found.  dtach support has been disabled."))
+    apply_cli_overrides(term_settings)
     # Fix the path to known_hosts if using the old default command
     for name, command in term_settings['commands'].items():
         if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:

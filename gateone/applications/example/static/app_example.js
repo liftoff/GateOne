@@ -6,6 +6,10 @@
 (function(window, undefined) {
 "use strict";
 
+GateOne.Base.safeSandbox(["GateOne.Terminal"], function(window, undefined) {
+    "use strict";
+});
+
 // Some useful, sandbox-wide shortcuts
 var go = GateOne,
     prefix = go.prefs.prefix,

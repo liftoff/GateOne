@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130923085621";
+GateOne.__commit__ = "20130923222228";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -122,6 +122,17 @@ GateOne.Base.module = function(parent, name, version, deps) {
     GateOne.loadedModules.push(module.__name__);
     return module;
 };
+GateOne.Base.dependencyTimeout = 5000; // 5 seconds
+GateOne.Base.safeSandbox = function(dependencies, func) {
+    /**:GateOne.Base.safeSandbox(dependencies, func)
+
+    A sandbox to wrap JavaScript which will delay-repeat loading itself if *dependencies* are not met.  If dependencies cannot be found by the time specified in `GateOne.Base.dependencyTimeout` an exception will be thrown.
+
+    :dependencies: An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.
+    :func: A function containing the JavaScript code to execute as soon as the dependencies are available.
+    */
+
+}
 GateOne.Base.module(GateOne, "Base", "1.2", []);
 GateOne.Base.update = function(self, obj/*, ... */) {
     /**:GateOne.Base.update(self, obj[, obj2[, objN]])
@@ -1206,7 +1217,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
             });
             go.Events.trigger("go:js_loaded");
-        }, 500); // postInit() functions need to de-bounced separately from init() functions
+        }, 750); // postInit() functions need to de-bounced separately from init() functions
     },
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)

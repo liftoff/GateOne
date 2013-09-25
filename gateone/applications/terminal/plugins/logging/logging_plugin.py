@@ -100,7 +100,7 @@ def enumerate_logs(self, limit=None):
     Log objects will be returned to the client one at a time by sending
     'logging_log' actions to the client over the WebSocket (*self*).
     """
-    logging.debug("enumerate_logs(%s, %s)" % (self, limit))
+    self.term_log.debug("enumerate_logs(%s, %s)" % (self, limit))
     # Sometimes IOLoop detects multiple events on the fd before we've finished
     # doing a get() from the queue.  This variable is used to ensure we don't
     # send the client duplicates:
@@ -145,7 +145,7 @@ def enumerate_logs(self, limit=None):
         file descriptor events.
         """
         message = q.get()
-        #logging.debug('message: %s' % message)
+        #self.term_log.debug('message: %s' % message)
         if message == 'complete':
             io_loop.remove_handler(fd)
             total_bytes = 0
