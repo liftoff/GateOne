@@ -1158,7 +1158,8 @@ class TerminalApplication(GOApplication):
                 'GO_TERM': str(term),
                 'GO_LOCATION': self.ws.location,
                 'GO_SESSION': self.ws.session,
-                'GO_SESSION_DIR': options.session_dir
+                'GO_SESSION_DIR': options.session_dir,
+                'GO_USER_SESSION_DIR': user_session_dir,
             }
             env.update(environment_vars) # Apply policy-based environment
             if self.plugin_env_hooks:

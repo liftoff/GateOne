@@ -404,7 +404,8 @@ def openssh_connect(
             ssh_session = 'ssh:%s:%s:%s@%s:%s' % (
                 location, term, user, host, port)
             script_path = os.path.join(
-                os.environ['GO_SESSION_DIR'], ssh_session)
+                os.environ['GO_SESSION_DIR'],
+                os.environ['GO_SESSION'], ssh_session)
     if not script_path:
         # Just use a generic temp file
         temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
