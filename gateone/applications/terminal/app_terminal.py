@@ -755,7 +755,15 @@ class TerminalApplication(GOApplication):
         if not os.path.exists(settings_path):
             return # Nothing to do
         with io.open(settings_path, encoding='utf-8') as f:
-            settings = json_decode(f.read())
+            try:
+                settings = json_decode(f.read())
+            except ValueError:
+                # Something wrong with the file.  Remove it
+                self.term_log.error(_(
+                    "Error decoding {0}.  File will be removed.").format(
+                        settings_path))
+                os.remove(settings_path)
+                return
         if self.ws.location in settings and term in settings[self.ws.location]:
             self.loc_terms[int(term)].update(settings[self.ws.location][term])
         self.trigger("terminal:restore_term_settings", term, settings)
