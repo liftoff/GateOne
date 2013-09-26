@@ -1,4 +1,7 @@
 (function(window, undefined) {
+"use strict";
+
+// This JavaScript consists of some lesser-used utility functions that were moved out of the main gateone.js in order to save space.
 
 var document = window.document,
     go = GateOne,

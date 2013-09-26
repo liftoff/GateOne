@@ -1,7 +1,8 @@
-(function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Input", /* Dependencies -->*/["GateOne.Visual"], function(window, undefined) {
+"use strict";
 
 var document = window.document,
-    hidden, visibilityChange
+    hidden, visibilityChange,
     go = GateOne,
     prefix = go.prefs.prefix,
     u = go.Utils,
@@ -33,9 +34,7 @@ if (typeof document.hidden !== "undefined") {
 }
 // NOTE:  If the browser doesn't support the Page Visibility API it isn't a big deal; the user will merely have to click on the page for input to start being captured.
 
-
-
-GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
+GateOne.Base.module(GateOne, "Input", '1.2', ['Base', 'Utils']);
 // GateOne.Input.charBuffer = []; // Queue for sending characters to the server
 GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
@@ -465,7 +464,7 @@ GateOne.Base.update(GateOne.Input, {
         }
     }
 });
-})(window);
+});
 
 // Expand GateOne.Input.specialKeys to be more complete:
 (function () { // Note:  Copied from MochiKit.Signal.

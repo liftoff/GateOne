@@ -1,6 +1,5 @@
 
 (function(window, undefined) {
-
 "use strict";
 
 var document = window.document; // Have to do this because we're sandboxed

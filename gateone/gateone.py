@@ -8,9 +8,9 @@
 # Meta
 __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
-__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
+__license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130923222228" # Gets replaced by git (holds the date/time)
+__commit__ = "20130925212401" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -640,6 +640,7 @@ def cleanup_user_logs():
     that particular setting.
     """
     logging.debug("cleanup_session_logs()")
+    disabled = timedelta(0) # If the user sets user_logs_max_age to "0"
     settings = get_settings(options.settings_dir)
     user_dir = settings['*']['gateone']['user_dir']
     if 'user_dir' in options._options.keys(): # NOTE: options is global
@@ -669,12 +670,13 @@ def cleanup_user_logs():
                 logger.info(_("Removing log due to age (>%s old): %s" % (
                     max_age_str, log_path)))
                 os.remove(log_path)
-    for user in os.listdir(user_dir):
-        logs_path = os.path.abspath(os.path.join(user_dir, user, 'logs'))
-        if not os.path.exists(logs_path):
-            # Nothing to do
-            continue
-        descend(logs_path)
+    if max_age != disabled:
+        for user in os.listdir(user_dir):
+            logs_path = os.path.abspath(os.path.join(user_dir, user, 'logs'))
+            if not os.path.exists(logs_path):
+                # Nothing to do
+                continue
+            descend(logs_path)
 
 def policy_send_user_message(cls, policy):
     """
@@ -882,6 +884,7 @@ class StaticHandler(tornado.web.StaticFileHandler):
         # Allow access to our static content from any page:
         self.set_header('Access-Control-Allow-Origin', '*')
         self.set_header('Server', 'GateOne')
+        self.set_header('License', __license__)
 
     def options(self, path=None):
         """
@@ -893,6 +896,7 @@ class StaticHandler(tornado.web.StaticFileHandler):
         self.set_header('Access-Control-Allow-Origin', '*')
         self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
         self.set_header('Server', 'GateOne')
+        self.set_header('License', __license__)
 
 class BaseHandler(tornado.web.RequestHandler):
     """
@@ -915,6 +919,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # Force IE 10 into Standards Mode:
         self.set_header('X-UA-Compatible', 'IE=edge')
         self.set_header('Server', 'GateOne')
+        self.set_header('License', __license__)
 
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
@@ -984,6 +989,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(200)
         self.set_header('Access-Control-Allow-Origin', '*')
         self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
+        self.set_header('License', __license__)
         features_dict = {
             "auth_api": {
                 'versions': ['1.0'],
@@ -3431,6 +3437,7 @@ class ErrorHandler(tornado.web.RequestHandler):
 
     def get_error_html(self, status_code, **kwargs):
         self.set_header('Server', 'GateOne')
+        self.set_header('License', __license__)
         self.require_setting("static_url")
         if status_code in [404, 500, 503, 403]:
             filename = os.path.join(
@@ -4191,10 +4198,23 @@ def apply_cli_overrides(go_settings):
                 continue
             options._options[key].set(value)
 
+def set_license():
+    """
+    Sets the __license__ global based on what can be found in `GATEONE_DIR`.
+    """
+    license_path = os.path.join(GATEONE_DIR, '.license')
+    if os.path.exists(license_path):
+        with io.open(license_path, 'r', encoding='utf-8') as f:
+            license = f.read()
+            if license:
+                global __license__
+                __license__ = license.strip()
+
 def main():
     global _
     global PLUGINS
     global APPLICATIONS
+    set_license()
     define_options()
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.

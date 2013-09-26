@@ -1274,6 +1274,7 @@ def convert_to_timedelta(time_val):
     m           Minutes      '5m'  -> 5 Minutes
     h           Hours        '24h' -> 24 Hours
     d           Days         '7d'  -> 7 Days
+    y           Years        '10y' -> 10 Years
     =========   ============ =========================
 
     Examples::
@@ -1301,6 +1302,8 @@ def convert_to_timedelta(time_val):
         return timedelta(hours=num)
     elif time_val.endswith('d'):
         return timedelta(days=num)
+    elif time_val.endswith('y'):
+        return timedelta(days=(num*365)) # Sorry, no leap year support
 
 def convert_to_bytes(size_val):
     """

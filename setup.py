@@ -201,7 +201,7 @@ old_terminal_path = os.path.join(prefix, 'gateone', 'terminal.py')
 if os.path.exists(old_terminal_path):
     os.remove(old_terminal_path)
     try:
-        os.remove(old_terminal_path+'c') # termio.pyc
+        os.remove(old_terminal_path+'c') # terminal.pyc
     except Exception:
         pass
 

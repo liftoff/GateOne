@@ -1,9 +1,10 @@
 
-(function(window, undefined) { // Sandbox it all
-var document = window.document; // Have to do this because we're sandboxed
+GateOne.Base.superSandbox("GateOne.SSH", ["GateOne.Bookmarks", "GateOne.Terminal", "GateOne.Terminal.Input"], function(window, undefined) {
+"use strict";
 
 // Sandbox-wide shortcuts
-var go = GateOne,
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne,
     prefix = go.prefs.prefix,
     u = go.Utils,
     v = go.Visual,
@@ -60,7 +61,7 @@ go.Base.update(go.SSH, {
             go.SSH.duplicateSession(term);
         }
         h3.innerHTML = "SSH Plugin";
-        if (prefsPanel) {// Only add to the prefs panel if it actually exists (i.e. not in embedded mode) = u.getNode('#'+prefix+'panel_prefs'),
+        if (infoPanel) {// Only add to the prefs panel if it actually exists (i.e. not in embedded mode) = u.getNode('#'+prefix+'panel_prefs'),
             infoPanel.appendChild(h3);
             infoPanel.appendChild(infoPanelDuplicateSession);
             infoPanel.appendChild(infoPanelManageIdentities);
@@ -429,7 +430,7 @@ go.Base.update(go.SSH, {
         */
         var ssh = go.SSH,
             downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete ✈button ✈black', 'type': 'submit', 'value': 'Submit'}),
             uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
             IDObj = null;
@@ -532,6 +533,7 @@ go.Base.update(go.SSH, {
         *delay* controls how long it will wait before using a CSS3 effect to move it into view.
         */
         var ssh = go.SSH,
+            objName = IDObj['name'],
             elem = u.createElement('div', {'class':'✈sectrans ✈ssh_id', 'name': '✈ssh_id'}),
             IDViewOptions = u.createElement('span', {'class': '✈ssh_id_options'}),
             viewPubKey = u.createElement('a'),
@@ -570,16 +572,14 @@ go.Base.update(go.SSH, {
         elem.appendChild(bitsSpan);
         elem.appendChild(commentSpan);
         elem.appendChild(certSpan);
-        with ({ name: IDObj['name'] }) {
-            elem.onclick = function(e) {
-                // Highlight the selected row and show the metadata
-                u.toArray(u.getNodes('.✈ssh_id')).forEach(function(node) {
-                    // Reset them all before we apply the 'active' class to just the one
-                    node.className = '✈halfsectrans ✈ssh_id';
-                });
-                this.className = '✈halfsectrans ✈ssh_id ✈active';
-                ssh.displayMetadata(name);
-            }
+        elem.onclick = function(e) {
+            // Highlight the selected row and show the metadata
+            u.toArray(u.getNodes('.✈ssh_id')).forEach(function(node) {
+                // Reset them all before we apply the 'active' class to just the one
+                node.className = '✈halfsectrans ✈ssh_id';
+            });
+            this.className = '✈halfsectrans ✈ssh_id ✈active';
+            ssh.displayMetadata(objName);
         }
         elem.style.opacity = 0;
         v.applyTransform(elem, 'translateX(-300%)');
@@ -1252,4 +1252,4 @@ go.Base.update(go.SSH, {
     }
 });
 
-})(window);
+});

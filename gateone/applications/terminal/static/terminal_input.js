@@ -1,5 +1,5 @@
 
-(function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal.Input", ["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts
@@ -16,7 +16,6 @@ var go = GateOne,
     logWarning = GateOne.Logging.logWarning,
     logInfo = GateOne.Logging.logInfo,
     logDebug = GateOne.Logging.logDebug;
-
 
 GateOne.Base.module(GateOne.Terminal, "Input", '1.0');
 /**:GateOne.Terminal.Input
@@ -949,4 +948,4 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     }
 });
 
-})(window);
+});

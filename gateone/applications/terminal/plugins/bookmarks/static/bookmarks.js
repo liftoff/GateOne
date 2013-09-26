@@ -1,17 +1,17 @@
 
-(function(window, undefined) {
-var document = window.document; // Have to do this because we're sandboxed
-
+GateOne.Base.superSandbox("GateOne.Bookmarks", ["GateOne.Terminal"], function(window, undefined) {
 "use strict";
 
 // Useful sandbox-wide stuff
-var go = GateOne,
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne,
     b, // Will become go.Bookmarks
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
     E = go.Events,
     prefix = go.prefs.prefix,
+    gettext = go.i18n.gettext,
     noop = u.noop,
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -922,8 +922,8 @@ go.Base.update(GateOne.Bookmarks, {
         :param DOM_node bmContainer: The DOM node we're going to be placing the bookmark.
         :param object bookmark: A bookmark object (presumably taken from :js:attr:`GateOne.Bookmarks.bookmarks`)
         :param number delay: The amount of milliseconds to wait before translating (sliding) the bookmark into view.
+        :param boolean ad: If true, will not bother adding tags or edit/delete/share links.
         */
-        // Optional: if *ad* is true, will not bother adding tags or edit/delete/share links
         logDebug('createBookmark() bookmark: ' + bookmark.url);
         var go = GateOne,
             b = go.Bookmarks,
@@ -2624,4 +2624,4 @@ go.Base.update(go.Bookmarks, {
     }
 });
 
-})(window);
+});

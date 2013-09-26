@@ -117,7 +117,8 @@ POSIX = 'posix' in sys.builtin_module_names
 MACOS = os.uname()[0] == 'Darwin'
 # Matches Gate One's special optional escape sequence (ssh plugin only)
 RE_OPT_SSH_SEQ = re.compile(
-    r'.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b\\)', re.MULTILINE|re.DOTALL)
+    r'.*\x1b\]_\;(ssh\|set;connect_string.+?)(\x07|\x1b\\)',
+    re.MULTILINE|re.DOTALL)
 # Matches an xterm title sequence
 RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
@@ -248,7 +249,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     #   "\x1b]_;ssh|%s@%s:%s\007"
     match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
     if match_obj:
-        connect_string = match_obj.group(1).split('|')[1]
+        connect_string = match_obj.group(1).split(';')[-1]
     if not connect_string:
         # Try guessing it by looking for a title escape sequence
         match_obj = RE_TITLE_SEQ.match(log_data[:(chunk_size*10)])

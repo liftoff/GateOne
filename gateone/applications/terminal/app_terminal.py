@@ -2396,8 +2396,7 @@ def init(settings):
     are not found in the settings directory.
     """
     terminal_options = [ # These are now terminal-app-specific setttings
-        'command', 'dtach', 'session_logging', 'session_logs_max_age',
-        'syslog_session_logging'
+        'command', 'dtach', 'session_logging', 'syslog_session_logging'
     ]
     if os.path.exists(options.config):
         # Get the old settings from the old config file and use them to generate
@@ -2445,7 +2444,6 @@ def init(settings):
             settings['*']['terminal'].update({
                 'dtach': True,
                 'session_logging': True,
-                'session_logs_max_age': "30d",
                 'syslog_session_logging': False,
                 'commands': {
                     'SSH': {

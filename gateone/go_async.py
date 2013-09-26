@@ -121,6 +121,7 @@ class AsyncRunner(object):
     it takes the same format as *timeout*.
     """
     def __init__(self, **kwargs):
+        self.io_loop = IOLoop.current()
         self.running = True
         self.shutdown_timeout = None
         self.timeout = kwargs.pop('timeout', None)
@@ -308,10 +309,9 @@ class ThreadedRunner(AsyncRunner):
     using threads.  Useful for long-running functions that aren't CPU bound.
     """
     def __init__(self, max_workers=10, **kwargs):
-        self.io_loop = IOLoop.current()
+        super(ThreadedRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
         self.run()
-        super(ThreadedRunner, self).__init__(**kwargs)
 
     def run(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
@@ -325,10 +325,9 @@ class MultiprocessRunner(AsyncRunner):
     .. warn:: Only works when all objects used by the function(s) are picklable!
     """
     def __init__(self, max_workers=None, **kwargs):
-        self.io_loop = IOLoop.current()
+        super(MultiprocessRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
         self.run()
-        super(MultiprocessRunner, self).__init__(**kwargs)
 
     def run(self):
         self.executor = futures.ProcessPoolExecutor(

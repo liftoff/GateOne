@@ -1,5 +1,7 @@
 (function(window, undefined) {
 
+// This JavaScript file consists of some lesser-used (or late-loading-OK) visual functions that were moved out of gateone.js to save space.
+
 var document = window.document,
     go = GateOne,
     prefix = go.prefs.prefix,

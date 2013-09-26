@@ -1,10 +1,10 @@
-(function(window, undefined) {
-var document = window.document; // Have to do this because we're sandboxed
 
+GateOne.Base.superSandbox("GateOne.Convenience", ["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
 "use strict";
 
 // These are just convenient shortcuts:
-var go = GateOne,
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne,
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
@@ -464,4 +464,4 @@ GateOne.Base.update(GateOne.Convenience, {
     }
 });
 
-})(window);
+});

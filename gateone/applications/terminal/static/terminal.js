@@ -2,7 +2,7 @@
 // TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
-(function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Storage", "GateOne.Help"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts
@@ -122,7 +122,6 @@ go.Base.update(GateOne.Terminal, {
             div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-//             toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': '✈panel'}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
             infoPanelRow1 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow1'}),
@@ -156,8 +155,6 @@ go.Base.update(GateOne.Terminal, {
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
             resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
-//             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
-//             toolbar = u.getNode('#'+prefix+'toolbar'),
             cmdQueryString = u.getQueryVariable('terminal_cmd'),
             switchTerm = function() {
                 if (localStorage[prefix+'selectedTerminal']) {
@@ -174,7 +171,6 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.defaultCommand = cmdQueryString;
         }
         // Create our Terminal panel
-//         toolbarInfo.innerHTML = go.Icons['terminal'];
         infoPanelH2.innerHTML = "Gate One";
         infoPanelH2.title = "Click to edit.  Leave blank for default.";
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -920,13 +916,6 @@ go.Base.update(GateOne.Terminal, {
         v.setTitle(term + ": " + title);
         // Also update the info panel
         termTitle.innerHTML = term+': '+title;
-        // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-//         go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
-//         if (sideinfo.clientWidth > heightDiff) { // We have overlap
-//             var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-//             scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
-//             go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
-//         }
         E.trigger('terminal:set_title_action', term, title);
     },
     resizeAction: function(message) {
@@ -2937,4 +2926,4 @@ go.Base.update(GateOne.Terminal, {
     }
 });
 
-})(window);
+});

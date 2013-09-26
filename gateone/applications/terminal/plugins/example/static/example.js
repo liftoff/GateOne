@@ -10,14 +10,17 @@ var _gaq = _gaq || []; // We'll actually make our plugin-specific Google Analyti
 })();
 // Note that in order for Google Analytics to work properly the _gaq variable needs to be in the global scope which means you can't wrap it in the sandbox like everything else below.
 
-(function(window, undefined) { // Sandbox everything
-var document = window.document; // Have to do this because we're sandboxed
+// This is Gate One's special sandboxing mechanism...  It will wait to load the contained JavaScript until the dependencies are done loading:
+GateOne.Base.superSandbox("GateOne.Terminal.Example", /* Dependencies -->*/["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
+"use strict"; // Always use this in your JavaScript (best practices)
 
 // Useful sandbox-wide stuff
-var go = GateOne, // Things like this save a lot of typing
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne, // Things like this save a lot of typing
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
+    Example, // Set below
     prefix = go.prefs.prefix,
     noop = u.noop,
     logFatal = GateOne.Logging.logFatal, // If you actually have a legitimate use for logFatal in your plugin...  Awesome!
@@ -26,14 +29,14 @@ var go = GateOne, // Things like this save a lot of typing
     logInfo = GateOne.Logging.logInfo,
     logDebug = GateOne.Logging.logDebug;
 
-// GateOne.Example Plugin:   "Name", "version", ['dependency1', 'dependency2', etc]
-go.Base.module(GateOne, "Example", "1.0", ['Base']); // We require 'Base'
-go.Example.graphUpdateTimer = null; // Used to track the setTimout() that updates the load graph
-go.Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
+// GateOne.Terminal.Example Plugin:   "Name", "version", ['dependency1', 'dependency2', etc]
+Example = go.Base.module(GateOne.Terminal, "Example", "1.2");
+Example.graphUpdateTimer = null; // Used to track the setTimout() that updates the load graph
+Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
 
-go.Base.update(go.Example, { // Everything that we want to be available under GateOne.Example goes in here
+go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be available under GateOne.Example goes in here
     init: function() {
-        /**:GateOne.Example.init()
+        /**:GateOne.Terminal.Example.init()
 
         The init() function of every JavaScript plugin gets called automatically after the WebSocket is connected is authenticated.
 
@@ -47,7 +50,7 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
         infoPanelLoadGraph.innerHTML = "Load Graph"; // My plugin has a button name, it's...  Yeah, you get the idea
         infoPanelLoadGraph.onclick = function(e) { // Make it do something when clicked
             e.preventDefault();
-            go.Example.toggleLoadGraph();
+            Example.toggleLoadGraph();
             v.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
             setTimeout(function() {
                 go.Terminal.Input.capture();
@@ -80,42 +83,42 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
         );
     },
     stopGraph: function(result) {
-        /**:GateOne.Example.stopGraph(result)
+        /**:GateOne.Terminal.Example.stopGraph(result)
 
-        Clears the `GateOne.Example.graphUpdateTimer`, removes the canvas element, and stops the smoothie graph streaming.  *result* is unused.
+        Clears the `GateOne.Terminal.Example.graphUpdateTimer`, removes the canvas element, and stops the smoothie graph streaming.  *result* is unused.
         */
-        clearInterval(go.Example.graphUpdateTimer);
-        go.Example.graphUpdateTimer = null;
-        go.Example.loadGraph.stop();
-        u.removeElement(go.Example.canvas);
+        clearInterval(Example.graphUpdateTimer);
+        Example.graphUpdateTimer = null;
+        Example.loadGraph.stop();
+        u.removeElement(Example.canvas);
     },
     updateGraph: function(output) {
-        /**:GateOne.Example.updateGraph(output)
+        /**:GateOne.Terminal.Example.updateGraph(output)
 
-        Updates GateOne.Example.line1 through line3 by parsing the *output* of the 'uptime' command.
+        Updates ``GateOne.Terminal.Example.line1`` through ``line3`` by parsing the *output* of the 'uptime' command.
         */
         // ' 16:23:07 up 13 days, 23:22, 10 users,  load average: 1.47, 0.56, 0.38'
         var fivemin = parseFloat(output.split('average:')[1].split(',')[0].trim()),
             tenmin = parseFloat(output.split('average:')[1].split(',')[1].trim()),
             fifteenmin = parseFloat(output.split('average:')[1].split(',')[2].trim());
         // The smoothie charts library will watch these and update the chart automatically as the new data is added
-        go.Example.line1.append(new Date().getTime(), fivemin);
-        go.Example.line2.append(new Date().getTime(), tenmin);
-        go.Example.line3.append(new Date().getTime(), fifteenmin);
+        Example.line1.append(new Date().getTime(), fivemin);
+        Example.line2.append(new Date().getTime(), tenmin);
+        Example.line3.append(new Date().getTime(), fifteenmin);
     },
     toggleLoadGraph: function(term) {
-        /**:GateOne.Example.toggleLoadGraph(term)
+        /**:GateOne.Terminal.Example.toggleLoadGraph(term)
 
         Displays a real-time load graph of the given terminal (inside of it as a :js:meth:`GateOne.Visual.widget`).
         */
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
-        if (!go.Example.line1) {
+        if (!Example.line1) {
             // These are part of smoothie charts; they represent each load graph line.
-            go.Example.line1 = new TimeSeries();
-            go.Example.line2 = new TimeSeries();
-            go.Example.line3 = new TimeSeries();
+            Example.line1 = new TimeSeries();
+            Example.line2 = new TimeSeries();
+            Example.line3 = new TimeSeries();
         }
         var canvas = u.createElement('canvas', {'id': 'load_graph', 'width': 300, 'height': 40}), // <canvas id="mycanvas" width="400" height="100"></canvas>
             smoothie = new SmoothieChart({
@@ -125,12 +128,12 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
             configure = function() {
                 alert('it works!');
             };
-        if (go.Example.graphUpdateTimer) {
+        if (Example.graphUpdateTimer) {
             // Graph already present/running.  Turn it off
-            go.Example.stopGraph();
-            go.Example.line1 = null;
-            go.Example.line2 = null;
-            go.Example.line3 = null;
+            Example.stopGraph();
+            Example.line1 = null;
+            Example.line2 = null;
+            Example.line3 = null;
             return;
         }
         if (!go.Terminal.terminals[term]['sshConnectString']) {
@@ -138,23 +141,23 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
             v.displayMessage("Error: Can't display load graph because terminal " + term + " is not connected via SSH.");
             return;
         }
-        v.widget('Load Graph', canvas, {'onclose': go.Example.stopGraph, 'onconfig': configure});
+        v.widget('Load Graph', canvas, {'onclose': Example.stopGraph, 'onconfig': configure});
         // Update the graph every three seconds
-        go.Example.graphUpdateTimer = setInterval(function() {
-            go.SSH.execRemoteCmd(term, 'uptime', go.Example.updateGraph, go.Example.stopGraph);
+        Example.graphUpdateTimer = setInterval(function() {
+            go.SSH.execRemoteCmd(term, 'uptime', Example.updateGraph, Example.stopGraph);
         }, 3000);
         // Add to SmoothieChart
-        smoothie.addTimeSeries(go.Example.line1, {strokeStyle:'rgb(25, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3});
-        smoothie.addTimeSeries(go.Example.line2, {strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.3)', lineWidth:3});
-        smoothie.addTimeSeries(go.Example.line3, {strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.2)', lineWidth:3});
+        smoothie.addTimeSeries(Example.line1, {strokeStyle:'rgb(25, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3});
+        smoothie.addTimeSeries(Example.line2, {strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.3)', lineWidth:3});
+        smoothie.addTimeSeries(Example.line3, {strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.2)', lineWidth:3});
         smoothie.streamTo(canvas, 3000);
-        go.Example.canvas = canvas; // So we can easily remove it later.
-        go.Example.loadGraph = smoothie; // So we can stop it later.
+        Example.canvas = canvas; // So we can easily remove it later.
+        Example.loadGraph = smoothie; // So we can stop it later.
         v.displayMessage("Example Plugin: Real-time Load Graph!", 5000);
         v.displayMessage("Green: 5 minute, Blue: 10 minute, Red: 15 minute", 5000);
     },
     updateTop: function(output) {
-        /**:GateOne.Example.updateTop(output)
+        /**:GateOne.Terminal.Example.updateTop(output)
 
         Updates the :js:meth:`GateOne.Example.topTop` output on the screen when we receive *output* from the Gate One server. Here's what the output should look like::
 
@@ -163,44 +166,44 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
               2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 [kthreadd]
               3 root      20   0     0    0    0 S  0.0  0.0   0:00.08 [ksoftirqd/0]
         */
-        go.Example.toptop.innerHTML = output;
+        Example.toptop.innerHTML = output;
     },
     stopTop: function(result) {
-        /**:GateOne.Example.stopTop(result)
+        /**:GateOne.Terminal.Example.stopTop(result)
 
         Clears the `GateOne.Example.topUpdateTimer` and removes the 'toptop' element.  *result* is unused.
         */
-        clearInterval(go.Example.topUpdateTimer);
-        go.Example.topUpdateTimer = null;
-        u.removeElement(go.Example.toptop);
+        clearInterval(Example.topUpdateTimer);
+        Example.topUpdateTimer = null;
+        u.removeElement(Example.toptop);
     },
     topTop: function(term) {
-        /**:GateOne.Example.topTop(term)
+        /**:GateOne.Terminal.Example.topTop(term)
 
         Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).
         */
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
-        go.Example.toptop = u.getNode('#'+prefix+'toptop');
-        if (!go.Example.toptop) {
+        Example.toptop = u.getNode('#'+prefix+'toptop');
+        if (!Example.toptop) {
             // NOTE: Have to set position:static below since GateOne's default CSS says that '<goDiv> .terminal pre' should be position:absolute
-            go.Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'width': '40em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid'}});
-            go.Example.toptop.innerHTML = 'Loading...';
-            v.widget('Top Top', go.Example.toptop, {'onclose': go.Example.stopTop});
+            Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'width': '40em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid'}});
+            Example.toptop.innerHTML = 'Loading...';
+            v.widget('Top Top', Example.toptop, {'onclose': Example.stopTop});
         }
-        if (go.Example.topUpdateTimer) {
+        if (Example.topUpdateTimer) {
             // Toptop already present/running.  Stop it
-            go.Example.stopTop();
+            Example.stopTop();
             return;
         }
         // Update the 'top' output every three seconds
-        go.Example.topUpdateTimer = setInterval(function() {
-            go.SSH.execRemoteCmd(term, 'top -bcn1 | head | tail -n4', go.Example.updateTop, go.Example.stopTop);
+        Example.topUpdateTimer = setInterval(function() {
+            go.SSH.execRemoteCmd(term, 'top -bcn1 | head | tail -n4', Example.updateTop, Example.stopTop);
         }, 3000);
     },
     generateAuthObject: function(api_key, secret, upn) {
-        /**:GateOne.Example.generateAuthObject(api_key, secret, upn)
+        /**:GateOne.Terminal.Example.generateAuthObject(api_key, secret, upn)
 
         Returns a properly-constructed authentication object that can be used with Gate One's API authentication mode.  The timestamp, signature, signature_method, and api_version values will be created automatically.
 
@@ -224,4 +227,4 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
     }
 });
 
-})(window);
+});

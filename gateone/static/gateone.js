@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130923222228";
+GateOne.__commit__ = "20130925212401";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -88,7 +88,7 @@ GateOne.initializedModules = []; // So we don't accidentally call a plugin's ini
 GateOne.Base.module = function(parent, name, version, deps) {
     /**:GateOne.Base.module(parent, name, version[, deps])
 
-    Creates a new *name* module in a *parent* namespace. This function will create a new empty module object with *NAME*, *VERSION*, *toString* and *__repr__* properties. It will also verify that all the strings in deps are defined in parent, or an error will be thrown.
+    Creates a new *name* module in a *parent* namespace. This function will create a new empty module object with *__name__*, *__version__*, *toString* and *__repr__* properties. It will also verify that all the strings in deps are defined in parent, or an error will be thrown.
 
     :param parent: The parent module or namespace (object).
     :param name: A string representing the new module name.
@@ -123,15 +123,99 @@ GateOne.Base.module = function(parent, name, version, deps) {
     return module;
 };
 GateOne.Base.dependencyTimeout = 5000; // 5 seconds
-GateOne.Base.safeSandbox = function(dependencies, func) {
-    /**:GateOne.Base.safeSandbox(dependencies, func)
+GateOne.Base.dependencyRetries = {};
+GateOne.Base.superSandbox = function(name, dependencies, func) {
+    /**:GateOne.Base.superSandbox(name, dependencies, func)
 
-    A sandbox to wrap JavaScript which will delay-repeat loading itself if *dependencies* are not met.  If dependencies cannot be found by the time specified in `GateOne.Base.dependencyTimeout` an exception will be thrown.
+    A sandbox to wrap JavaScript which will delay-repeat loading itself if *dependencies* are not met.  If dependencies cannot be found by the time specified in `GateOne.Base.dependencyTimeout` an exception will be thrown.  Here's an example of how to use this function:
 
+    .. code-block:: javascript
+
+        GateOne.Base.superSandbox("GateOne.ExampleApp", ["GateOne.Terminal"], function(window, undefined) {
+            "use strict"; // Don't forget this!
+
+            var stuff = "Put your code here".
+
+        });
+
+    The above example would ensure that `GateOne.Terminal` is loaded before the contents of the superSandboxed function are loaded.
+
+    .. note:: Sandboxed functions are always passed the ``window`` object as the first argument.
+
+    You can put whatever globals you like in the dependencies; they don't have to be GateOne modules.  Here's another example:
+
+    .. code-block:: javascript
+
+        // Require underscore.js and jQuery:
+        GateOne.Base.superSandbox("GateOne.ExampleApp", ["_", "jQuery"], function(window, undefined) {
+            "use strict";
+
+            var stuff = "Put your code here".
+
+        });
+
+    :name: Name of the wrapped function.  It will be used to call any `init()` or `postInit()` functions.
     :dependencies: An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.
     :func: A function containing the JavaScript code to execute as soon as the dependencies are available.
     */
-
+//     console.log('superSandbox('+name+')');
+    var missingDependency = false,
+        getParent = function(parent, depArray) {
+            // Returns the final parent object if it can be found in `window`.  Otherwise returns `false`.
+            // *depArray* should be the result of `"Some.Dependency".split('.')`
+            var dep = depArray.shift();
+            if (dep !== undefined) {
+                if (!(dep in parent)) {
+                    return false;
+                }
+                return getParent(parent[dep], depArray);
+            }
+            return parent;
+        };
+    dependencies.forEach(function(dependency) {
+//         console.log("checking for: " + dependency);
+        var deps = dependency.split('.');
+        if (!getParent(window, deps)) {
+            // Retry again in 50ms and start the counter
+            if (!GateOne.Base.dependencyRetries[name]) {
+                GateOne.Base.dependencyRetries[name] = 1; // 1 instead of 0 so the negative conditional above works
+            } else {
+                GateOne.Base.dependencyRetries[name] += 50;
+            }
+            if (GateOne.Base.dependencyRetries[name] > GateOne.Base.dependencyTimeout) {
+                throw 'Failed to load ' + name + ' due to missing dependencies: ' + dependencies;
+            }
+            missingDependency = true;
+        }
+    });
+    if (missingDependency) {
+        setTimeout(function() {
+            GateOne.Base.superSandbox(name, dependencies, func);
+        }, 50); // 50ms increments
+    } else {
+        // Load 'er up!
+        func(window);
+        // Now try loading init() and postInit() functions
+        var moduleObj = getParent(window, name.split('.'));
+        if (go.initializedModules.indexOf(name) == -1) {
+//             console.log('superSandbox Running: ' + name + '.init()');
+            if (typeof(moduleObj.init) == "function") {
+                moduleObj.init();
+            }
+            if (moduleObj.__appinfo__) {
+                // This is an application
+                go.loadedApplications[moduleObj.__appinfo__.name] = moduleObj;
+            }
+            go.initializedModules.push(name);
+        }
+        if (go.Utils._ranPostInit.indexOf(name) == -1) {
+//             console.log('superSandbox Running: ' + name + '.postInit()');
+            if (typeof(moduleObj.postInit) == "function") {
+                moduleObj.postInit();
+            }
+            go.Utils._ranPostInit.push(name);
+        }
+    }
 }
 GateOne.Base.module(GateOne, "Base", "1.2", []);
 GateOne.Base.update = function(self, obj/*, ... */) {
@@ -653,7 +737,7 @@ var go = GateOne.Base.update(GateOne, {
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
             u.hideElements('.✈panel');
-        }, 500);
+        }, 500); // The delay here is just in case some plugin left a panel open
     },
     openApplication: function(app, /*opt*/settings, /*opt*/where) {
         /**:GateOne.openApplication(app[, settings[, where]])
@@ -1217,7 +1301,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
             });
             go.Events.trigger("go:js_loaded");
-        }, 750); // postInit() functions need to de-bounced separately from init() functions
+        }, 250); // postInit() functions need to de-bounced separately from init() functions
     },
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)
@@ -1246,7 +1330,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
             if (requires) {
                 setTimeout(function() {
-                    if (u.failedRequirementsCounter[message['filename']] >= 20) { // ~2 seconds
+                    if (u.failedRequirementsCounter[message['filename']] >= 40) { // ~2 seconds
                         // Give up
                         logError("Failed to load " + message['filename'] + ".  Took too long waiting for " + message['requires']);
                         return;
@@ -1254,7 +1338,7 @@ GateOne.Base.update(GateOne.Utils, {
                     // Try again in a moment or so
                     u.loadJSAction(message, noCache);
                     u.failedRequirementsCounter[message['filename']] += 1;
-                }, 100);
+                }, 50);
                 return;
             } else {
                 logDebug("Dependency loaded!");
@@ -1267,10 +1351,10 @@ GateOne.Base.update(GateOne.Utils, {
                 existing = u.getNode('#'+prefix+elementID);
                 s = u.createElement('script', {'id': elementID});
             }
-            s.innerHTML = message['data'];
             if (existing) {
                 existing.innerHTML = message['data'];
             } else {
+                s.innerHTML = message['data'];
                 go.node.appendChild(s);
             }
             delete message['result'];
@@ -1288,7 +1372,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
             u.initDebounce = setTimeout(function() {
                 u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
-            }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
+            }, 250); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
             // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
         }
     },
@@ -2695,9 +2779,9 @@ GateOne.Base.update(GateOne.Visual, {
                 // If there's no workspaces after a while make the new workspace workspace
                 var workspaces = u.getNodes('.✈workspace');
                 if (!workspaces.length) {v.newWorkspaceWorkspace();}
-            }, 500);
+            }, 250);
         });
-        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
+        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 250);
         window.addEventListener('resize', go.Visual.updateDimensions, false);
     },
     postInit: function() {
@@ -2758,8 +2842,8 @@ GateOne.Base.update(GateOne.Visual, {
                 });
             setTimeout(function() {
                 // If there's no workspaces after a while make the new workspace workspace
-                var workspaces = u.getNodes('.✈workspace');
-                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+                var workspaces = go.Utils.getNodes('.✈workspace');
+                if (!workspaces.length) {go.Visual.newWorkspaceWorkspace();}
             }, 500);
         }
     },
@@ -2781,7 +2865,7 @@ GateOne.Base.update(GateOne.Visual, {
             spacers = 0,
             filteredApps = [],
             titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
-            wsContainer = u.createElement('div', {'class': '✈centertrans ✈sectrans ✈new_workspace_workspace'}),
+            wsContainer = u.createElement('div', {'class': '✈centertrans ✈halfsectrans ✈new_workspace_workspace'}),
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace = v.newWorkspace(),
             workspaceNum = workspace.id.split(prefix+'workspace')[1],
@@ -2798,7 +2882,7 @@ GateOne.Base.update(GateOne.Visual, {
                         // Remove the New Workspace Workspace container but not the workspace itself
                         u.removeElement(wsContainer);
                         go.loadedApplications[name].__new__(settings, workspace);
-                    }, 1000);
+                    }, 500);
                 } else {
                     v.displayMessage("Error: Application has no __new__() function.");
                 }
@@ -2968,7 +3052,7 @@ GateOne.Base.update(GateOne.Visual, {
                 if (appIcons[go.Visual.lastAppPosition]) {
                     appIcons[go.Visual.lastAppPosition].focus();
                 }
-            }, 1000);
+            }, 500);
         }, 10);
         v.setTitle("New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
@@ -4619,9 +4703,13 @@ GateOne.Base.update(GateOne.Storage, {
         }
         if (indexedDB) {
             logDebug('GateOne.Storage.openDB(): Opening indexedDB: ' + DB);
-            var v = version || 1, // Database version
-                openRequest = indexedDB.open(DB, v),
+            var openRequest,
                 upgradeMsg = "The " + DB + " database needs to be created or updated.  Creating/upgrading database...";
+            if (version) {
+                openRequest = indexedDB.open(DB, version);
+            } else {
+                openRequest = indexedDB.open(DB);
+            }
             openRequest.onblocked = function(e) {
                 go.Visual.alert(gettext("Please close other tabs connected to this server and reload this page so we may upgrade the IndexedDB database."));
             }
@@ -4630,7 +4718,7 @@ GateOne.Base.update(GateOne.Storage, {
                 S.databases[DB] = e.target.result;
                 // We can only create/delete Object stores inside of a setVersion transaction;
                 var needsUpdate;
-                if(v != S.databases[DB].version) {
+                if(version && version != S.databases[DB].version) {
                     needsUpdate = true;
                 }
                 if(needsUpdate) {
@@ -4638,7 +4726,7 @@ GateOne.Base.update(GateOne.Storage, {
                     // This is the old way of doing upgrades.  It should only ever be called in (much) older browsers...
                     if (typeof S.databases[DB].setVersion === "function") {
                         logDebug("GateOne.Storage.openDB(): Using db.setVersion()");
-                        var setVrequest = S.databases[DB].setVersion(v);
+                        var setVrequest = S.databases[DB].setVersion(version);
                         // onsuccess is the only place we can create Object Stores
                         setVrequest.onfailure = S.onerror;
                         setVrequest.onsuccess = function(evt) {

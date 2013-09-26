@@ -1,9 +1,10 @@
 
-(function(window, undefined) {
-var document = window.document; // Have to do this because we're sandboxed
+GateOne.Base.superSandbox("GateOne.Playback", ["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
+"use strict";
 
 // Useful sandbox-wide stuff
-var go = GateOne,
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne,
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
@@ -408,7 +409,7 @@ go.Base.update(GateOne.Playback, {
                 term = localStorage[prefix+'selectedTerminal'],
                 firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']),
                 lastFrame = t.terminals[term]['playbackFrames'].length - 1,
-                lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']);
+                lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']),
                 totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime();
             if (t.terminals[term]) { // Only do this if there's an actual terminal present
                 var terminalObj = t.terminals[term],
@@ -495,4 +496,4 @@ go.Base.update(GateOne.Playback, {
     }
 });
 
-})(window);
+});

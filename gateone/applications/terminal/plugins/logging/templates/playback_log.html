@@ -446,9 +446,11 @@ window.onload = function() {
     document.body.style['background-position'] = style['background-position'];
     document.body.style['background-repeat'] = style['background-repeat'];
     document.body.style['background-size'] = style['background-size'];
-    setTimeout(function() {
-        fitWindow('{{prefix}}term1_pre');
-    }, 1000);
+    if (!preview) {
+        setTimeout(function() {
+            fitWindow('{{prefix}}term1_pre');
+        }, 1000);
+    }
 }
 window.onunload = function() {
     // Stop any running timers

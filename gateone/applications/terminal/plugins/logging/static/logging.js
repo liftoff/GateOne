@@ -1,14 +1,13 @@
 
-(function(window, undefined) {
-var document = window.document; // Have to do this because we're sandboxed
+GateOne.Base.superSandbox("GateOne.TermLogging", /* Dependencies -->*/["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
+"use strict";
 
 // TODO: Move the parts that load and render logs in separate windows into Web Workers so they don't hang the browser while they're being rendered.
 // TODO: Bring back *some* client-side logging so things like displayMessage() have somewhere to temporarily store messages so users can look back to re-read them (e.g. Which terminal was that bell just in?).  Probably put it in sessionStorage
 
-"use strict";
-
 // These are just convenient shortcuts:
-var go = GateOne,
+var document = window.document, // Have to do this because we're sandboxed
+    go = GateOne,
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
@@ -21,7 +20,7 @@ var go = GateOne,
     logDebug = GateOne.Logging.logDebug;
 
 // GateOne.TermLogging
-go.Base.module(GateOne, "TermLogging", '1.0', ['Base', 'Net', 'Events']);
+go.Base.module(GateOne, "TermLogging", '1.2');
 go.TermLogging.serverLogs = [];
 go.TermLogging.sortToggle = false;
 go.TermLogging.searchFilter = null;
@@ -336,35 +335,31 @@ go.Base.update(GateOne.TermLogging, {
 
         Calculates and returns the number of log items that will fit in the given element (*elem*).  *elem* may be a DOM node or an element ID (string).
         */
-        try {
-            var l = go.TermLogging,
-                node = u.getNode(elem),
-                tempLog = {
-                    'columns': 203,
-                    'connect_string': "user@host",
-                    'end_date': "1324495629180",
-                    'filename': "20111221142606981294.golog",
-                    'frames': 108,
-                    'rows': 56,
-                    'size': 13817,
-                    'start_date': "1324495567011",
-                    'user': "daniel.mcdougall@liftoffsoftware.com",
-                    'version': "1.0"
-                },
-                logItemElement = l.createLogItem(node, tempLog, 500);
-                nodeStyle = window.getComputedStyle(node, null),
-                logElemStyle = window.getComputedStyle(logItemElement, null),
-                nodeHeight = parseInt(nodeStyle['height'].split('px')[0]),
-                height = parseInt(logElemStyle['height'].split('px')[0]),
-                marginBottom = parseInt(logElemStyle['marginBottom'].split('px')[0]),
-                paddingBottom = parseInt(logElemStyle['paddingBottom'].split('px')[0]),
-                borderBottomWidth = parseInt(logElemStyle['borderBottomWidth'].split('px')[0]),
-                borderTopWidth = parseInt(logElemStyle['borderTopWidth'].split('px')[0]),
-                logElemHeight = height+marginBottom+paddingBottom+borderBottomWidth+borderTopWidth,
-                max = Math.floor(nodeHeight/ logElemHeight);
-        } catch(e) {
-            return 1;
-        }
+        var l = go.TermLogging,
+            node = u.getNode(elem),
+            tempLog = {
+                'columns': 203,
+                'connect_string': "user@host",
+                'end_date': "1324495629180",
+                'filename': "20111221142606981294.golog",
+                'frames': 108,
+                'rows': 56,
+                'size': 13817,
+                'start_date': "1324495567011",
+                'user': "daniel.mcdougall@liftoffsoftware.com",
+                'version': "1.0"
+            },
+            logItemElement = l.createLogItem(node, tempLog, 0),
+            nodeStyle = window.getComputedStyle(node, null),
+            logElemStyle = window.getComputedStyle(logItemElement, null),
+            nodeHeight = parseInt(nodeStyle['height'].split('px')[0]),
+            height = parseInt(logElemStyle['height'].split('px')[0]),
+            marginBottom = parseInt(logElemStyle['marginBottom'].split('px')[0]),
+            paddingBottom = parseInt(logElemStyle['paddingBottom'].split('px')[0]),
+            borderBottomWidth = parseInt(logElemStyle['borderBottomWidth'].split('px')[0]),
+            borderTopWidth = parseInt(logElemStyle['borderTopWidth'].split('px')[0]),
+            logElemHeight = height+marginBottom+paddingBottom+borderBottomWidth+borderTopWidth,
+            max = Math.floor(nodeHeight/ logElemHeight);
         u.removeElement(logItemElement); // Don't want this hanging around
         return max;
     },
@@ -531,21 +526,22 @@ go.Base.update(GateOne.TermLogging, {
         logElem.appendChild(titleSpan);
         logElem.appendChild(sizeSpan);
         logElem.appendChild(dateSpan);
-        with ({ filename: logObj['filename'] }) {
-            logElem.onclick = function(e) {
-                var previewIframe = u.getNode('#'+prefix+'log_preview'),
-                    iframeDoc = previewIframe.contentWindow.document;
-                // Highlight the selected row and show the metadata
-                u.toArray(u.getNodes('.✈table_row')).forEach(function(node) {
-                    // Reset them all before we apply the 'active' class to just the one
-                    node.className = '✈halfsectrans ✈table_row';
-                });
-                this.className = '✈halfsectrans ✈table_row ✈active';
-                iframeDoc.open();
-                iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
-                iframeDoc.close();
-                l.displayMetadata(filename);
-            }
+        logElem.setAttribute('data-filename', logObj['filename']);
+        // JavaScript's function-level scope friggin sucks!
+        logElem.onclick = function(e) {
+            var filename = this.getAttribute('data-filename'),
+                previewIframe = u.getNode('#'+prefix+'log_preview'),
+                iframeDoc = previewIframe.contentWindow.document;
+            // Highlight the selected row and show the metadata
+            u.toArray(u.getNodes('.✈table_row')).forEach(function(node) {
+                // Reset them all before we apply the 'active' class to just the one
+                node.className = '✈halfsectrans ✈table_row';
+            });
+            this.className = '✈halfsectrans ✈table_row ✈active';
+            iframeDoc.open();
+            iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
+            iframeDoc.close();
+            l.displayMetadata(filename);
         }
         logElem.style.opacity = 0;
         go.Visual.applyTransform(logElem, 'translateX(-300%)');
@@ -573,14 +569,13 @@ go.Base.update(GateOne.TermLogging, {
         Adds *message['log']* to `GateOne.TermLogging.serverLogs` and places it into the view.
         */
         var l = go.TermLogging,
-            prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
             logViewHeader = u.getNode('#'+prefix+'logging_title'),
             existingHeader = u.getNode('#'+prefix+'logitems_header'),
             pagination = u.getNode('#'+prefix+'log_pagination'),
             existingPaginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logItems = document.getElementsByClassName('✈table_row'),
+            logItems = u.toArray(u.getNodes('.✈table_row')),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         if (message['log']) {
             if (!message['log']['connect_string']) {
@@ -595,7 +590,7 @@ go.Base.update(GateOne.TermLogging, {
                 l.paginationTimeout = null;
             }
             l.paginationTimeout = setTimeout(function() {
-                // De-bouncing this so it doesn't get called 1000 times/sec causing the browser to hang while the loads load.
+                // De-bouncing this so it doesn't get called 1000 times/sec causing the browser to hang while the logs load.
                 var paginationUL = l.loadPagination(l.serverLogs, l.page);
                 if (existingPaginationUL) {
                     if (existingPaginationUL.getElementsByClassName('✈log_page').length < paginationUL.getElementsByClassName('✈log_page').length) {
@@ -604,7 +599,7 @@ go.Base.update(GateOne.TermLogging, {
                 } else {
                     pagination.appendChild(paginationUL);
                 }
-            }, 500);
+            }, 250);
             return; // Don't add more than the panel can display
         }
         l.createLogItem(logListContainer, message['log'], l.delay);
@@ -631,7 +626,7 @@ go.Base.update(GateOne.TermLogging, {
             logLines = message['log'],
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': 'logview_content'}),
-            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'right': 0}});
+            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'height': 'auto', 'right': 0}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
@@ -799,4 +794,4 @@ go.Base.update(GateOne.TermLogging, {
     }
 });
 
-})(window);
+});

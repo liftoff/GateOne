@@ -2,13 +2,12 @@
 
 */
 
-// Load our app in a sandbox (best practices)
-(function(window, undefined) {
-"use strict";
+// Load our app using the superSandbox so that it automatically loads dependencies...
+// We only require GateOne.Terminal--for no other reason than we needed to put *something* there to show how it works:
+GateOne.Base.superSandbox("GateOne.ExampleApp", ["GateOne.Terminal"], function(window, undefined) {
+    // By wrapping our code in the superSandbox we ensure that GateOne.Terminal is loaded before the code below.
 
-GateOne.Base.safeSandbox(["GateOne.Terminal"], function(window, undefined) {
-    "use strict";
-});
+"use strict"; // Ensure best practices and that our variables don't leak into the global namespace
 
 // Some useful, sandbox-wide shortcuts
 var go = GateOne,
@@ -34,7 +33,7 @@ go.prefs['example'] = go.prefs['example'] || 'Hello, world!';
 go.noSavePrefs['example'] = null;
 
 // Application JavaScript isn't much different than a plugin's JavaScript
-go.Base.module(GateOne, "ExampleApp", "1.0", ['Base', 'Utils', 'Visual']); // Create our GateOne.ExampleApp module
+go.Base.module(GateOne, "ExampleApp", "1.0"); // Create our GateOne.ExampleApp module
 
 // Now add some attributes to it:
 go.Base.update(GateOne.ExampleApp, {
@@ -66,6 +65,10 @@ go.Base.update(GateOne.ExampleApp, {
         more details about how that works.
         */
         // We don't actually have anything that needs to be initilized.
+        logDebug("I just ran GateOne.ExampleApp.init()");
+    },
+    postInit: function() {
+        logDebug("I just ran GateOne.ExampleApp.postInit()");
     },
     newExample: function(where, /*opt*/appObj) {
         /**:GateOne.ExampleApp.newExample(where[, appObj])
@@ -95,4 +98,4 @@ go.Base.update(GateOne.ExampleApp, {
     }
 });
 
-})(window);
+});
