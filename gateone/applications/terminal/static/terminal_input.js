@@ -317,7 +317,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var terms = u.toArray(u.getNodes('.✈terminal')),
             selectedText = u.getSelText();
         if (!t.Input.inputNode) {
-            t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
+            t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
             go.node.appendChild(t.Input.inputNode);
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
