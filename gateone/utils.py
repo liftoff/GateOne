@@ -1751,11 +1751,11 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     """
     import pwd, grp
     human_supl_groups = []
+    running_uid = uid
     running_gid = gid
     if not isinstance(uid, int):
         # Get the uid/gid from the name
         running_uid = pwd.getpwnam(uid).pw_uid
-    running_uid = uid
     if not isinstance(gid, int):
         running_gid = grp.getgrnam(gid).gr_gid
     if supl_groups:
@@ -1783,11 +1783,16 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     # Ensure a very convervative umask
     new_umask = 0o77
     os.umask(new_umask)
-    final_uid = os.getuid()
+    # Fix some basic/known environment variables
+    pwd_obj = pwd.getpwuid(running_uid)
+    os.environ['USER'] = pwd_obj.pw_name
+    os.environ['LOGNAME'] = pwd_obj.pw_name
+    os.environ['HOME'] = pwd_obj.pw_dir
+    os.environ['SHELL'] = pwd_obj.pw_shell
     final_gid = os.getgid()
     logging.info(_(
         'Running as user/group, "%s/%s" with the following supplemental groups:'
-        ' %s' % (pwd.getpwuid(final_uid)[0], grp.getgrgid(final_gid)[0],
+        ' %s' % (pwd_obj.pw_name, grp.getgrgid(final_gid)[0],
                  ",".join(human_supl_groups))
     ))
 

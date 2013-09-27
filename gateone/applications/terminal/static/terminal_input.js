@@ -38,13 +38,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     init: function() {
         /**:GateOne.Terminal.Input.init()
 
-        Creates GateOne.Terminal.Input.inputNode to capture keys/IME composition and attaches appropriate events.
+        Creates `GateOne.Terminal.Input.inputNode` to capture keys/IME composition and attaches appropriate events.
         */
-        t.Input.inputNode = u.createElement('textarea', {'class': '✈IME'});
-        go.node.appendChild(t.Input.inputNode);
-        t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
-        t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
-        t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
         E.on("go:new_workspace", go.Terminal.Input.disableCapture);
         E.on("terminal:new_terminal", go.Terminal.Input.capture);
         E.on("go:visible", function() {
@@ -324,6 +319,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (!t.Input.inputNode) {
             t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
+            t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
+            t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
+            t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
         }
         if (!t.Input.addedEventListeners) {
             t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
@@ -364,11 +362,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // The 'blur' event can be called when focus shifts around for pasting.
             return; // Act as if we were never called to avoid flashing the overlay
         }
-        t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
-        t.Input.inputNode.tabIndex = null;
+        if (t.Input.InputNode) {
+            t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
+            t.Input.inputNode.tabIndex = null;
+            t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
+        }
         go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
         go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
-        t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
         terms.forEach(function(termNode) {
             termNode.removeEventListener('paste', t.Input.onPaste, false);
             termNode.removeEventListener('mousedown', t.Input.onMouseDown, false);
@@ -452,6 +452,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             offset = u.getOffset(cursor);
         // This tells the other keyboard input events to suspend their actions until the compositionupdate or compositionend event.
         t.Input.composition = true;
+        // This makes the IME show up right where the cursor is:
         t.Input.inputNode.style['top'] = offset.top + "px";
         t.Input.inputNode.style['left'] = offset.left + "px";
     },

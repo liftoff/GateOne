@@ -9,9 +9,9 @@ A Gate One Application (`GOApplication`) that provides a terminal emulator.
 
 # Meta information about the plugin.  Your plugin doesn't *have* to have this
 # but it is a good idea.
-__version__ = '1.0'
+__version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # I like to start my files with imports from Python's standard library...
@@ -1161,6 +1161,7 @@ class TerminalApplication(GOApplication):
                 'GO_SESSION_DIR': options.session_dir,
                 'GO_USER_SESSION_DIR': user_session_dir,
             }
+            env.update(os.environ) # Add the defaults for this system
             env.update(environment_vars) # Apply policy-based environment
             if self.plugin_env_hooks:
                 # This allows plugins to add/override environment variables

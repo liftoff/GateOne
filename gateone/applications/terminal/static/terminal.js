@@ -741,6 +741,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not given the currently-selected terminal will be used.
         */
+        logInfo('sendString(): ' + chars);
         var term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
             message = {'chars': chars, 'term': term};
         go.ws.send(JSON.stringify({'terminal:write_chars': message}));
@@ -1330,6 +1331,9 @@ go.Base.update(GateOne.Terminal, {
 
         Returns a 'pastearea' (textarea) element meant for placement above terminals for the purpose of enabling proper copy & paste.
         */
+//         if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
+//             return; // Don't create the pastearea on mobile devices since it messes up the ability to scroll
+//         }
         var pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': '✈pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {

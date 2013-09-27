@@ -80,3 +80,9 @@ span.✈reverse { background-color: #aaa; color: #fff; }
     margin: 0 auto;
     width: 100%;
 }
+@media only screen and (max-width: 800px) {
+    .✈terminal pre {
+        /* On mobile devices it's best to let the device's default monospace font handle things */
+        font-family: monospace !important;
+    }
+}

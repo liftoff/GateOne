@@ -94,7 +94,7 @@
     text-align: center;
     width: 80%;
     background-color: #000;
-    font-family: Ubuntu, Arial Black, sans-serif;
+    font-family: Ubuntu, Arial, sans-serif;
     border-bottom: 1px solid #222;
     margin: 0 auto;
 }
@@ -120,11 +120,13 @@
     padding-right: 1.5em;
     width: 15%;
     height: 10em;
+    font-family: sans-serif;
+    overflow: hidden;
 }
-.✈application p {
+.✈application span {
     margin: 0 0 1em 0;
-    word-break: break-all;
     word-wrap: break-word;
+    display: inline-block;
 }
 .✈application:hover {
     box-shadow: 0 0 0.6em #444;
@@ -915,4 +917,40 @@ div.✈widget_close .✈svgplain { fill: #FFFFFF; }
 }
 .✈hsplitbar:hover {
     cursor: row-resize;
+}
+/* Optimize Gate One for mobile devices */
+@media only screen and (max-width: 800px) {
+    .✈toolbar {
+        right: 0.25em;
+        font-size: 100%;
+        -webkit-transform: scale(2) translate(-40%, 25%);
+        /* For whatever reason scaling doesn't work properly in Firefox Mobile but that's OK since the icons appear to be big enough to usable regardless */
+        -ms-transform: scale(2) translate(-40%, 25%); /* We'll see */
+        -o-transform: scale(2) translate(-40%, 25%); /* Yet to be tested */
+        transform: scale(2) translate(-40%, 25%); /* Yet to be tested */
+    }
+    .✈toolbar svg {
+        margin-bottom: 1em; /* So they do not overlap */
+    }
+    .✈sideinfo {
+        display: none; /* Not enough room for it on mobile */
+    }
+    .✈app_grid {
+        width: 90%;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .✈application {
+        display: inline-block;
+        margin-top: 0.5em;
+        border-radius: 0.5em;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+        width: 6.5em;
+        height: 8.5em;
+    }
+    .✈application span {
+        margin: 0 0 0.5em 0;
+    }
+    div.✈appicon svg { width: 4em; height: 4em; }
 }

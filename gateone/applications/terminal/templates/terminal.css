@@ -61,3 +61,9 @@ span.✈termline {
 .✈font_ubuntu {
     font-family: 'Ubuntu Mono';
 }
+@media only screen and (max-width: 800px) {
+    .✈pastearea {
+        /* Touchscreens don't work with the pastearea */
+        display: none;
+    }
+}

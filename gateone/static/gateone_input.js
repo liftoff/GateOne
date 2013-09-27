@@ -58,33 +58,30 @@ GateOne.Base.update(GateOne.Input, {
         go.node.addEventListener('keydown', go.Input.onKeyDown, true);
         go.node.addEventListener('keyup', go.Input.onKeyUp, true);
         // Add some useful touchscreen events
-        if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
-            v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch workspaces.");
-            var style = window.getComputedStyle(go.node, null);
-            go.node.addEventListener('touchstart', function(e) {
-                v.displayMessage("touchstart");
-                var touch = e.touches[0];
-                go.Input.touchstartX = touch.pageX;
-                go.Input.touchstartY = touch.pageY;
-            }, true);
-            go.node.addEventListener('touchmove', function(e) {
-                v.displayMessage("touchmove");
-                var touch = e.touches[0];
-                if (touch.pageX < go.Input.touchstartX && (go.Input.touchstartX - touch.pageX) > 20) {
-                    v.slideRight();
-                } else if (touch.pageX > go.Input.touchstartX && (touch.pageX - go.Input.touchstartX) > 20) {
-                    v.slideLeft();
-                } else if (touch.pageY < go.Input.touchstartY && (go.Input.touchstartY - touch.pageY) > 20) {
-                    v.slideDown();
-                } else if (touch.pageY > go.Input.touchstartY && (touch.pageY - go.Input.touchstartY) > 20) {
-                    v.slideUp();
-                }
-                e.preventDefault();
-            }, true);
-            setTimeout(function() {
-                u.hideElements('.✈pastearea');
-            }, 3000);
-        }
+//         if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
+//             v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch workspaces.");
+// //             var style = window.getComputedStyle(go.node, null);
+//             go.node.addEventListener('touchstart', function(e) {
+// //                 v.displayMessage("touchstart");
+//                 var touch = e.touches[0];
+//                 go.Input.touchstartX = touch.pageX;
+//                 go.Input.touchstartY = touch.pageY;
+//             }, true);
+//             go.node.addEventListener('touchmove', function(e) {
+// //                 v.displayMessage("touchmove");
+//                 var touch = e.touches[0];
+//                 if (touch.pageX < go.Input.touchstartX && (go.Input.touchstartX - touch.pageX) > 20) {
+//                     v.slideRight();
+//                 } else if (touch.pageX > go.Input.touchstartX && (touch.pageX - go.Input.touchstartX) > 20) {
+//                     v.slideLeft();
+//                 } else if (touch.pageY < go.Input.touchstartY && (go.Input.touchstartY - touch.pageY) > 20) {
+//                     v.slideDown();
+//                 } else if (touch.pageY > go.Input.touchstartY && (touch.pageY - go.Input.touchstartY) > 20) {
+//                     v.slideUp();
+//                 }
+//                 e.preventDefault();
+//             }, true);
+//         }
     },
     modifiers: function(e) {
         // Given an event object, returns an object with booleans for each modifier key (shift, alt, ctrl, meta)

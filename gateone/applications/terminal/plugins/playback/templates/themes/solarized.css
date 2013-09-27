@@ -51,3 +51,9 @@
     right: 2em;
     bottom: 0.1em;
 }
+/* Optimize Gate One for mobile devices */
+@media only screen and (max-width: 800px) {
+    .✈playbackControls {
+        display: none; /* Small screens really don't have room for this */
+    }
+}

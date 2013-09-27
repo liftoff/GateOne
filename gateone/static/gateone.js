@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130925212401";
+GateOne.__commit__ = "20130925212405";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2901,7 +2901,7 @@ GateOne.Base.update(GateOne.Visual, {
                     combinedName,
                     appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application', 'data-appname': name}),
                     appIcon = u.createElement('div', {'class': '✈appicon'}),
-                    appText = u.createElement('p', {'class': '✈application_text'});
+                    appText = u.createElement('span', {'class': '✈application_text'});
                 appText.innerHTML = name;
                 appSquare.title = settings['description'] || "Opens the " + name + " application.";
                 if (parentApp !== undefined) {
