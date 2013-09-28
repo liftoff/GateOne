@@ -3280,7 +3280,6 @@ class Terminal(object):
         try:
             char = self.screen[self.cursorY][self.cursorX]
         except IndexError: # Cursor is past the right-edge of the screen; ignore
-            print("cursor_left() IndexError")
             char = u' ' # This is a safe default/fallback
         if unicodedata.east_asian_width(char) == 'W':
             # This lets us skip the next call (get called 2x for 2x width)
