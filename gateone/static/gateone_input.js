@@ -461,7 +461,6 @@ GateOne.Base.update(GateOne.Input, {
         }
     }
 });
-});
 
 // Expand GateOne.Input.specialKeys to be more complete:
 (function () { // Note:  Copied from MochiKit.Signal.
@@ -494,3 +493,6 @@ GateOne.Base.update(GateOne.Input, {
         specialMacKeys[i] = 'KEY_F' + (i - 63236 + 1);
     }
 })();
+
+});
+

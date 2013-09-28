@@ -88,7 +88,14 @@ go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
-        'icon': go.Icons['terminal']
+//         'icon': go.Icons['terminal']
+        'icon': function(settings) {
+            if (settings['name'] == 'shell') {
+                return go.Icons['grid'];
+            } else {
+                return go.Icons['terminal'];
+            }
+        }
     },
     __new__: function(settings, /*opt*/where) {
         /**:GateOne.Terminal.__new__(settings[, where])
@@ -741,7 +748,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not given the currently-selected terminal will be used.
         */
-        logInfo('sendString(): ' + chars);
+        logDebug('sendString(): ' + chars);
         var term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
             message = {'chars': chars, 'term': term};
         go.ws.send(JSON.stringify({'terminal:write_chars': message}));
@@ -912,6 +919,9 @@ go.Base.update(GateOne.Terminal, {
             heightDiff = goDiv.clientHeight - toolbar.clientHeight,
             scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("Setting term " + term + " to title: " + title);
+        if (!go.Terminal.terminals[term]) {
+            return; // Terminal was just closed
+        }
         go.Terminal.terminals[term]['X11Title'] = title;
         go.Terminal.terminals[term]['title'] = title;
         v.setTitle(term + ": " + title);
@@ -1275,12 +1285,16 @@ go.Base.update(GateOne.Terminal, {
         var t = go.Terminal,
             term = termUpdateObj['term'],
             ratelimiter = termUpdateObj['ratelimiter'],
-            scrollback = go.Terminal.terminals[term]['scrollback'],
+            scrollback,
             textTransforms = go.Terminal.textTransforms,
             checkBackspace = null,
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalAction() termUpdateObj: ' + u.items(termUpdateObj));
         logDebug("screen length: " + termUpdateObj['screen'].length);
+        if (!go.Terminal.terminals[term]) {
+            return; // Terminal was just closed
+        }
+        scrollback = go.Terminal.terminals[term]['scrollback'];
         if (ratelimiter) {
             v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be severely slowed until you press a key (e.g. Ctrl-C).");
         }
@@ -1738,8 +1752,12 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
         var lastTerm, terms,
-            termNode = go.Terminal.terminals[term]['terminal'],
+            termNode,
             terminalDB = S.dbObject('terminal');
+        if (!go.Terminal.terminals[term]) {
+            return; // Nothing to do
+        }
+        termNode = go.Terminal.terminals[term]['terminal'];
         if (!termNode) {
             return; // Nothing to do
         }
@@ -1894,7 +1912,7 @@ go.Base.update(GateOne.Terminal, {
 
         Called whenever Gate One switches to a new workspace; checks whether or not this workspace is home to a terminal and calls switchTerminalEvent() on said terminal (to make sure input is enabled and it is scrolled to the bottom).
         */
-        logDebug('switchWorkspaceEvent('+workspace+')');
+        logDebug('GateOne.Terminal.switchWorkspaceEvent('+workspace+')');
         var termFound = false;
         // TODO: Make this switch to the appropriate terminal when multiple terminals share the same workspace (FUTURE)
         for (var term in go.Terminal.terminals) {
@@ -2401,6 +2419,9 @@ go.Base.update(GateOne.Terminal, {
             {'mode': '1', 'term': '1', 'bool': true}
         */
         logDebug("setModeAction modeObj: " + GateOne.Utils.items(modeObj));
+        if (!go.Terminal.terminals[modeObj.term]) {
+            return; // Terminal was closed
+        }
         if (go.Terminal.modes[modeObj.mode]) {
             go.Terminal.modes[modeObj.mode](modeObj.term, modeObj.bool);
         }
@@ -2468,6 +2489,9 @@ go.Base.update(GateOne.Terminal, {
         var term = message['term'],
             encoding = message['encoding'],
             infoPanelEncoding = u.getNode('#'+prefix+'encoding');
+        if (!go.Terminal.terminals[term]) {
+            return; // Terminal was just closed
+        }
         go.Terminal.terminals[term]['encoding'] = encoding;
         infoPanelEncoding.value = encoding;
     },

@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130926205004";
+GateOne.__commit__ = "20130926205927";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -160,6 +160,7 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
     */
 //     console.log('superSandbox('+name+')');
     var missingDependency = false,
+        getType = {}, // Only used to check if an object is a function
         getParent = function(parent, depArray) {
             // Returns the final parent object if it can be found in `window`.  Otherwise returns `false`.
             // *depArray* should be the result of `"Some.Dependency".split('.')`
@@ -171,12 +172,8 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
                 return getParent(parent[dep], depArray);
             }
             return parent;
-        };
-    dependencies.forEach(function(dependency) {
-//         console.log("checking for: " + dependency);
-        var deps = dependency.split('.');
-        if (!getParent(window, deps)) {
-            // Retry again in 50ms and start the counter
+        },
+        dependencyFailure = function() {
             if (!GateOne.Base.dependencyRetries[name]) {
                 GateOne.Base.dependencyRetries[name] = 1; // 1 instead of 0 so the negative conditional above works
             } else {
@@ -186,9 +183,33 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
                 throw 'Failed to load ' + name + ' due to missing dependencies: ' + dependencies;
             }
             missingDependency = true;
+        };
+    dependencies.forEach(function(dependency) {
+//         console.log("checking for: " + dependency);
+        if (dependency.substring) {
+            // It's a string; treat it as a global variable we need to be present
+            var deps = dependency.split('.');
+            if (!getParent(window, deps)) {
+                // Retry again in 50ms and start the counter
+                dependencyFailure();
+            }
+        } else if (getType.toString.call(dependency) === '[object Function]') {
+            // It's a function; it must return true to continue
+//             console.log("Dependency is a function: " + dependency);
+            try {
+                if (!dependency()) {
+//                     console.log("Dependency check failed");
+                    dependencyFailure();
+                } else {
+//                     console.log("Dependency check succeeded!");
+                }
+            } catch (e) {
+                console.log("Exception calling dependency function", e);
+                dependencyFailure();
+            }
         }
     });
-    if (missingDependency) {
+    if (!GateOne.initialized || missingDependency) {
         setTimeout(function() {
             GateOne.Base.superSandbox(name, dependencies, func);
         }, 50); // 50ms increments
@@ -240,8 +261,12 @@ GateOne.Base.update = function(self, obj/*, ... */) {
             for (var k in o) {
                 self[k] = o[k];
                 if (self[k]) {
-                    self[k].__name__ = k
-                    self[k].__parent__ = self;
+                    if (!self[k].__name__) {
+                        self[k].__name__ = k
+                    }
+                    if (!self[k].__parent__) {
+                        self[k].__parent__ = self;
+                    }
                 }
             }
         }
@@ -505,6 +530,7 @@ var go = GateOne.Base.update(GateOne, {
 
         Called after :js:meth:`GateOne.init`, Sets up Gate One's graphical elements (panels and whatnot) and attaches events related to visuals (browser resize and whatnot).
         */
+//         console.log("GateOne.initialize()");
         if (GateOne.initialized) {
             // If we've already called initialize() we don't need to re-create all these panels and whatnot
             GateOne.Visual.updateDimensions(); // Just in case
@@ -519,6 +545,7 @@ var go = GateOne.Base.update(GateOne, {
         deprecated = GateOne.Logging.deprecated;
         var go = GateOne,
             u = go.Utils,
+            v = go.Visual,
             E = go.Events,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
@@ -554,14 +581,14 @@ var go = GateOne.Base.update(GateOne, {
             };
         // Create our prefs panel
         u.hideElement(prefsPanel); // Start out hidden
-        go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
+        v.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
         toolbarIconClose.innerHTML = go.Icons['close'];
         toolbarIconNewWorkspace.innerHTML = go.Icons['newWS'];
         toolbarIconPrefs.innerHTML = go.Icons['prefs'];
         prefsPanelH2.innerHTML = gettext("Preferences");
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
-            go.Visual.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
+            v.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
         }
         prefsPanel.appendChild(prefsPanelH2);
         prefsPanel.appendChild(panelClose);
@@ -617,7 +644,7 @@ var go = GateOne.Base.update(GateOne, {
                 }
                 if (scale) {
                     translateY = ((100 * scale) - 100) / 2; // translateY needs to be in % (one half of scale)
-                    go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
+                    v.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
                 }
             }
             if (disableTransitions) {
@@ -632,7 +659,7 @@ var go = GateOne.Base.update(GateOne, {
                 }
                 go.prefs.disableTransitions = false;
             }
-            go.Visual.updateDimensions();
+            v.updateDimensions();
             E.trigger("go:save_prefs");
             // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("go:save_prefs", yourFunc) instead
             if (go.savePrefsCallbacks.length) {
@@ -644,14 +671,14 @@ var go = GateOne.Base.update(GateOne, {
             u.savePrefs();
         }
         // Apply user-specified dimension styles and settings
-        go.Visual.applyStyle(goDiv, go.prefs.style);
+        v.applyStyle(goDiv, go.prefs.style);
         if (go.prefs.fillContainer) {
-            go.Visual.applyStyle(goDiv, { // Undo width and height so they don't mess with the settings below
+            v.applyStyle(goDiv, { // Undo width and height so they don't mess with the settings below
                 'width': 'auto',
                 'height': 'auto'
             });
             // This causes #gateone to fill the entire container:
-            go.Visual.applyStyle(goDiv, {
+            v.applyStyle(goDiv, {
                 'position': 'absolute',
                 'top': 0,
                 'bottom': 0,
@@ -677,7 +704,7 @@ var go = GateOne.Base.update(GateOne, {
             }
             if (scale) {
                 translateY = ((100 * scale) - 100) / 2; // translateY needs to be in % (one half of scale)
-                go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
+                v.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
             }
         }
         // Create the (empty) toolbar
@@ -688,14 +715,15 @@ var go = GateOne.Base.update(GateOne, {
         toolbar.appendChild(toolbarIconClose);
         toolbar.appendChild(toolbarIconNewWorkspace);
         toolbar.appendChild(toolbarIconPrefs);
+        go.toolbar = toolbar;
         goDiv.appendChild(toolbar);
         var showPrefs = function() {
-            go.Visual.togglePanel('#'+prefix+'panel_prefs');
+            v.togglePanel('#'+prefix+'panel_prefs');
         }
-        toolbarIconNewWorkspace.onclick = go.Visual.newWorkspaceWorkspace;
+        toolbarIconNewWorkspace.onclick = v.newWorkspaceWorkspace;
         toolbarIconClose.onclick = function(e) {
             var workspace = localStorage[prefix+'selectedWorkspace'];
-            go.Visual.closeWorkspace(workspace);
+            v.closeWorkspace(workspace);
         }
         toolbarIconPrefs.onclick = showPrefs;
         // Put our invisible pop-up message container on the page
@@ -713,7 +741,7 @@ var go = GateOne.Base.update(GateOne, {
             var gridwrapper = u.getNode('#'+prefix+'gridwrapper');
             // Create the grid if it isn't already present
             if (!gridwrapper) {
-                gridwrapper = go.Visual.createGrid('gridwrapper');
+                gridwrapper = v.createGrid('gridwrapper');
                 goDiv.appendChild(gridwrapper);
                 var style = window.getComputedStyle(goDiv, null),
                     adjust = 0,
@@ -721,19 +749,34 @@ var go = GateOne.Base.update(GateOne, {
                 if (paddingRight) {
                     adjust = parseInt(paddingRight.split('px')[0]);
                 }
-                var gridWidth = (go.Visual.goDimensions.w+adjust) * 2;
+                var gridWidth = (v.goDimensions.w+adjust) * 2;
                 gridwrapper.style.width = gridWidth + 'px';
             }
         }
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
-        go.Events.on("go:panel_toggle:in", updateCSSfunc);
+        E.on("go:panel_toggle:in", updateCSSfunc);
         // Make sure the gridwrapper is the proper width for 2 columns
-        go.Visual.updateDimensions();
+        v.updateDimensions();
         // NOTE:  Application and plugin init() and postInit() functions will get called as part of the file sync process.
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
-        go.Visual.togglePanel(); // Scales them all away
+        v.togglePanel(); // Scales them all away
+        E.on("go:connection_established", function() {
+            // This is really for reconnect events
+            setTimeout(function() {
+                // If there's no workspaces after a while make the new workspace workspace
+                var workspaces = u.getNodes('.✈workspace');
+                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+            }, 250);
+        });
+        E.on("go:js_loaded", function(apps) {
+            setTimeout(function() {
+                if (!u.getNodes('.✈workspace').length) {
+                    v.newWorkspaceWorkspace();
+                }
+            }, 250);
+        });
         go.initialized = true; // Don't use this to determine if everything is loaded yet.  Use the "go:js_loaded" event for that.
-        go.Events.trigger("go:initialized");
+        E.trigger("go:initialized");
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
             u.hideElements('.✈panel');
@@ -1120,8 +1163,10 @@ GateOne.Base.update(GateOne.Utils, {
         */
         var u = GateOne.Utils,
             node = u.getNode(elem);
-        node.style.display = 'block';
-        node.className = node.className.replace(/(?:^|\s)✈go_none(?!\S)/, '');
+        if (node) {
+            node.style.display = 'block';
+            node.classList.remove('✈go_none');
+        }
     },
     hideElement: function(elem) {
         /**:GateOne.Utils.hideElement(elem)
@@ -1137,9 +1182,11 @@ GateOne.Base.update(GateOne.Utils, {
         // Sets the 'display' style of the given element to 'none'
         var u = GateOne.Utils,
             node = u.getNode(elem);
-        node.style.display = 'none';
-        if (node.className.indexOf('✈go_none') == -1) {
-            node.className += " ✈go_none";
+        if (node) {
+            node.style.display = 'none';
+            if (node.classList.contains('✈go_none')) {
+                node.classList.add("✈go_none");
+            }
         }
     },
     showElements: function(elems) {
@@ -1270,10 +1317,17 @@ GateOne.Base.update(GateOne.Utils, {
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
         logDebug("Running runPostInit()");
+        if (!GateOne.initialized) {
+            // Retry in a moment
+            setTimeout(function() {
+                go.Utils.runPostInit();
+            }, 50);
+            return;
+        }
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
             if (go.initializedModules.indexOf(moduleObj.__name__) == -1) {
-                logDebug('Running: ' + moduleObj.__name__ + '.init()');
+//                 console.log('Running: ' + moduleObj.__name__ + '.init()');
                 if (typeof(moduleObj.init) == "function") {
                     moduleObj.init();
                 }
@@ -1293,7 +1347,7 @@ GateOne.Base.update(GateOne.Utils, {
             go.loadedModules.forEach(function(module) {
                 var moduleObj = eval(module);
                 if (go.Utils._ranPostInit.indexOf(moduleObj.__name__) == -1) {
-                    logDebug('Running: ' + moduleObj.__name__ + '.postInit()');
+//                     console.log('Running: ' + moduleObj.__name__ + '.postInit()');
                     if (typeof(moduleObj.postInit) == "function") {
                         moduleObj.postInit();
                     }
@@ -2534,10 +2588,10 @@ GateOne.Base.update(GateOne.Net, {
                     }
                 }
                 go.ws.send(JSON.stringify({'go:authenticate': settings}));
-                // NOTE: The "go:connnection_established" event is only useful to plugins/applications in *reconnect* situations.
+                // NOTE: The "go:connection_established" event is only useful to plugins/applications in *reconnect* situations.
                 // Why?  Because it gets fired before plugin/application JS gets downloaded on initial page load.
                 // So the only time a plugin/application can use it is when the connection to the server is re-established.
-                go.Events.trigger("go:connnection_established");
+                go.Events.trigger("go:connection_established");
                 go.initialize();
                 if (callback) {
                     callback();
@@ -2570,9 +2624,10 @@ GateOne.Base.update(GateOne.Net, {
             GateOne.Net.binaryBuffer[identifier] = data.subarray(1);
             return;
         }
-        try {
+        if (evt.data[0] == '{') {
+            // This is a JSON-encoded WebSocket action
             messageObj = JSON.parse(evt.data);
-        } catch (e) {
+        } else {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
             var noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
                 msg = '<b>Message From Gate One Server:</b> ' + evt.data;
@@ -2751,12 +2806,10 @@ GateOne.Base.update(GateOne.Visual, {
             `window`    `resize`      :js:meth:`GateOne.Visual.updateDimensions`
             ========    =========     ============================================
         */
+//         console.log("GateOne.Visual.init()");
         var u = go.Utils,
             v = go.Visual,
-            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': '✈toolbar_icon', 'title': "Grid View"}),
-            toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
-        // Add our grid icon to the icons list
-        GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
+            toolbarGrid = u.createElement('div', {'id': 'icon_grid', 'class': '✈toolbar_icon ✈icon_grid', 'title': "Grid View"});
         // Setup our toolbar icons and actions
         toolbarGrid.innerHTML = GateOne.Icons['grid'];
         var gridToggle = function() {
@@ -2768,19 +2821,11 @@ GateOne.Base.update(GateOne.Visual, {
             gridToggle = null;
         }
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
-        toolbar.appendChild(toolbarGrid);
+        go.toolbar.appendChild(toolbarGrid);
         go.Net.addAction('go:notice', v.serverMessageAction);
         go.Net.addAction('go:user_message', v.userMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        go.Events.on("go:connnection_established", function() {
-            // This is really for reconnect events
-            setTimeout(function() {
-                // If there's no workspaces after a while make the new workspace workspace
-                var workspaces = u.getNodes('.✈workspace');
-                if (!workspaces.length) {v.newWorkspaceWorkspace();}
-            }, 250);
-        });
         go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 250);
         window.addEventListener('resize', go.Visual.updateDimensions, false);
     },
@@ -2840,20 +2885,14 @@ GateOne.Base.update(GateOne.Visual, {
                     'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
                     'action': 'GateOne.Visual.toggleGridView()'
                 });
-            setTimeout(function() {
-                // If there's no workspaces after a while make the new workspace workspace
-                var workspaces = go.Utils.getNodes('.✈workspace');
-                if (!workspaces.length) {go.Visual.newWorkspaceWorkspace();}
-            }, 500);
         }
     },
     lastAppPosition: 0, // Used by newWorkspaceWorkspace() below
+    newWSWSRequirementsTimer: {}, // Ditto
     newWorkspaceWorkspace: function() {
         /**:GateOne.Visual.newWorkspaceWorkspace()
 
         Creates the new workspace workspace (akin to a browser's "new tab tab") that allows users to open applications (and possibly other things in the future).
-
-        If only one application is enabled (for this user) it will be opened automatically *unless* it has more than one non-hidden sub-application.
         */
         logDebug("GateOne.Visual.newWorkspaceWorkspace()");
         var u = go.Utils,
@@ -2864,11 +2903,13 @@ GateOne.Base.update(GateOne.Visual, {
             selectedApp,
             spacers = 0,
             filteredApps = [],
+            failedDepCheck,
+            numWorkspaces = 0,
             titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
             wsContainer = u.createElement('div', {'class': '✈centertrans ✈halfsectrans ✈new_workspace_workspace'}),
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
-            workspace = v.newWorkspace(),
-            workspaceNum = workspace.id.split(prefix+'workspace')[1],
+            workspace, // Set below
+            workspaceNum, // Ditto
             callFunc = function(settings, parentApp, e) {
                 var subAppName = name = settings['name'];
                 if (parentApp !== undefined) {
@@ -2915,7 +2956,12 @@ GateOne.Base.update(GateOne.Visual, {
                     appSquare.setAttribute('data-spacer', true);
                     appIcon.innerHTML = go.Icons['application'];
                 } else {
-                    appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
+                    if (u.isFunction(go.loadedApplications[name].__appinfo__.icon)) {
+                        // Use whatever the function returns as the icon
+                        appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon(settings);
+                    } else {
+                        appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
+                    }
                     appSquare.tabIndex = 0;
                     appSquare.addEventListener('click', u.partial(callFunc, settings, parentApp), false);
                 }
@@ -2923,16 +2969,45 @@ GateOne.Base.update(GateOne.Visual, {
                 appSquare.appendChild(appText);
                 wsAppGrid.appendChild(appSquare);
             };
+        if (v.debounceNewWSWS) {
+            clearTimeout(v.debounceNewWSWS);
+            v.debounceNewWSWS = null;
+        }
         // Remove any apps that are missing the __appinfo__ object
         apps.forEach(function(appObj) {
-            if (!appObj['hidden']) {
+            if (appObj['dependencies']) {
+                // Check that the dependencies are loaded before we create the newWorkspaceWorkspace
+                if (!v.newWSWSRequirementsTimer[appObj['name']]) {
+                    v.newWSWSRequirementsTimer[appObj['name']] = 1;
+                }
+                if (v.newWSWSRequirementsTimer[appObj['name']] < GateOne.Base.dependencyTimeout) {
+                    for (var i=0; i < appObj['dependencies'].length; i++) {
+                        if (!(appObj['dependencies'][i] in go.Storage.loadedFiles)) {
+                            logDebug(appObj['name'] + " failed dependency check.  Will retry until " + appObj['dependencies'][i] + ' is loaded');
+                            // Retry in a moment or so
+                            v.newWSWSRequirementsTimer[appObj['name']] += 50;
+                            v.debounceNewWSWS = setTimeout(v.newWorkspaceWorkspace, 50);
+                            failedDepCheck = true;
+                            break;
+                        }
+                    }
+                } else {
+                    logError(gettext("Skipping adding the icon for ") + appObj['name'] + gettext(".  Took too long to load dependencies."));
+                    failedDepCheck = true;
+                }
+            }
+            if (!failedDepCheck && !appObj['hidden']) {
                 var name = appObj['name'];
                 if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
                     filteredApps.push(Object.create(appObj)); // Use a copy so we don't clobber the original when we make modifications
                 }
             }
         });
+        if (failedDepCheck) {
+            return; // Don't do anything more
+        }
         if (filteredApps.length == 1) {
+            // No workspace created yet; check if we should launch the default app (if only one)
             // Check for sub-applications
             var subApps = [];
             if (filteredApps[0]['sub_applications']) {
@@ -2945,17 +3020,20 @@ GateOne.Base.update(GateOne.Visual, {
             if (!subApps.length) {
                 // If there's only one app don't bother making a listing; just launch the app
                 setTimeout(function() {
+                    workspace = v.newWorkspace();
                     go.loadedApplications[filteredApps[0]['name']].__new__(filteredApps[0], workspace);
-                }, 10); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
+                }, 5); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
                 return;
             } else if (subApps.length == 1){
                 // There's only one sub-application in one app; launch it
                 var settings = subApps[0];
                 setTimeout(function() {
+                    workspace = v.newWorkspace();
                     go.loadedApplications[filteredApps[0]['name']].__new__(settings, workspace);
-                }, 10);
+                }, 5);
                 return;
             }
+            return;
         }
         titleH2.innerHTML = "Gate One - Applications";
         wsContainer.style.opacity = 0;
@@ -3025,6 +3103,8 @@ GateOne.Base.update(GateOne.Visual, {
             }
             addIcon(appObj);
         });
+        workspace = v.newWorkspace();
+        workspaceNum = workspace.id.split(prefix+'workspace')[1];
         workspace.appendChild(wsContainer);
         // Scale it back into view
         setTimeout(function() {
@@ -3542,10 +3622,11 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             v = go.Visual,
-            prefix = go.prefs.prefix;
+            prefix = go.prefs.prefix,
+            workspaces;
         u.removeElement('#'+prefix+'workspace' + workspace);
         // Now find out what the previous workspace was and move to it
-        var workspaces = u.toArray(u.getNodes('.✈workspace'));
+        workspaces = u.toArray(u.getNodes('.✈workspace'));
         if (message) { v.displayMessage(message); }
         if (!workspaces.length) {
             v.lastWorkspaceNumber = 0;
@@ -3556,17 +3637,13 @@ GateOne.Base.update(GateOne.Visual, {
         }
         if (v.lastWorkspaceNumber) {
             v.switchWorkspace(v.lastWorkspaceNumber);
-        } else {
-            // Only open a new workspace if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
-            if (!go.prefs.embedded) {
-                if (go.ws.readyState == 1) {
+        }
+        // Only open a new workspace if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
+        if (!go.prefs.embedded) {
+            if (go.ws.readyState == 1) {
+                if (u.getNodes('.✈workspace').length < 1) {
                     // There are no other workspaces and we're still connected.  Open a new one...
-                    if (go.User.applications.length > 1) {
-                        v.newWorkspaceWorkspace();
-                    } else {
-                        // Just launch the default application (for now)
-                        go.applicationModules[go.User.applications[0]].__new__();
-                    }
+                    v.newWorkspaceWorkspace();
                 }
             }
         }
@@ -3589,12 +3666,14 @@ GateOne.Base.update(GateOne.Visual, {
 
         This gets attached to the 'go:cleanup_workspaces' event and should be triggered by any function that may leave a workspace empty.  It walks through all the workspaces and removes any that are empty.
         */
+        logDebug("cleanupWorkspaces()");
         var u = go.Utils,
+            v = go.Visual,
             workspaces = u.toArray(u.getNodes('.✈workspace'));
         workspaces.forEach(function(wsNode) {
             var workspaceNum = wsNode.id.split(go.prefs.prefix+'workspace')[1];
             if (!wsNode.innerHTML.length) {
-                go.Visual.closeWorkspace(workspaceNum);
+                v.closeWorkspace(workspaceNum);
             }
         });
     },
@@ -5263,6 +5342,7 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     }
 });
+go.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
 go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 go.Icons['newWS'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
 go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130926205004" # Gets replaced by git (holds the date/time)
+__commit__ = "20130926205927" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -548,7 +548,7 @@ from utils import total_seconds, MEMO
 from onoff import OnOffMixin
 
 # Setup our base loggers (these get overwritten in main())
-from golog import go_logger
+from golog import go_logger, LOGS
 logger = go_logger(None)
 auth_log = go_logger('gateone.auth')
 msg_log = go_logger('gateone.message')
@@ -1317,6 +1317,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.auth_log = go_logger('gateone.auth')
         self.client_log = go_logger('gateone.client')
         self._events = {}
+        self.locations = {}
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
@@ -4302,6 +4303,7 @@ def main():
         go_settings['api_keys'] = api_keys
     # Setting the log level using go_settings requires an additional step:
     logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
+    logger = go_logger(None)
     APPLICATIONS = [] # Replace it with a list of actual class instances
     web_handlers = []
     # Convert the old server.conf to the new settings file format and save it
@@ -4416,6 +4418,14 @@ def main():
             recursive_chown(log_dir, uid, gid)
         except (ChownError, OSError) as e:
             logging.error("log_dir: %s, uid: %s, gid: %s" % (log_dir, uid, gid))
+            logging.error(e)
+            sys.exit(1)
+    # Now fix the permissions on each log (no need to check)
+    for log_file in LOGS:
+        try:
+            recursive_chown(log_file, uid, gid)
+        except (ChownError, OSError) as e:
+            logging.error("log_file: %s, uid: %s, gid: %s" % (log_dir,uid, gid))
             logging.error(e)
             sys.exit(1)
     if options.new_api_key:

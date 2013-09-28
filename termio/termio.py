@@ -1521,6 +1521,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # recompresses everything to save disk space)
         if not self.log_path:
             return # No log to finalize so we're done.
+        if not self.log:
+            return # No log to finalize so we're done.
         self.log.close() # Write it out
         logging.info(_(
             "Finalizing the log for pid %s (this can take some time)."

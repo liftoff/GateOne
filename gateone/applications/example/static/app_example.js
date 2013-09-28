@@ -2,6 +2,7 @@
 
 */
 
+
 // Load our app using the superSandbox so that it automatically loads dependencies...
 // We only require GateOne.Terminal--for no other reason than we needed to put *something* there to show how it works:
 GateOne.Base.superSandbox("GateOne.ExampleApp", ["GateOne.Terminal"], function(window, undefined) {

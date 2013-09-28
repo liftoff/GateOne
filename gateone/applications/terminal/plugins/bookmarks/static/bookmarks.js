@@ -1,5 +1,11 @@
 
-GateOne.Base.superSandbox("GateOne.Bookmarks", ["GateOne.Terminal"], function(window, undefined) {
+var gridIcon = function() {
+    // A dependency-checking function.  Returns true if the grid icon is present.
+    return (GateOne.Utils.getNode('.✈icon_grid'));
+    // The point being that we want the bookmarks icon to be added to the toolbar *after* the grid.
+}
+
+GateOne.Base.superSandbox("GateOne.Bookmarks", ["GateOne.Terminal", gridIcon], function(window, undefined) {
 "use strict";
 
 // Useful sandbox-wide stuff
@@ -37,7 +43,6 @@ var document = window.document, // Have to do this because we're sandboxed
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
 // TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
-// TODO: Add a 'registerURLHandler()' or something like that so that an app or plugin can take advantage of bookmarks.
 
 // GateOne.Bookmarks (bookmark management functions)
 go.Base.module(GateOne, "Bookmarks", "1.2", ['Base']);
@@ -61,7 +66,8 @@ All the user's bookmarks are stored in this array which is stored/loaded from `l
 
 Most of that should be self-explanatory except the `updateSequenceNum` (aka USN).  The USN value is used to determine when this bookmark was last changed in comparison to the highest USN stored on the server.  By comparing the highest client-side USN against the highest server-side USN we can determine what (if anything) has changed since the last synchronization.  It is much more efficient than enumerating all bookmarks on both the client and server in order to figure out what's different.
 */
-b.handlers = {};
+b.URLHandlers = {};
+b.iconHandlers = {};
 b.tags = [];
 b.sortToggle = false;
 b.searchFilter = null;
@@ -100,11 +106,11 @@ go.Base.update(GateOne.Bookmarks, {
                 b.sortfunc = b.sortFunctions.visits;
             }
         }
+        // Add our HTTP and HTTPS favicon handlers
+        b.registerIconHandler('http', b.httpIconHandler);
+        b.registerIconHandler('https', b.httpIconHandler);
         // Setup our toolbar icons and actions
-        go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
-        // This is the favicon that gets used for SSH URLs (used by updateIcon())
-        go.Icons['ssh'] = 'data:image/x-icon;base64,AAABAAIABQkAAAEAIAAAAQAAJgAAABAQAAABAAgAaAUAACYBAAAoAAAABQAAABIAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////SP///0j///9I////SP///w////8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAAKAAAABAAAAAgAAAAAQAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACcnJwAoKSkAKikpACorKgArKysAKywrACwtLAAtLi0ALi4tAC0uLgAuLy4ALi8vAC8wLwAwMC8AMDAwADAxMAAxMjAAMTIxADIzMQAyMzIAMjMzADI0MgAyNDMAMzQ0ADQ0NAAzNTQANDU0ADQ2NAA0NjUANTY1ADU2NgA1NzUANjc2ADY3NwA3ODcANjg4ADc5NwA3OTgAODk4ADg5OQA4OjkAOTo5ADk6OgA5OzoAOjs6ADo7OwA6PDsAOzw7ADw9PAA8PjwAPD49ADw+PgA9Pz4APT8/AD1APgA/QD8AP0E/AEBBQQBAQkAAQEJBAEFCQQBBQ0IAQkRCAEJEQwBDRUMAREZFAEZIRwBGSUYAR0lHAEdKSABHSkkASEtJAElMSgBKTUsAS05MAE5QTwBnaGcAkXBUAG1wbgB+f34AgoOCAMOLWgDQlmMAj5CQAJCRkQChoqEAsrOyALO0swC3t7cAvL29AL29vQC+v74AxcXFAMbGxgDHx8cAyMjIAMrKygDLy8sAzMzMAM3NzQDOzs4Az8/PANHR0QDS0tIA1NTUANbW1gDb29sA39/fAOTk5ADo6OgA6enpAO3t7QDv7+8A8fHxAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzc3Nzc3Nzc3Nzc3Nzc3Nzc1xoaGhoaGhoaGhoaGhac3NlNjEtJiEYEQ0IBQIAXXNzZDk0MC4kHxcRDAcEAV1zc2M9ODRPKSQdFBALBgNdc3NiQExVW1AoIhsVDwoGXnNzYUE/O1NXLighGRMOCV9zc2FDS1ZYNDAsJh0aEgxgc3NhRk5XNDQ0LyojHBYRYnNzYUhFVFlUODMvKCEcFGVzc2FKR0RUQDw3MiwnIBpmc3NhSklHQkE+OjUyKyUeZ3NzaGZpamtsbW9wbmxramhzc2hNcnJycnJycnJycmhNc3NRYWFhYXFRUVFRUVFRUXNzUVFRUVFRUVFRUVFRUlJz//8AAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAA==';
         var toggleBookmarks = function() {
             go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
         }
@@ -433,22 +439,22 @@ go.Base.update(GateOne.Bookmarks, {
                         // Only say we're done if the deletedBookmarks queue is empty
                         if (!b.loginSync) {
                             // This lets us turn off the "Synchronization Complete" message when the user had their bookmarks auto-sync after login
-                                go.Visual.displayMessage("Synchronization Complete");
+                                go.Visual.displayMessage(gettext("Synchronization Complete"));
                             if (count) {
                                 b.createPanel();
                             }
                         }
                     }
                     if (localStorage[prefix+'iconQueue'].length) {
-                        go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                        go.Visual.displayMessage(gettext("Missing bookmark icons will be retrieved in the background"));
                     }
                     if (b.highestUSN() > parseInt(localStorage[prefix+'USN'])) {
                         localStorage[prefix+'USN'] = b.highestUSN();
                     }
                 } else {
                     if (localStorage[prefix+'USN'] != 0) {
-                        go.Visual.displayMessage("First-Time Synchronization Complete");
-                        go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                        go.Visual.displayMessage(gettext("First-Time Synchronization Complete"));
+                        go.Visual.displayMessage(gettext("Missing bookmark icons will be retrieved in the background"));
                     }
                     b.createPanel();
                     localStorage[prefix+'USN'] = b.highestUSN();
@@ -473,7 +479,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix;
         if (result) {
             delete localStorage[prefix+'renamedTags'];
-            go.Visual.displayMessage(result['count'] + " tags were renamed.");
+            go.Visual.displayMessage(result['count'] + gettext(" tags were renamed."));
         }
     },
     deletedBookmarksSyncComplete: function(message) {
@@ -486,7 +492,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix;
         if (message) {
             localStorage[prefix+'deletedBookmarks'] = "[]"; // Clear it out now that we're done
-            v.displayMessage(message['count'] + " bookmarks were deleted or marked as such.");
+            v.displayMessage(message['count'] + gettext(" bookmarks were deleted or marked as such."));
         }
     },
     loadBookmarks: function(/*opt*/delay) {
@@ -816,65 +822,27 @@ go.Base.update(GateOne.Bookmarks, {
     updateIcon: function(bookmark) {
         /**:GateOne.Bookmarks.updateIcon(bookmark)
 
-        Makes an AJAX call to `<Gate One URL>/bookmarks/fetchicon` to retrieve a favicon for the given *bookmark* and calls :js:meth:`~GateOne.Bookmarks.storeFavicon` if an icon was able to be retrieved.
+        Calls the handler in `GateOne.Bookmarks.iconHandlers` associated with the given *bookmark.url* protocol.
+
+        If no handler can be found no operation will be performed.
         */
-        var go = GateOne,
-            b = go.Bookmarks,
-            u = go.Utils;
-        if (!b.fetchingIcon) {
-            if (bookmark.url.slice(0,4) == "http") {
-                // This is an HTTP or HTTPS URL.  Fetch it's icon
-                var params = 'url=' + bookmark.url,
-                    callback = u.partial(b.storeFavicon, bookmark),
-                    xhr = new XMLHttpRequest(),
-                    handleStateChange = function(e) {
-                        var status = null;
-                        try {
-                            status = parseInt(e.target.status);
-                        } catch(e) {
-                            return;
-                        }
-                        if (e.target.readyState == 4) {
-                            b.fetchingIcon = false; // All done regardless of what happened
-                            callback(e.target.responseText); // storeFavicon will take care of filtering out bad responses
-                        }
-                    };
-                b.fetchingIcon = true;
-                if (xhr.addEventListener) {
-                    xhr.addEventListener('readystatechange', handleStateChange, false);
-                } else {
-                    xhr.onreadystatechange = handleStateChange;
-                }
-                xhr.open('POST', go.prefs.url+'bookmarks/fetchicon', true);
-                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                xhr.send(params);
-            } else {
-                // Check if this is an SSH URL and use the SSH icon for it
-                if (u.startsWith('telnet', bookmark.url) || u.startsWith('ssh', bookmark.url)) {
-                    b.storeFavicon(bookmark, go.Icons['ssh']);
-                }
-                // Ignore everything else (until we add suitable favicons)
-            }
+        var parsedURL = b.parseUri(bookmark.url);
+        if (parsedURL.protocol in b.iconHandlers) {
+            b.iconHandlers[parsedURL.protocol](bookmark);
         } else {
-            setTimeout(function() {
-                b.updateIcon(bookmark);
-            }, 50); // Wait a moment and retry
+            logDebug('No icon handler for protocol: ' + parsedURL.protocol);
         }
     },
     storeFavicon: function(bookmark, dataURI) {
         /**:GateOne.Bookmarks.storeFavicon(bookmark, dataURI)
 
         Stores the given *dataURI* as the 'favicon' image for the given *bookmark*.
+
+        .. note:: *dataURI* must be pre-encoded data:URI
         */
-        // *dataURI* should be pre-encoded data:URI
-        var go = GateOne,
-            u = go.Utils,
-            b = go.Bookmarks,
-            prefix = go.prefs.prefix,
-            iconQueue = localStorage[prefix+'iconQueue'].split('\n'),
-            goDiv = u.getNode(go.prefs.goDiv),
-            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('✈bookmark')),
-            removed = null;
+        var iconQueue = localStorage[prefix+'iconQueue'].split('\n'),
+            visibleBookmarks = u.toArray(u.getNodes('.✈bookmark')),
+            removed;
         if (u.startsWith("data:", dataURI)) {
             bookmark.images = {'favicon': dataURI};
             b.createOrUpdateBookmark(bookmark);
@@ -913,6 +881,42 @@ go.Base.update(GateOne.Bookmarks, {
                 }
             });
         });
+    },
+    httpIconHandler: function(bookmark) {
+        /**:GateOne.Bookmarks.httpIconHandler(bookmark)
+
+        Retrieves the icon for the given HTTP or HTTPS *bookmark* and saves it in the bookmarks DB.
+        */
+        var params = 'url=' + bookmark.url,
+            callback = u.partial(b.storeFavicon, bookmark),
+            xhr = new XMLHttpRequest(),
+            handleStateChange = function(e) {
+                var status = null;
+                try {
+                    status = parseInt(e.target.status);
+                } catch(e) {
+                    return;
+                }
+                if (e.target.readyState == 4) {
+                    b.fetchingIcon = false; // All done regardless of what happened
+                    callback(e.target.responseText); // storeFavicon will take care of filtering out bad responses
+                }
+            };
+        if (!b.fetchingIcon) {
+            b.fetchingIcon = true;
+            if (xhr.addEventListener) {
+                xhr.addEventListener('readystatechange', handleStateChange, false);
+            } else {
+                xhr.onreadystatechange = handleStateChange;
+            }
+            xhr.open('POST', go.prefs.url+'bookmarks/fetchicon', true);
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.send(params);
+        } else {
+            setTimeout(function() {
+                b.httpIconHandler(bookmark);
+            }, 50); // Wait a moment and retry
+        }
     },
     createBookmark: function(bmContainer, bookmark, delay, /*opt*/ad) {
         /**:GateOne.Bookmarks.createBookmark(bmContainer, bookmark, delay)
@@ -1408,20 +1412,27 @@ go.Base.update(GateOne.Bookmarks, {
     registerURLHandler: function(protocol, handler) {
         /**:GateOne.Bookmarks.registerURLHandler(protocol, handler)
 
-        Registers the given *protocol* and *handler* so that whenever a bookmark is opened with a matching *protocol* the given *handler* will be called.
+        Registers the given *handler* as the function to use whenever a bookmark is opened with a matching *protocol*.
 
         When the given *handler* is called it will be passed the URL as the only argument.
         */
-        b.handlers[protocol] = handler;
+        b.URLHandlers[protocol] = handler;
+    },
+    registerIconHandler: function(protocol, handler) {
+        /**:GateOne.Bookmarks.registerIconHandler(protocol, handler)
+
+        Registers the given *handler* as the function to use whenever a bookmark icon needs to be retrieved for the given *protocol*.
+
+        When the given *handler* is called it will be passed the bookmark object as the only argument.  It is up to the handler to call (or not) ``GateOne.Bookmarks.storeFavicon(bookmark, <icon data URI>);`` to store the icon.
+        */
+        b.iconHandlers[protocol] = handler;
     },
     openBookmark: function(URL) {
         /**:GateOne.Bookmarks.openBookmark(URL)
 
-        If the current terminal is in a disconnected state, connects to the given *URL* in the current terminal.
+        Calls the function in `GateOne.Bookmarks.URLHandlers` associated with the protocol of the given *URL*.
 
-        If the current terminal is already connected, opens a new terminal before opening the given *URL*.
-
-        If the given *URL* does not start with 'ssh://' it will be opened in a new browser tab/window.
+        If no function is registered for the given *URL* protocol a new browser window will be opened using the given *URL*.
         */
         var bookmark = b.getBookmarkObj(URL),
             parsed = b.parseUri(URL);
@@ -1430,8 +1441,8 @@ go.Base.update(GateOne.Bookmarks, {
             return;
         }
         b.incrementVisits(URL);
-        if (b.handlers[parsed.protocol]) {
-            b.handlers[parsed.protocol](URL);
+        if (b.URLHandlers[parsed.protocol]) {
+            b.URLHandlers[parsed.protocol](URL);
         } else {
             // Let the browser handle it
             window.open(URL);
@@ -1788,7 +1799,6 @@ go.Base.update(GateOne.Bookmarks, {
         tagList.sort();
         return tagList;
     },
-    // TODO: Get this providing the option to use a specific SSH identity
     openNewBookmarkForm: function(/*Opt*/URL) {
         /**:GateOne.Bookmarks.openNewBookmarkForm([URL])
 
@@ -1912,7 +1922,7 @@ go.Base.update(GateOne.Bookmarks, {
                     go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
                     b.createPanel();
                     closeDialog();
-                }, 100);
+                }, 500); // Give the icon-fetcher some time to fetch the icon before we re-draw the bookmarks list
             } else {
                 // Find the existing bookmark and replace it.
                 for (var i in b.bookmarks) {
@@ -1937,7 +1947,7 @@ go.Base.update(GateOne.Bookmarks, {
                                 b.createPanel();
                                 closeDialog();
                             }, 100);
-                        }, 100);
+                        }, 500);
                         break;
                     }
                 }
@@ -2147,8 +2157,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
         // storeBookmark takes care of duplicates automatically
         b.storeBookmark(obj);
-        // Add this bookmark to the icon fetching queue
-        localStorage[prefix+'iconQueue'] += obj.url + '\n';
+        if (!obj['images'] || (obj['images'] && obj['images']['favicon'] === undefined)) {
+            // Add this bookmark to the icon fetching queue
+            localStorage[prefix+'iconQueue'] += obj.url + '\n';
+        }
     },
     getMaxBookmarks: function(elem) {
         /**:GateOne.Bookmarks.getMaxBookmarks(elem)
@@ -2623,5 +2635,7 @@ go.Base.update(go.Bookmarks, {
         return uri;
     }
 });
+// Our icons
+go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
 
 });

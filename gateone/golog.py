@@ -44,6 +44,8 @@ import os.path, logging, json
 from utils import mkdir_p
 from tornado.log import LogFormatter
 
+LOGS = [] # Holds a list of all our log paths so we can fix permissions
+
 class JSONAdapter(logging.LoggerAdapter):
     """
     A `logging.LoggerAdapter` that prepends keyword argument information to log
@@ -100,6 +102,8 @@ def go_logger(name, **kwargs):
     logger.setLevel(getattr(logging, options.logging.upper()))
     if name == None:
         # root logger; leave it alone
+        if options.log_file_prefix:
+            LOGS.append(options.log_file_prefix)
         return logger
     # Remove any existing handlers on the logger
     logger.handlers = []
@@ -113,6 +117,7 @@ def go_logger(name, **kwargs):
             basepath = os.path.split(options.log_file_prefix)[0]
         if not os.path.isdir(basepath):
             mkdir_p(basepath)
+        LOGS.append(path)
         channel = logging.handlers.RotatingFileHandler(
             filename=path,
             maxBytes=options.log_file_max_size,

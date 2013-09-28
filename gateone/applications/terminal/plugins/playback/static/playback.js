@@ -92,6 +92,8 @@ go.Base.update(GateOne.Playback, {
         E.on("go:grid_view:open", p.hideControls);
         // Show the playback controls when no longer in grid view
         E.on("go:grid_view:close", p.showControls);
+        // Hide the playback controls when switching to a workspace without a terminal
+        E.on("go:switch_workspace", p.switchWorkspaceEvent);
     },
     hideControls: function() {
         /**:GateOne.Playback.hideControls()
@@ -106,6 +108,30 @@ go.Base.update(GateOne.Playback, {
         Shows the playback controls again after they've been hidden via :js:meth:`GateOne.Playback.hideControls`.
         */
         u.showElement('#'+prefix+'controlsContainer');
+    },
+    switchWorkspaceEvent: function(workspace) {
+        /**:GateOne.Playback.switchWorkspaceEvent(workspace)
+
+        Called whenever Gate One switches to a new workspace; checks whether or not this workspace is home to a terminal and if so, shows the playback controls.
+
+        If no terminal is present in the current workspace the playback controls will be removed.
+        */
+        logDebug('GateOne.Playback.switchWorkspaceEvent('+workspace+')');
+        var termFound = false;
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                    // At least one terminal is on this workspace
+                    termFound = true;
+                }
+            }
+        };
+        if (!termFound) {
+            go.Playback.hideControls();
+        } else {
+            go.Playback.showControls();
+        }
     },
     newTerminalCallback: function(term, calledTwice) {
         /**:GateOne.Playback.newTerminalCallback(term, calledTwice)

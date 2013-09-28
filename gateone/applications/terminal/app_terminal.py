@@ -78,7 +78,7 @@ def kill_session(session, kill_dtach=False):
     .. note::
 
         This function gets appended to the
-        `SESSIONS[session]["terminal_callbacks"]` list inside of
+        `SESSIONS[session]["kill_session_callbacks"]` list inside of
         :meth:`TerminalApplication.authenticate`.
     """
     term_log.debug('kill_session(%s)' % session)
@@ -319,7 +319,10 @@ class TerminalApplication(GOApplication):
     info = {
         'name': "Terminal",
         'description': (
-            "Open terminals running any number of configured applications.")
+            "Open terminals running any number of configured applications."),
+        'dependencies': [
+            'terminal.js', 'terminal_input.js'
+        ]
     }
     name = "Terminal" # A user-friendly name that will be displayed to the user
     def __init__(self, ws):
@@ -844,7 +847,7 @@ class TerminalApplication(GOApplication):
             timediff = datetime.now() - self.loc_terms[term]['created']
             if self.race_check:
                 race_check_timediff = datetime.now() - self.race_check
-                if race_check_timediff < timedelta(seconds=1):
+                if race_check_timediff < timedelta(milliseconds=500):
                     # Definitely a race condition (command is failing to run).
                     # Add a delay
                     self.add_timeout("5s", partial(self.term_ended, term))
