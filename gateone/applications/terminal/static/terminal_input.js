@@ -355,6 +355,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var terms = u.toArray(u.getNodes('.✈terminal'));
         if (t.Input.mouseDown) {
             logDebug('disableCapture() cancelled due to mouseDown.');
+            t.Input.inputNode.focus();
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
         }
         if (t.Input.handlingPaste) {

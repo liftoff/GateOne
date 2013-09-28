@@ -1494,6 +1494,7 @@ go.Base.update(GateOne.Terminal, {
                         clearTimeout(go.Terminal.terminals[selectedTerm]['scrollbackTimer']);
                     }
                 }
+                go.Terminal.Input.mouseDown = true;
                 go.Terminal.Input.capture();
             } else if (m.button.middle) {
                 // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
