@@ -18,13 +18,16 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, readline
+import os, sys, readline, signal
+from concurrent import futures
 from optparse import OptionParser
 # i18n support stuff
 import gettext
 gettext.bindtextdomain('ssh_connect', 'i18n')
 gettext.textdomain('ssh_connect')
 _ = gettext.gettext
+
+APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
 readline.parse_and_bind('esc: none')
@@ -45,7 +48,17 @@ exit 0
 # We have the little "wait for user" bit so users can see the ouput of a
 # session before it got closed (can be lots of useful information).
 
-# Helper functions
+def took_too_long():
+    """
+    Called when :meth:`main` takes too long to run its course (idle timeout
+    before any connection was made).
+    """
+    timeout_script = os.path.join(APPLICATION_PATH, 'timeout.sh')
+    sys.stdout.flush()
+    # Calling execv() so we can quit the main process to reduce memory usage
+    os.execv('/bin/sh', ['-c', timeout_script])
+    os._exit(0)
+
 def mkdir_p(path):
     """Pythonic version of mkdir -p"""
     try:
@@ -242,8 +255,7 @@ def openssh_connect(
     except ValueError:
         print(_("The port must be an integer < 65535"))
         sys.exit(1)
-    import signal, tempfile
-    signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
+    import tempfile
     # NOTE: Figure out if we really want to use the env forwarding feature
     if not env: # Unless we enable SendEnv in ssh these will do nothing
         env = {
@@ -555,7 +567,7 @@ def bad_chars(chars):
         return True
     return False
 
-if __name__ == "__main__":
+def main():
     """Parse command line arguments and execute ssh_connect()"""
     usage = (
         #'Usage:\n'
@@ -713,7 +725,7 @@ if __name__ == "__main__":
                    "[Press Shift-F1 for help]\n\nHost/IP or ssh:// URL%s: " %
                    default_host_str))
             if bad_chars(url):
-                noop = raw_input(invalid_hostname_err)
+                raw_input(invalid_hostname_err)
                 url = None
                 continue
             if not url:
@@ -722,7 +734,7 @@ if __name__ == "__main__":
                     protocol = 'ssh'
                     validated = True
                 else:
-                    noop = raw_input(invalid_hostname_err)
+                    raw_input(invalid_hostname_err)
                     continue
             elif url.find('://') >= 0:
                protocol, user, host, port, password, identities = parse_url(url)
@@ -741,10 +753,10 @@ if __name__ == "__main__":
                         validated = True
                     else:
                         url = None
-                        noop = raw_input(invalid_hostname_err)
+                        raw_input(invalid_hostname_err)
                 else:
                     url = None
-                    noop = raw_input(invalid_hostname_err)
+                    raw_input(invalid_hostname_err)
         validated = False
         if options.auth_only:
             port = options.default_port
@@ -759,10 +771,10 @@ if __name__ == "__main__":
                     validated = True
                 else:
                     port = None
-                    noop = raw_input(invalid_port_err)
+                    raw_input(invalid_port_err)
             except ValueError:
                 port = None
-                noop = raw_input(invalid_port_err)
+                raw_input(invalid_port_err)
         validated = False
         while not validated:
             if not user:
@@ -770,7 +782,7 @@ if __name__ == "__main__":
                 if not user:
                     continue
             if bad_chars(user):
-                noop = raw_input(invalid_user_err)
+                raw_input(invalid_user_err)
                 user = None
             else:
                 validated = True
@@ -807,13 +819,20 @@ if __name__ == "__main__":
             print(_('Unknown protocol "%s"' % protocol))
     except (KeyboardInterrupt, EOFError):
         print(_("\nUser requested exit.  Quitting..."))
+        sys.exit(1)
     except Exception as e: # Catch all
         print(_("Got Exception: %s" % e))
         import traceback
         traceback.print_exc(file=sys.stdout)
         print("Please open up a new issue at https://github.com/liftoff"
                 "/GateOne/issues and paste the above information.")
-        noop = raw_input(_("[Press any key to close this terminal]"))
+        raw_input(_("[Press any key to close this terminal]"))
+        sys.exit(1)
 
-
-# vim: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 smarttab expandtab
+if __name__ == "__main__":
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
+    executor = futures.ThreadPoolExecutor(max_workers=2)
+    future = executor.submit(main)
+    futures.wait([future], timeout=120)
+    executor.shutdown(wait=False)
+    took_too_long()
