@@ -443,13 +443,6 @@ go.Base.update(GateOne.Terminal, {
             // This ensures that whatever effects are applied to a terminal applied when resized too:
             E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
             go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
-            if (!go.prefs.embedded) {
-                E.on("go:panel_toggle:out", go.Terminal.Input.capture);
-                E.on("go:panel_toggle:out", function(panel) {
-                    go.Terminal.Input.capture();
-                    go.Terminal.setActive();
-                });
-            }
             go.ws.send(JSON.stringify({'terminal:enumerate_commands': null}));
             go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));

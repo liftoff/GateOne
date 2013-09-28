@@ -48,6 +48,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 go.Terminal.Input.capture();
             }
         });
+        if (!go.prefs.embedded) {
+            E.on("go:panel_toggle:out", go.Terminal.Input.capture);
+            E.on("go:panel_toggle:out", function(panel) {
+                go.Terminal.Input.capture();
+                go.Terminal.setActive();
+            });
+        }
     },
     sendChars: function() {
         /**:GateOne.Terminal.Input.sendChars()
