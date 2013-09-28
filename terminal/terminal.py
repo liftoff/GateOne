@@ -167,6 +167,7 @@ except ImportError: # Python <2.7 didn't have OrderedDict in collections
 from itertools import imap, izip
 
 # Inernationalization support
+_ = str # So pyflakes doesn't complain
 import gettext
 gettext.install('terminal')
 
@@ -1959,7 +1960,7 @@ class Terminal(object):
         try:
             for callback in self.callbacks[CALLBACK_MESSAGE].values():
                 callback(message)
-        except TypeError as e:
+        except TypeError:
             pass
 
     def send_update(self):
@@ -1970,7 +1971,7 @@ class Terminal(object):
         try:
             for callback in self.callbacks[CALLBACK_CHANGED].values():
                 callback()
-        except TypeError as e:
+        except TypeError:
             pass
 
     def send_cursor_update(self):
@@ -1981,7 +1982,7 @@ class Terminal(object):
         try:
             for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
                 callback()
-        except TypeError as e:
+        except TypeError:
             pass
 
     def reset(self, *args, **kwargs):
@@ -2394,7 +2395,6 @@ class Terminal(object):
                         self.cursorY, self.cursorX))
                     split_capture = ft_instance.re_capture.split(self.capture,1)
                     before_chars = split_capture[0]
-                    capture_length = len(split_capture[1])
                     self.capture = split_capture[1]
                     after_chars = b"".join(split_capture[2:])
                 if after_chars:
@@ -2453,7 +2453,6 @@ class Terminal(object):
         except AttributeError:
             # In Python 3 strings don't have .decode()
             pass # Already Unicode
-        backspaced = False
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -2507,14 +2506,16 @@ class Terminal(object):
                     continue # We're done here
                 changed = True
                 if self.cursorX >= self.cols:
+                    self.cursorX = 0
+                    self.newline()
                     # Non-autowrap has been disabled due to issues with browser
                     # wrapping.
-                    if self.expanded_modes['7']:
-                        self.cursorX = 0
-                        self.newline()
-                    else:
-                        self.screen[self.cursorY].append(u' ') # Make room
-                        self.renditions[self.cursorY].append(u' ')
+                    #if self.expanded_modes['7']:
+                        #self.cursorX = 0
+                        #self.newline()
+                    #else:
+                        #self.screen[self.cursorY].append(u' ') # Make room
+                        #self.renditions[self.cursorY].append(u' ')
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.cur_rendition
@@ -3279,6 +3280,7 @@ class Terminal(object):
         try:
             char = self.screen[self.cursorY][self.cursorX]
         except IndexError: # Cursor is past the right-edge of the screen; ignore
+            print("cursor_left() IndexError")
             char = u' ' # This is a safe default/fallback
         if unicodedata.east_asian_width(char) == 'W':
             # This lets us skip the next call (get called 2x for 2x width)
@@ -3748,7 +3750,7 @@ class Terminal(object):
         try:
             for callback in self.callbacks[CALLBACK_OPT].values():
                 callback(chars)
-        except TypeError as e:
+        except TypeError:
             # High likelyhood that nothing is defined.  No biggie.
             pass
 
@@ -4022,11 +4024,11 @@ class Terminal(object):
             for y, row in enumerate(self.screen):
                 if y == cursorY:
                     cursor_row = ""
-                    for x, c in enumerate(row):
+                    for x, char in enumerate(row):
                         if x == cursorX:
                             cursor_row += (
                                 '<span class="%scursor">%s</span>' % (
-                                self.class_prefix, c))
+                                self.class_prefix, char))
                         else:
                             cursor_row += char
                     screen.append(cursor_row)

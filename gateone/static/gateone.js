@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130928141238";
+GateOne.__commit__ = "20130928142525";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -649,7 +649,7 @@ var go = GateOne.Base.update(GateOne, {
             }
             if (disableTransitions) {
                 var newStyle = u.createElement('style', {'id': 'disable_transitions'});
-                newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
                 go.prefs.disableTransitions = true;
             } else {
@@ -736,6 +736,11 @@ var go = GateOne.Base.update(GateOne, {
         goDiv.appendChild(sideinfo);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
+        if (go.prefs.disableTransitions) {
+            var newStyle = u.createElement('style', {'id': 'disable_transitions'});
+            newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            goDiv.appendChild(newStyle);
+        }
         // Create the workspace grid if not in embedded mode
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             var gridwrapper = u.getNode('#'+prefix+'gridwrapper');
@@ -3765,20 +3770,24 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
+            timeout = 250,
             stopIndicator = u.createElement('div', {'class': '✈ws_stop ✈ws_stop_'+direction}),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             transitionEndFunc = function(e) {
                 u.removeElement(stopIndicator);
             };
+        if (!go.prefs.disableTransitions) {
+            timeout = 1000;
+            setTimeout(function() {
+                stopIndicator.style.opacity = 0;
+            }, 10);
+        }
         stopIndicator.addEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
         setTimeout(function() {
             // This is only fired if the transitionend event doesn't work (e.g. Firefox, I'm looking at you)
             transitionEndFunc();
-        }, 1000);
+        }, timeout);
         gridwrapper.appendChild(stopIndicator);
-        setTimeout(function() {
-            stopIndicator.style.opacity = 0;
-        }, 10);
     },
     slideLeft: function() {
         /**:GateOne.Visual.slideLeft()
