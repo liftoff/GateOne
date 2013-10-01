@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130928142525" # Gets replaced by git (holds the date/time)
+__commit__ = "20130928170533" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2417,14 +2417,29 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     def get_locations(self):
         """
         Attached to the `go:get_locations` WebSocket action.  Sends a message to
-        the client (via the `go:locations` WebSocket action) with a list of all
-        the locations associated with the connected user.
+        the client (via the `go:locations` WebSocket action) with a dict
+        containing location information for the connected user.
         """
-        # NOTE: The list() wrap below is because the dict.keys() method returns
-        # a dict_keys (view) object in Python 3 and the JSON encoder doesn't
-        # know how to serialize that.
-        locations = list(self.locations.keys())
-        message = {'go:locations': locations}
+        location_data = {}
+        for location, apps in self.locations.items():
+            location_data[location] = {}
+            for name, values in apps.items():
+                location_data[location][name] = {}
+                for item, vals in values.items():
+                    # This would be something like:
+                    #  location     name     item     metadata
+                    # {'default': {'terminal' {1: {'title': 'foo'}}}}
+                    location_data[location][name][item] = {}
+                    title = vals.get('title', 'Unknown')
+                    location_data[location][name][item]['title'] = title
+                    command = vals.get('command', 'Unknown')
+                    location_data[location][name][item]['command'] = command
+                    created = vals.get('created', 'Unknown')
+                    if not isinstance(created, str):
+                        # Convert it to a JavaScript-style timestamp
+                        created = int(time.mktime(created.timetuple())) * 1000
+                    location_data[location][name][item]['created'] = created
+        message = {'go:locations': location_data}
         self.write_message(message)
         self.trigger("go:get_locations")
 

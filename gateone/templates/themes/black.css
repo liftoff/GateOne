@@ -251,7 +251,7 @@
     transition: all 0s ease-in-out !important;
 }
 .✈toolbar {
-    z-index:600;
+    z-index:700;
     position:absolute;
     top:0;
     right:0;
@@ -307,7 +307,7 @@ potential conflicts with other classes that may be on the page.
     position: fixed;
     bottom: 2em;
     right: 3em;
-    z-index: 9999;
+    z-index: 500;
 }
 .✈noticecontainer .✈close_notice {
     float: right;
@@ -917,6 +917,14 @@ div.✈widget_close .✈svgplain { fill: #FFFFFF; }
 }
 .✈hsplitbar:hover {
     cursor: row-resize;
+}
+[draggable] {
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -webkit-user-drag: element;
 }
 /* Optimize Gate One for mobile devices */
 @media only screen and (max-width: 800px) {

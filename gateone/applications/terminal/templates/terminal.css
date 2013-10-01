@@ -12,7 +12,7 @@
     padding: 0;
     border: 0;
     right: 3em;
-    z-index: 500;
+    z-index: 200;
     margin: 0;
     opacity: 0;
     width: calc(100% - 3.5em);

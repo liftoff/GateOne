@@ -330,6 +330,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
             t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
         }
+        u.showElement(t.Input.inputNode);
         if (!t.Input.addedEventListeners) {
             t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
             t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
@@ -350,30 +351,34 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             }
         }
     },
-    disableCapture: function(e) {
-        /**:GateOne.Terminal.Input.disableCapture(e)
+    disableCapture: function(e, /*opt*/force) {
+        /**:GateOne.Terminal.Input.disableCapture(e[, force])
 
         Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
         logDebug('go.Terminal.Input.disableCapture()');
-        if (document.activeElement.className == '✈IME') {
-            return; // User is just switching to a different app
-        }
         var terms = u.toArray(u.getNodes('.✈terminal'));
-        if (t.Input.mouseDown) {
-            logDebug('disableCapture() cancelled due to mouseDown.');
-            t.Input.inputNode.focus();
-            return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
-        }
-        if (t.Input.handlingPaste) {
-            logDebug('disableCapture() cancelled due to paste event.');
-            // The 'blur' event can be called when focus shifts around for pasting.
-            return; // Act as if we were never called to avoid flashing the overlay
+        if (!force) {
+            if (document.activeElement.classList.contains('✈IME')) {
+                logDebug("disableCapture() cancelled due to the IME being the activeElement");
+                return; // User is just switching to a different app
+            }
+            if (t.Input.mouseDown) {
+                logDebug('disableCapture() cancelled due to mouseDown.');
+                t.Input.inputNode.focus();
+                return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
+            }
+            if (t.Input.handlingPaste) {
+                logDebug('disableCapture() cancelled due to paste event.');
+                // The 'blur' event can be called when focus shifts around for pasting.
+                return; // Act as if we were never called to avoid flashing the overlay
+            }
         }
         if (t.Input.InputNode) {
             t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
             t.Input.inputNode.tabIndex = null;
             t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
+            u.hideElement(t.Input.inputNode);
         }
         go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
         go.node.removeEventListener('keyup', t.Input.onKeyUp, true);

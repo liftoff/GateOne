@@ -88,14 +88,14 @@ go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
-//         'icon': go.Icons['terminal']
         'icon': function(settings) {
             if (settings['name'] == 'shell') {
                 return go.Icons['grid'];
             } else {
                 return go.Icons['terminal'];
             }
-        }
+        },
+        'relocatable': true
     },
     __new__: function(settings, /*opt*/where) {
         /**:GateOne.Terminal.__new__(settings[, where])
@@ -115,7 +115,7 @@ go.Base.update(GateOne.Terminal, {
         }
         where = where || go.Visual.newWorkspace();
         if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
-            go.Terminal.newTerminal(null, settings, where);
+            var term = go.Terminal.newTerminal(null, settings, where);
         } else {
             v.closeWorkspace(workspace);
             v.displayMessage(gettex("Please wait until Gate One is reconnected."));
@@ -337,17 +337,6 @@ go.Base.update(GateOne.Terminal, {
             titleEdit.select();
         }
         infoPanelH2.onclick = editTitle;
-        // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
-//         var showInfo = function() {
-//             var term = localStorage[prefix+'selectedTerminal'],
-//                 termObj = go.Terminal.terminals[term];
-//             u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
-//             u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
-//             u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
-//             go.Visual.togglePanel('#'+prefix+'panel_info');
-//         }
-//         toolbarInfo.onclick = showInfo;
-//         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         resetTermButton.innerHTML = "Rescue Terminal";
         resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
         resetTermButton.onclick = function() {
@@ -424,16 +413,23 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("terminal:switch_terminal", go.Terminal.switchTerminalEvent);
         E.on("go:switch_workspace", go.Terminal.switchWorkspaceEvent);
+        E.on("go:relocate_workspace", go.Terminal.relocateWorkspaceEvent);
         E.on("go:close_workspace", go.Terminal.workspaceClosedEvent);
+        E.on("go:swapped_workspaces", go.Terminal.swappedWorkspacesEvent);
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
             // Ensure any scaled terminals are un-scaled so there's no overlap:
             v.applyTransform(u.getNodes('.✈terminal pre'), '');
             u.hideElements('.✈pastearea');
+            go.Terminal.Input.disableCapture(null, true);
         });
         E.on("go:grid_view:close", function() {
             go.Terminal.enableScrollback();
             u.showElements('.✈pastearea');
+            setTimeout(function() {
+                go.Terminal.alignTerminal(localStorage[prefix+'selectedTerminal']);
+            }, 1000);
+            go.Terminal.Input.capture();
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
         E.on("go:connnection_established", go.Terminal.reconnectEvent);
@@ -918,6 +914,8 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.terminals[term]['X11Title'] = title;
         go.Terminal.terminals[term]['title'] = title;
         v.setTitle(term + ": " + title);
+        // Set the title of the workspace too so it shows up in the locations panel
+        go.workspaces[go.Terminal.terminals[term]['workspace']]['node'].setAttribute('data-title', term + ": " + title);
         // Also update the info panel
         termTitle.innerHTML = term+': '+title;
         E.trigger('terminal:set_title_action', term, title);
@@ -1576,6 +1574,7 @@ go.Base.update(GateOne.Terminal, {
             if (gridwrapper) {
                 where = v.newWorkspace(); // Use the gridwrapper (grid) by default
                 where.innerHTML = ""; // Empty it out before we use it
+                where.setAttribute('data-application', 'Terminal'); // Hint for relocateWorkspace()
                 workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
             } else {
                 where = go.node;
@@ -1942,6 +1941,46 @@ go.Base.update(GateOne.Terminal, {
             }
         };
     },
+    swappedWorkspacesEvent: function(ws1, ws2) {
+        /**:GateOne.Terminal.swappedWorkspacesEvent(ws1, ws2)
+
+        Attached to the `go:swapped_workspaces` event; updates `GateOne.Terminal.terminals` with the correct workspace attributes if either contains terminals.
+        */
+        var term1, term2, temp;
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                if (go.Terminal.terminals[term]['workspace'] == ws1) {
+                    // This is now ws2
+                    term1 = term;
+                } else if (go.Terminal.terminals[term]['workspace'] == ws2) {
+                    // This is now ws1
+                    term2 = term;
+                }
+            }
+        };
+        go.Terminal.terminals[term1]['workspace'] = ws2;
+        go.Terminal.terminals[term2]['workspace'] = ws1;
+        // Now swap the terminal numbers as well
+        temp = go.Terminal.terminals[term1];
+        go.Terminal.terminals[term1] = go.Terminal.terminals[term2];
+        go.Terminal.terminals[term2] = temp;
+        // Have to fix the node IDs inside GateOne.Terminal.terminals
+        go.Terminal.terminals[term1]['node'].id = prefix + 'term' + term1 + '_pre';
+        go.Terminal.terminals[term1]['pasteNode'].id = prefix + 'pastearea' + term1;
+        go.Terminal.terminals[term1]['screenNode'].id = prefix + 'term' + term1 + 'screen';
+        go.Terminal.terminals[term1]['scrollbackNode'].id = prefix + 'term' + term1 + 'scrollback';
+        go.Terminal.terminals[term1]['terminal'].id = prefix + 'term' + term1;
+        go.Terminal.terminals[term2]['node'].id = prefix + 'term' + term2 + '_pre';
+        go.Terminal.terminals[term2]['pasteNode'].id = prefix + 'pastearea' + term2;
+        go.Terminal.terminals[term2]['screenNode'].id = prefix + 'term' + term2 + 'screen';
+        go.Terminal.terminals[term2]['scrollbackNode'].id = prefix + 'term' + term2 + 'scrollback';
+        go.Terminal.terminals[term2]['terminal'].id = prefix + 'term' + term2;
+        u.scrollToBottom(go.Terminal.terminals[term1]['node']);
+        u.scrollToBottom(go.Terminal.terminals[term2]['node']);
+        // Lastly we tell the server about this change so if the user resumes their session the ordering will remain
+        go.ws.send(JSON.stringify({'terminal:swap_terminals': {'term1': term1, 'term2': term2}}));
+    },
     printScreen: function(term) {
         /**:GateOne.Terminal.printScreen(term)
 
@@ -1981,7 +2020,6 @@ go.Base.update(GateOne.Terminal, {
         */
         var toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar_icon', 'title': "Terminal Application Panel"}),
             existing = u.getNode('#'+prefix+'icon_info'),
-            toolbar = u.getNode('#'+prefix+'toolbar'),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             showInfo = function() {
                 var term = localStorage[prefix+'selectedTerminal'],
@@ -1994,7 +2032,7 @@ go.Base.update(GateOne.Terminal, {
         if (!existing) {
             toolbarInfo.innerHTML = go.Icons['terminal'];
             toolbarInfo.onclick = showInfo;
-            toolbar.insertBefore(toolbarInfo, toolbarPrefs);
+            go.toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         }
     },
     loadBell: function(message) {
@@ -2257,8 +2295,26 @@ go.Base.update(GateOne.Terminal, {
         */
         E.trigger("terminal:term_locations", locations);
     },
-    moveTerminalLocation: function(term, location) {
-        /**:GateOne.Terminal.moveTerminalLocation(term, location)
+    relocateWorkspaceEvent: function(workspace, location) {
+        /**:GateOne.Terminal.relocateWorkspaceEvent(workspace, location)
+
+        Attached to the `go:relocate_workspace` event; calls :js:meth:`GateOne.Terminal.relocateTerminal` if the given *workspace* has a terminal contained within it.
+        */
+        var termFound = false;
+        // TODO: Make this work properly when multiple terminals share the same workspace (FUTURE)
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                    // At least one terminal is on this workspace
+                    go.Terminal.relocateTerminal(term, location);
+                    termFound = true;
+                }
+            }
+        };
+    },
+    relocateTerminal: function(term, location) {
+        /**:GateOne.Terminal.relocateTerminal(term, location)
 
         :param number term: The number of the terminal to move (e.g. 1).
         :param string location: The 'location' where the terminal will be moved (e.g. 'window2').

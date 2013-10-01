@@ -350,6 +350,7 @@ class TerminalApplication(GOApplication):
             'terminal:new_terminal': self.new_terminal,
             'terminal:set_terminal': self.set_terminal,
             'terminal:move_terminal': self.move_terminal,
+            'terminal:swap_terminals': self.swap_terminals,
             'terminal:kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
             'terminal:write_chars': self.write_chars,
@@ -1280,6 +1281,28 @@ class TerminalApplication(GOApplication):
         self.write_message(message)
 
     @require(authenticated())
+    def swap_terminals(self, settings):
+        """
+        Swaps the numbers of *settings['term1']* and *settings['term2']*.
+        """
+        term1 = int(settings.get('term1', 0))
+        term2 = int(settings.get('term2', 0))
+        if not term1 or not term2:
+            return # Nothing to do
+        missing_msg = _("Error: Terminal {term} does not exist.")
+        if term1 not in self.loc_terms:
+            self.ws.send_message(missing_msg.format(term=term1))
+            return
+        if term2 not in self.loc_terms:
+            self.ws.send_message(missing_msg.format(term=term2))
+            return
+        term1_dict = self.loc_terms.pop(term1)
+        term2_dict = self.loc_terms.pop(term2)
+        self.loc_terms.update({term1: term2_dict})
+        self.loc_terms.update({term2: term1_dict})
+        self.trigger("terminal:swap_terminals", term1, term2)
+
+    @require(authenticated())
     def move_terminal(self, settings):
         """
         Attached to the `terminal:move_terminal` WebSocket action. Moves
@@ -1313,7 +1336,9 @@ class TerminalApplication(GOApplication):
                   new_location]['terminal'].keys()
                     if isinstance(a, int)]
             existing_terms.sort()
-            new_term_num = existing_terms[-1] + 1
+            new_term_num = 1
+            if existing_terms:
+                new_term_num = existing_terms[-1] + 1
             self.ws.locations[new_location][
                 'terminal'][new_term_num] = existing_term_obj
         multiplex = existing_term_obj['multiplex']
