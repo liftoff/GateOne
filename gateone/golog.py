@@ -99,14 +99,17 @@ def go_logger(name, **kwargs):
     """
     from tornado.options import options
     logger = logging.getLogger(name)
-    logger.setLevel(getattr(logging, options.logging.upper()))
+    if not options.log_file_prefix or options.logging.upper() == 'NONE':
+        # Logging is disabled but we still have to return the adapter so that
+        # passing metadata to the logger won't throw exceptions
+        return JSONAdapter(logger, kwargs)
     if name == None:
         # root logger; leave it alone
-        if options.log_file_prefix:
-            LOGS.append(options.log_file_prefix)
+        LOGS.append(options.log_file_prefix)
         return logger
     # Remove any existing handlers on the logger
     logger.handlers = []
+    logger.setLevel(getattr(logging, options.logging.upper()))
     if options.log_file_prefix:
         if name:
             basepath = os.path.split(options.log_file_prefix)[0]

@@ -1003,7 +1003,7 @@ def kill_dtached_proc_bsd(session, location, term):
         psopts = "-aux"
     cmd = (
         "%s %s | "
-        "grep %s/dtach_%s_%s | " # Match our session/location/term combo
+        "grep %s/dtach_%s_%s | " # Match our exact session/location/term combo
         "grep -v grep | " # Get rid of grep from the results (if present)
         "awk '{print $2}' " % (ps, psopts, session, location, term) # Just PID
     )
@@ -1091,6 +1091,26 @@ def killall_bsd(session_dir, pid_file=None):
         )
         logging.debug('killall cmd: %s' % cmd)
         exitstatus, output = shell_command(cmd)
+
+def kill_session_processes(session):
+    """
+    Kills all processes that match a given *session* (which is a unique,
+    45-character string).
+    """
+    psopts = "aux"
+    if MACOS:
+        psopts = "-ef"
+    elif OPENBSD:
+        psopts = "-aux"
+    cmd = (
+        "ps %s | "
+        "grep %s | " # Limit to those matching the session
+        "grep -v grep | " # Get rid of grep from the results (if present)
+        "awk '{print $2}' | " # Just the PID please
+        "xargs kill" % (psopts, session) # Kill em'
+    )
+    logging.debug('kill_session_processes cmd: %s' % cmd)
+    exitstatus, output = shell_command(cmd)
 
 def get_applications(application_dir, enabled=None):
     """
@@ -1274,6 +1294,7 @@ def convert_to_timedelta(time_val):
     m           Minutes      '5m'  -> 5 Minutes
     h           Hours        '24h' -> 24 Hours
     d           Days         '7d'  -> 7 Days
+    M           Months       '2M'  -> 2 Months
     y           Years        '10y' -> 10 Years
     =========   ============ =========================
 
@@ -1302,6 +1323,8 @@ def convert_to_timedelta(time_val):
         return timedelta(hours=num)
     elif time_val.endswith('d'):
         return timedelta(days=num)
+    elif time_val.endswith('M'):
+        return timedelta(days=(num*30))  # Yeah this is approximate
     elif time_val.endswith('y'):
         return timedelta(days=(num*365)) # Sorry, no leap year support
 
@@ -1467,6 +1490,14 @@ def which(binary, path=None):
             return os.path.join(path, binary)
     return None
 
+def touch(path):
+    """
+    Emulates the 'touch' command by creating the file at *path* if it does not
+    exist.  If the file exist its modification time will be updated.
+    """
+    with io.open(path, 'ab'):
+        os.utime(path, None)
+
 def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
     """
     Sets a timeout on the given function, passing it the given args, kwargs,
@@ -1592,6 +1623,8 @@ def check_write_permissions(user, path):
         user = pwd.getpwuid(user)
     else:
         user = pwd.getpwnam(user)
+    if user.pw_uid == 0:
+        return True # Assume root can write to everything (NFS notwithstanding)
     groups = [] # A combination of user's primary GID and supplemental groups
     for group in grp.getgrall():
         if user.pw_name in group.gr_mem:

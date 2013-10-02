@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20130928170533" # Gets replaced by git (holds the date/time)
+__commit__ = "20131001105118" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -538,8 +538,8 @@ del setup_path # Don't need this for anything else
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
 from auth import require, authenticated, policies, applicable_policies
-from utils import generate_session_id, mkdir_p, SettingsError
-from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
+from utils import generate_session_id, mkdir_p, touch, SettingsError
+from utils import gen_self_signed_ssl, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, get_or_cache
@@ -579,10 +579,10 @@ IO_ASYNC = ThreadedRunner()
 SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
-# SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that watches for
-# sessions that have timed out and takes care of cleaning them up.
+# SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that
+# watches for sessions that have timed out and takes care of cleaning them up.
 SESSION_WATCHER = None
-CLEANER = None # Log cleaner PeriodicCallback
+CLEANER = None # Log and leftover session data cleaner PeriodicCallback
 FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
 # way that lasts between page loads.  USE RESPONSIBLY.
@@ -639,7 +639,7 @@ def cleanup_user_logs():
     ...where *user_dir* is whatever Gate One happens to have configured for
     that particular setting.
     """
-    logging.debug("cleanup_session_logs()")
+    logging.debug("cleanup_user_logs()")
     disabled = timedelta(0) # If the user sets user_logs_max_age to "0"
     settings = get_settings(options.settings_dir)
     user_dir = settings['*']['gateone']['user_dir']
@@ -677,6 +677,55 @@ def cleanup_user_logs():
                 # Nothing to do
                 continue
             descend(logs_path)
+
+def cleanup_old_sessions():
+    """
+    Cleans up old session directories inside the `session_dir`.  Any directories
+    found that are older than the `auth_timeout` (global gateone setting) will
+    be removed.  The modification time is what will be checked.
+    """
+    logging.debug("cleanup_old_sessions()")
+    disabled = timedelta(0) # If the user sets auth_timeout to "0"
+    settings = get_settings(options.settings_dir)
+    expiration_str = settings['*']['gateone'].get('auth_timeout', "14d")
+    expiration = convert_to_timedelta(expiration_str)
+    if expiration != disabled:
+        for session in os.listdir(options.session_dir):
+            # If it's in the SESSIONS dict it's still valid for sure
+            if session not in SESSIONS:
+                if len(session) != 45:
+                    # Sessions are always 45 characters long.  This check allows
+                    # us to skip the 'broadcast' file which also lives in the
+                    # session_dir.  Why not just check for 'broacast'?  Just in
+                    # case we put something else there in the future.
+                    continue
+                session_path = os.path.join(options.session_dir, session)
+                mtime = time.localtime(os.stat(session_path).st_mtime)
+                # Convert to a datetime object for easier comparison
+                mtime = datetime.fromtimestamp(time.mktime(mtime))
+                if datetime.now() - mtime > expiration:
+                    import shutil
+                    from utils import kill_session_processes
+                    # The log is older than expiration, remove it and kill any
+                    # processes that may be remaining.
+                    kill_session_processes(session)
+                    logger.info(_(
+                        "Removing old session files due to age (>%s old): %s" %
+                        (expiration_str, session_path)))
+                    shutil.rmtree(session_path, ignore_errors=True)
+
+def clean_up():
+    """
+    Regularly called via the `CLEANER` `~torando.ioloop.PeriodicCallback`, calls
+    `cleanup_user_logs` and `cleanup_old_sessions`.
+
+    .. note::
+
+        How often this function gets called can be controlled by adding a
+        `cleanup_interval` setting to 10server.conf ('gateone' section).
+    """
+    cleanup_user_logs()
+    cleanup_old_sessions()
 
 def policy_send_user_message(cls, policy):
     """
@@ -1407,14 +1456,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             % options.settings_dir))
         prefs = get_settings(options.settings_dir)
         # Only overwrite our settings if everything is proper
-        if 'gateone' in prefs['*']:
-            cls.prefs = prefs
-            # Reset the memoization dict so that everything using
-            # applicable_policies() gets the latest & greatest settings
-            MEMO.clear()
-        else:
+        if 'gateone' not in prefs['*']:
             # NOTE: get_settings() records its own errors too
             logger.info(_("Settings have NOT been loaded."))
+            return
+        cls.prefs = prefs
+        # Reset the memoization dict so that everything using
+        # applicable_policies() gets the latest & greatest settings
+        MEMO.clear()
 
     @classmethod
     def broadcast_file_update(cls):
@@ -1510,7 +1559,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.on("go:authenticate", self._start_session_watcher)
         # This starts up the PeriodicCallback that watches and cleans up old
         # user logs (anything in gateone/users/<user>/logs):
-        self.on("go:authenticate", self._start_log_cleaner)
+        self.on("go:authenticate", self._start_cleaner)
         # This starts up the file watcher PeriodicCallback:
         self.on("go:authenticate", self._start_file_watcher)
         # This ensures that sessions will timeout immediately if session_timeout
@@ -2222,7 +2271,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.write_message(json_encode(message))
         self.trigger('go:authenticate')
 
-    def _start_session_watcher(self):
+    def _start_session_watcher(self, restart=False):
         """
         Starts up the `SESSION_WATCHER` (assigned to that global)
         :class:`~tornado.ioloop.PeriodicCallback` that regularly checks for user
@@ -2245,7 +2294,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             }
         """
         global SESSION_WATCHER
-        if not SESSION_WATCHER:
+        if not SESSION_WATCHER or restart:
             interval = self.prefs['*']['gateone'].get(
                 'session_timeout_check_interval', "30s") # 30s default
             td = convert_to_timedelta(interval)
@@ -2254,25 +2303,25 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 timeout_sessions, interval)
             SESSION_WATCHER.start()
 
-    def _start_log_cleaner(self):
+    def _start_cleaner(self):
         """
         Starts up the `CLEANER` (assigned to that global)
         `~tornado.ioloop.PeriodicCallback` that regularly checks for and
         deletes expired user logs (e.g. terminal session logs or anything in the
-        `GATEONE_DIR/users/<user>/logs` dir) via the
-        :func:`cleanup_user_logs` function.
+        `GATEONE_DIR/users/<user>/logs` dir) and old session directories via the
+        :func:`cleanup_user_logs` and :func:`cleanup_old_sessions` functions.
 
         The interval in which it performs this check is controlled via the
-        `user_logs_cleanup_interval` setting. This setting is not included in
-        Gate One's 10server.conf by default but can be added if needed to
-        override the default value of 5 minutes.  Example:
+        `cleanup_interval` setting. This setting is not included in Gate One's
+        10server.conf by default but can be added if needed to override the
+        default value of 5 minutes.  Example:
 
         .. code-block:: javascript
 
             {
                 "*": {
                     "gateone": {
-                        "user_logs_cleanup_interval": "5m"
+                        "cleanup_interval": "5m"
                     }
                 }
             }
@@ -2283,14 +2332,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # NOTE: This interval isn't in the settings by default because it is
             # kind of obscure.  No reason to clutter things up.
             interval = self.prefs['*']['gateone'].get(
-                'user_logs_cleanup_interval', default_interval)
+                'cleanup_interval', default_interval)
             td = convert_to_timedelta(interval)
             interval = ((
                 td.microseconds +
                 (td.seconds + td.days * 24 * 3600) *
                 10**6) / 10**6) * 1000
-            CLEANER = tornado.ioloop.PeriodicCallback(
-                cleanup_user_logs, interval)
+            CLEANER = tornado.ioloop.PeriodicCallback(clean_up, interval)
             CLEANER.start()
 
     def _start_file_watcher(self):
@@ -2344,7 +2392,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'broadcast_file', broadcast_file)
         if broadcast_file not in cls.watched_files:
             # No broadcast file means the file watcher isn't running
-            io.open(broadcast_file, 'w').write(u'') # Touch file
+            touch(broadcast_file)
             interval = self.prefs['*']['gateone'].get(
                 'file_check_interval', "5s")
             td = convert_to_timedelta(interval)
@@ -2531,7 +2579,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         rendered_path = self.render_style(
             theme_path, **template_args)
         filename = os.path.split(rendered_path)[1]
-        mtime = os.stat(rendered_path).st_mtime
         theme_files = []
         theme_files.append(rendered_path)
         # Now enumerate all applications/plugins looking for their own
@@ -4317,7 +4364,10 @@ def main():
                 api_keys.update({api_key: secret})
         go_settings['api_keys'] = api_keys
     # Setting the log level using go_settings requires an additional step:
-    logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
+    if options.logging.upper() != 'NONE':
+        logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
+    else:
+        logging.disable(logging.CRITICAL)
     logger = go_logger(None)
     APPLICATIONS = [] # Replace it with a list of actual class instances
     web_handlers = []
@@ -4373,7 +4423,8 @@ def main():
             logging.error(_(
                 "Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
-                "yourself and make user, %s its owner." % (go_settings['user_dir'],
+                "yourself and make user, %s its owner."
+                % (go_settings['user_dir'],
                 repr(pwd.getpwuid(os.geteuid())[0]),
                 repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
@@ -4416,33 +4467,41 @@ def main():
     _ = user_locale.translate # Also replaces our wrapper so no more .encode()
     # Create the log dir if not already present (NOTE: Assumes we're root)
     log_dir = os.path.split(go_settings['log_file_prefix'])[0]
-    if not os.path.exists(log_dir):
-        try:
-            mkdir_p(log_dir)
-        except OSError:
-            logging.error(_("\x1b[1;31mERROR:\x1b[0m Could not create %s for "
-                "log_file_prefix: %s" % (log_dir, go_settings['log_file_prefix']
-            )))
-            logging.error(_("You probably want to change this option, run Gate "
-                  "One as root, or create that directory and give the proper "
-                  "user ownership of it."))
-            sys.exit(1)
-    if not check_write_permissions(uid, log_dir):
-        # Try to correct it
-        try:
-            recursive_chown(log_dir, uid, gid)
-        except (ChownError, OSError) as e:
-            logging.error("log_dir: %s, uid: %s, gid: %s" % (log_dir, uid, gid))
-            logging.error(e)
-            sys.exit(1)
-    # Now fix the permissions on each log (no need to check)
-    for log_file in LOGS:
-        try:
-            recursive_chown(log_file, uid, gid)
-        except (ChownError, OSError) as e:
-            logging.error("log_file: %s, uid: %s, gid: %s" % (log_dir,uid, gid))
-            logging.error(e)
-            sys.exit(1)
+    if options.logging.upper() != 'NONE':
+        if not os.path.exists(log_dir):
+            try:
+                mkdir_p(log_dir)
+            except OSError:
+                logging.error(_(
+                    "\x1b[1;31mERROR:\x1b[0m Could not create %s for "
+                    "log_file_prefix: %s"
+                    % (log_dir, go_settings['log_file_prefix']
+                )))
+                logging.error(_(
+                    "You probably want to change this option, run Gate "
+                    "One as root, or create that directory and give the proper "
+                    "user ownership of it."))
+                sys.exit(1)
+        if not check_write_permissions(uid, log_dir):
+            # Try to correct it
+            try:
+                recursive_chown(log_dir, uid, gid)
+            except (ChownError, OSError) as e:
+                logging.error(
+                    "log_dir: %s, uid: %s, gid: %s" % (log_dir, uid, gid))
+                logging.error(e)
+                sys.exit(1)
+        # Now fix the permissions on each log (no need to check)
+        for log_file in LOGS:
+            if not os.path.exists(log_file):
+                touch(log_file)
+            try:
+                recursive_chown(log_file, uid, gid)
+            except (ChownError, OSError) as e:
+                logging.error(
+                    "log_file: %s, uid: %s, gid: %s" % (log_dir,uid, gid))
+                logging.error(e)
+                sys.exit(1)
     if options.new_api_key:
         # Generate a new API key for an application to use and save it to
         # settings/20api_keys.conf.
@@ -4648,16 +4707,6 @@ def main():
         shutil.rmtree(go_settings['cache_dir'], ignore_errors=True)
         remove_pid(go_settings['pid_file'])
         logger.info(_("pid file removed."))
-        # TODO: Move this dtach stuff to app_terminal.py
-        if not options.dtach:
-            # If we're not using dtach play it safe by cleaning up any leftover
-            # processes.  When passwords are used with the ssh_conenct.py script
-            # it runs os.setsid() on the child process which means it won't die
-            # when Gate One is closed.  This is primarily to handle that
-            # specific situation.
-            killall(go_settings['session_dir'], go_settings['pid_file'])
-            # Cleanup the session_dir (it's supposed to only contain temp stuff)
-            shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
 
 if __name__ == "__main__":
     main()

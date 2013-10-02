@@ -15,7 +15,8 @@ var go = GateOne,
     logError = GateOne.Logging.logError,
     logWarning = GateOne.Logging.logWarning,
     logInfo = GateOne.Logging.logInfo,
-    logDebug = GateOne.Logging.logDebug;
+    logDebug = GateOne.Logging.logDebug,
+    mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 
 GateOne.Base.module(GateOne.Terminal, "Input", '1.0');
 /**:GateOne.Terminal.Input
@@ -104,6 +105,86 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         lineno = parseInt(u.last(className.split('_'))) + 1;
         return lineno;
     },
+    onMouseWheel: function(e) {
+        /**:GateOne.Terminal.Input.onMouseWheel(e)
+
+        Attached to the `contextmenu` event on the Terminal application container; calls ``preventDefault()`` if "mouse motion" event tracking mode is enabled and instead sends equivalent xterm escape sequences to the server to emulate mouse scroll events.
+
+        If the ``Alt`` key is held the user will be able to scroll normally.
+        */
+        var selectedTerm = localStorage[prefix+'selectedTerminal'],
+            m = go.Input.mouse(e),
+            modifiers = i.modifiers(e),
+            button,
+            termObj = go.Terminal.terminals[selectedTerm],
+            termNode = termObj['node'],
+            columns = termObj['columns'],
+            width = termObj['screenNode'].offsetWidth,
+            x = Math.ceil(e.clientX/(width/(columns))),
+            element_under = document.elementFromPoint(e.clientX, e.clientY),
+            y = go.Terminal.Input._getLineNo(element_under);
+        if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
+            if (!modifiers.alt) {
+                e.preventDefault();
+                if (!isNaN(y)) {
+                    go.Terminal.Input.lastGoodY = y;
+                }
+                if (!isNaN(x)) {
+                    go.Terminal.Input.lastGoodX = x;
+                }
+                x = go.Terminal.xtermEncode(x);
+                if (m.wheel.y > 1) {
+                    button = go.Terminal.xtermEncode(1+64);
+                } else {
+                    button = go.Terminal.xtermEncode(0+64);
+                }
+                if (y) {
+                    y = go.Terminal.xtermEncode(y);
+                    go.Terminal.sendString(ESC+'[M'+button+x+y);
+                }
+            }
+        }
+    },
+    onContextMenu: function(e) {
+        /**:GateOne.Terminal.Input.onMouseMove(e)
+
+        Attached to the `contextmenu` event on the Terminal application container; calls ``preventDefault()`` if "mouse motion" event tracking mode is enabled to prevent the usual context menu from popping up.
+
+        If the ``Alt`` key is held while right-clicking the normal context menu will appear.
+        */
+        var selectedTerm = localStorage[prefix+'selectedTerminal'],
+            modifiers = i.modifiers(e);
+        if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
+            if (!modifiers.alt) {
+                e.preventDefault();
+            }
+        }
+    },
+    onMouseMove: function(e) {
+        /**:GateOne.Terminal.Input.onMouseMove(e)
+
+        Attached to the `mousemove` event on the Terminal application container when mouse event tracking is enabled; pre-sets `GateOne.Terminal.mouseUpEscSeq` with the current mouse coordinates.
+        */
+        var selectedTerm = localStorage[prefix+'selectedTerminal'],
+            termObj = go.Terminal.terminals[selectedTerm],
+            termNode = termObj['node'],
+            columns = termObj['columns'],
+            width = termObj['screenNode'].offsetWidth,
+            x = Math.ceil(e.clientX/(width/(columns))),
+            element_under = document.elementFromPoint(e.clientX, e.clientY),
+            y = go.Terminal.Input._getLineNo(element_under);
+        if (!isNaN(y)) {
+            go.Terminal.Input.lastGoodY = y;
+        }
+        if (!isNaN(x)) {
+            go.Terminal.Input.lastGoodX = x;
+        }
+        x = go.Terminal.xtermEncode(x);
+        if (y) {
+            y = go.Terminal.xtermEncode(y);
+            go.Terminal.mouseUpEscSeq = ESC+'[M@'+x+y;
+        }
+    },
     onMouseDown: function(e) {
         /**:GateOne.Terminal.Input.onMouseDown(e)
 
@@ -116,6 +197,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
         logDebug("GateOne.Terminal.Input.onMouseDown() button: " + e.button + ", which: " + e.which);
         var m = go.Input.mouse(e),
+            modifiers = i.modifiers(e),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
@@ -146,50 +228,40 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (elementUnder) {
             // CSI M CbCxCy
             if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
-                e.preventDefault(); // Don't let the browser do its own highlighting
-                var termObj = go.Terminal.terminals[selectedTerm],
-                    termNode = termObj['node'],
-                    columns = termObj['columns'],
-                    colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-                    width = termObj['screenNode'].offsetWidth;
-                Y = parseInt(u.last(className.split('_'))) + 1;
-                X = Math.ceil(e.clientX/(width/(columns)));
-                go.Terminal.Input.startSelection = [X, Y]; // Block selection tracking
-                logDebug("Clicked on row/column: "+Y+"/"+X);
-                X = go.Terminal.xtermEncode(X);
-                Y = go.Terminal.xtermEncode(Y);
-                if (m.button.left) {
-                    go.node.onmousemove = function(e) {
-                        var x = Math.ceil(e.clientX/(width/(columns))),
-                            element_under = document.elementFromPoint(e.clientX, e.clientY),
-                            y = go.Terminal.Input._getLineNo(element_under);
-                        x = go.Terminal.xtermEncode(x);
-                        if (y) {
-                            y = go.Terminal.xtermEncode(y);
-                            go.Terminal.mouseUpEscSeq = ESC+'[M@'+x+y;
-                        }
-                    };
-                    go.Terminal.mouseUpdater = setInterval(function() {
-                        // Send regular mouse escape sequences in case the user is dragging-to-highlight
-                        // NOTE:  This interval timer will be cleared automatically in onMouseUp()
-                        if (go.Terminal.mouseUpEscSeq != go.Terminal.mouseUpEscSeqLast) {
-                            go.Terminal.sendString(go.Terminal.mouseUpEscSeq);
-                            go.Terminal.mouseUpEscSeqLast = go.Terminal.mouseUpEscSeq;
-                        }
-                    }, 100);
-                    button = go.Terminal.xtermEncode(0);
-                } else if (m.button.right) {
-                    button = go.Terminal.xtermEncode(1);
-                } else if (m.button.middle) {
-                    button = go.Terminal.xtermEncode(2);
+                if (!modifiers.alt) { // Allow selecting text normally if alt is held
+                    e.preventDefault(); // Don't let the browser do its own highlighting
+                    var termObj = go.Terminal.terminals[selectedTerm],
+                        termNode = termObj['node'],
+                        columns = termObj['columns'],
+                        colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+                        width = termObj['screenNode'].offsetWidth;
+                    Y = parseInt(u.last(className.split('_'))) + 1;
+                    X = Math.ceil(e.clientX/(width/(columns)));
+                    go.Terminal.Input.startSelection = [X, Y]; // Block selection tracking
+                    logDebug("onMouseDown(): Clicked on row/column: "+Y+"/"+X);
+                    X = go.Terminal.xtermEncode(X);
+                    Y = go.Terminal.xtermEncode(Y);
+                    if (m.button.left) {
+                        go.Terminal.terminals[selectedTerm]['node'].addEventListener('mousemove', go.Terminal.Input.onMouseMove, false);
+                        go.Terminal.mouseUpdater = setInterval(function() {
+                            // Send regular mouse escape sequences in case the user is dragging-to-highlight
+                            // NOTE:  This interval timer will be cleared automatically in onMouseUp()
+                            if (go.Terminal.mouseUpEscSeq != go.Terminal.mouseUpEscSeqLast) {
+                                go.Terminal.sendString(go.Terminal.mouseUpEscSeq);
+                                go.Terminal.mouseUpEscSeqLast = go.Terminal.mouseUpEscSeq;
+                            }
+                        }, 100);
+                        button = go.Terminal.xtermEncode(0);
+                    } else if (m.button.right) {
+                        button = go.Terminal.xtermEncode(1);
+                    } else if (m.button.middle) {
+                        button = go.Terminal.xtermEncode(2);
+                    }
+                    // Send the initial mouse down escape sequence
+                    go.Terminal.sendString(ESC+'[M'+button+X+Y);
                 }
-                // Send the initial mouse down escape sequence
-                go.Terminal.sendString(ESC+'[M'+button+X+Y);
             }
         }
-        // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
-        // However, we only want this when the user is actually bringing up the context menu because
-        // having it enabled slows down screen updates by a non-trivial amount.
         if (m.button.middle) {
             if (selectedPastearea) {
                 u.showElement(selectedPastearea);
@@ -218,7 +290,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     }
                 }
             } else {
-                go.node.focus();
+                t.Input.inputNode.focus();
             }
         }
         // NOTE: Commented out the code below because it was causing the browser window to jump back and forth between Gate One and wherever the user's original position was in the window.
@@ -235,6 +307,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         */
         var selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedText = u.getSelText(),
+            m = go.Input.mouse(e),
+            modifiers = i.modifiers(e),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             elementUnder = document.elementFromPoint(e.clientX, e.clientY);
         logDebug("GateOne.Terminal.Input.onMouseUp: e.button: " + e.button + ", e.which: " + e.which);
@@ -242,7 +316,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.mouseDown = false;
         go.Terminal.setActive(selectedTerm);
         if (go.Terminal.Input.startSelection) {
-//             console.log("Finished selection at: ", go.Terminal.Input.startSelection);
+            logDebug("Finished selection at: ", go.Terminal.Input.startSelection);
             go.Terminal.Input.startSelection = null;
         }
         if (selectedText) {
@@ -258,7 +332,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             go.Terminal.unHighlight();
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-            return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+            if (!document.activeElement.classList.contains('✈IME')) {
+                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+            }
         }
         className = elementUnder.className + ''; // Ensure it's a string for Firefox
         if (className && className.indexOf('✈termline') == -1) {
@@ -276,22 +352,37 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             }
         }
         // This is for mouse tracking
-        if (elementUnder) {
+        if (go.Terminal.mouseUpdater) {
             // CSI M CbCxCy
+            logDebug("elementUnder: ", elementUnder)
             if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
                 var termObj = go.Terminal.terminals[selectedTerm],
                     termNode = termObj['node'],
                     columns = termObj['columns'],
                     colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
                     width = termObj['screenNode'].offsetWidth;
+                if (m.button.right) {
+                    if (!modifiers.alt) {
+                        e.preventDefault();
+                    }
+                }
                 Y = parseInt(u.last(className.split('_'))) + 1;
                 X = Math.ceil(e.clientX/(width/(columns)));
-                logDebug("Clicked on row/column: "+Y+"/"+X);
+                logDebug("onMouseUp(): Clicked on row/column: "+Y+"/"+X);
+                if (isNaN(Y)) {
+                    Y = go.Terminal.Input.lastGoodY;
+                }
+                if (isNaN(X)) {
+                    X = go.Terminal.Input.lastGoodX;
+                }
                 X = go.Terminal.xtermEncode(X);
                 Y = go.Terminal.xtermEncode(Y);
                 button = go.Terminal.xtermEncode(3); // 3 is always "release"
                 go.Terminal.sendString(ESC+'[M'+button+X+Y);
-                go.node.onmousemove = null; // Stop tracking mouse
+                clearInterval(go.Terminal.mouseUpdater);
+                go.Terminal.mouseUpdater = null;
+                // Stop tracking mouse
+                go.Terminal.terminals[selectedTerm]['node'].removeEventListener('mousemove', go.Terminal.Input.onMouseMove, false);
             }
         }
         if (!go.Visual.gridView) {
@@ -338,10 +429,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             go.node.addEventListener('keyup', t.Input.onKeyUp, true);
             t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
             terms.forEach(function(termNode) {
+                termNode.addEventListener('copy', t.Input.onCopy, false);
                 termNode.addEventListener('paste', t.Input.onPaste, false);
                 termNode.addEventListener('mousedown', t.Input.onMouseDown, false);
                 termNode.addEventListener('mouseup', t.Input.onMouseUp, false);
-                termNode.addEventListener('copy', t.Input.onCopy, false);
+                termNode.addEventListener('contextmenu', t.Input.onContextMenu, false);
+                termNode.addEventListener(mousewheelevt, t.Input.onMouseWheel, false);
             });
         }
         t.Input.addedEventListeners = true;
@@ -365,6 +458,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             }
             if (t.Input.mouseDown) {
                 logDebug('disableCapture() cancelled due to mouseDown.');
+                go.Terminal.Input.mouseDown = false;
                 return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
             }
             if (t.Input.handlingPaste) {
@@ -382,10 +476,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
         go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
         terms.forEach(function(termNode) {
+            termNode.removeEventListener('copy', t.Input.onCopy, false);
             termNode.removeEventListener('paste', t.Input.onPaste, false);
             termNode.removeEventListener('mousedown', t.Input.onMouseDown, false);
             termNode.removeEventListener('mouseup', t.Input.onMouseUp, false);
-            termNode.removeEventListener('copy', t.Input.onCopy, false);
+            termNode.removeEventListener('contextmenu', t.Input.onContextMenu, false);
+            termNode.removeEventListener(mousewheelevt, t.Input.onMouseWheel, false);
             if (!termNode.classList.contains('✈inactive')) {
                 termNode.classList.add('✈inactive');
             }

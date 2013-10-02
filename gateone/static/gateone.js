@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20130928170533";
+GateOne.__commit__ = "20131001105118";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1167,9 +1167,17 @@ GateOne.Base.update(GateOne.Utils, {
             >>> GateOne.Utils.showElement('#go_icon_newterm');
         */
         var u = GateOne.Utils,
+            display,
             node = u.getNode(elem);
         if (node) {
-            node.style.display = 'block';
+            display = node.getAttribute('data-style-display');
+            if (display) {
+                node.style.display = display;
+                node.removeAttribute('data-style-display');
+            } else {
+                // Fall back to using 'block'
+                node.style.display = 'block';
+            }
             node.classList.remove('✈go_none');
         }
     },
@@ -1186,10 +1194,13 @@ GateOne.Base.update(GateOne.Utils, {
         */
         // Sets the 'display' style of the given element to 'none'
         var u = GateOne.Utils,
+            display,
             node = u.getNode(elem);
         if (node) {
+            display = getComputedStyle(node).display;
+            node.setAttribute('data-style-display', display);
             node.style.display = 'none';
-            if (node.classList.contains('✈go_none')) {
+            if (!node.classList.contains('✈go_none')) {
                 node.classList.add("✈go_none");
             }
         }

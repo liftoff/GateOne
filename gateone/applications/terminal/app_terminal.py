@@ -15,7 +15,7 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # I like to start my files with imports from Python's standard library...
-import os, sys, time, io
+import os, sys, time, io, atexit
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -102,6 +102,17 @@ def timeout_session(session):
     session will also be killed.
     """
     kill_session(session, kill_dtach=True)
+
+@atexit.register
+def quit():
+    from utils import killall
+    if not options.dtach:
+        # If we're not using dtach play it safe by cleaning up any leftover
+        # processes.  When passwords are used with the ssh_conenct.py script
+        # it runs os.setsid() on the child process which means it won't die
+        # when Gate One is closed.  This is primarily to handle that
+        # specific situation.
+        killall(options.session_dir, options.pid_file)
 
 def policy_new_terminal(cls, policy):
     """

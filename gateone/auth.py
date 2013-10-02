@@ -183,10 +183,15 @@ class require(object):
                         ))
                     # Try to notify the client of their failings
                     msg = _("ERROR: %s" % condition.error)
-                    if hasattr(self, 'send_message'):
-                        self.send_message(msg)
-                    elif hasattr(self, 'ws'): # This is inside an app, use ws
-                        self.ws.send_message(msg)
+                    try:
+                        if hasattr(self, 'send_message'):
+                            self.send_message(msg)
+                        elif hasattr(self, 'ws'): # Inside an app, use ws
+                            self.ws.send_message(msg)
+                    except AttributeError:
+                        # This can happen if the client disconnects in the
+                        # middle of this operation.  Ignore.
+                        pass
                     return noop
             return f(self, *args, **kwargs)
         return wrapped_f

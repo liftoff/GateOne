@@ -2,7 +2,7 @@
 // TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
-GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Storage", "GateOne.Help"], function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Input", "GateOne.Storage", "GateOne.Help"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts
@@ -1361,7 +1361,7 @@ go.Base.update(GateOne.Terminal, {
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
                 e.preventDefault();
-                var pasteArea = u.getNode('#'+prefix+'pastearea');
+                var pasteArea = u.getNode('#'+prefix+'pastearea'+term);
                 u.hideElement(pastearea);
                 if (go.scrollTimeout) {
                     clearTimeout(go.scrollTimeout);
@@ -2160,7 +2160,7 @@ go.Base.update(GateOne.Terminal, {
             }
             if (u.getSelText()) {
                 // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
-                // Retry again in 3.5 seconds
+                // Retry again in a bit
                 clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
                 go.Terminal.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
                     go.Terminal.enableScrollback(termNum);
@@ -2170,9 +2170,7 @@ go.Base.update(GateOne.Terminal, {
             // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
             if (parentHeight) {
                 termPre.style.height = parentHeight + 'px';
-            }/* else {
-                termPre.style.height = "100%"; // This ensures there's a scrollbar
-            }*/
+            }
             termPre.style['overflow-y'] = ""; // Allow the class to control this (will be auto)
             if (termScrollback) {
                 var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
@@ -2180,15 +2178,14 @@ go.Base.update(GateOne.Terminal, {
                     termScrollback.innerHTML = scrollbackHTML;
                 }
                 termScrollback.style.display = ''; // Reset
-                u.scrollToBottom(termPre);
             } else {
                 // Create the span that holds the scrollback buffer
                 termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': '✈scrollback'});
                 termScrollback.innerHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
                 termPre.insertBefore(termScrollback, termScreen);
                 go.Terminal.terminals[termNum]['scrollbackNode'] = termScrollback;
-                u.scrollToBottom(termPre); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
             }
+            u.scrollToBottom(termPre);
             if (go.Terminal.terminals[termNum]['scrollbackTimer']) {
                 clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
             }

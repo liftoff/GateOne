@@ -150,7 +150,8 @@ class AsyncRunner(object):
         """
         if self.shutdown_timeout:
             self.io_loop.remove_timeout(self.shutdown_timeout)
-        self.executor.shutdown(wait=wait)
+        if hasattr(self, 'executor'):
+            self.executor.shutdown(wait=wait)
         self.running = False
 
     def restart_shutdown_timeout(self):
@@ -166,8 +167,8 @@ class AsyncRunner(object):
         """
         Shuts down ``self.executor`` and clears the memoization cache.
         """
-        if hasattr(MEMO, 'clear'):
-            MEMO.clear()
+        global MEMO
+        MEMO = {} # Enables garbage collection of the AutoExpireDict
         self.shutdown()
 
     @restart_executor
