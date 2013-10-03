@@ -817,9 +817,8 @@ def main():
             telnet_connect(user, host, port)
         else:
             print(_('Unknown protocol "%s"' % protocol))
-    except (KeyboardInterrupt, EOFError):
-        print(_("\nUser requested exit.  Quitting..."))
-        sys.exit(1)
+    except (EOFError):
+        sys.exit(1) # User probably just pressed Ctrl-D
     except Exception as e: # Catch all
         print(_("Got Exception: %s" % e))
         import traceback
@@ -830,9 +829,18 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
+    exit_message = _("\nUser requested exit.  Quitting...")
     signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     executor = futures.ThreadPoolExecutor(max_workers=2)
-    future = executor.submit(main)
-    futures.wait([future], timeout=120)
-    executor.shutdown(wait=False)
-    took_too_long()
+    try:
+        future = executor.submit(main)
+        done, not_done = futures.wait([future], timeout=120)
+        executor.shutdown(wait=False)
+        if not_done:
+            took_too_long()
+        else:
+            if isinstance(future.exception(), SystemExit):
+                print(exit_message)
+    except (KeyboardInterrupt, EOFError):
+        print(exit_message)
+        os._exit(1)

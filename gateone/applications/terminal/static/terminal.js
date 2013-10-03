@@ -84,6 +84,7 @@ go.Terminal.terminalDBModel = {
     'scrollback': {keyPath: 'term'} // Just storing the scrollback buffer for now
 }
 go.Terminal.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
+go.Terminal.warnedAboutVoiceExt = false; // Tracks whether we've already warned the user about the presence of a problem extension.
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
@@ -106,6 +107,7 @@ go.Base.update(GateOne.Terminal, {
         :where: An optional querySelector-like string or DOM node where the new Terminal should be placed.  If not given a new workspace will be created to contain the Terminal.
         */
         logDebug("GateOne.Terminal.__new__(" + JSON.stringify(settings) + ")");
+        var term, voiceExtDetected;
         if (settings) {
             // Make a copy of the settings just in case the caller is passing us the entry inside GateOne.User.applications:
             settings = Object.create(settings);
@@ -115,7 +117,19 @@ go.Base.update(GateOne.Terminal, {
         }
         where = where || go.Visual.newWorkspace();
         if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
-            var term = go.Terminal.newTerminal(null, settings, where);
+            if (!go.Terminal.warnedAboutVoiceExt) {
+                if (GateOne.Terminal.hasVoiceExt()) {
+                    v.alert("WARNING: Problematic Browser Extension Detected", gettext([
+                        "<p><b>Warning:</b> An extension was detected that can result in a severe negative impact on terminal performance ",
+                        "(Google Voice). The extension is modifying the web page every time there's a screen update (what it thinks are phone",
+                        " numbers are being converted into clickable links).",
+                        "Please disable the 'Clickable Links' feature of the extension, turn it off for this web site (if possible),",
+                        " or disable it entirely.</p>"
+                    ]));
+                }
+                go.Terminal.warnedAboutVoiceExt = true;
+            }
+            term = go.Terminal.newTerminal(null, settings, where);
         } else {
             v.closeWorkspace(workspace);
             v.displayMessage(gettex("Please wait until Gate One is reconnected."));
@@ -452,6 +466,23 @@ go.Base.update(GateOne.Terminal, {
                 delete localStorage[key];
             }
         }
+    },
+    hasVoiceExt: function() {
+        /**:GateOne.Terminal.hasVoiceExt()
+
+        This function returns ``true`` if an extension is detected that converts phone numbers into clickable links (e.g. Google Voice).  Such browser extensions can have a *severe* negative performance impact while using terminals (every screen update requires a re-scan of the entire page!).
+        */
+        var testNode = u.createElement('div', {'class': '✈phonenumbercheck', 'style': {'position': 'absolute', 'top': 0, 'left': 0}}),
+            originalHTML = "<span>904-555-1212</span>",
+            detected = false;
+        v.applyTransform(testNode, 'translateX(-99999px)');
+        testNode.innerHTML = originalHTML;
+        go.node.appendChild(testNode);
+        if (testNode.innerHTML != originalHTML) {
+            detected = true;
+        }
+        u.removeElement(testNode);
+        return detected;
     },
     setDBReady: function(db) {
         /**:GateOne.Terminal.dbReady(db)

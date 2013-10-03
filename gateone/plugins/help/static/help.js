@@ -1,5 +1,5 @@
 
-(function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Help", ["GateOne.Visual", "GateOne.User", "GateOne.Input", "GateOne.Storage"], function(window, undefined) {
 "use strict";
 
 var document = window.document; // Have to do this because we're sandboxed
@@ -215,4 +215,4 @@ GateOne.Base.update(GateOne.Help, {
     }
 });
 
-})(window);
+});

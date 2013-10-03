@@ -34,6 +34,9 @@
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
+.✈centered_text {
+    text-align: center;
+}
 .✈workspace {
     color: #FFF;
     position: static;

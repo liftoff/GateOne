@@ -62,7 +62,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131001105118";
+GateOne.__commit__ = "20131001215433";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -107,7 +107,6 @@ GateOne.Base.module = function(parent, name, version, deps) {
         prefix = (parent.__name__ ? parent.__name__ + "." : "");
     module.__name__ = prefix + name;
     module.__version__ = version;
-    module.__parent__ = parent;
     module.__repr__ = function () {
         return "[" + this.__name__ + " " + this.__version__ + "]";
     };
@@ -264,9 +263,6 @@ GateOne.Base.update = function(self, obj/*, ... */) {
                     if (!self[k].__name__) {
                         self[k].__name__ = k
                     }
-                    if (!self[k].__parent__) {
-                        self[k].__parent__ = self;
-                    }
                 }
             }
         }
@@ -280,15 +276,20 @@ A module to store and retrieve localized translations of strings.
 */
 GateOne.i18n.translations = {}; // Stores the localized translation of various strings
 GateOne.Base.update(GateOne.i18n, {
-    gettext: function(string) {
-        /**:GateOne.i18n.gettext(string)
+    gettext: function(stringOrArray) {
+        /**:GateOne.i18n.gettext(stringOrArray)
 
-        Returns a localized translation of *string* if available.  Returns *string* if no translation is available.
+        Returns a localized translation of *stringOrArray* if available.  If *stringOrArray* is an array it will be joined into a single string via ``join('')``.
+
+        If no translation of *stringOrArray* is available the text will be returned as-is (or joined, in the case of an Array).
         */
-        if (GateOne.i18n.translations[string]) {
-            return GateOne.i18n.translations[string][1];
+        if (GateOne.Utils.isArray(stringOrArray)) {
+            stringOrArray = stringOrArray.join('');
         }
-        return string;
+        if (GateOne.i18n.translations[stringOrArray]) {
+            return GateOne.i18n.translations[stringOrArray][1];
+        }
+        return stringOrArray;
     },
     registerTranslationAction: function(table) {
         /**:GateOne.i18n.registerTranslationAction(table)
@@ -3172,7 +3173,6 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 5);
                 return;
             }
-            return;
         }
         titleH2.innerHTML = "Gate One - Applications";
         wsContainer.style.opacity = 0;
@@ -4609,15 +4609,17 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = GateOne.Utils,
             v = GateOne.Visual,
+            centeringDiv = u.createElement('div', {'class': '✈centered_text'}),
             OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': '✈button ✈black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
-            messageContainer = u.createElement('p', {'id': 'ok_message', 'style': {'text-align': 'center'}});
+            messageContainer = u.createElement('p', {'id': 'ok_message'});
         OKButton.innerHTML = "OK";
         if (message instanceof HTMLElement) {
             messageContainer.appendChild(message);
         } else {
             messageContainer.innerHTML = "<p>" + message + "</p>";
         }
-        messageContainer.appendChild(OKButton);
+        centeringDiv.appendChild(OKButton);
+        messageContainer.appendChild(centeringDiv);
         var closeDialog = go.Visual.dialog(title, messageContainer);
         OKButton.tabIndex = 1;
         OKButton.onclick = function(e) {
@@ -5459,81 +5461,6 @@ An object for event-specific stuff.  Inspired by Backbone.js Events.
 */
 GateOne.Events.callbacks = {};
 GateOne.Base.update(GateOne.Events, {
-    _setupCallbacks: function(f) {
-        // This can be used to attach before and after callbacks to any function in Gate One.  It is used like so:
-        // GateOne.Base.setupCallbacks(GateOne.Whatever.Whatever);
-        // Why not just call this on every function automatically?  Memory/resources.  No reason to attach empty arrays to every method.
-        // NOTE: Only works on objects that were created/updated via GateOne.Base.update();
-        var self = this;
-        if (!f.__parent__) {
-            logError('_setupCallbacks: Cannot attach to provided function (no __parent__!).');
-        }
-        var newFunc = function() {
-            var args = arguments,
-                callbackResult = null;
-            newFunc.callBefore.forEach(function(callObj) {
-                var context = (callObj.context || this),
-                    newArgs = callObj.callback.apply(context, args);
-                // Allow the callBefore to modify the arguments passed to the wrapped function
-                if (newArgs !== undefined) {
-                    args = newArgs;
-                }
-            });
-            var result = f.apply(self, args); // 'self' here makes sure the callling function retains the proper 'this'
-            newFunc.callAfter.forEach(function(callObj) {
-                var context = (callObj.context || this);
-                if (typeof(callObj.callback) == 'function') {
-                    // This allows manipulating results before they're actually returned
-                    // If the callback attached to this function returns something other than undefined it will replace the called function's result
-                    callbackResult = callObj.callback.call(context, result); // Passing the result of the call to the callback so it can modify it before it is finally returned
-                }
-            });
-            if (callbackResult !== undefined) {
-                result = callbackResult;
-            }
-            return result;
-        }
-        newFunc.callBefore = [];
-        newFunc.callAfter = [];
-        f.__parent__[f.__name__] = newFunc; // Update in place (because it's awesome)
-        return newFunc;
-    },
-    before: function(f, callback, context) {
-        /**:GateOne.Events.before(f, callback[, context])
-
-        Attaches the given *callback* to the given function (*f*) to be called **before** *f* is called.  If provided, *callback* will be called with the given *context* via `callback.apply(context)`.  Otherwise *callback* will be called with whatever arguments were given to *f* via `callback.apply(arguments)`.
-
-        If the given *callback* returns a value other than `undefined` that value will be passed to *f* as its arguments.  This allows *callback* to modify the arguments passed to *f* before it is called; aka the decorator pattern.
-
-        Returns the modified function (*f*).
-        */
-        var E = GateOne.Events,
-            callObj = {
-                'callback': callback,
-                'context': context
-            };
-        if (!f.callBefore) {
-            f = E._setupCallbacks(f);
-        }
-        f.callBefore.push(callObj);
-        return f;
-    },
-    after: function(f, callback, context) {
-        /**:GateOne.Events.after(f, callback[, context])
-
-        Attaches the given *callback* to the given function (*f*) to be called **after** it (*f*) has been executed.  If provided, the *callback* will be called with the given *context*.  Otherwise *callback* will be called with whatever arguments were given to the function (*f*).
-        */
-        var E = GateOne.Events,
-            callObj = {
-                'callback': callback,
-                'context': context
-            };
-        if (!f.callAfter) {
-            f = E._setupCallbacks(f);
-        }
-        f.callAfter.push(callObj);
-        return f;
-    },
     on: function(events, callback, context, times) {
         /**:GateOne.Events.on(events, callback[, context[, times]])
 

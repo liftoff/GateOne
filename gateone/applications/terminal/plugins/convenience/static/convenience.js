@@ -249,7 +249,7 @@ GateOne.Base.update(GateOne.Convenience, {
             text = elemOrString;
         }
         // Start at 1 to skip the first letter (e.g. 'd' or 'l')
-        for (n = 1; n <= text.length; n++) {
+        for (var n = 1; n <= text.length; n++) {
             var char = text[n];
             if (permissions[char + n]) {
                 val += permissions[char + n];
