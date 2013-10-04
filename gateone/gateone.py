@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131001215433" # Gets replaced by git (holds the date/time)
+__commit__ = "20131002210641" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1748,7 +1748,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         additional_files = [
             'gateone_utils_extra.js',
             'gateone_visual_extra.js',
-            'gateone_input.js'
+            'gateone_input.js',
+            'gateone_misc.js'
         ]
         for js_file in additional_files:
             self.send_js(os.path.join(GATEONE_DIR, 'static', js_file))

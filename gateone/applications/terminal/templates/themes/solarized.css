@@ -10,7 +10,7 @@
 {% else %}
     width: calc(100% - 2em);
     width: -webkit-calc(100% - 2em);
-    right: 2em;
+/*     right: 2em; */
 {% end %}
     * { color:#839496; }
     h1,h2,h3,h4,h5,h6 { color:#93a1a1; border-color: #839496; }
@@ -80,6 +80,9 @@ span.✈cursor { color: #002b36; background-color: #eee8d5; }
 .✈share_users {
     margin: 0 auto;
     width: 100%;
+}
+.✈upload_bell_form {
+    padding: 0.5em;
 }
 @media only screen and (max-width: 800px) {
     .✈terminal pre {

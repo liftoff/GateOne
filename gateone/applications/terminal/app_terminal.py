@@ -816,7 +816,7 @@ class TerminalApplication(GOApplication):
         # Note: *args and **kwargs are present so we can attach this to a go:
         # event and just ignore the provided arguments.
         self.term_log.debug('terminals()')
-        terminals = []
+        terminals = {}
         # Create an application-specific storage space in the locations dict
         if 'terminal' not in self.ws.locations[self.ws.location]:
             self.ws.locations[self.ws.location]['terminal'] = {}
@@ -824,7 +824,7 @@ class TerminalApplication(GOApplication):
         self.loc_terms = self.ws.locations[self.ws.location]['terminal']
         for term in list(self.loc_terms.keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
-                terminals.append(term)
+                terminals.update({term: self.loc_terms[term]['metadata']})
         # Check for any dtach'd terminals we might have missed
         if options.dtach and which('dtach'):
             session_dir = options.session_dir
@@ -839,8 +839,10 @@ class TerminalApplication(GOApplication):
                     if location == self.ws.location:
                         term = int(split[2])
                         if term not in terminals:
-                            terminals.append(term)
-        terminals.sort() # Put them in order so folks don't get confused
+                            # TODO: Figure out if we should save/restore
+                            # metadata here:
+                            terminals.update({term: {'metadata': None}})
+        #terminals.sort() # Put them in order so folks don't get confused
         message = {'terminal:terminals': terminals}
         self.write_message(json_encode(message))
 
@@ -1064,6 +1066,7 @@ class TerminalApplication(GOApplication):
         environment_vars = policy.get('environment_vars', default_env)
         default_encoding = policy.get('default_encoding', 'utf-8')
         encoding = settings.get('encoding', default_encoding)
+        term_metadata = settings.get('metadata', {})
         settings_dir = self.settings['settings_dir']
         user_session_dir = os.path.join(options.session_dir, self.ws.session)
         # NOTE: 'command' here is actually just the short name of the command.
@@ -1093,13 +1096,13 @@ class TerminalApplication(GOApplication):
         if isinstance(full_command, dict): # Extended command definition
             full_command = full_command['command']
         # Make a nice, useful logging line with extra metadata
-        metadata = {
+        log_metadata = {
             "rows": settings["rows"],
             "columns": settings["columns"],
             "term": term,
             "command": command
         }
-        self.term_log.info("New Terminal: %s" % term, metadata=metadata)
+        self.term_log.info("New Terminal: %s" % term, metadata=log_metadata)
         # Now remove the new-term-specific metadata
         if 'em_dimensions' in settings:
             self.em_dimensions = {
@@ -1114,6 +1117,7 @@ class TerminalApplication(GOApplication):
                 'title': 'Gate One',
                 'command': command,
                 'manual_title': False,
+                'metadata': term_metadata, # Any extra info the client gave us
                 # This is needed by the terminal sharing policies:
                 'user': self.current_user # So we can determine the owner
             }

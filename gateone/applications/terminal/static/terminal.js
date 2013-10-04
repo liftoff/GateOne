@@ -932,6 +932,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var term = titleObj['term'],
             title = titleObj['title'],
+            termObj = go.Terminal.terminals[term],
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
             termTitle = u.getNode('#'+prefix+'termtitle'),
             toolbar = u.getNode('#'+prefix+'toolbar'),
@@ -939,16 +940,20 @@ go.Base.update(GateOne.Terminal, {
             heightDiff = goDiv.clientHeight - toolbar.clientHeight,
             scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("Setting term " + term + " to title: " + title);
-        if (!go.Terminal.terminals[term]) {
+        if (!termObj) {
             return; // Terminal was just closed
         }
-        go.Terminal.terminals[term]['X11Title'] = title;
-        go.Terminal.terminals[term]['title'] = title;
+        termObj['X11Title'] = title;
+        termObj['title'] = title;
         v.setTitle(term + ": " + title);
-        // Set the title of the workspace too so it shows up in the locations panel
-        go.workspaces[go.Terminal.terminals[term]['workspace']]['node'].setAttribute('data-title', term + ": " + title);
+        if (termObj['workspace']) {
+            // Set the title of the workspace too so it shows up in the locations panel
+            go.workspaces[termObj['workspace']]['node'].setAttribute('data-title', term + ": " + title);
+        }
         // Also update the info panel
-        termTitle.innerHTML = term+': '+title;
+        if (termTitle) {
+            termTitle.innerHTML = term+': '+title;
+        }
         E.trigger('terminal:set_title_action', term, title);
     },
     resizeAction: function(message) {
@@ -1637,7 +1642,9 @@ go.Base.update(GateOne.Terminal, {
             }
         }
         for (var pref in settings) {
-            go.Terminal.terminals[term][pref] = settings[pref];
+            if (pref != 'style') {
+                go.Terminal.terminals[term][pref] = settings[pref];
+            }
         }
         // Retrieve any previous scrollback buffer for this terminal
         terminalDB.get('scrollback', term, function(obj) {
@@ -1660,6 +1667,9 @@ go.Base.update(GateOne.Terminal, {
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
         terminal.appendChild(termPre);
         go.Terminal.terminals[term]['node'] = termPre; // For faster access
+        if (settings && settings['style']) {
+            v.applyStyle(terminal, settings['style']);
+        }
         if (where.classList.contains('✈terminal')) {
             terminal = where;
             terminal.id = currentTerm;
@@ -1690,7 +1700,9 @@ go.Base.update(GateOne.Terminal, {
             slide = u.partial(go.Terminal.switchTerminal, term);
         // Update termSettings with *settings* (overriding with anything that was given)
         for (var pref in settings) {
-            termSettings[pref] = settings[pref];
+            if (pref != 'style') {
+                termSettings[pref] = settings[pref];
+            }
         }
         // Use the default command if set
         if (go.Terminal.defaultCommand) {
@@ -1824,6 +1836,30 @@ go.Base.update(GateOne.Terminal, {
             var termNum = lastTerm.id.split('term')[1];
             go.Terminal.switchTerminal(termNum);
         }
+    },
+    popupTerm: function() {
+        /**:GateOne.Terminal.popupTerm()
+
+        Opens a dialog with a terminal contained within.
+
+        If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.
+        */
+        var term = go.Terminal.lastTermNumber + 1,
+            content = u.createElement('div', {'class': '✈termdialog', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'width': '100%', 'height': '100%'}}),
+            closeFunc = function(dialogContainer) {
+                go.Terminal.closeTerminal(term);
+            },
+            resizeFunc = function(dialogContainer) {
+                go.Terminal.sendDimensions(term);
+            },
+            closeDialog = GateOne.Visual.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}}),
+            termQuitFunc = function(termNum) {
+                if (termNum == term) {
+                    closeDialog();
+                }
+            };
+        E.on('terminal:term_closed', termQuitFunc);
+        go.Terminal.newTerminal(term, {'metadata': {'resumeEvent': 'terminal:resume_dialog'}, 'style': {'width': '100%', 'height': '100%'}}, content);
     },
     setTerminal: function(term) {
         /**:GateOne.Terminal.setTerminal(term)
@@ -2088,11 +2124,11 @@ go.Base.update(GateOne.Terminal, {
     uploadBellDialog: function() {
         // Displays a dialog/form where the user can upload a replacement bell sound or use the default
         var playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': '✈button ✈black'}),
-            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
-            uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'style': {'width': '25em'}}),
+            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': '✈button ✈black', 'style': {'float': 'right'}}),
+            uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'class': '✈upload_bell_form'}),
             bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
             bellFileLabel = u.createElement('label'),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black', 'style': {'float': 'right'}}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right'}});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
@@ -2199,9 +2235,9 @@ go.Base.update(GateOne.Terminal, {
                 return;
             }
             // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
-            if (parentHeight) {
-                termPre.style.height = parentHeight + 'px';
-            }
+//             if (parentHeight) {
+//                 termPre.style.height = parentHeight + 'px';
+//             }
             termPre.style['overflow-y'] = ""; // Allow the class to control this (will be auto)
             if (termScrollback) {
                 var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
@@ -2407,7 +2443,8 @@ go.Base.update(GateOne.Terminal, {
 
         If this is a new session (and we're not in embedded mode), a new terminal will be created.
         */
-        var newTermSettings,
+        var newTermSettings, metadata,
+            termNumbers = [],
             reattachCallbacks = false,
             terminalDB = S.dbObject('terminal');
         logDebug("reattachTerminalsAction() terminals: " + terminals);
@@ -2419,11 +2456,15 @@ go.Base.update(GateOne.Terminal, {
             }, 50);
             return;
         }
+        // Make an array of terminal numbers
+        for (var term in terminals) {
+            termNumbers.push(parseInt(term));
+        }
         // Clean up localStorage
         terminalDB.dump('scrollback', function(objs) {
             for (var i=0; i<objs.length; i++) {
                 var termNum = objs[i]['term'];
-                if (terminals.indexOf(termNum) == -1) { // Terminal for this buffer no longer exists
+                if (termNumbers.indexOf(termNum) == -1) { // Terminal for this buffer no longer exists
                     logDebug("Deleting scollback buffer for non-existent terminal " + termNum);
                     terminalDB.del('scrollback', termNum);
                 }
@@ -2433,22 +2474,27 @@ go.Base.update(GateOne.Terminal, {
             reattachCallbacks = true;
         }
         if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
-            if (terminals.length) {
+            if (termNumbers.length) {
                 // Reattach the running terminals
-                terminals.forEach(function(termNum) {
+                termNumbers.forEach(function(termNum) {
                     if (!go.Terminal.terminals[termNum]) {
-                        go.Terminal.newTerminal(termNum);
+                        metadata = terminals[termNum]['metadata'] || {};
+                        if (metadata['resumeEvent']) {
+                            E.trigger(metadata['resumeEvent'], terminals[termNum]);
+                        } else {
+                            go.Terminal.newTerminal(termNum, {'metadata': metadata});
+                        }
                         go.Terminal.lastTermNumber = termNum;
                     }
                 });
             }
         }
-        E.trigger("terminal:term_reattach", terminals);
+        E.trigger("terminal:term_reattach", termNumbers, terminals); // termNumbers first to maintain backwards compatibility
         if (go.Terminal.reattachTerminalsCallbacks.length) {
             go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('terminal:term_reattach', func) instead.");
             // Call any registered callbacks
             go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
-                callback(terminals);
+                callback(termNumbers);
             });
         }
     },

@@ -254,10 +254,10 @@
     transition: all 0s ease-in-out !important;
 }
 .✈toolbar {
-    z-index:700;
-    position:absolute;
-    top:0;
-    right:0;
+    z-index: 800;
+    position: absolute;
+    top: 0;
+    right: 0;
     color: #000;
     text-align: right;
 }
@@ -402,7 +402,7 @@ potential conflicts with other classes that may be on the page.
     background: #ccc;
     color: #000;
     font-family: sans-serif;
-    z-index: 700; /* Same as toolbar to stay above pasteText */
+    z-index: 800; /* Same as toolbar */
     overflow-x: hidden;
     overflow-y: auto;
     padding-right: .4em;
@@ -550,7 +550,6 @@ potential conflicts with other classes that may be on the page.
 .✈sub1 li:before {
     content: "⏋ ";
 }
-#{{container}} form { margin: 0 1em 1em 0; }
 #{{container}} label {
     display: block;
     font-weight: bold;
@@ -625,8 +624,6 @@ potential conflicts with other classes that may be on the page.
     top: 25%;
     left: 25%;
     background-color: #CCC;
-    max-width: 50%;
-    max-height: 75%;
     z-index: 750;
     border: solid 1px #000;
     color: #000;
@@ -643,14 +640,17 @@ potential conflicts with other classes that may be on the page.
     padding-left: 0.5em;
     line-height: 1.5;
     margin-top: 0;
+    min-height: 4em;
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
     text-align: center;
     font-size: 1.1em;
     border-radius: 0.25em 0.25em 0 0;
 }
+.✈dialogcontainer p {
+    padding: 0.5em;
+}
 .✈dialogcontainer textarea {
-    margin-right: 1.3em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
     border-radius: 2px;
@@ -677,12 +677,12 @@ potential conflicts with other classes that may be on the page.
 .✈dialogtitle:hover {
     cursor: move;
 }
-/* dialogdiv wraps dialogcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
 .✈dialogdiv {
-    float: left;
-    position: relative;
-    left: 50%;
-    width: 95%;
+    position: absolute;
+    top: 2em; /* Will be overridden when the dialog is created */
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 .✈dialogcontent {
     float: left;
@@ -717,12 +717,23 @@ potential conflicts with other classes that may be on the page.
     z-index: 2;
     font-size: 1em;
 }
+.✈draghandle {
+    background-color: transparent;
+    width: 1em;
+    height: 1em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+.✈draghandle:hover {
+    cursor: se-resize;
+}
 .✈widgetcontainer {
     font-family: sans-serif;
     position: absolute;
     overflow: hidden;
-    top: 10%;
-    left: 70%;
+    top: 20%;
+    left: 25%;
     background-color: transparent;
     max-width: 100%;
     max-height: 100%;

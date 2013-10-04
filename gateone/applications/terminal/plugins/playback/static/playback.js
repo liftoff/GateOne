@@ -441,6 +441,9 @@ go.Base.update(GateOne.Playback, {
                 var terminalObj = t.terminals[term],
                     selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
                     sbT = terminalObj['scrollbackTimer'];
+                if (modifiers.ctrl || modifiers.alt || modifiers.meta) {
+                    return;
+                }
                 if (modifiers.shift) { // If shift is held, go back/forth in the recording instead of scrolling up/down
                     e.preventDefault();
                     // Stop updating the clock

@@ -34,7 +34,7 @@ Example = go.Base.module(GateOne.Terminal, "Example", "1.2");
 Example.graphUpdateTimer = null; // Used to track the setTimout() that updates the load graph
 Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
 
-go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be available under GateOne.Example goes in here
+go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be available under GateOne.Terminal.Example goes in here
     init: function() {
         /**:GateOne.Terminal.Example.init()
 
@@ -58,13 +58,13 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
         }
         // Let's attach the load graph toggle to a keyboard shortcut too:
         if (!go.prefs.embedded) { // Only enable if not in embedded mode (best practices)
-            go.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Example.toggleLoadGraph()'}); // L for 'load'
+            go.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.Example.toggleLoadGraph()'}); // L for 'load'
         }
         // Add the 'top top' button (not going to bother with a keyboard shortcut on this one)
         infoPanelTopButton.innerHTML = "Top Widget";
         infoPanelTopButton.onclick = function(e) {
             e.preventDefault();
-            GateOne.Example.topTop();
+            Example.topTop();
             GateOne.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
             setTimeout(function() {
                 go.Terminal.Input.capture();
@@ -159,7 +159,7 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
     updateTop: function(output) {
         /**:GateOne.Terminal.Example.updateTop(output)
 
-        Updates the :js:meth:`GateOne.Example.topTop` output on the screen when we receive *output* from the Gate One server. Here's what the output should look like::
+        Updates the :js:meth:`GateOne.Terminal.Example.topTop` output on the screen when we receive *output* from the Gate One server. Here's what the output should look like::
 
             PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
               1 root      20   0 24052 2132 1316 S  0.0  0.4   0:00.35 /sbin/init
@@ -169,9 +169,9 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
         Example.toptop.innerHTML = output;
     },
     stopTop: function(result) {
-        /**:GateOne.Terminal.Example.stopTop(result)
+        /**:GateOne.Terminal.Terminal.Example.stopTop(result)
 
-        Clears the `GateOne.Example.topUpdateTimer` and removes the 'toptop' element.  *result* is unused.
+        Clears the `GateOne.Terminal.Example.topUpdateTimer` and removes the 'toptop' element.  *result* is unused.
         */
         clearInterval(Example.topUpdateTimer);
         Example.topUpdateTimer = null;
@@ -188,7 +188,7 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
         Example.toptop = u.getNode('#'+prefix+'toptop');
         if (!Example.toptop) {
             // NOTE: Have to set position:static below since GateOne's default CSS says that '<goDiv> .terminal pre' should be position:absolute
-            Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'width': '40em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid'}});
+            Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'background-color': 'rgba(0, 0, 0, 0.25)'}});
             Example.toptop.innerHTML = 'Loading...';
             v.widget('Top Top', Example.toptop, {'onclose': Example.stopTop});
         }

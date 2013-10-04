@@ -589,12 +589,15 @@ ul.✈bm_taglist li.bm_autotag:hover {
 .✈bookmarks_upload {
     height: 2.5em;
 }
+.✈bm_new_form {
+    padding: 0.5em;
+}
 .✈bm_new_form input {
     width: 25em;
 }
 .✈bm_new_form textarea {
     width: 25em;
-    height: 8em;
+    height: 4em;
 }
 /* Effects */
 div.✈bookmark:hover {

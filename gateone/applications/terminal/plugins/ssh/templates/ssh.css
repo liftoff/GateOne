@@ -70,7 +70,8 @@
 }
 .✈ssh_id_form {
     width: 20em;
-    margin-right: 1em;
+    margin: 0 auto;
+    padding: 0.5em;
 }
 .✈ssh_id_form input {
     width: 98%;

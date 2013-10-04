@@ -143,6 +143,7 @@ def open_sub_channel(self, term):
     this purpose it will re-use the existing channel.
     """
     self.term_log.debug("open_sub_channel() term: %s" % term)
+    term = int(term)
     global OPEN_SUBCHANNELS
     if term in OPEN_SUBCHANNELS and OPEN_SUBCHANNELS[term].isalive():
         # Use existing sub-channel (much faster this way)
@@ -405,7 +406,7 @@ class KnownHostsHandler(BaseHandler):
     def _return_known_hosts(self):
         """Returns the user's known_hosts file in text/plain format."""
         user = self.current_user['upn']
-        self.term_log.debug("known_hosts requested by %s" % user)
+        term_log.debug("known_hosts requested by %s" % user)
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
         users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')
