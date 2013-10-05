@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131003221706";
+GateOne.__commit__ = "20131004223058";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1178,10 +1178,10 @@ GateOne.Base.update(GateOne.Utils, {
             display,
             node = u.getNode(elem);
         if (node) {
-            display = node.getAttribute('data-style-display');
+            display = node.getAttribute('data-original-display');
             if (display) {
                 node.style.display = display;
-                node.removeAttribute('data-style-display');
+                node.removeAttribute('data-original-display');
             } else {
                 // Fall back to using 'block'
                 node.style.display = 'block';
@@ -1205,12 +1205,16 @@ GateOne.Base.update(GateOne.Utils, {
             display,
             node = u.getNode(elem);
         if (node) {
-            display = getComputedStyle(node).display;
-            node.setAttribute('data-style-display', display);
-            node.style.display = 'none';
+            display = node.getAttribute('data-original-display');
+            if (!display) {
+                display = getComputedStyle(node).display;
+                node.setAttribute('data-original-display', display);
+            }
             if (!node.classList.contains('✈go_none')) {
                 node.classList.add("✈go_none");
             }
+            // NOTE: You'd *think* we don't need to set 'display: none;' since the ✈go_none class has 'display: none;' but if we don't set it explicitly like this the browser will still act as if the element is there when the user presses the tab key.
+            node.style.display = 'none';
         }
     },
     showElements: function(elems) {

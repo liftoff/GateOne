@@ -91,7 +91,10 @@ go.Base.update(GateOne.Bookmarks, {
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar_icon ✈icon_bookmarks', 'title': "Bookmarks"}),
-            toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
+            toolbar = u.getNode('#'+go.prefs.prefix+'toolbar'),
+            toggleBookmarks = function() {
+                v.togglePanel('#'+prefix+'panel_bookmarks');
+            };
         // Default sort order is by date created, descending, followed by alphabetical order
         if (!localStorage[prefix+'sort']) {
             // Set a default
@@ -111,10 +114,7 @@ go.Base.update(GateOne.Bookmarks, {
         b.registerIconHandler('https', b.httpIconHandler);
         // Setup our toolbar icons and actions
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
-        var toggleBookmarks = function() {
-            go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
-        }
-        toolbarBookmarks.onclick = toggleBookmarks;
+        toolbarBookmarks.addEventListener('click', toggleBookmarks, false);
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarBookmarks);
         // Initialize the localStorage['bookmarks'] if it doesn't exist
