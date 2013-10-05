@@ -1855,7 +1855,7 @@ go.Base.update(GateOne.Terminal, {
             resizeFunc = function(dialogContainer) {
                 go.Terminal.sendDimensions(term);
             },
-            closeDialog = GateOne.Visual.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}}),
+            closeDialog = GateOne.Visual.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'}),
             termQuitFunc = function(termNum) {
                 if (termNum == term) {
                     closeDialog();

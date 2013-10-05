@@ -615,7 +615,7 @@ potential conflicts with other classes that may be on the page.
     left: 25%;
     min-height: 4em;
     background-color: #CCC;
-    z-index: 750;
+    z-index: 850;
     border: solid 1px #000;
     color: #000;
     border-radius: 0.5em;
@@ -668,14 +668,16 @@ potential conflicts with other classes that may be on the page.
     cursor: move;
 }
 .✈dialogdiv {
-    position: absolute;
-    top: 2em; /* Will be overridden when the dialog is created */
+    position: relative;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    /* These will be replaced by more accurate px calculations by GateOne.Visual.dialog() */
+    height: calc(100% - 2em);
+    height: -webkit-calc(100% - 2em);
 }
 .✈dialogcontent {
-    float: left;
     position: relative;
     top: 0;
     left: 0;

@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131005132612";
+GateOne.__commit__ = "20131005153511";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4445,7 +4445,7 @@ GateOne.Base.update(GateOne.Visual, {
         **Options**
 
             :events: An object containing DOM events that will be attached to the dialog node.  Example: ``{'mousedown': someFunction}``.  There are a few special/simulated events of which you may also attach: 'closed', 'opened', 'resized', and 'moved'.  Except for 'close', these special event functions will be passed the dialog node as the only argument.
-            :className: Any additional CSS classes you wish to add to the dialog (space-separated).
+            :class: Any additional CSS classes you wish to add to the dialog (space-separated).
             :style: Any CSS you wish to apply to the dialog.  Example:  ``{'style': {'width': '50%', 'height': '25%'}}``
         */
         var prefix = go.prefs.prefix,
@@ -4454,7 +4454,7 @@ GateOne.Base.update(GateOne.Visual, {
             prevActiveElement = document.activeElement,
             unique = u.randomString(8), // Need something unique to enable having more than one dialog on the same page.
             style = {},
-            className = '',
+            _class = '',
             dialogContainer,
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
             dialogDiv = u.createElement('div', {'id': 'dialogdiv', 'class': '✈dialogdiv'}),
@@ -4548,7 +4548,7 @@ GateOne.Base.update(GateOne.Visual, {
                 // Called when the title bar of a dialog is dragged
                 var X, Y, xMoved, yMoved, newX, newY, computedStyle, newWidth, newHeight;
                 if (dialogContainer.dragging) {
-                    dialogContainer.className = '✈dialogcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
+                    dialogContainer.classList.remove('✈halfsectrans'); // Have to get rid of the halfsectrans so it will drag smoothly.
                     X = e.clientX + window.scrollX;
                     Y = e.clientY + window.scrollY;
                     xMoved = X - v.dragOrigin.X;
@@ -4603,7 +4603,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
-                dialogContainer.className = '✈halfsectrans ✈dialogcontainer';
+                dialogContainer.classList.add('✈halfsectrans');
                 dialogContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
@@ -4635,10 +4635,10 @@ GateOne.Base.update(GateOne.Visual, {
         if (options && options['style']) {
             style = options['style'];
         }
-        if (options && options['className']) {
-            className = options['className'];
+        if (options && options['class']) {
+            _class = options['class'];
         }
-        dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': '✈halfsectrans ✈dialogcontainer' + className, 'title': title, 'style': style});
+        dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': '✈halfsectrans ✈dialogcontainer ' + _class, 'title': title, 'style': style});
         v.dialogs.push(dialogContainer);
         dialogDiv.appendChild(dialogConent);
         // Enable drag-to-move on the dialog title
@@ -4699,7 +4699,7 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
         go.node.appendChild(dialogContainer);
-        dialogDiv.style.top = dialogTitle.clientHeight + 'px';
+        dialogDiv.style.height = "calc(100% - " + dialogTitle.clientHeight + 'px)';
         v.dialogZIndex = parseInt(getComputedStyle(dialogContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
         dialogToForeground();
         if (options && options['events'] && options['events']['opened']) {
