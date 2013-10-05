@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131002210641";
+GateOne.__commit__ = "20131003221706";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -596,7 +596,7 @@ var go = GateOne.Base.update(GateOne, {
         prefsPanel.appendChild(panelClose);
         prefsPanelThemeLabel.innerHTML = gettext("<b>Theme:</b> ");
         prefsPanelFontSizeLabel.innerHTML = gettext("<b>Font Size:</b> ");
-        prefsPanelDisableTransitionsLabel.innerHTML = gettext("<b>Disable Workspace Slide Effect:</b> ");
+        prefsPanelDisableTransitionsLabel.innerHTML = gettext("<b>Disable CSS3 Transitions:</b> ");
         prefsPanelFontSize.value = go.prefs.fontSize;
         prefsPanelDisableTransitions.checked = go.prefs.disableTransitions;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
@@ -739,8 +739,14 @@ var go = GateOne.Base.update(GateOne, {
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
         if (go.prefs.disableTransitions) {
-            var newStyle = u.createElement('style', {'id': 'disable_transitions'});
-            newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            var newStyle = u.createElement('style', {'id': 'disable_transitions'}),
+                classes = ['✈workspace', '✈ws_stop', '✈notice'],
+                disabledCSS = " {-webkit-transition: none !important; -moz-transition: none !important; -ms-transition: none !important; -o-transition: none !important; transition: none !important;} ",
+                finalCSS = "";
+            classes.forEach(function(className) {
+                finalCSS += ("." + className + disabledCSS + '\n');
+            });
+            newStyle.innerHTML = finalCSS;
             goDiv.appendChild(newStyle);
         }
         // Create the workspace grid if not in embedded mode
@@ -3633,7 +3639,9 @@ GateOne.Base.update(GateOne.Visual, {
             logTemp = u.createElement('div'), // Used to strip HTML from messages before we log them (because they're hard to read otherwise)
             removeFunc = function(now) {
                 v.noticeTimers[unique] = setTimeout(function() {
-                    go.Visual.applyStyle(notice, {'opacity': 0});
+                    if (!go.prefs.disableTransitions) {
+                        go.Visual.applyStyle(notice, {'opacity': 0});
+                    }
                     v.noticeTimers[unique] = setTimeout(function() {
                         u.removeElement(notice);
                         delete v.noticeTimers[unique];
@@ -3866,6 +3874,7 @@ GateOne.Base.update(GateOne.Visual, {
             style = window.getComputedStyle(go.node, null),
             rightAdjust = 0,
             bottomAdjust = 0,
+            timeToSwitch = 1000,
             paddingRight = (style['padding-right'] || style['paddingRight']),
             paddingBottom = (style['padding-bottom'] || style['paddingBottom']);
         // TODO: Figure out what I was supposed to use the paddingX values for (LOL--something got lost in a copy & paste operation but it still works...  So maybe I don't need these?)
@@ -3877,14 +3886,10 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Reset the grid so that all workspace are in their default positions before we do the switch
         if (!v.noReset) {
-            v.resetGrid();
+            v.resetGrid(true);
         } else {
             v.noReset = false; // Reset the reset :)
         }
-        workspaces.forEach(function(wsNode) {
-            // resetGrid() turns transitions on when it's done doing its thing.  We have to turn them back off before we start up our animation process below or it will start up all wonky.
-            v.disableTransitions(wsNode);
-        });
         setTimeout(function() { // This is wrapped in a 1ms timeout to ensure the browser applies it AFTER the first set of transforms are applied.  Otherewise it will happen so fast that the animation won't take place.
             workspaces.forEach(function(wsNode) {
                 v.enableTransitions(wsNode);  // Turn animations back on in preparation for the next step
@@ -3914,6 +3919,9 @@ GateOne.Base.update(GateOne.Visual, {
             clearTimeout(v.hiddenWorkspacesTimer);
             v.hiddenWorkspacesTimer = null;
         }
+        if (go.prefs.disableTransitions) {
+            timeToSwitch = 2;
+        }
         v.hiddenWorkspacesTimer = setTimeout(function() {
             workspaces.forEach(function(wsNode) {
                 v.disableTransitions(wsNode);
@@ -3925,7 +3933,7 @@ GateOne.Base.update(GateOne.Visual, {
                     wsNode.style.display = 'none';
                 }
             });
-        }, 1000); // NOTE:  This is 1s based on the assumption that the CSS has the transition configured to take 1s.
+        }, timeToSwitch); // NOTE:  This is 1s based on the assumption that the CSS has the transition configured to take 1s.
     },
     stopIndicator: function(direction) {
         /**:GateOne.Visual.stopIndicator(direction)

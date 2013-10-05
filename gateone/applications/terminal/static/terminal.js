@@ -458,6 +458,7 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
+        E.on("terminal:resume_popup", go.Terminal.popupTerm);
         // Open/Create our terminal database
         go.Storage.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
         // Cleanup any old-style scrollback buffers that might be hanging around
@@ -831,9 +832,9 @@ go.Base.update(GateOne.Terminal, {
         var displayText = termObj.id.split('term')[1] + ": " + go.Terminal.terminals[term]['title'],
             termInfoDiv = u.createElement('div', {'id': 'terminfo', 'class': '✈terminfo'}),
             marginFix = Math.round(go.Terminal.terminals[term]['title'].length/2),
-            infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+            infoContainer = u.createElement('div', {'id': 'infocontainer', 'class': '✈term_infocontainer ✈halfsectrans'});
         termInfoDiv.innerHTML = displayText;
-        if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
+        if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
@@ -841,7 +842,9 @@ go.Base.update(GateOne.Terminal, {
             v.infoTimer = null;
         }
         v.infoTimer = setTimeout(function() {
-            v.applyStyle(infoContainer, {'opacity': 0});
+            if (!go.prefs.disableTransitions) {
+                v.applyStyle(infoContainer, {'opacity': 0});
+            }
             setTimeout(function() {
                 u.removeElement(infoContainer);
             }, 1000);
@@ -1212,12 +1215,12 @@ go.Base.update(GateOne.Terminal, {
             scrollback = []; // Empty it out since the user has disabled the scrollback buffer
         }
         if (scrollback.length && go.Terminal.terminals[term]['scrollback'].toString() != scrollback.toString()) {
-            var reScrollback = u.partial(GateOne.Terminal.enableScrollback, term);
+            var reScrollback = u.partial(go.Terminal.enableScrollback, term);
             go.Terminal.terminals[term]['scrollback'] = scrollback;
             go.Terminal.writeScrollback(term, scrollback); // Uses IndexedDB so it should be nice and async
             // This updates the scrollback buffer in the DOM
             clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
-            // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+            // This timeout re-adds the scrollback buffer after 1 second.  If we don't do this it can slow down the responsiveness quite a bit
             go.Terminal.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
@@ -1837,15 +1840,15 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.switchTerminal(termNum);
         }
     },
-    popupTerm: function() {
-        /**:GateOne.Terminal.popupTerm()
+    popupTerm: function(/*opt*/term) {
+        /**:GateOne.Terminal.popupTerm([term])
 
-        Opens a dialog with a terminal contained within.
+        Opens a dialog with a terminal contained within.  If *term* is given the created terminal will use that number.
 
         If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.
         */
-        var term = go.Terminal.lastTermNumber + 1,
-            content = u.createElement('div', {'class': '✈termdialog', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'width': '100%', 'height': '100%'}}),
+        term = term || go.Terminal.lastTermNumber + 1;
+        var content = u.createElement('div', {'class': '✈termdialog', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'width': '100%', 'height': '100%'}}),
             closeFunc = function(dialogContainer) {
                 go.Terminal.closeTerminal(term);
             },
@@ -2209,13 +2212,22 @@ go.Base.update(GateOne.Terminal, {
     enableScrollback: function(/*Optional*/term) {
         /**:GateOne.Terminal.enableScrollback([term])
 
-        Replaces the contents of the selected/active terminal with the complete screen + scrollback buffer.
+        Replaces the contents of the selected/active terminal scrollback buffer with the complete latest scrollback buffer from `GateOne.Terminal.terminals[*term*]`.
 
-        If *term* is given, only disable scrollback for that terminal.
+        If *term* is given, only ensable scrollback for that terminal.
         */
         logDebug('enableScrollback(' + term + ')');
         if (go.prefs.scrollback == 0) {
             return; // Don't re-enable scrollback if it has been disabled
+        }
+        if (u.getSelText()) {
+            // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
+            // Retry again in a bit
+            clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
+            go.Terminal.terminals[term]['scrollbackTimer'] = setTimeout(function() {
+                go.Terminal.enableScrollback(term);
+            }, 500);
+            return;
         }
         var enableSB = function(termNum) {
             var termPre = go.Terminal.terminals[termNum]['node'],
@@ -2224,15 +2236,6 @@ go.Base.update(GateOne.Terminal, {
                 parentHeight = termPre.parentNode.clientHeight;
             if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
                 return; // We're done here
-            }
-            if (u.getSelText()) {
-                // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
-                // Retry again in a bit
-                clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
-                go.Terminal.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
-                    go.Terminal.enableScrollback(termNum);
-                }, 500);
-                return;
             }
             // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
 //             if (parentHeight) {
@@ -2260,7 +2263,7 @@ go.Base.update(GateOne.Terminal, {
         };
         if (term && term in GateOne.Terminal.terminals) {
             // If there's already an existing scrollback buffer...
-                enableSB(term); // Have it create/add the scrollback buffer
+            enableSB(term); // Have it create/add the scrollback buffer
         } else {
             var terms = u.toArray(u.getNodes('.✈terminal'));
             terms.forEach(function(termObj) {
@@ -2480,7 +2483,7 @@ go.Base.update(GateOne.Terminal, {
                     if (!go.Terminal.terminals[termNum]) {
                         metadata = terminals[termNum]['metadata'] || {};
                         if (metadata['resumeEvent']) {
-                            E.trigger(metadata['resumeEvent'], terminals[termNum]);
+                            E.trigger(metadata['resumeEvent'], termNum, terminals[termNum]);
                         } else {
                             go.Terminal.newTerminal(termNum, {'metadata': metadata});
                         }

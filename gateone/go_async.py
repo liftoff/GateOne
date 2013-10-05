@@ -20,12 +20,14 @@ import pickle, signal, os
 from functools import wraps
 from datetime import timedelta
 from itertools import count
-from tornado.ioloop import IOLoop
+from functools import partial
 from utils import AutoExpireDict, convert_to_timedelta
+from tornado.ioloop import IOLoop
 
 # A global to old memoized results (so multiple instances can share)
 MEMO = {}
 PID = os.getpid() # So we can tell if we're in the parent process or not
+ONE_CALLS = {} # Tracks functions in progress for call_one()
 
 def restart_executor(fn):
     """
@@ -60,6 +62,20 @@ def safe_call(function, *args, **kwargs):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
     return function(*args, **kwargs)
 
+def done_callback(future, callback):
+    """
+    Adds the given *callback* via ``future.add_done_callback()`` or
+    ``io_loop.add_done_callback()`` depending on whether or not the
+    IOLoop is currently running.  This allows `AsyncRunner` instances to be
+    debugged in an interactive interpreter without having to start up the
+    IOLoop.
+    """
+    io_loop = IOLoop.current()
+    if io_loop._running:
+        io_loop.add_future(future, callback)
+    else:
+        future.add_done_callback(callback)
+
 def append_results(results, function, *args, **kwargs):
     """
     Calls *function* with the given *args* and *kwargs* then appends the result
@@ -76,7 +92,7 @@ def callback_when_complete(futures, callback):
     Calls *callback* after all *futures* (list) have completed running.
     """
     counter = count(1)
-    io_loop = IOLoop.instance()
+    io_loop = IOLoop.current()
     results = []
     def add_one(f):
         c = counter.next()
@@ -85,6 +101,38 @@ def callback_when_complete(futures, callback):
             return callback(results)
     for future in futures:
         io_loop.add_future(future, add_one)
+
+def _cleanup_queue(identifier, future=None):
+    """
+    Deletes `ONE_CALLS[identifier]` if `ONE_CALLS[identifier]['queue']` is
+    empty.
+    """
+    if identifier in ONE_CALLS:
+        if not ONE_CALLS[identifier]['queue']:
+            del ONE_CALLS[identifier]
+
+def _call_complete(executor, identifier, f=None):
+    """
+    Used by `AsyncRunner.call_one`; removes the given *identifier* from the
+    global `ONE_CALLS` dict if there are no more calls remaining.  Otherwise
+    the call count will be decremented by one.
+    """
+    if identifier in ONE_CALLS and ONE_CALLS[identifier]['queue']:
+        if ONE_CALLS[identifier]['future'].done():
+            # Submit the next function in the queue
+            (function, args,
+                kwargs, callback) = ONE_CALLS[identifier]['queue'].popleft()
+            future = executor.submit(safe_call, function, *args, **kwargs)
+            ONE_CALLS[identifier]['future'] = future
+            if callback:
+                done_callback(future, lambda f: callback(f.result()))
+            completed = partial(_cleanup_queue, identifier)
+            done_callback(ONE_CALLS[identifier]['future'], completed)
+            # Try again when complete
+            call_again = partial(_call_complete, executor, identifier)
+            done_callback(ONE_CALLS[identifier]['future'], call_again)
+    else:
+        _cleanup_queue(identifier)
 
 def _cache_result(future, args_string):
     """
@@ -122,11 +170,10 @@ class AsyncRunner(object):
     """
     def __init__(self, **kwargs):
         self.io_loop = IOLoop.current()
-        self.running = True
         self.shutdown_timeout = None
         self.timeout = kwargs.pop('timeout', None)
         if not self.timeout:
-            self.timeout = timedelta(minutes=2)
+            self.timeout = timedelta(seconds=30)
         if not isinstance(self.timeout, timedelta):
             self.timeout = convert_to_timedelta(self.timeout)
         self.interval = kwargs.pop('interval', None)
@@ -152,7 +199,6 @@ class AsyncRunner(object):
             self.io_loop.remove_timeout(self.shutdown_timeout)
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=wait)
-        self.running = False
 
     def restart_shutdown_timeout(self):
         """
@@ -197,11 +243,46 @@ class AsyncRunner(object):
                 return f
         future = self.executor.submit(safe_call, function, *args, **kwargs)
         if callback:
-            self.io_loop.add_future(
-                future, lambda future: callback(future.result()))
-        self.io_loop.add_future(
-            future, lambda future: _cache_result(future, string))
+            done_callback(future, lambda f: callback(f.result()))
+        done_callback(future, lambda f: _cache_result(f, string))
         return future
+
+    @restart_executor
+    def call_singleton(self, function, identifier=None, *args, **kwargs):
+        """
+        Executes *function* if no other function with the given *identifier*
+        is already running.  If a function is currently running with the given
+        *identifier* the passed *function* will be called when the first
+        function is complete.
+
+        In other words, functions called via this method will be executed in
+        sequence with each function being called after the first is complete.
+
+        The function will be passed any given *args* and *kwargs* just like
+        :meth:`AsyncRunner.call`.
+
+        If 'callback' is passed as a keyword argument (*kwargs*) it will be
+        called with the result when complete.
+        """
+        callback = kwargs.pop('callback', None)
+        if identifier in ONE_CALLS:
+            ONE_CALLS[identifier]['queue'].append(
+                (function, args, kwargs, callback))
+        else:
+            from collections import deque
+            future = self.executor.submit(safe_call, function, *args, **kwargs)
+            ONE_CALLS[identifier] = {
+                'future': future,
+                'queue': deque()
+            }
+            if callback:
+                #done_callback(ONE_CALLS[identifier]['future'], callback)
+                done_callback(
+                    ONE_CALLS[identifier]['future'],
+                    lambda f: callback(f.result()))
+            completed = partial(_call_complete, self.executor, identifier)
+            done_callback(ONE_CALLS[identifier]['future'], completed)
+        return ONE_CALLS[identifier]['future']
 
     @restart_executor
     def map(self, function, *iterables, **kwargs):
@@ -317,6 +398,13 @@ class ThreadedRunner(AsyncRunner):
     def run(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
 
+    @property
+    def running(self):
+        ibrunning = True
+        if self.executor._shutdown:
+            ibrunning = False
+        return ibrunning
+
 class MultiprocessRunner(AsyncRunner):
     """
     A class that can be used to execute functions in an asynchronous fashion
@@ -325,11 +413,28 @@ class MultiprocessRunner(AsyncRunner):
 
     .. warn:: Only works when all objects used by the function(s) are picklable!
     """
+    # Enforce singleton on this one since there's only so many cores
+    instance = None
+
     def __init__(self, max_workers=None, **kwargs):
         super(MultiprocessRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
         self.run()
 
     def run(self):
-        self.executor = futures.ProcessPoolExecutor(
-            max_workers=self.max_workers)
+        cls = MultiprocessRunner
+        if not cls.instance:
+            self.executor = futures.ProcessPoolExecutor(
+                max_workers=self.max_workers)
+            cls.instance = self
+        elif not cls.instance.running:
+            cls.instance.executor = futures.ProcessPoolExecutor(
+                max_workers=self.max_workers)
+        self.executor = cls.instance.executor
+
+    @property
+    def running(self):
+        ibrunning = True
+        if self.executor._shutdown_thread:
+            ibrunning = False
+        return ibrunning

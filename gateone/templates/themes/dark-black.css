@@ -248,11 +248,11 @@
     line-height: 1.04;
 }
 .✈noanimate {
-    -webkit-transition: all 0s ease-in-out !important;
-    -moz-transition: all 0s ease-in-out !important;
-    -ms-transition: all 0s ease-in-out !important;
-    -o-transition: all 0s ease-in-out !important;
-    transition: all 0s ease-in-out !important;
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
 }
 .✈toolbar {
     z-index: 800;
@@ -380,13 +380,6 @@ potential conflicts with other classes that may be on the page.
     margin: 1em;
     float: right;
     clear: both;
-}
-.✈notice.✈noanimate {
-    -webkit-transition: all .1s ease-in-out;
-    -moz-transition: all 0.1s ease-in-out;
-    -ms-transition: all 0.1s ease-in-out;
-    -o-transition: all 0.1s ease-in-out;
-    transition: all 0.1s ease-in-out;
 }
 .✈sidepanel {
     -webkit-transition: -webkit-transform 1.0s ease-in-out;

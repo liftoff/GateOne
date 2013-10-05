@@ -7,14 +7,13 @@ __doc__ = """\
 A Gate One Application (`GOApplication`) that provides a terminal emulator.
 """
 
-# Meta information about the plugin.  Your plugin doesn't *have* to have this
-# but it is a good idea.
+# Meta
 __version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
-# I like to start my files with imports from Python's standard library...
+# Standard library imports
 import os, sys, time, io, atexit
 from datetime import datetime, timedelta
 from functools import partial
@@ -733,56 +732,71 @@ class TerminalApplication(GOApplication):
         Saves whatever *settings* (must be JSON-encodable) are provided in the
         user's session directory; associated with the given *term*.
 
-        The `restore_term_setings` function can be used to restore the provided
+        The `restore_term_settings` function can be used to restore the provided
         settings.
 
         .. note:: This method is primarily to aid dtach support.
         """
         self.term_log.debug("save_term_settings(%s, %s)" % (term, settings))
+        from term_utils import save_term_settings as _save
         term = str(term) # JSON wants strings as keys
-        term_settings = RUDict()
-        term_settings[self.ws.location] = {term: settings}
-        session_dir = options.session_dir
-        session_dir = os.path.join(session_dir, self.ws.session)
-        settings_path = os.path.join(session_dir, 'term_settings.json')
-        # First we read in the existing settings and then update them.
-        if os.path.exists(settings_path):
-            with io.open(settings_path, encoding='utf-8') as f:
-                term_settings.update(json_decode(f.read()))
-            term_settings[self.ws.location][term].update(settings)
-        with io.open(settings_path, 'w', encoding='utf-8') as f:
-            f.write(json_encode(term_settings))
-        self.trigger("terminal:save_term_setings", term, settings)
+        def saved(result): # NOTE: result will always be None
+            """
+            Called when we're done JSON-decoding and re-encoding the given
+            settings.  Just triggers the `terminal:save_term_settings` event.
+            """
+            self.trigger("terminal:save_term_settings", term, settings)
+        # Why bother with an async call for something so small?  Well, we can't
+        # be sure it will *always* be a tiny amount of data.  What if some app
+        # embedding Gate One wants to pass in some huge amount of metadata when
+        # they open new terminals?  Don't want to block while the read, JSON
+        # decode, JSON encode, and write operations take place.
+        # Also note that this function gets called whenever a new terminal is
+        # opened or resumed.  So if you have 100 users each with a dozen or so
+        # terminals it could slow things down quite a bit in the event that a
+        # number of users lose connectivity and reconnect at once (or the server
+        # is restarted with dtach support enabled).
+        self.cpu_async.call_singleton( # Singleton since we're writing async
+            _save,
+            'save_term_settings_%s' % self.ws.session,
+            term,
+            self.ws.location,
+            self.ws.session,
+            settings,
+            callback=saved)
 
     def restore_term_settings(self, term):
         """
         Reads the settings associated with the given *term* that are stored in
         the user's session directory and applies them to
         ``self.loc_terms[term]``
-
-        .. note:: This method is primarily to aid dtach support.
         """
         term = str(term) # JSON wants strings as keys
         self.term_log.debug("restore_term_settings(%s)" % term)
-        session_dir = options.session_dir
-        session_dir = os.path.join(session_dir, self.ws.session)
-        settings_path = os.path.join(session_dir, 'term_settings.json')
-        if not os.path.exists(settings_path):
-            return # Nothing to do
-        with io.open(settings_path, encoding='utf-8') as f:
-            try:
-                settings = json_decode(f.read())
-            except ValueError:
-                # Something wrong with the file.  Remove it
-                self.term_log.error(_(
-                    "Error decoding {0}.  File will be removed.").format(
-                        settings_path))
-                os.remove(settings_path)
-                return
-        if self.ws.location in settings and term in settings[self.ws.location]:
-            self.loc_terms[int(term)].update(settings[self.ws.location][term])
-        self.trigger("terminal:restore_term_settings", term, settings)
-        return settings
+        from term_utils import restore_term_settings as _restore
+        def restore(settings):
+            """
+            Saves the *settings* returned by :func:`restore_term_settings`
+            in `self.loc_terms[term]` and triggers the
+            `terminal:restore_term_settings` event.
+            """
+            if self.ws.location in settings:
+                if term in settings[self.ws.location]:
+                    termNum = int(term)
+                    self.loc_terms[termNum].update(
+                        settings[self.ws.location][term])
+                    # The terminal title needs some special love
+                    self.loc_terms[termNum]['multiplex'].term.title = (
+                        self.loc_terms[termNum]['title'])
+            self.trigger("terminal:restore_term_settings", term, settings)
+        future = self.cpu_async.call(
+            _restore,
+            term,
+            self.ws.location,
+            self.ws.session,
+            memoize=False,
+            callback=restore)
+        return future
 
     def clear_term_settings(self, term):
         """
@@ -1231,11 +1245,16 @@ class TerminalApplication(GOApplication):
         self.send_term_encoding(term, encoding)
         if self.loc_terms[term]['multiplex'].cmd.startswith('dtach -a'):
             # This dtach session was resumed; restore terminal settings
-            self.restore_term_settings(term)
+            future = self.restore_term_settings(term)
+            self.io_loop.add_future(
+                future, lambda f: self.set_title(term, force=True, save=False))
             # The multiplex instance needs the title set by hand (it's special)
             term_obj['multiplex'].term.title = self.loc_terms[term]['title']
-            self.set_title(term, force=True)
         self.trigger("terminal:new_terminal", term)
+        # Calling save_term_settings() after the event is fired so that plugins
+        # can modify the metadata before it gets saved.
+        self.save_term_settings(
+            term, {'metadata': self.loc_terms[term]['metadata']})
 
     @require(authenticated())
     def set_term_encoding(self, settings):
@@ -1475,7 +1494,7 @@ class TerminalApplication(GOApplication):
         self.trigger("terminal:reset_terminal", term)
 
     @require(authenticated())
-    def set_title(self, term, force=False):
+    def set_title(self, term, force=False, save=True):
         """
         Sends a message to the client telling it to set the window title of
         *term* to whatever comes out of::
@@ -1489,9 +1508,14 @@ class TerminalApplication(GOApplication):
         If *force* resolves to True the title will be sent to the cleint even if
         it matches the previously-set title.
 
+        if *save* is ``True`` (the default) the title will be saved via the
+        `TerminalApplication.save_term_settings` function so that it may be
+        restored later (in the event of a server restart--if you've got dtach
+        support enabled).
+
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
-        self.term_log.debug("set_title(%s, %s)" % (term, force))
+        self.term_log.debug("set_title(%s, %s, %s)" % (term, force, save))
         term = int(term)
         term_obj = self.loc_terms[term]
         if term_obj['manual_title']:
@@ -1509,7 +1533,8 @@ class TerminalApplication(GOApplication):
                 'terminal:set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
             # Save it in case we're restarted (only matters for dtach)
-            self.save_term_settings(term, {'title': title})
+            if save:
+                self.save_term_settings(term, {'title': title})
         self.trigger("terminal:set_title", title)
 
     @require(authenticated())
@@ -2284,8 +2309,6 @@ class TerminalApplication(GOApplication):
             # This resets the screen diff
             multiplex.prev_output[self.ws.client_id] = [
                 None for a in range(multiplex.rows-1)]
-            # Remind the client about this terminal's title
-            self.set_title(term, force=True)
         # Setup callbacks so that everything gets called when it should
         self.add_terminal_callbacks(
             term, term_obj['multiplex'], self.callback_id)
@@ -2297,7 +2320,7 @@ class TerminalApplication(GOApplication):
         for mode, setting in multiplex.term.expanded_modes.items():
             self.mode_handler(term, mode, setting)
         # Tell the client about this terminal's title
-        self.set_title(term, force=True)
+        self.set_title(term, force=True, save=False)
         # Make a note of this connection in the logs
         self.term_log.info(_(
             "%s connected to terminal shared by %s " % (

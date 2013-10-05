@@ -147,16 +147,10 @@ GateOne.Base.update(GateOne.Utils, {
             >>> GateOne.Utils.scrollToBottom('#term1_pre');
         */
         var node = GateOne.Utils.getNode(elem);
-        try {
-            if (node) {
-                if (node.scrollTop != node.scrollHeight) {
-                    node.scrollTop = node.scrollHeight;
-                }
+        if (node) {
+            if (node.scrollTop != node.scrollHeight) {
+                node.scrollTop = node.scrollHeight;
             }
-        } catch (e) {
-            // *elem* was probably removed or hasn't come up yet.  Ignore
-        } finally {
-            node = null;
         }
     },
     prevEmDimensions: {'w': 7, 'h': 14}, // Used if something goes wrong doing the calculation.  These are just reasonable defaults that will be overwritten
