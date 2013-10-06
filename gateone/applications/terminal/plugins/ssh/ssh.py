@@ -447,6 +447,8 @@ def get_connect_string(self, term):
     """
     self.term_log.debug("get_connect_string() term: %s" % term)
     term = int(term)
+    if term not in self.loc_terms:
+        return # Nothing to do (already closed)
     connect_string = self.loc_terms[term].get('ssh_connect_string', None)
     if connect_string:
         message = {

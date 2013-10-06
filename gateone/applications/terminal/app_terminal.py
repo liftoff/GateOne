@@ -1106,6 +1106,7 @@ class TerminalApplication(GOApplication):
                 "%s: Attempted to execute invalid command (%s)." % (
                 self.current_user['upn'], command)))
             self.ws.send_message(_("Terminal: Invalid command: %s" % command))
+            self.term_ended(term)
             return
         if isinstance(full_command, dict): # Extended command definition
             full_command = full_command['command']
