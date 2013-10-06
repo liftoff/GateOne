@@ -515,8 +515,8 @@ class TerminalApplication(GOApplication):
                     "Skipping post-authentication functions."))
                 return
         # Render and send the client our terminal.css
-        terminal_css = os.path.join(
-            APPLICATION_PATH, 'templates', 'terminal.css')
+        templates_path = os.path.join(APPLICATION_PATH, 'templates')
+        terminal_css = os.path.join(templates_path, 'terminal.css')
         self.render_and_send_css(terminal_css, element_id="terminal.css")
         # Send the client our JavaScript files
         static_dir = os.path.join(APPLICATION_PATH, 'static')
@@ -550,7 +550,6 @@ class TerminalApplication(GOApplication):
         # When a session actually times out (kill dtach'd processes too)...
         if timeout_session not in sess["timeout_callbacks"]:
             sess["timeout_callbacks"].append(timeout_session)
-        self.terminals() # Tell the client about open terminals
         # Set the sub-applications list to our commands
         commands = list(self.policy['commands'].keys())
         if len(commands) > 1:
@@ -560,8 +559,29 @@ class TerminalApplication(GOApplication):
                     sub_app = self.policy['commands'][command].copy()
                     del sub_app['command'] # Don't want clients to know this
                     sub_app['name'] = command # Let them have the short name
+                    if 'icon' in sub_app:
+                        if sub_app['icon'].startswith(os.path.sep):
+                            # This is a path to the icon instead of the actual
+                            # icon (has to be SVG, after all).  Replace it with
+                            # the actual icon data (should start with <svg>)
+                            if os.path.exists(sub_app['icon']):
+                                with io.open(
+                                    sub_app['icon'], encoding='utf-8') as f:
+                                    sub_app['icon'] = f.read()
+                            else:
+                                self.term_log.error(_(
+                                    "Path to icon ({icon}) for command, "
+                                    "'{cmd}' could not be found.").format(
+                                        cmd=sub_app['name'],
+                                        icon=sub_app['icon']))
+                                del sub_app['icon']
                 else:
                     sub_app = {'name': command}
+                if 'icon' not in sub_app:
+                    # Use the generic one
+                    icon_path = os.path.join(templates_path, 'command_icon.svg')
+                    with io.open(icon_path, encoding='utf-8') as f:
+                        sub_app['icon'] = f.read().format(cmd=sub_app['name'])
                 sub_apps.append(sub_app)
             self.info['sub_applications'] = sub_apps
             self.info['sub_applications'].sort()
@@ -570,6 +590,7 @@ class TerminalApplication(GOApplication):
         # cases (only when the connection lost and re-connected without a page
         # reload).  For this reason GateOne.Terminal.init() calls
         # getOpenTerminals().
+        self.terminals() # Tell the client about open terminals
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -791,7 +812,6 @@ class TerminalApplication(GOApplication):
             self.trigger("terminal:restore_term_settings", term, settings)
         future = self.cpu_async.call(
             _restore,
-            term,
             self.ws.location,
             self.ws.session,
             memoize=False,
@@ -838,9 +858,13 @@ class TerminalApplication(GOApplication):
         self.loc_terms = self.ws.locations[self.ws.location]['terminal']
         for term in list(self.loc_terms.keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
-                terminals.update({term: self.loc_terms[term]['metadata']})
+                terminals.update({
+                    term: {'metadata': self.loc_terms[term]['metadata']}})
         # Check for any dtach'd terminals we might have missed
         if options.dtach and which('dtach'):
+            from term_utils import restore_term_settings
+            term_settings = restore_term_settings(
+                self.ws.location, self.ws.session)
             session_dir = options.session_dir
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
@@ -853,10 +877,14 @@ class TerminalApplication(GOApplication):
                     if location == self.ws.location:
                         term = int(split[2])
                         if term not in terminals:
-                            # TODO: Figure out if we should save/restore
-                            # metadata here:
-                            terminals.update({term: {'metadata': None}})
-        #terminals.sort() # Put them in order so folks don't get confused
+                            if self.ws.location not in term_settings:
+                                continue
+                            # NOTE: str() below because the dict comes from JSON
+                            if str(term) not in term_settings[self.ws.location]:
+                                continue
+                            data = term_settings[self.ws.location][str(term)]
+                            metadata = data.get('metadata', {})
+                            terminals.update({term: {'metadata': metadata}})
         message = {'terminal:terminals': terminals}
         self.write_message(json_encode(message))
 
@@ -1152,7 +1180,7 @@ class TerminalApplication(GOApplication):
             except:
                 # No auth, use ANONYMOUS (% is there to prevent conflicts)
                 user = 'ANONYMOUS' # Don't get on this guy's bad side
-            cmd = cmd_var_swap(full_command,# Swap out variables like %USER%
+            cmd = cmd_var_swap(full_command, # Swap out variables like %USER%
                 gateone_dir=GATEONE_DIR,
                 session=self.ws.session, # with their real-world values.
                 session_dir=options.session_dir,
@@ -1161,6 +1189,8 @@ class TerminalApplication(GOApplication):
                 user=user,
                 time=now
             )
+            # Now swap out any variables like $PATH, $HOME, $USER, etc
+            cmd = os.path.expandvars(cmd)
             resumed_dtach = False
             # Create the user's session dir if not already present
             if not os.path.exists(user_session_dir):

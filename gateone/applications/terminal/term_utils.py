@@ -52,13 +52,11 @@ def save_term_settings(term, location, session, settings):
     with io.open(settings_path, 'w', encoding='utf-8') as f:
         f.write(json_encode(term_settings))
 
-def restore_term_settings(term, location, session):
+def restore_term_settings(location, session):
     """
-    Reads the settings associated with the given *term* that are stored in
-    the user's session directory and applies them to
-    ``self.loc_terms[term]``
+    Returns the terminal settings associated with the given *location* that are
+    stored in the user's session directory.
     """
-    term = str(term) # JSON wants strings as keys
     session_dir = options.session_dir
     session_dir = os.path.join(session_dir, session)
     settings_path = os.path.join(session_dir, 'term_settings.json')

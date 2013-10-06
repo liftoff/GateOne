@@ -90,8 +90,8 @@ go.Base.update(GateOne.Terminal, {
         'name': 'Terminal',
         'module': 'GateOne.Terminal',
         'icon': function(settings) {
-            if (settings['name'] == 'shell') {
-                return go.Icons['grid'];
+            if (settings['icon']) {
+                return settings['icon'];
             } else {
                 return go.Icons['terminal'];
             }
@@ -458,7 +458,12 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
-        E.on("terminal:resume_popup", go.Terminal.popupTerm);
+        E.on("terminal:resume_popup", function(term) {
+            setTimeout(function() {
+                // Popup terminals need a moment so they can finish being drawn
+                go.Terminal.popupTerm(term);
+            }, 1000);
+        });
         // Open/Create our terminal database
         go.Storage.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
         // Cleanup any old-style scrollback buffers that might be hanging around
@@ -1082,6 +1087,9 @@ go.Base.update(GateOne.Terminal, {
         if (!termPre) {
             return; // Can happen for the same reason as above
         }
+        if (go.Terminal.terminals[term]['where'].classList.contains("✈termdialog")) {
+            return; // Don't align popup terminals
+        }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
         var emDimensions = u.getEmDimensions(screenSpan, where);
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
@@ -1680,13 +1688,19 @@ go.Base.update(GateOne.Terminal, {
             u.getNode(where).appendChild(terminal);
         }
         dimensions = u.getRowsAndColumns(terminal, where);
-        rows = (dimensions.rows - rowAdjust);
+        if (settings['noAdjust']) {
+            go.Terminal.terminals[term]['noAdjust'] = true;
+            rows = dimensions.rows;
+            columns = Math.ceil(dimensions.columns);
+        } else {
+            rows = (dimensions.rows - rowAdjust);
+            columns = Math.ceil(dimensions.columns - colAdjust);
+        }
         if ((rows - Math.floor(rows)) > 0.8) {
             rows = Math.ceil(rows);
         } else {
             rows = Math.floor(rows);
         }
-        columns = Math.ceil(dimensions.columns - colAdjust);
         go.Terminal.terminals[term]['rows'] = rows;
         go.Terminal.terminals[term]['columns'] = columns;
         go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
@@ -1862,7 +1876,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             };
         E.on('terminal:term_closed', termQuitFunc);
-        go.Terminal.newTerminal(term, {'metadata': {'resumeEvent': 'terminal:resume_dialog'}, 'style': {'width': '100%', 'height': '100%'}}, content);
+        go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup"}, 'style': {'width': '100%', 'height': '100%'}}, content);
     },
     setTerminal: function(term) {
         /**:GateOne.Terminal.setTerminal(term)

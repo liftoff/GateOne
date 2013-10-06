@@ -154,18 +154,20 @@ go.Base.update(GateOne.Playback, {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
                 if (!termPre.querySelector('.✈playback_spacer')) {
-                    termPre.appendChild(extraSpace);
-                    if (u.isVisible(termPre)) {
-                        if (go.prefs.rows) {
-                            // Have to reset the current transform in order to take an accurate measurement:
-                            v.applyTransform(termPre, '');
-                            // Now we can proceed to measure and adjust the size of the terminal accordingly
-                            var nodeHeight = screenSpan.getClientRects()[0].top,
-                                transform = null;
-                            if (nodeHeight < go.node.clientHeight) { // Resize to fit
-                                var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight);
-                                transform = "scale(" + scale + ", " + scale + ")";
-                                v.applyTransform(termPre, transform);
+                    if (!t.terminals[term]['noAdjust']) {
+                        termPre.appendChild(extraSpace);
+                        if (u.isVisible(termPre)) {
+                            if (go.prefs.rows) {
+                                // Have to reset the current transform in order to take an accurate measurement:
+                                v.applyTransform(termPre, '');
+                                // Now we can proceed to measure and adjust the size of the terminal accordingly
+                                var nodeHeight = screenSpan.getClientRects()[0].top,
+                                    transform = null;
+                                if (nodeHeight < go.node.clientHeight) { // Resize to fit
+                                    var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight);
+                                    transform = "scale(" + scale + ", " + scale + ")";
+                                    v.applyTransform(termPre, transform);
+                                }
                             }
                         }
                     }
@@ -433,10 +435,17 @@ go.Base.update(GateOne.Playback, {
                 percent = 0,
                 modifiers = go.Input.modifiers(e),
                 term = localStorage[prefix+'selectedTerminal'],
-                firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']),
-                lastFrame = t.terminals[term]['playbackFrames'].length - 1,
-                lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']),
-                totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime();
+                firstFrameTime,
+                lastFrame,
+                lastFrameTime,
+                totalMilliseconds;
+            if (!t.terminals[term]['playbackFrames']) {
+                return;
+            }
+            firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']);
+            lastFrame = t.terminals[term]['playbackFrames'].length - 1;
+            lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']);
+            totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime();
             if (t.terminals[term]) { // Only do this if there's an actual terminal present
                 var terminalObj = t.terminals[term],
                     selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
