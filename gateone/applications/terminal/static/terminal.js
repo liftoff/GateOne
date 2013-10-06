@@ -1688,7 +1688,7 @@ go.Base.update(GateOne.Terminal, {
             u.getNode(where).appendChild(terminal);
         }
         dimensions = u.getRowsAndColumns(terminal, where);
-        if (settings['noAdjust']) {
+        if (settings && settings['noAdjust']) {
             go.Terminal.terminals[term]['noAdjust'] = true;
             rows = dimensions.rows;
             columns = Math.ceil(dimensions.columns);
