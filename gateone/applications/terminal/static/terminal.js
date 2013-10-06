@@ -1971,7 +1971,7 @@ go.Base.update(GateOne.Terminal, {
             setActivityCheckboxes(term);
             setEncodingValue(term);
             setKeyboardValue(term);
-            u.scrollToBottom(termNode);
+            u.scrollToBottom(go.Terminal.terminals[term]['node']);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
