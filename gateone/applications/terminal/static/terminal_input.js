@@ -207,6 +207,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (t.terminals[selectedTerm] && t.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = t.terminals[selectedTerm]['pasteNode'];
         }
+        go.Terminal.setActive(selectedTerm);
         if (elementUnder.className) {
             className = elementUnder.className + ''; // Ensure it's a string for Firefox
         }
@@ -292,11 +293,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             } else {
                 t.Input.inputNode.focus();
             }
+        } else {
+            t.Input.inputNode.focus();
         }
-        // NOTE: Commented out the code below because it was causing the browser window to jump back and forth between Gate One and wherever the user's original position was in the window.
-        /*else {
-            go.node.focus();
-        }*/
     },
     onMouseUp: function(e) {
         /**:GateOne.Terminal.Input.onMouseUp(e)
@@ -314,7 +313,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug("GateOne.Terminal.Input.onMouseUp: e.button: " + e.button + ", e.which: " + e.which);
         // Once the user is done pasting (or clicking), set it back to false for speed
         t.Input.mouseDown = false;
-        go.Terminal.setActive(selectedTerm);
         if (go.Terminal.Input.startSelection) {
             logDebug("Finished selection at: ", go.Terminal.Input.startSelection);
             go.Terminal.Input.startSelection = null;
@@ -683,7 +681,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.queue(c);
             },
             term = localStorage[prefix+'selectedTerminal'];
-        logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
+        logDebug("emulateKey() term: " +term+ ", key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         t.Input.sentBackspace = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && t.Input.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.

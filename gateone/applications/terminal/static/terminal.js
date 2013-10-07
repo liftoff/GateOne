@@ -13,6 +13,7 @@ var go = GateOne,
     E = go.Events,
     I = go.Input,
     S = go.Storage,
+    t, // Will be GateOne.Terminal (set below via the GateOne.Base.module() method)
     gettext = GateOne.i18n.gettext,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
@@ -49,12 +50,12 @@ go.noSavePrefs['webWorker'] = null;
 go.noSavePrefs['rowAdjust'] = null;
 go.noSavePrefs['colAdjust'] = null;
 
-go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
-GateOne.Terminal.terminals = { // For keeping track of running terminals
+t = go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
+t.terminals = { // For keeping track of running terminals
     count: function() { // A useful function (terminals can be differentiated because they'll always be integers)
         // Returns the number of open terminals
         var counter = 0;
-        for (var term in GateOne.Terminal.terminals) {
+        for (var term in t.terminals) {
             if (term % 1 === 0) {
                 counter += 1;
             }
@@ -63,28 +64,28 @@ GateOne.Terminal.terminals = { // For keeping track of running terminals
     }
 }
 // These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
-go.Terminal.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
-go.Terminal.rowAdjust = 0; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
+t.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
+t.rowAdjust = 0; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
-go.Terminal.updateTermCallbacks = []; // DEPRECATED
+t.updateTermCallbacks = []; // DEPRECATED
 // All defined newTermCallbacks are executed whenever a new terminal is created like so: callback(<term number>)
-go.Terminal.newTermCallbacks = []; // DEPRECATED
+t.newTermCallbacks = []; // DEPRECATED
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
-go.Terminal.closeTermCallbacks = []; // DEPRECATED
+t.closeTermCallbacks = []; // DEPRECATED
 // All defined reattachTerminalsCallbacks are executed whenever the reattachTerminalsAction is called.  It is important to register a callback here when in embedded mode (if you want to place terminals in a specific location).
-go.Terminal.reattachTerminalsCallbacks = []; // DEPRECATED
-go.Terminal.scrollbackToggle = false;
-go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
-go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
-go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
-go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
-go.Terminal.dbVersion = 1; // NOTE: Must be an integer (no floats!)
-go.Terminal.terminalDBModel = {
+t.reattachTerminalsCallbacks = []; // DEPRECATED
+t.scrollbackToggle = false;
+t.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
+t.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
+t.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
+t.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
+t.dbVersion = 1; // NOTE: Must be an integer (no floats!)
+t.terminalDBModel = {
     'scrollback': {keyPath: 'term'} // Just storing the scrollback buffer for now
 }
-go.Terminal.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
-go.Terminal.warnedAboutVoiceExt = false; // Tracks whether we've already warned the user about the presence of a problem extension.
+t.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
+t.warnedAboutVoiceExt = false; // Tracks whether we've already warned the user about the presence of a problem extension.
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
@@ -302,8 +303,7 @@ go.Base.update(GateOne.Terminal, {
             // Turn on/off activity monitoring
             var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
-                monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = go.Terminal.terminals[term]['title'];
+                monitorActivity = u.getNode('#'+prefix+'monitor_activity');
             if (monitorActivity.checked) {
                 go.Terminal.terminals[term]['activityNotify'] = true;
                 go.Visual.displayMessage("Now monitoring terminal " + term + " for activity.");
@@ -462,7 +462,7 @@ go.Base.update(GateOne.Terminal, {
             setTimeout(function() {
                 // Popup terminals need a moment so they can finish being drawn
                 go.Terminal.popupTerm(term);
-            }, 1000);
+            }, 1150);
         });
         // Open/Create our terminal database
         go.Storage.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
@@ -711,14 +711,6 @@ go.Base.update(GateOne.Terminal, {
         }
         var termPre = terminalObj['node'];
         if (u.isVisible(termPre)) { // Only if terminal is visible
-//             for (var termNum in go.Terminal.terminals) {
-//                 if (termNum % 1 === 0) { // Actual terminal objects are integers
-//                     if (termNum == term) {
-//                         // Send the currently-selected term's dimensions right away
-//                         go.Terminal.sendDimensions(termNum);
-//                     }
-//                 }
-//             };
             go.Terminal.sendDimensions();
             if (go.prefs.scrollback != 0) {
                 var parentHeight = termPre.parentNode.clientHeight;
@@ -824,7 +816,6 @@ go.Base.update(GateOne.Terminal, {
         colors = colors || go.prefs.colors;
         go.ws.send(JSON.stringify({'terminal:get_colors': {'colors': colors}}));
     },
-    // TODO: Get this *actually* centering the terminal info
     displayTermInfo: function(term) {
         /**:GateOne.Terminal.displayTermInfo(term)
 
@@ -841,6 +832,10 @@ go.Base.update(GateOne.Terminal, {
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
+        infoContainer.addEventListener('mousemove', function(e) {
+            u.removeElement(infoContainer);
+            go.Terminal.switchTerminal(term);
+        }, false);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
             clearTimeout(v.infoTimer);
@@ -891,6 +886,9 @@ go.Base.update(GateOne.Terminal, {
                 'columns': colsValue,
                 'em_dimensions': emDimensions
             };
+        if (go.Terminal.terminals[term]['noAdjust']) {
+            rowsValue = dimensions.rows; // Don't bother with the usual rowAdjust for popup terminals
+        }
         // Explanation of below:  If the difference between the calculated value and the floor() of that value is greater than 0.8
         // it means that the 'fit' of the total rows--if we round() them--will be awfully tight.  Too tight, in fact.  I know this
         // because even though the math adds up the browsers pull crap like, "the child <pre> offsetHeight is greater than it's
@@ -915,7 +913,21 @@ go.Base.update(GateOne.Terminal, {
             return; // Nothing to do
         }
         if (noTerm) {
-            delete prefs["term"]; // This tells the server to apply these dimensions to all open terminals
+            for (var term in go.Terminal.terminals) {
+                // Only want terminals which are integers; not the 'count()' function
+                if (term % 1 === 0) {
+                    var where = go.Terminal.terminals[term]['where'];
+                    if (where && where.classList.contains('✈termdialog')) {
+                        ;; // Popup terminals need to be resized individually
+                    } else {
+                        prefs['term'] = term;
+                        go.ws.send(JSON.stringify({'terminal:resize': prefs}));
+                    }
+                }
+            };
+        } else {
+            // Tell the server the new dimensions
+            go.ws.send(JSON.stringify({'terminal:resize': prefs}));
         }
         // Apply user-defined rows and columns (if set)
         if (go.prefs.columns) { prefs.columns = go.prefs.columns };
@@ -930,8 +942,30 @@ go.Base.update(GateOne.Terminal, {
                 GateOne.Net.sendDimensionsCallbacks[i](term);
             }
         }
-        // Tell the server the new dimensions
-        go.ws.send(JSON.stringify({'terminal:resize': prefs}));
+    },
+    setTitle: function(term, text) {
+        /**:GateOne.Terminal.setTitle(term, text)
+
+        Sets the visible title of *term* to *text* appropriately based on whether or not this is a popup terminal or just a regular one.
+
+        .. note:: This function does *not* set the 'title' or 'X11Title' attributes of the `GateOne.Terminal.terminals[term]` object.  That is handled by :js:meth:`GateOne.Terminal.setTitleAction`.
+        */
+        logDebug("GateOne.Terminal.setTitle(" + term + ", " + text + ")");
+        var where;
+        if (!go.Terminal.terminals[term]) {
+            return; // Nothing to do
+        }
+        where = go.Terminal.terminals[term]['where'];
+        if (where && where.classList.contains('✈termdialog')) {
+            // This is a popup terminal; set the title of the dialog
+            u.toArray(u.getNodes('.✈popupterm')).forEach(function(dialog) {
+                if (u.isDescendant(dialog, where)) {
+                    dialog.querySelector('.✈titletext').innerHTML = text;
+                }
+            });
+        } else {
+            v.setTitle(text);
+        }
     },
     setTitleAction: function(titleObj) {
         /**:GateOne.Terminal.setTitleAction(titleObj)
@@ -947,13 +981,13 @@ go.Base.update(GateOne.Terminal, {
             goDiv = u.getNode(go.prefs.goDiv),
             heightDiff = goDiv.clientHeight - toolbar.clientHeight,
             scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
-        logDebug("Setting term " + term + " to title: " + title);
+        logDebug("setTitleAction() Setting term " + term + " to title: " + title);
         if (!termObj) {
             return; // Terminal was just closed
         }
         termObj['X11Title'] = title;
         termObj['title'] = title;
-        v.setTitle(term + ": " + title);
+        go.Terminal.setTitle(term, term + ": " + title);
         if (termObj['workspace']) {
             // Set the title of the workspace too so it shows up in the locations panel
             go.workspaces[termObj['workspace']]['node'].setAttribute('data-title', term + ": " + title);
@@ -1082,23 +1116,24 @@ go.Base.update(GateOne.Terminal, {
         }
         var termPre = go.Terminal.terminals[term]['node'],
             screenSpan = go.Terminal.terminals[term]['screenNode'],
-            where = go.Terminal.terminals[term]['terminal'],
+            terminalNode = go.Terminal.terminals[term]['terminal'],
+            where = go.Terminal.terminals[term]['where'],
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust;
         if (!termPre) {
             return; // Can happen for the same reason as above
         }
-        if (go.Terminal.terminals[term]['where'].classList.contains("✈termdialog")) {
-            return; // Don't align popup terminals
+        if (go.Terminal.terminals[term]['noAdjust']) {
+            rowAdjust = go.prefs.rowAdjust; // Don't bother with the usual rowAdjust for popup terminals
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-        var emDimensions = u.getEmDimensions(screenSpan, where);
+        var emDimensions = u.getEmDimensions(screenSpan, terminalNode);
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 var nodeHeight = screenSpan.offsetHeight + (emDimensions.h * rowAdjust), // The +em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
-                if (nodeHeight < go.node.offsetHeight) { // Resize to fit
-                    var scaleY = go.node.offsetHeight / nodeHeight,
-                        scaleX = go.node.offsetWidth / nodeWidth,
+                if (nodeHeight < where.offsetHeight) { // Resize to fit
+                    var scaleY = where.offsetHeight / nodeHeight,
+                        scaleX = where.offsetWidth / nodeWidth,
                         scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
                         transform = transform = "scale(" + scale + ", " + scale + ")";
                     v.applyTransform(termPre, transform);
@@ -1108,7 +1143,7 @@ go.Base.update(GateOne.Terminal, {
             // Feel free to attach something like this to the "terminal:term_updated" event if you want.
             if (u.isVisible(termPre)) {
                 // NOTE:  The distance below is -1 because--for whatever reason--the calculation is always off by 1.  No idea why.
-                var distance = go.node.clientHeight - (screenSpan.offsetHeight + Math.floor(emDimensions.h * rowAdjust)) - 1,
+                var distance = where.clientHeight - (screenSpan.offsetHeight + Math.floor(emDimensions.h * rowAdjust)) - 1,
                     transform = "translateY(-" + distance + "px)";
                 if (distance > 0) {
                     if (distance < emDimensions.h) { // A sanity check (we should never be adjusting more than the height of a single character)
@@ -1669,7 +1704,14 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded) {
             // Switch to the newly created workspace (if warranted)
             if (workspaceNum) {
-                v.switchWorkspace(workspaceNum);
+                if (t.newTermSwitchDebounce) {
+                    clearTimeout(t.newTermSwitchDebounce);
+                    t.newTermSwitchDebounce = null;
+                }
+                // This timeout is to keep things smooth when many terminals are resumed simultaneously
+                t.newTermSwitchDebounce = setTimeout(function () {
+                    v.switchWorkspace(workspaceNum);
+                }, 25);
             }
         }
         pastearea = go.Terminal.newPastearea(term);
@@ -1681,7 +1723,7 @@ go.Base.update(GateOne.Terminal, {
         if (settings && settings['style']) {
             v.applyStyle(terminal, settings['style']);
         }
-        if (where.classList.contains('✈terminal')) {
+        if (where && where.classList.contains('✈terminal')) {
             terminal = where;
             terminal.id = currentTerm;
         } else {
@@ -1777,7 +1819,6 @@ go.Base.update(GateOne.Terminal, {
             setTimeout(slide, 100);
         }
         termSettings['em_dimensions'] = u.getEmDimensions(terminal, where);
-        go.Terminal.alignTerminal(term);
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
@@ -1867,16 +1908,34 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.closeTerminal(term);
             },
             resizeFunc = function(dialogContainer) {
-                go.Terminal.sendDimensions(term);
+                // popup terminals need a moment before they're ready for a dimensions check
+                t.sendDimensions(term);
+                setTimeout(function() {
+                    t.alignTerminal(term);
+                }, 50);
+                /* Why the second call the same exact function?  The first one works 90% of the time and is so quick as to be imperceptable.
+                   Sometimes it happens before the browser is ready (my best guess anyway) and something goes wrong in the calculation (it fails gracefully by not adjusting anything).
+                   In the latter case we have a follow-up call that will fix it.  If the calculation is exactly the same nothing will happen. */
+                setTimeout(function() {
+                    t.alignTerminal(term);
+                }, 250);
             },
-            closeDialog = GateOne.Visual.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'}),
+            closeDialog = v.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'}),
             termQuitFunc = function(termNum) {
                 if (termNum == term) {
                     closeDialog();
+                    E.off('terminal:term_closed', termQuitFunc);
                 }
             };
         E.on('terminal:term_closed', termQuitFunc);
         go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup"}, 'style': {'width': '100%', 'height': '100%'}}, content);
+        setTimeout(function() {
+            // popup terminals need a moment before they're ready for a dimensions check
+            t.sendDimensions(term);
+            setTimeout(function() {
+                t.alignTerminal(term);
+            }, 500); // The first one needs extra time in case of a resume situation (which can be CPU intensive)
+        }, 50);
     },
     setTerminal: function(term) {
         /**:GateOne.Terminal.setTerminal(term)
@@ -1924,6 +1983,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is not given the currently-selected terminal will be used.
         */
+        logDebug('setActive('+term+')');
         term = term || localStorage[prefix+'selectedTerminal'];
         var terms = u.toArray(u.getNodes('.✈terminal')),
             termNode;
@@ -1944,7 +2004,7 @@ go.Base.update(GateOne.Terminal, {
         This gets attached to the 'terminal:switch_terminal' event in :js:meth:`GateOne.Terminal.init`; performs a number of actions whenever the user changes the current terminal.
         */
         logDebug('switchTerminalEvent('+term+')');
-        var termNode = null,
+        var termNode,
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
             setActivityCheckboxes = function(term) {
@@ -1975,7 +2035,7 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        v.setTitle(displayText);
+        go.Terminal.setTitle(term, displayText);
         go.Terminal.displayTermInfo(term);
         if (go.Terminal.alignTimer) {
             clearTimeout(go.Terminal.alignTimer);
@@ -2465,7 +2525,7 @@ go.Base.update(GateOne.Terminal, {
             termNumbers = [],
             reattachCallbacks = false,
             terminalDB = S.dbObject('terminal');
-        logDebug("reattachTerminalsAction() terminals: " + terminals);
+        logDebug("reattachTerminalsAction() terminals: ", terminals);
         if (!go.Storage.loadedFiles['font.css']) {
             // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
             setTimeout(function() {
@@ -2494,27 +2554,36 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
             if (termNumbers.length) {
                 // Reattach the running terminals
-                termNumbers.forEach(function(termNum) {
-                    if (!go.Terminal.terminals[termNum]) {
-                        metadata = terminals[termNum]['metadata'] || {};
-                        if (metadata['resumeEvent']) {
-                            E.trigger(metadata['resumeEvent'], termNum, terminals[termNum]);
-                        } else {
-                            go.Terminal.newTerminal(termNum, {'metadata': metadata});
-                        }
-                        go.Terminal.lastTermNumber = termNum;
-                    }
-                });
+                v.displayMessage(gettext("One moment while existing terminals are restored..."), null, null, null, true);
             }
         }
-        E.trigger("terminal:term_reattach", termNumbers, terminals); // termNumbers first to maintain backwards compatibility
-        if (go.Terminal.reattachTerminalsCallbacks.length) {
-            go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('terminal:term_reattach', func) instead.");
-            // Call any registered callbacks
-            go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
-                callback(termNumbers);
-            });
-        }
+        // This is wrapped in a super short timeout so the message above will get displayed while it takes place (otherwise the browser will pause while it thinks really hard and then shows the message *and* brings up the terminals at the same time)
+        setTimeout(function() {
+            if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
+                if (termNumbers.length) {
+                    // Reattach the running terminals
+                    termNumbers.forEach(function(termNum) {
+                        if (!go.Terminal.terminals[termNum]) {
+                            metadata = terminals[termNum]['metadata'] || {};
+                            if (metadata['resumeEvent']) {
+                                E.trigger(metadata['resumeEvent'], termNum, terminals[termNum]);
+                            } else {
+                                go.Terminal.newTerminal(termNum, {'metadata': metadata});
+                            }
+                            go.Terminal.lastTermNumber = termNum;
+                        }
+                    });
+                }
+            }
+            E.trigger("terminal:term_reattach", termNumbers, terminals); // termNumbers first to maintain backwards compatibility
+            if (go.Terminal.reattachTerminalsCallbacks.length) {
+                go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('terminal:term_reattach', func) instead.");
+                // Call any registered callbacks
+                go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
+                    callback(termNumbers);
+                });
+            }
+        }, 50);
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

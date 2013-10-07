@@ -66,6 +66,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 900; /* Above dialogs */
     width: 100%;
     height: 100%;
     margin: 0;
@@ -130,6 +131,15 @@ span.✈f0.✈b0 { color: #444; background-color: transparent; } /* Black on Bla
 }
 .✈upload_bell_form {
     padding: 0.5em;
+}
+.✈termdialog {
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #222;
 }
 @media only screen and (max-width: 800px) {
     .✈terminal pre {

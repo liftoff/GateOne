@@ -58,10 +58,52 @@
     -o-transform-origin: left bottom;
     transform-origin: left bottom;
 }
+.✈term_infocontainer {
+    font-family: sans-serif;
+    font-size: 1.6em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900; /* Above dialogs */
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    flex-align: center;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    flex-pack: center;
+}
 .✈terminfo {
+    padding: 1em;
+    z-index: 750;
+    border: solid 1px #000;
     color: #000;
-    font-weight: bold;
-    font-size: 1.1em;
+    border-radius: 0.5em;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    flex-align: center;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    flex-pack: center;
 }
 /* The "reverse" default needs to be set in the theme since the background will vary */
 span.✈reverse { color: #000; background-color: #fff; }
@@ -82,6 +124,15 @@ span.✈reverse { background-color: #aaa; color: #fff; }
 }
 .✈upload_bell_form {
     padding: 0.5em;
+}
+.✈termdialog {
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
 }
 @media only screen and (max-width: 800px) {
     .✈terminal pre {

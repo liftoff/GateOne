@@ -613,7 +613,11 @@ potential conflicts with other classes that may be on the page.
     border-radius: 0.5em;
 }
 .✈dialogcontainer h3 {
-    background-color: transparent;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: #1F5470;
     color: #fff;
     padding-left: 0.5em;
     line-height: 1.5;
@@ -623,7 +627,6 @@ potential conflicts with other classes that may be on the page.
     text-align: center;
     font-size: 1.1em;
     border-radius: 0.25em 0.25em 0 0;
-    border-bottom: 1px #fff solid;
 }
 .✈dialogcontainer p {
     padding: 0.5em;

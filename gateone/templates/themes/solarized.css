@@ -614,6 +614,10 @@ potential conflicts with other classes that may be on the page.
     background-image: linear-gradient(#eee, #aaa);
 }
 .✈dialogcontainer h3 {
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 100;
     background-color: #1F5470;
     color: #fff;
     padding-left: 0.5em;

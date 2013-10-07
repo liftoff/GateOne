@@ -859,7 +859,10 @@ class TerminalApplication(GOApplication):
         for term in list(self.loc_terms.keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.update({
-                    term: {'metadata': self.loc_terms[term]['metadata']}})
+                    term: {
+                        'metadata': self.loc_terms[term]['metadata'],
+                        'title': self.loc_terms[term]['title']
+                    }})
         # Check for any dtach'd terminals we might have missed
         if options.dtach and which('dtach'):
             from term_utils import restore_term_settings
@@ -884,7 +887,11 @@ class TerminalApplication(GOApplication):
                                 continue
                             data = term_settings[self.ws.location][str(term)]
                             metadata = data.get('metadata', {})
-                            terminals.update({term: {'metadata': metadata}})
+                            title = data.get('title', 'Gate One')
+                            terminals.update({term: {
+                                'metadata': metadata,
+                                'title': title
+                            }})
         message = {'terminal:terminals': terminals}
         self.write_message(json_encode(message))
 
@@ -1276,11 +1283,14 @@ class TerminalApplication(GOApplication):
         self.send_term_encoding(term, encoding)
         if self.loc_terms[term]['multiplex'].cmd.startswith('dtach -a'):
             # This dtach session was resumed; restore terminal settings
+            m_term = term_obj['multiplex'].term
             future = self.restore_term_settings(term)
             self.io_loop.add_future(
                 future, lambda f: self.set_title(term, force=True, save=False))
             # The multiplex instance needs the title set by hand (it's special)
-            term_obj['multiplex'].term.title = self.loc_terms[term]['title']
+            self.io_loop.add_future(
+                future, lambda f: m_term.set_title(
+                    self.loc_terms[term]['title']))
         self.trigger("terminal:new_terminal", term)
         # Calling save_term_settings() after the event is fired so that plugins
         # can modify the metadata before it gets saved.
@@ -1566,7 +1576,7 @@ class TerminalApplication(GOApplication):
             # Save it in case we're restarted (only matters for dtach)
             if save:
                 self.save_term_settings(term, {'title': title})
-        self.trigger("terminal:set_title", title)
+        self.trigger("terminal:set_title", term, title)
 
     @require(authenticated())
     def manual_title(self, settings):

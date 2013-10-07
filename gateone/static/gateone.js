@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131006115623";
+GateOne.__commit__ = "20131006120119";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3606,14 +3606,16 @@ GateOne.Base.update(GateOne.Visual, {
             }, 1100);
         }
     },
-    // TODO: Add support for 0 removeTimeout for message that need to be confirmed
-    displayMessage: function(message, /*opt*/timeout, /*opt*/removeTimeout, /*opt*/id) {
+    // TODO: Add support for 0 removeTimeout for messaged that need to be confirmed
+    // TODO: Change this from using all these arguments to using an object: {'timeout': 5000, 'removeTimeout': 5000}
+    displayMessage: function(message, /*opt*/timeout, /*opt*/removeTimeout, /*opt*/id, /*opt*/noLog) {
         /**:GateOne.Visual.displayMessage(message[, timeout[, removeTimeout[, id]]])
 
         :param string message: The message to display.
         :param integer timeout: Milliseconds; How long to display the message before starting the *removeTimeout* timer.  **Default:** 1000.
         :param integer removeTimeout: Milliseconds; How long to delay before calling :js:func:`GateOne.Utils.removeElement` on the message DIV.  **Default:** 5000.
-        :param string id: The ID to assign the message DIV.  **Default:** "notice".
+        :param string id: The ID to assign the message DIV.  **Default:** `GateOne.prefs.prefix+"notice"`.
+        :param boolean noLog: If set to ``true`` the message will not be logged.
 
         .. figure:: screenshots/gateone_displaymessage.png
             :class: portional-screenshot
@@ -3658,8 +3660,10 @@ GateOne.Base.update(GateOne.Visual, {
                 return;
             }
         }
-        logTemp.innerHTML = message; // So we can strip the HTML
-        logInfo('Message: ' + logTemp.textContent); // Useful for looking at previous messages
+        if (!noLog) {
+            logTemp.innerHTML = message; // So we can strip the HTML
+            logInfo('Message: ' + logTemp.textContent); // Useful for looking at previous messages
+        }
         timeout = timeout || 1000;
         removeTimeout = removeTimeout || 5000;
         if (!noticeContainer) {
@@ -4680,7 +4684,7 @@ GateOne.Base.update(GateOne.Visual, {
         }, 50);
         close.innerHTML = go.Icons['panelclose'];
         close.onclick = closeDialog;
-        dialogTitle.innerHTML = title;
+        dialogTitle.innerHTML = '<span class="✈titletext">' + title + '</span>';
         dialogContainer.appendChild(dialogTitle);
         dialogTitle.appendChild(close);
         if (typeof(content) == "string") {
