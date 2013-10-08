@@ -2031,7 +2031,10 @@ go.Base.update(GateOne.Terminal, {
             setActivityCheckboxes(term);
             setEncodingValue(term);
             setKeyboardValue(term);
-            u.scrollToBottom(go.Terminal.terminals[term]['node']);
+            // Wrapping this in a timeout seems to resolve the issue where sometimes it isn't scrolled to the bottom when you switch
+            setTimeout(function() {
+                u.scrollToBottom(go.Terminal.terminals[term]['node']);
+            }, 50);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
@@ -2059,7 +2062,7 @@ go.Base.update(GateOne.Terminal, {
                 if (go.Terminal.terminals[term]['workspace'] == workspace) {
                     // At least one terminal is on this workspace
                     go.Terminal.switchTerminal(term);
-                    termFound = true;
+                    termFound = term;
                 }
             }
         };
@@ -2067,6 +2070,11 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.Input.disableCapture();
             go.Terminal.hideIcons();
         } else {
+            go.Terminal.switchedWorkspace = true;
+            setTimeout(function() {
+                // Need a mechanism to inform GateOne.Input.disableCapture() that we just switched to this workspace and no matter what sort of event bubbles up from a click (or whatever) that will cause a blur should be ignored.
+                go.Terminal.switchedWorkspace = false;
+            }, 100);
             go.Terminal.showIcons();
         }
     },

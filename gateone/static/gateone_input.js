@@ -8,7 +8,7 @@ var document = window.document,
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
-    I = go.Input,
+    I, // Will become GateOne.Input
     S = go.Storage,
     gettext = GateOne.i18n.gettext,
     urlObj = (window.URL || window.webkitURL),
@@ -34,7 +34,7 @@ if (typeof document.hidden !== "undefined") {
 }
 // NOTE:  If the browser doesn't support the Page Visibility API it isn't a big deal; the user will merely have to click on the page for input to start being captured.
 
-GateOne.Base.module(GateOne, "Input", '1.2', ['Base', 'Utils']);
+I = GateOne.Base.module(GateOne, "Input", '1.2', ['Base', 'Utils']);
 // GateOne.Input.charBuffer = []; // Queue for sending characters to the server
 GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
@@ -346,18 +346,37 @@ GateOne.Base.update(GateOne.Input, {
         }
     },
     registerShortcut: function(keyString, shortcutObj) {
-        // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
-        // Example usage:  GateOne.Input.registerShortcut('KEY_G', {
-        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-        //     'action': 'GateOne.Visual.toggleGridView()',
-        //     'preventDefault': true
-        // });
-        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
+        /**:GateOne.Input.registerShortcut(keyString, shortcutObj)
+
+        :param string keyString: The KEY_<key> that will invoke this shortcut.
+        :param object shortcutObj: A JavaScript object containing two properties:  'modifiers' and 'action'.  See above for their format.
+
+        **shortcutObj**
+
+            :param action: A string to be eval()'d or a function to be executed when the provided key combination is pressed.
+            :param modifiers: An object containing the modifier keys that must be pressed for the shortcut to be called.  Example: `{"ctrl": true, "alt": true, "meta": false, "shift": false}`.
+
+        Registers the given *shortcutObj* for the given *keyString* by adding a new object to :js:attr:`GateOne.Input.shortcuts`.  Here's an example:
+
+        .. code-block:: javascript
+
+            GateOne.Input.registerShortcut('KEY_ARROW_LEFT', {
+                'modifiers': {
+                    'ctrl': false,
+                    'alt': false,
+                    'meta': false,
+                    'shift': true
+                },
+                'action': 'GateOne.Visual.slideLeft()', // Can be an eval() string or a function
+            });
+
+        Shortcuts registered via this function will only be usable when Gate One is active on the web page in which it is embedded.  For shortcuts that need to *always* be usable see :js:meth:`GateOne.Input.registerGlobalShortcut`.
+        */
+        var match, overwrote;
         if (GateOne.Input.shortcuts[keyString]) {
             // Already exists, overwrite existing if conflict (and log it) or append it
-            var overwrote = false;
             GateOne.Input.shortcuts[keyString].forEach(function(shortcut) {
-                var match = true;
+                match = true;
                 for (var mod in shortcutObj.modifiers) {
                     if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
                         match = false;
@@ -371,7 +390,7 @@ GateOne.Base.update(GateOne.Input, {
                 }
             });
             if (!overwrote) {
-                // No existing shortcut matches, append the new one
+                // No existing shortcut matches; append the new one
                 GateOne.Input.shortcuts[keyString].push(shortcutObj);
             }
         } else {
@@ -379,22 +398,43 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Input.shortcuts[keyString] = [shortcutObj];
         }
     },
+    unregisterShortcut: function(keyString, shortcutObj) {
+        /**:GateOne.Input.unregisterShortcut(keyString, shortcutObj)
+
+        Removes the shortcut associated with the given *keyString* and *shortcutObj*.
+        */
+        var match;
+        if (GateOne.Input.shortcuts[keyString]) {
+            for (var i=0; i < GateOne.Input.shortcuts[keyString].length; i++) {
+                match = true;
+                for (var mod in shortcutObj.modifiers) {
+                    if (shortcutObj.modifiers[mod] != GateOne.Input.shortcuts[keyString][i].modifiers[mod]) {
+                        match = false;
+                    }
+                }
+                if (match) {
+                    // There's a match...  Remove it
+                    GateOne.Input.shortcuts[keyString].splice(i, 1);
+                }
+            }
+            if (!GateOne.Input.shortcuts[keyString].length) {
+                delete GateOne.Input.shortcuts[keyString];
+            }
+        } // else: Nothing to do
+    },
     registerGlobalShortcut: function(keyString, shortcutObj) {
         /**:GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
 
-        Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus (i.e. it will work even after disableCapture() is called).
+        Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus.
+
+        .. note:: This function only matters when Gate One is embedded into another application.
         */
-        // Example usage:  GateOne.Input.registerGlobalShortcut('KEY_G', {
-        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-        //     'action': 'GateOne.Visual.toggleGridView()',
-        //     'preventDefault': true
-        // });
-        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
+        var match, overwrote;
         if (GateOne.Input.globalShortcuts[keyString]) {
             // Already exists, overwrite existing if conflict (and log it) or append it
-            var overwrote = false;
+            overwrote = false;
             GateOne.Input.globalShortcuts[keyString].forEach(function(shortcut) {
-                var match = true;
+                match = true;
                 for (var mod in shortcutObj.modifiers) {
                     if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
                         match = false;
@@ -416,16 +456,64 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Input.globalShortcuts[keyString] = [shortcutObj];
         }
     },
-    // TODO: This...
-    humanReadableShortcuts: function() {
-        // Returns a human-readable string representing the objects inside of GateOne.Input.shortcuts. Each string will be in the form of:
-        //  <modifiers>-<key>
-        // Example:
-        //  Ctrl-Alt-Delete
-        var goIn = GateOne.Input,
-            out = [];
-        for (var i in goIn.shortcuts) {
-            console.log('i: ' + i);
+    unregisterGlobalShortcut: function(keyString, shortcutObj) {
+        /**:GateOne.Input.unregisterGlobalShortcut(keyString, shortcutObj)
+
+        Removes the shortcut associated with the given *keyString* and *shortcutObj*.
+        */
+        var match;
+        if (GateOne.Input.globalShortcuts[keyString]) {
+            for (var i=0; i < GateOne.Input.globalShortcuts[keyString].length; i++) {
+                match = true;
+                for (var mod in shortcutObj.modifiers) {
+                    if (shortcutObj.modifiers[mod] != GateOne.Input.globalShortcuts[keyString][i].modifiers[mod]) {
+                        match = false;
+                    }
+                }
+                if (match) {
+                    // There's a match...  Remove it
+                    GateOne.Input.globalShortcuts[keyString].splice(i, 1);
+                }
+            }
+            if (!GateOne.Input.globalShortcuts[keyString].length) {
+                delete GateOne.Input.globalShortcuts[keyString];
+            }
+        } // else: Nothing to do
+    },
+    humanReadableShortcut: function(name, modifiers) {
+        /**:GateOne.Input.humanReadableShortcut(name, modifiers)
+
+        Given a key *name* such as 'KEY_DELETE' (or just 'G') and a *modifiers* object, returns a human-readable string.  Example:
+
+            >>> GateOne.Input.humanReadableShortcut('KEY_DELETE', {"ctrl": true, "alt": true, "meta": false, "shift": false});
+            Ctrl-Alt-Delete
+        */
+        var out = "";
+        if (name.indexOf('KEY_') != -1) {
+            // Remove the KEY_ part
+            name = name.split(/KEY_/)[1];
+        }
+        name = u.capitalizeFirstLetter(name.toLowerCase());
+        out += modifiers.ctrl ? 'Ctrl-' : '';
+        out += modifiers.alt ? 'Alt-' : '';
+        out += modifiers.meta ? 'Meta-' : '';
+        out += modifiers.shift ? 'Shift-' : '';
+        out += name;
+        return out;
+    },
+    humanReadableShortcutList: function(shortcuts) {
+        /**:GateOne.Input.humanReadableShortcutList(shortcuts)
+
+        Given a list of *shortcuts* (e.g. `GateOne.Input.shortcuts`), returns an Array of keyboard shortcuts suitable for inclusion in a table.  Example:
+
+            >>> GateOne.Input.humanReadableShortcutList(GateOne.Input.shortcuts);
+            [['Ctrl-Alt-G', 'Grid View'], ['Ctrl-Alt-N', 'New Workspace']]
+        */
+        for (var shortcut in goIn.shortcuts) {
+            if (shortcut.indexOf('KEY_') == -1) {
+                continue; // Only interested in proper key shortcuts
+            }
+            console.log('shortcut: ' + shortcut);
             var splitKey = i.split('_'),
                 keyName = '',
                 outStr = '';
@@ -445,9 +533,10 @@ GateOne.Base.update(GateOne.Input, {
         return out;
     },
     handleVisibility: function(e) {
-        // Calls GateOne.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
-        var go = GateOne,
-            u = go.Utils;
+        /**:GateOne.Visual.handleVisibility(e)
+
+        This function gets called whenever a tab connected to Gate One becomes visible or invisible.  Triggers the `go:visible` and `go:invisible` events.
+        */
         if (!u.isPageHidden()) {
             // Page has become visibile again
             logDebug("Ninja Mode disabled.");

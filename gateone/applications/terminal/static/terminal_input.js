@@ -450,8 +450,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug('go.Terminal.Input.disableCapture()');
         var terms = u.toArray(u.getNodes('.✈terminal'));
         if (!force) {
+            if (t.switchedWorkspace) {
+                logDebug("disableCapture() cancelled due to the GateOne.Terminal.switchedWorkspace being set.");
+                return; // User is just switching to a different app
+            }
             if (document.activeElement.classList.contains('✈IME')) {
-                logDebug("disableCapture() cancelled due to the IME being the activeElement");
+                logDebug("disableCapture() cancelled due to the IME being the activeElement.");
                 return; // User is just switching to a different app
             }
             if (t.Input.mouseDown) {

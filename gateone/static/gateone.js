@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131006120119";
+GateOne.__commit__ = "20131006223659";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2975,15 +2975,12 @@ GateOne.Base.update(GateOne.Visual, {
                 ]
             },
             tableData = [],
-            table,
-            capitalizeFirstLetter = function(string) {
-                return string.charAt(0).toUpperCase() + string.slice(1);
-            };
+            table;
         locationsPanelH2.innerHTML = gettext("Locations");
         for (var loc in go.locations) {
             for (var app in go.locations[loc]) {
                 for (var item in go.locations[loc][app]) {
-                    tableData.push([loc, capitalizeFirstLetter(app), item, go.locations[loc][app][item]['title']]);
+                    tableData.push([loc, u.capitalizeFirstLetter(app), item, go.locations[loc][app][item]['title']]);
                 }
             }
         }
@@ -3053,6 +3050,7 @@ GateOne.Base.update(GateOne.Visual, {
             filteredApps = [],
             failedDepCheck,
             numWorkspaces = 0,
+            appIcons,
             titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
             wsContainer = u.createElement('div', {'class': '✈centertrans ✈halfsectrans ✈new_workspace_workspace'}),
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
@@ -3193,7 +3191,6 @@ GateOne.Base.update(GateOne.Visual, {
         wsContainer.addEventListener('keyup', function(e) {
             var key = go.Input.key(e),
                 modifiers = go.Input.modifiers(e),
-                appIcons = u.toArray(u.getNodes('.✈application')),
                 numIcons = appIcons.length - spacers,
                 rows = 0,
                 rowLength = 0,
@@ -3256,6 +3253,8 @@ GateOne.Base.update(GateOne.Visual, {
         workspace = v.newWorkspace();
         workspaceNum = workspace.id.split(prefix+'workspace')[1];
         workspace.appendChild(wsContainer);
+        appIcons = u.toArray(u.getNodes('.✈application'));
+        selectedApp = appIcons[go.Visual.lastAppPosition];
         // Scale it back into view
         setTimeout(function() {
             var appIcons = u.toArray(u.getNodes('.✈application')),
@@ -3811,7 +3810,7 @@ GateOne.Base.update(GateOne.Visual, {
     switchWorkspace: function(workspace) {
         /**:GateOne.Visual.switchWorkspace(workspace)
 
-        Triggers the 'go:switch_workspace' event which by default calls :js:meth:`GateOne.Visual.slideToWorkspace`.
+        Triggers the `go:switch_workspace` event which by default calls :js:meth:`GateOne.Visual.slideToWorkspace`.
 
         .. tip:: If you wish to use your own workspace-switching animation just write your own function to handle it and call `GateOne.Events.off('go:switch_workspace', GateOne.Visual.slideToWorkspace); GateOne.Events.on('go:switch_workspace', yourFunction);`
         */
@@ -3879,19 +3878,9 @@ GateOne.Base.update(GateOne.Visual, {
             wPX = 0,
             hPX = 0,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
-            style = window.getComputedStyle(go.node, null),
             rightAdjust = 0,
             bottomAdjust = 0,
-            timeToSwitch = 1000,
-            paddingRight = (style['padding-right'] || style['paddingRight']),
-            paddingBottom = (style['padding-bottom'] || style['paddingBottom']);
-        // TODO: Figure out what I was supposed to use the paddingX values for (LOL--something got lost in a copy & paste operation but it still works...  So maybe I don't need these?)
-        if (paddingRight != "0px") {
-            rightAdjust = parseInt(paddingRight.split('px')[0]);
-        }
-        if (paddingRight != "0px") {
-            bottomAdjust = parseInt(paddingRight.split('px')[0]);
-        }
+            timeToSwitch = 1000;
         // Reset the grid so that all workspace are in their default positions before we do the switch
         if (!v.noReset) {
             v.resetGrid(true);
@@ -4295,7 +4284,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Remove the events we added for the grid:
             workspaces.forEach(function(wsNode) {
                 wsNode.removeEventListener('click', v._selectWorkspace, false);
-//                 wsNode.onmouseover = undefined;
+                wsNode.onmouseover = undefined;
                 wsNode.classList.remove('✈wsshadow');
                 wsNode.removeAttribute('draggable');
                 wsNode.removeEventListener('dragstart', v.gridWorkspaceDragStart, false);
@@ -4373,20 +4362,32 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                     count += 1;
                     wsNode.addEventListener('click', v._selectWorkspace, false);
-//                     wsNode.onmouseover = function(e) {
-//                         var displayText = wsNode.id.split(prefix+'workspace')[1] + ": " + go.Terminal.terminals[termID]['title'],
-//                             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
-//                             marginFix = Math.round(go.Terminal.terminals[termID]['title'].length/2),
-//                             infoContainer = u.createElement('div', {'id': 'infocontainer', 'class': '✈infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
-//                         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
-//                         termInfoDiv.innerHTML = displayText;
-//                         infoContainer.appendChild(termInfoDiv);
-//                         v.applyTransform(infoContainer, 'scale(2)');
-//                         wsNode.appendChild(infoContainer);
-//                         setTimeout(function() {
-//                             infoContainer.style.opacity = 0;
-//                         }, 1000);
-//                     }
+                    wsNode.onmouseover = function(e) {
+                        var displayText = wsNode.getAttribute('data-title'),
+                            wsInfoDiv = u.createElement('div', {'class': '✈wsinfo'}),
+                            infoContainer = u.createElement('div', {'class': '✈infocontainer ✈halfsectrans'}),
+                            existing = u.getNode('.✈infocontainer');
+                        if (existing) { u.removeElement(existing); }
+                        if (!displayText) {
+                            displayText = 'Workspace ' + wsNode.getAttribute('data-workspace');
+                        }
+                        wsInfoDiv.innerHTML = displayText;
+                        // The data-workspace stuff is necessary for _selectWorkspace to work:
+                        wsInfoDiv.setAttribute('data-workspace', wsNode.getAttribute('data-workspace'));
+                        infoContainer.setAttribute('data-workspace', wsNode.getAttribute('data-workspace'));
+                        infoContainer.appendChild(wsInfoDiv);
+                        infoContainer.addEventListener('mousedown', v._selectWorkspace, false);
+                        wsInfoDiv.addEventListener('mousedown', v._selectWorkspace, false);
+                        v.applyTransform(wsInfoDiv, 'scale(2)');
+                        wsNode.appendChild(infoContainer);
+                        if (v.infoContainerTimeout) {
+                            clearTimeout(v.infoContainerTimeout);
+                            v.infoContainerTimeout = null;
+                        }
+                        v.infoContainerTimeout = setTimeout(function() {
+                            u.removeElement(infoContainer);
+                        }, 1500);
+                    }
                 });
             }, 10);
         }

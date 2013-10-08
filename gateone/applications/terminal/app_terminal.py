@@ -552,39 +552,38 @@ class TerminalApplication(GOApplication):
             sess["timeout_callbacks"].append(timeout_session)
         # Set the sub-applications list to our commands
         commands = list(self.policy['commands'].keys())
-        if len(commands) > 1:
-            sub_apps = []
-            for command in commands:
-                if isinstance(self.policy['commands'][command], dict):
-                    sub_app = self.policy['commands'][command].copy()
-                    del sub_app['command'] # Don't want clients to know this
-                    sub_app['name'] = command # Let them have the short name
-                    if 'icon' in sub_app:
-                        if sub_app['icon'].startswith(os.path.sep):
-                            # This is a path to the icon instead of the actual
-                            # icon (has to be SVG, after all).  Replace it with
-                            # the actual icon data (should start with <svg>)
-                            if os.path.exists(sub_app['icon']):
-                                with io.open(
-                                    sub_app['icon'], encoding='utf-8') as f:
-                                    sub_app['icon'] = f.read()
-                            else:
-                                self.term_log.error(_(
-                                    "Path to icon ({icon}) for command, "
-                                    "'{cmd}' could not be found.").format(
-                                        cmd=sub_app['name'],
-                                        icon=sub_app['icon']))
-                                del sub_app['icon']
-                else:
-                    sub_app = {'name': command}
-                if 'icon' not in sub_app:
-                    # Use the generic one
-                    icon_path = os.path.join(templates_path, 'command_icon.svg')
-                    with io.open(icon_path, encoding='utf-8') as f:
-                        sub_app['icon'] = f.read().format(cmd=sub_app['name'])
-                sub_apps.append(sub_app)
-            self.info['sub_applications'] = sub_apps
-            self.info['sub_applications'].sort()
+        sub_apps = []
+        for command in commands:
+            if isinstance(self.policy['commands'][command], dict):
+                sub_app = self.policy['commands'][command].copy()
+                del sub_app['command'] # Don't want clients to know this
+                sub_app['name'] = command # Let them have the short name
+                if 'icon' in sub_app:
+                    if sub_app['icon'].startswith(os.path.sep):
+                        # This is a path to the icon instead of the actual
+                        # icon (has to be SVG, after all).  Replace it with
+                        # the actual icon data (should start with <svg>)
+                        if os.path.exists(sub_app['icon']):
+                            with io.open(
+                                sub_app['icon'], encoding='utf-8') as f:
+                                sub_app['icon'] = f.read()
+                        else:
+                            self.term_log.error(_(
+                                "Path to icon ({icon}) for command, "
+                                "'{cmd}' could not be found.").format(
+                                    cmd=sub_app['name'],
+                                    icon=sub_app['icon']))
+                            del sub_app['icon']
+            else:
+                sub_app = {'name': command}
+            if 'icon' not in sub_app:
+                # Use the generic one
+                icon_path = os.path.join(templates_path, 'command_icon.svg')
+                with io.open(icon_path, encoding='utf-8') as f:
+                    sub_app['icon'] = f.read().format(cmd=sub_app['name'])
+            sub_apps.append(sub_app)
+        self.info['sub_applications'] = sub_apps
+        self.info['sub_applications'].sort()
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most
         # cases (only when the connection lost and re-connected without a page

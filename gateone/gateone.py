@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131006120119" # Gets replaced by git (holds the date/time)
+__commit__ = "20131006223659" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2438,8 +2438,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 if info_dict['name'].lower() in enabled_applications:
                     applications.append(info_dict)
         applications.sort()
-        # Use this user's specific allowed list of applications if possible:
-        #user_apps = policy.get('user_applications', applications)
         message = {'go:applications': applications}
         self.write_message(json_encode(message))
 

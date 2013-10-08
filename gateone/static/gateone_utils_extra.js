@@ -586,6 +586,13 @@ GateOne.Base.update(GateOne.Utils, {
         } else {
             return iterable.slice(-1)[0];
         }
+    },
+    capitalizeFirstLetter: function(string) {
+        /**:GateOne.Utils.capitalizeFirstLetter(string)
+
+        Returns *string* with the first letter capitalized.
+        */
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 });
 
