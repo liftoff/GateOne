@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131007205716";
+GateOne.__commit__ = "20131009214747";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3757,7 +3757,6 @@ GateOne.Base.update(GateOne.Visual, {
         currentWorkspace = prefix+'workspace'+workspaceNum;
         if (!go.prefs.embedded) {
             // Prepare the workspace div for the grid
-            console.log("Setting workspace height to: " + (v.goDimensions.w - go.toolbar.clientWidth));
             workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': (v.goDimensions.w - go.toolbar.clientWidth)+ 'px', 'height': v.goDimensions.h + 'px'}});
         } else {
             workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
@@ -4755,7 +4754,6 @@ GateOne.Base.update(GateOne.Visual, {
         }
         dialogContainer.appendChild(dialogDiv);
         if (resizable) {
-            console.log('adding dragHandle');
             dialogContainer.appendChild(dragHandle);
         }
         if (options && options['events']) {

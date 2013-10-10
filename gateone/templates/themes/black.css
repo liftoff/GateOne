@@ -935,8 +935,8 @@ div.✈appicon:hover {
     -o-filter: drop-shadow( .1em .1em .4em #000 );
     filter: drop-shadow( .1em .1em .4em #000 );
 }
-div.✈appicon svg { fill: #fff; width: 6em; height: 6em; }
-.✈stop1 { stop-color: #FFF; }
+div.✈appicon svg { fill: #ffffff; width: 6em; height: 6em; }
+.✈stop1 { stop-color: #FEFEFE; }
 .✈stop2 { stop-color: #E1E2E3; }
 .✈stop3 { stop-color: #D3D4D6; }
 .✈stop4 { stop-color: #CACBCD; }
