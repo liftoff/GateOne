@@ -1964,11 +1964,13 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return true; // This can happen if the user clicks on a terminal in the moments before it has completed initializing.
         }
+        var selectedTerm = localStorage[prefix+'selectedTerminal'],
+            displayText = term + ": " + go.Terminal.terminals[term]['title'];
         // Always call capture()
         go.Terminal.Input.capture();
         // Always run setActive()
         go.Terminal.setActive(term);
-        var selectedTerm = localStorage[prefix+'selectedTerminal'];
+        go.Terminal.setTitle(term, displayText);
         if (term == selectedTerm) {
             return true; // Nothing to do
         }
@@ -2038,7 +2040,6 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        go.Terminal.setTitle(term, displayText);
         go.Terminal.displayTermInfo(term);
         if (go.Terminal.alignTimer) {
             clearTimeout(go.Terminal.alignTimer);
