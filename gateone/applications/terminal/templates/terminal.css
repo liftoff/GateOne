@@ -15,10 +15,8 @@
     z-index: 200;
     margin: 0;
     opacity: 0;
-    width: calc(100% - 3.5em);
-    height: calc(100% - 1.3em);
-    width: -webkit-calc(100% - 3.5em);
-    height: -webkit-calc(100% - 1.3em);
+    width: 100%;
+    height: 100%;
 }
 .✈pastearea:hover {
     cursor: text;

@@ -410,7 +410,7 @@ def openssh_connect(
         if socket:
             # Emit our special optional escape sequence to tell ssh.py the path
             # to the SSH socket
-            print("\x1b]_;ssh|set;ssh_socket;{0};{1}\007".format(term, socket))
+            print("\x1b]_;ssh|set;ssh_socket;{0}\007".format(socket))
         if 'GO_SESSION_DIR' in os.environ.keys():
             # Save a file indicating our session is attached to GO_TERM
             ssh_session = 'ssh:%s:%s:%s@%s:%s' % (
@@ -458,8 +458,7 @@ def telnet_connect(user, host, port=23, env=None):
     except ValueError:
         print(_("The port must be an integer < 65535"))
         sys.exit(1)
-    import signal, tempfile
-    signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
+    import tempfile
     if not env:
         env = {
             'TERM': 'xterm',
@@ -792,10 +791,9 @@ def main():
             print("\x1b]0;ssh://%s@%s\007" % (user, host))
             # Special escape handler (so the rest of the plugin knows the
             # connect string)
-            term = os.environ.get('GO_TERM', '0')
             connect_string = "{0}@{1}:{2}".format(user, host, port)
-            print("\x1b]_;ssh|set;connect_string;{0};{1}\007".format(
-                term, connect_string))
+            print(
+                "\x1b]_;ssh|set;connect_string;{0}\007".format(connect_string))
             openssh_connect(user, host, port,
                 command=options.command,
                 password=password,
@@ -834,7 +832,7 @@ if __name__ == "__main__":
     executor = futures.ThreadPoolExecutor(max_workers=2)
     try:
         future = executor.submit(main)
-        done, not_done = futures.wait([future], timeout=120)
+        done, not_done = futures.wait([future], timeout=3)
         executor.shutdown(wait=False)
         if not_done:
             took_too_long()

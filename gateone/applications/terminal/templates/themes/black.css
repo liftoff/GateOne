@@ -3,14 +3,7 @@
 .✈terminal {
     line-height: 1;
     height: 100%; /* This is important for the getRowsAndColumns() calculation */
-{% if embedded %}
     width: 100%;
-    right: 0;
-{% else %}
-    width: calc(100% - 2em);
-    width: -webkit-calc(100% - 2em);
-/*     right: 2em; */
-{% end %}
     position: absolute;
     -webkit-transition-property: -webkit-transform, height, width;
     -webkit-transition-duration: 1s;

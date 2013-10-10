@@ -2559,12 +2559,6 @@ go.Base.update(GateOne.Terminal, {
         if (go.Terminal.reattachTerminalsCallbacks.length || "term_reattach" in E.callbacks) {
             reattachCallbacks = true;
         }
-        if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
-            if (termNumbers.length) {
-                // Reattach the running terminals
-                v.displayMessage(gettext("One moment while existing terminals are restored..."), null, null, null, true);
-            }
-        }
         // This is wrapped in a super short timeout so the message above will get displayed while it takes place (otherwise the browser will pause while it thinks really hard and then shows the message *and* brings up the terminals at the same time)
         setTimeout(function() {
             if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.

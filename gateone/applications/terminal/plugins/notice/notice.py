@@ -37,7 +37,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 from golog import go_logger
 
 # Special optional escape sequence handler (see docs on how it works)
-def notice_esc_seq_handler(self, message):
+def notice_esc_seq_handler(self, message, term=None, multiplex=None):
     """
     Handles text passed from the special optional escape sequance handler to
     display a *message* to the connected client (browser).  It can be invoked
@@ -53,8 +53,11 @@ def notice_esc_seq_handler(self, message):
         :func:`terminal.Terminal._opt_handler`
     """
     if not hasattr(self, 'notice_log'):
-        self.notice_log = go_logger('gateone.notice', **self.log_metadata)
-    self.notice_log.info("Notice Plugin: %s" % message)
+        self.notice_log = go_logger(
+            'gateone.terminal.notice', plugin='notice', **self.log_metadata)
+    self.notice_log.info(
+        "Notice Plugin: %s" % message, metadata={'term': term, 'text': message})
+    message = "Term {term}: {message}".format(term=term, message=message)
     message = {'go:notice': message}
     self.write_message(message)
 

@@ -4,14 +4,7 @@
     line-height: 1;
     height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
     position: absolute;
-{% if embedded %}
     width: 100%;
-    right: 0;
-{% else %}
-    width: calc(100% - 2em);
-    width: -webkit-calc(100% - 2em);
-/*     right: 2em; */
-{% end %}
     * { color:#839496; }
     h1,h2,h3,h4,h5,h6 { color:#93a1a1; border-color: #839496; }
     -webkit-transition-property: -webkit-transform, height, width;

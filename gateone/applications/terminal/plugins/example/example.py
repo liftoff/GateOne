@@ -179,7 +179,7 @@ def example_websocket_action(self, message):
     self.write_message(combined)
 
 # Now for some special sauce...  The Special Optional Escape Sequence Handler!
-def example_opt_esc_handler(self, message):
+def example_opt_esc_handler(self, message, term=None, multiplex=None):
     """
     Gate One includes a mechanism for plugins to send messages from terminal
     programs directly to plugins written in Python.  It's called the "Special

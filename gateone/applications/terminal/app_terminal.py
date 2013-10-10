@@ -491,6 +491,7 @@ class TerminalApplication(GOApplication):
         """
         term_log.debug('TerminalApplication.authenticate()')
         self.log_metadata = {
+            'application': 'terminal',
             'upn': self.current_user['upn'],
             'ip_address': self.ws.request.remote_ip,
             'location': self.ws.location
@@ -958,8 +959,9 @@ class TerminalApplication(GOApplication):
         bell = partial(self.bell, term)
         term_emulator.add_callback(
             terminal.CALLBACK_BELL, bell, callback_id)
+        opt_esc_handler = partial(self.opt_esc_handler, term, multiplex)
         term_emulator.add_callback(
-            terminal.CALLBACK_OPT, self.opt_esc_handler, callback_id)
+            terminal.CALLBACK_OPT, opt_esc_handler, callback_id)
         mode_handler = partial(self.mode_handler, term)
         term_emulator.add_callback(
             terminal.CALLBACK_MODE, mode_handler, callback_id)
@@ -1862,7 +1864,7 @@ class TerminalApplication(GOApplication):
             traceback.print_exc(file=sys.stdout)
 
     @require(authenticated())
-    def opt_esc_handler(self, chars):
+    def opt_esc_handler(self, term, multiplex, chars):
         """
         Calls whatever function is attached to the
         'terminal:opt_esc_handler:<name>' event; passing it the *text* (second
@@ -1883,14 +1885,19 @@ class TerminalApplication(GOApplication):
 
         Which would result in :func:`some_function` being called like so::
 
-            some_function(self, "Text passed to some_function()")
+            some_function(
+                self, "Text passed to some_function()", term, multiplex)
+
+        In the above example, *term* will be the terminal number that emitted
+        the event and *multiplex* will be the `termio.Multiplex` instance that
+        controls the terminal.
         """
         self.term_log.debug("opt_esc_handler(%s)" % repr(chars))
         plugin_name, text = process_opt_esc_sequence(chars)
         if plugin_name:
             try:
-                self.trigger(
-                    "terminal:opt_esc_handler:%s" % plugin_name, text)
+                event = "terminal:opt_esc_handler:%s" % plugin_name
+                self.trigger(event, text, term=term, multiplex=multiplex)
             except Exception as e:
                 self.term_log.error(_(
                     "Got exception trying to execute plugin's optional ESC "

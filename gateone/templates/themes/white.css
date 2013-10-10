@@ -88,7 +88,7 @@
     background-image: linear-gradient(to top, rgba(80, 80, 80, 0.9) 0%,rgba(255,255,255,0) 100%);
 }
 .✈new_workspace_workspace {
-    width: calc(100% - 2em);
+    width: 100%;
     height: 100%;
     overflow-y: auto;
     background-color: #FFF;
@@ -258,8 +258,9 @@
     position: absolute;
     top: 0;
     right: 0;
-    color: #000;
+    color: #fff;
     text-align: right;
+    padding-left: 0.4em;
 }
 .✈toolbar_icon {
     float: right;
@@ -672,7 +673,7 @@ potential conflicts with other classes that may be on the page.
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
     text-align: center;
-    font-size: 1.1em;
+    font-size: 1em;
     border-radius: 0.25em 0.25em 0 0;
 }
 .✈dialogcontainer p {
@@ -724,32 +725,32 @@ potential conflicts with other classes that may be on the page.
     width: 100%;
     height: 100%;
 }
-.✈dialog_close {
+.✈dialog_icons {
     position: absolute;
     top: 0;
     right: 0;
+}
+.✈dialog_icon {
     margin-top: 0.2em;
-    margin-right: 0.2em;
+    margin-right: 0.3em;
     cursor: pointer;
     opacity: .75;
+    float: right;
+    display: inline-block;
 }
-.✈dialog_close:hover {
+.✈dialog_icon svg {
+    width: 1em;
+    height: 1em;
+}
+.✈dialog_icon:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
 }
-.✈dialog_form input {
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 0.2em;
-    display: block;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    box-shadow: 0 1px 1px #fff;
-    color: #000;
-    position: relative;
-    z-index: 2;
-    font-size: 1em;
+.✈dialog_minimize {
+    margin-top: .55em;
+    margin-right: 0.4em;
+}
+.✈dialog_close {
 }
 .✈draghandle {
     background-color: transparent;
@@ -956,6 +957,10 @@ div.✈appicon svg { fill: #000; width: 6em; height: 6em; }
 .✈stop2 { stop-color: #464648; }
 .✈stop3 { stop-color: #5D5E60; }
 .✈stop4 { stop-color: #535355; }
+.✈dialog_icons .✈stop1 { stop-color: #FFFFFF; }
+.✈dialog_icons .✈stop2 { stop-color: #EEEEEE; }
+.✈dialog_icons .✈stop3 { stop-color: #DDDDDD; }
+.✈dialog_icons .✈stop4 { stop-color: #EEEEEE; }
 .✈panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
 .✈panelstop2 { stop-color: #2D61B4; }
 .✈panelstop3 { stop-color: #2E63B9; }
