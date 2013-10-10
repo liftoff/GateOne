@@ -832,7 +832,7 @@ if __name__ == "__main__":
     executor = futures.ThreadPoolExecutor(max_workers=2)
     try:
         future = executor.submit(main)
-        done, not_done = futures.wait([future], timeout=3)
+        done, not_done = futures.wait([future], timeout=120)
         executor.shutdown(wait=False)
         if not_done:
             took_too_long()
