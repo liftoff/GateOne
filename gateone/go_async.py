@@ -393,15 +393,16 @@ class ThreadedRunner(AsyncRunner):
     def __init__(self, max_workers=10, **kwargs):
         super(ThreadedRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
-        self.run()
 
     def run(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
 
     @property
     def running(self):
+        if not hasattr(self, 'executor'):
+            return False
         ibrunning = True
-        if self.executor._shutdown:
+        if self.executor._shutdown_thread:
             ibrunning = False
         return ibrunning
 
@@ -419,7 +420,6 @@ class MultiprocessRunner(AsyncRunner):
     def __init__(self, max_workers=None, **kwargs):
         super(MultiprocessRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
-        self.run()
 
     def run(self):
         cls = MultiprocessRunner
@@ -434,6 +434,8 @@ class MultiprocessRunner(AsyncRunner):
 
     @property
     def running(self):
+        if not hasattr(self, 'executor'):
+            return False
         ibrunning = True
         if self.executor._shutdown_thread:
             ibrunning = False
