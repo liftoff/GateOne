@@ -193,7 +193,10 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
     for log in log_files:
         log_path = os.path.join(logs_dir, log)
         logging.debug("Getting metadata from: %s" % log_path)
-        metadata = get_or_update_metadata(log_path, user)
+        try:
+            metadata = get_or_update_metadata(log_path, user)
+        except EOFError:
+            continue # Something wrong with this log; skip
         if not metadata:
             # Broken log file -- may be being written to
             continue # Just skip it

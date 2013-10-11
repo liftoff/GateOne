@@ -188,7 +188,7 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
         Example.toptop = u.getNode('#'+prefix+'toptop');
         if (!Example.toptop) {
             // NOTE: Have to set position:static below since GateOne's default CSS says that '<goDiv> .terminal pre' should be position:absolute
-            Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'background-color': 'rgba(0, 0, 0, 0.25)'}});
+            Example.toptop = u.createElement('pre', {'class': '✈toptop', 'style': {'background-color': 'rgba(0, 0, 0, 0.25)', 'margin': 0}});
             Example.toptop.innerHTML = 'Loading...';
             v.widget('Top Top', Example.toptop, {'onclose': Example.stopTop});
         }

@@ -480,6 +480,7 @@ ul.✈bm_taglist li.bm_autotag:hover {
 }
 .✈bm_buttons {
     text-align: center;
+    margin-top: 1em;
 }
 .✈bm_pagination {
     width: 29%;
@@ -587,17 +588,45 @@ ul.✈bm_taglist li.bm_autotag:hover {
     height: 100%;
 }
 .✈bookmarks_upload {
-    height: 2.5em;
+    display: block;
+    margin: 0 auto;
 }
 .✈bm_new_form {
     padding: 0.5em;
+    min-width: 23em;
+}
+.✈bm_new_form label {
+    display: block;
 }
 .✈bm_new_form input {
-    width: 25em;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
 }
 .✈bm_new_form textarea {
-    width: 25em;
+    width: 100%;
     height: 4em;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.✈bm_import_form {
+    min-width: 15em;
+    text-align: center;
+    padding: 0.5em;
+}
+.✈bm_import_form p {
+    margin: 0;
+    max-width: 20em;
+    display: inline-block;
+    margin-top: 0.5em;
+}
+.✈bm_export_form {
+    min-width: 22em;
+    text-align: center;
 }
 /* Effects */
 div.✈bookmark:hover {

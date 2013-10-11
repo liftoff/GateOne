@@ -150,7 +150,7 @@ go.Base.update(GateOne.Bookmarks, {
         go.Net.addAction('terminal:bookmarks_renamed_tags', b.tagRenameComplete);
         // Setup a keyboard shortcut so bookmarks can be keyboard-navigable
         if (!go.prefs.embedded) {
-            go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
+            go.Input.registerGlobalShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
         }
         // Setup a callback that synchronizes the user's bookmarks everything is done loading
         go.Events.on("go:js_loaded", b.userLoginSync);
@@ -1683,7 +1683,7 @@ go.Base.update(GateOne.Bookmarks, {
         buttonContainer.appendChild(bmSubmit);
         buttonContainer.appendChild(bmCancel);
         bmForm.appendChild(buttonContainer);
-        bmHelp.innerHTML = '<br /><i>Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".</i>'
+        bmHelp.innerHTML = '<i>Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".</i>'
         bmForm.appendChild(bmHelp);
         var closeDialog = go.Visual.dialog("Import Bookmarks", bmForm);
         bmForm.onsubmit = function(e) {
@@ -2460,7 +2460,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             u = go.Utils,
             b = go.Bookmarks,
-            bmForm = u.createElement('form', {'name': prefix+'bm_export_form', 'id': 'bm_export_form', 'class': '✈sectrans'}),
+            bmForm = u.createElement('form', {'name': prefix+'bm_export_form', 'id': 'bm_export_form', 'class': '✈bm_export_form'}),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
             bmExportAll = u.createElement('button', {'id': 'bm_export_all', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),
             bmExportFiltered = u.createElement('button', {'id': 'bm_export_filtered', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),

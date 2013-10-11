@@ -63,7 +63,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131010084913";
+GateOne.__commit__ = "20131010112605";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -185,7 +185,6 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
             missingDependency = true;
         };
     dependencies.forEach(function(dependency) {
-//         console.log("checking for: " + dependency);
         if (dependency.substring) {
             // It's a string; treat it as a global variable we need to be present
             var deps = dependency.split('.');
@@ -195,10 +194,8 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
             }
         } else if (getType.toString.call(dependency) === '[object Function]') {
             // It's a function; it must return true to continue
-//             console.log("Dependency is a function: " + dependency);
             try {
                 if (!dependency()) {
-//                     console.log("Dependency check failed");
                     dependencyFailure();
                 } else {
 //                     console.log("Dependency check succeeded!");
@@ -219,7 +216,6 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
         // Now try loading init() and postInit() functions
         var moduleObj = getParent(window, name.split('.'));
         if (go.initializedModules.indexOf(name) == -1) {
-//             console.log('superSandbox Running: ' + name + '.init()');
             if (typeof(moduleObj.init) == "function") {
                 moduleObj.init();
             }
@@ -230,7 +226,6 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
             go.initializedModules.push(name);
         }
         if (go.Utils._ranPostInit.indexOf(name) == -1) {
-//             console.log('superSandbox Running: ' + name + '.postInit()');
             if (typeof(moduleObj.postInit) == "function") {
                 moduleObj.postInit();
             }
@@ -756,7 +751,7 @@ var go = GateOne.Base.update(GateOne, {
             if (!gridwrapper) {
                 gridwrapper = v.createGrid('gridwrapper');
                 goDiv.appendChild(gridwrapper);
-                var style = window.getComputedStyle(goDiv, null),
+                var style = getComputedStyle(goDiv, null),
                     adjust = 0,
                     paddingRight = (style['padding-right'] || style['paddingRight']);
                 if (paddingRight) {
@@ -1667,7 +1662,7 @@ GateOne.Base.update(GateOne.Utils, {
         if (node === document) {
             return true;
         }
-        style = window.getComputedStyle(node, null);
+        style = getComputedStyle(node, null);
         if (style && style.display == 'none') {
             return false;
         } else if (style && parseInt(style.opacity) == 0) {
@@ -2293,7 +2288,7 @@ GateOne.Base.update(GateOne.Net, {
     init: function() {
         /**:GateOne.Net.init()
 
-        Adds the `go:timeout` and `go:locations` WebSocket actions as well as the `go:ping_timeout` event (which just displays a message to the user indicating as such).
+        Assigns the `go:ping_timeout` event (which just displays a message to the user indicating as such).
         */
         go.Events.on("go:ping_timeout", function() {
             go.Visual.displayMessage("A keepalive ping has timed out.  Attempting to reconnect...");
@@ -2924,22 +2919,22 @@ GateOne.Base.update(GateOne.Visual, {
                 });
             go.Input.registerShortcut('KEY_ARROW_LEFT',
                 {'modifiers': {
-                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
                     'action': 'GateOne.Visual.slideLeft()'
                 });
             go.Input.registerShortcut('KEY_ARROW_RIGHT',
                 {'modifiers': {
-                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
                     'action': 'GateOne.Visual.slideRight()'
                 });
             go.Input.registerShortcut('KEY_ARROW_UP',
                 {'modifiers': {
-                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
                     'action': 'GateOne.Visual.slideUp()'
                 });
             go.Input.registerShortcut('KEY_ARROW_DOWN',
                 {'modifiers': {
-                    'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
+                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
                     'action': 'GateOne.Visual.slideDown()'
                 });
             go.Input.registerShortcut('KEY_G',
@@ -3027,7 +3022,7 @@ GateOne.Base.update(GateOne.Visual, {
             app = workspaceNode.getAttribute('data-application');
         if (app && go.loadedApplications[app].__appinfo__.relocatable) {
             // Temporarily disabled while I complete the locations panel
-//             go.Visual.showLocationsIcon();
+            go.Visual.showLocationsIcon();
         } else {
             go.Visual.hideLocationsIcon();
         }
@@ -3326,7 +3321,7 @@ GateOne.Base.update(GateOne.Visual, {
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             rightAdjust = 0,
-            style = window.getComputedStyle(goDiv, null),
+            style = getComputedStyle(goDiv, null),
             paddingRight = (style['padding-right'] || style['paddingRight']);
             if (style['padding-right']) {
                 var rightAdjust = parseInt(paddingRight.split('px')[0]);
@@ -4089,7 +4084,7 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
             workspaces = u.toArray(u.getNodes('.✈workspace')),
-            style = window.getComputedStyle(go.node, null),
+            style = getComputedStyle(go.node, null),
             rightAdjust = 0,
             bottomAdjust = 0,
             paddingRight = (style['padding-right'] || style['paddingRight']),
@@ -4450,9 +4445,13 @@ GateOne.Base.update(GateOne.Visual, {
 
             :events: An object containing DOM events that will be attached to the dialog node.  Example: ``{'mousedown': someFunction}``.  There are a few special/simulated events of which you may also attach: 'closed', 'opened', 'resized', and 'moved'.  Except for 'close', these special event functions will be passed the dialog node as the only argument.
             :resizable: If set to ``false`` the dialog will not be resizable (all dialogs are resizable by default).  Note that if a dialog may not be resized it will also not be maximizable.
+            :maximizable: If set to ``false`` the dialog will not have a maximize icon.
+            :minimizable: If set to ``false`` the dialog will not have a minimize icon.
             :where: If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (`GateOne.node`) and will be movable anywhere on the page.
             :class: Any additional CSS classes you wish to add to the dialog (space-separated).
             :style: Any CSS you wish to apply to the dialog.  Example:  ``{'style': {'width': '50%', 'height': '25%'}}``
+
+        .. warning:  Do not use elements with top/bottom margins inside dialogs or the size calculations will be off (it won't look as nice).  Use `padding-top` and `padding-bottom` instead.
         */
         var prefix = go.prefs.prefix,
             u = go.Utils,
@@ -4462,8 +4461,10 @@ GateOne.Base.update(GateOne.Visual, {
             style = {},
             _class = '',
             resizable = true,
+            maximizable = true,
+            minimizable = true,
             where = go.node,
-            dialogContainer,
+            dialogContainer, dialogContainerStyle,
             dialogDiv = u.createElement('div', {'id': 'dialogdiv', 'class': '✈dialogdiv'}),
             dialogConent = u.createElement('div', {'id': 'dialogcontent', 'class': '✈dialogcontent'}),
             dialogTitle = u.createElement('h3', {'id': 'dialogtitle', 'class': '✈dialogtitle'}),
@@ -4512,7 +4513,7 @@ GateOne.Base.update(GateOne.Visual, {
             titleMouseDown = function(e) {
                 var m = go.Input.mouse(e); // Get the properties of the mouse event
                 if (m.button.left) { // Only if left button is depressed
-                    var computedStyle = window.getComputedStyle(dialogContainer, null),
+                    var computedStyle = getComputedStyle(dialogContainer, null),
                         left = computedStyle['left'],
                         top = computedStyle['top'];
                     dialogContainer.dragging = true;
@@ -4522,7 +4523,7 @@ GateOne.Base.update(GateOne.Visual, {
                     if (left.indexOf('%') != -1) {
                         // Have to convert a percent to an actual pixel value
                         var percent = parseInt(left.substring(0, left.length-1)),
-                            bodyWidth = window.getComputedStyle(document.body, null)['width'],
+                            bodyWidth = getComputedStyle(document.body, null)['width'],
                             bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
                         v.dragOrigin.dialogX = Math.floor(bodyWidth * (percent*.01));
                     } else {
@@ -4541,7 +4542,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             dragHandleMouseDown = function(e) {
                 var m = go.Input.mouse(e),
-                    computedStyle = window.getComputedStyle(dialogContainer, null);
+                    computedStyle = getComputedStyle(dialogContainer, null);
                 if (m.button.left) { // Only if left button is depressed
                     if (!v.resizeOrigin.X) {
                         v.resizeOrigin.X = e.clientX;
@@ -4612,8 +4613,8 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             },
             toggleMaximize = function(e) {
-                var dialogContainerStyle = window.getComputedStyle(dialogContainer, null),
-                    dialogDivStyle = window.getComputedStyle(dialogDiv, null);
+                dialogContainerStyle = getComputedStyle(dialogContainer, null); // Update with the latest info
+                var dialogDivStyle = getComputedStyle(dialogDiv, null);
                 if (!dialogContainer.classList.contains('✈halfsectrans')) {
                     dialogContainer.classList.add('✈halfsectrans');
                 }
@@ -4641,8 +4642,17 @@ GateOne.Base.update(GateOne.Visual, {
                     dialogContainer.style.left = 0;
                     dialogContainer.style.width = dialogContainer.parentNode.clientWidth + 'px';
                     dialogContainer.style.height = dialogContainer.parentNode.clientHeight + 'px';
-                    dialogDiv.style.height = ''; // Reset
+                    dialogDiv.style.height = '';
                 }
+                // Maximizing counts as both moving *and* resizing
+                setTimeout(function() {
+                    if (options['events']['moved']) {
+                        options['events']['moved'](dialogContainer);
+                    };
+                    if (options['events']['resized']) {
+                        options['events']['resized'](dialogContainer);
+                    };
+                }, 550);
             },
             toggleMinimize = function(e) {
 
@@ -4681,7 +4691,19 @@ GateOne.Base.update(GateOne.Visual, {
             v.dialogs = [];
         }
         if (options) {
-            resizable = options['resizable'] || true;
+            if (options['resizable'] === false) {
+                resizable = false;
+            }
+            if (options['maximizable'] === false) {
+                maximizable = false;
+            }
+            if (options['minimizable'] === false) {
+                minimizable = false;
+            }
+            if (!resizable) {
+                // Disable maximization if not resizable
+                maximizable = false;
+            }
             if (options['style']) {
                 style = options['style'];
             }
@@ -4744,8 +4766,12 @@ GateOne.Base.update(GateOne.Visual, {
         dialogTitle.innerHTML = '<span class="✈titletext">' + title + '</span>';
         dialogContainer.appendChild(dialogTitle);
         icons.appendChild(close);
-        icons.appendChild(maximize);
-        icons.appendChild(minimize);
+        if (maximizable) {
+            icons.appendChild(maximize);
+        }
+        if (minimizable) {
+            icons.appendChild(minimize);
+        }
         dialogTitle.appendChild(icons);
         if (typeof(content) == "string") {
             dialogConent.innerHTML = content;
@@ -4766,7 +4792,18 @@ GateOne.Base.update(GateOne.Visual, {
         }
         where.appendChild(dialogContainer);
         dialogDiv.style.height = "calc(100% - " + dialogTitle.clientHeight + 'px)';
-        v.dialogZIndex = parseInt(getComputedStyle(dialogContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
+        // Assign the calculated styles to the actual style so that the browser can perform a clean CSS3 transition
+        dialogContainerStyle = getComputedStyle(dialogContainer, null);
+        v.dialogZIndex = parseInt(dialogContainerStyle.zIndex); // Right now this is 850 in the themes but that could change in the future so I didn't want to hard-code that value
+        setTimeout(function() {
+            // A short timeout on this just in case the dialog content is being updated after it's created
+            v.disableTransitions(dialogContainer); // Temporary while we assign the height/width
+            dialogContainer.style.width = dialogContainerStyle.width;
+            dialogContainer.style.height = dialogContainerStyle.height;
+            setTimeout(function() {
+                v.enableTransitions(dialogContainer);
+            }, 10);
+        }, 1010);
         dialogToForeground();
         if (options && options['events'] && options['events']['opened']) {
             options['events']['opened']();

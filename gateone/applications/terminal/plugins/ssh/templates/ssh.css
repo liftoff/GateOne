@@ -69,12 +69,11 @@
     margin-top: -1.5em;
 }
 .✈ssh_id_form {
-    width: 20em;
     margin: 0 auto;
     padding: 0.5em;
 }
 .✈ssh_id_form input {
-    width: 98%;
+    width: 100%;
 }
 .✈ssh_id_form select {
     font-size: 0.9em;
@@ -85,6 +84,10 @@
     margin-right: 1em;
     margin-bottom: 0.4em;
     margin-left: 0.4em;
+}
+.✈ssh_buttons {
+    margin: 0 auto;
+    text-align: center;
 }
 .✈ssh_id:hover {
     cursor: pointer;
@@ -103,6 +106,11 @@
     -ms-transition: background-color 0.05s ease-in-out;
     transform-origin: top left;
     transition: background-color 0.05s ease-in-out;
+}
+.✈ssh_new_id_passphrase {
+    display: block;
+}
+.✈ssh_keybits_row {
 }
 .✈ssh_panel_link {
     float: left;

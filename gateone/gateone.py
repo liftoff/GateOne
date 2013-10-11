@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131010084913" # Gets replaced by git (holds the date/time)
+__commit__ = "20131010112605" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2542,7 +2542,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
             * **theme** - The name of the CSS theme to be retrieved.
 
-        .. note:: This will send the theme files for all applications and plugins that have a matching stylesheet in their 'templates' directory.
+        .. note::
+
+            This will send the theme files for all applications and plugins that
+            have a matching stylesheet in their 'templates' directory.
         """
         self.logger.debug('get_theme(%s)' % settings)
         send_css = self.prefs['*']['gateone'].get('send_css', True)

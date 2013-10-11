@@ -420,7 +420,13 @@ class TerminalApplication(GOApplication):
                 self.plugin_hooks.update({plugin.__name__: plugin.hooks})
                 if hasattr(plugin, 'initialize'):
                     plugin.initialize(self)
-            except AttributeError:
+            except AttributeError as e:
+                if options.logging.lower() == 'debug':
+                    self.term_log.error(
+                        _("Got exception trying to initialize the {0} plugin:"))
+                    self.term_log.error(e)
+                    import traceback
+                    traceback.print_exc(file=sys.stdout)
                 pass # No hooks--probably just a supporting .py file.
         # Hook up the hooks
         # NOTE:  Most of these will soon be replaced with on() and off() events

@@ -53,8 +53,10 @@ GateOne.Base.update(GateOne.Visual, {
             widgetDiv = u.createElement('div', {'id': 'widgetdiv', 'class': '✈widgetdiv'}),
             widgetContent = u.createElement('div', {'id': 'widgetcontent', 'class': '✈widgetcontent'}),
             widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': '✈halfsectrans ✈originbottommiddle ✈widgettitle'}),
-            close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_close'}),
-            configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_configure'}),
+            dragHandle = u.createElement('div', {'class': '✈draghandle'}),
+            icons = u.createElement('div', {'class': '✈dialog_icons'}),
+            close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_icon ✈widget_close'}),
+            configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_icon ✈widget_configure'}),
             widgetToForeground = function(e) {
                 // Move this widget to the front of our array and fix all the z-index of all the widgets
                 for (var i in v.widgets) {
@@ -223,7 +225,8 @@ GateOne.Base.update(GateOne.Visual, {
             widgetTitle.appendChild(configure);
         }
         widgetContainer.appendChild(widgetTitle);
-        widgetTitle.appendChild(close);
+        icons.appendChild(close);
+        widgetTitle.appendChild(icons);
         if (typeof(content) == "string") {
             widgetContent.innerHTML = content;
         } else {
@@ -243,6 +246,55 @@ GateOne.Base.update(GateOne.Visual, {
             options.onopen(widgetContainer);
         }
         return closeWidget;
+    },
+    confirm: function(title, question, callback) {
+        /**:GateOne.Visual.confirm(title, question, callback)
+
+        Opens a dialog where the user will be asked to confirm (via "Yes" or "No") the given *message*.
+
+        The given *callback* will be called if the user confirms by clicking the "Yes" button.
+
+        :param title: The title of the confirmation.
+        :param question: The yes/no question to ask the user.
+        :param callback: A function that will be called if the user confirms with "Yes".
+        */
+        var go = GateOne,
+            u = GateOne.Utils,
+            v = GateOne.Visual,
+            closeDialog,
+            options = {'maximizable': false, 'minimizable': false},
+            centeringDiv = u.createElement('div', {'class': '✈centered_text'}),
+            yes = u.createElement('button', {'type': 'submit', 'value': 'OK', 'class': '✈button ✈black ✈yes'}),
+            no = u.createElement('button', {'type': 'reset', 'value': 'OK', 'class': '✈button ✈black ✈no'}),
+            messageContainer = u.createElement('p', {'class': '✈confirm_message'});
+        yes.innerHTML = gettext("Yes");
+        no.innerHTML = gettext("No");
+        if (question instanceof HTMLElement) {
+            messageContainer.appendChild(question);
+        } else {
+            messageContainer.innerHTML = "<p>" + question + "</p>";
+        }
+        centeringDiv.appendChild(no);
+        centeringDiv.appendChild(yes);
+        messageContainer.appendChild(centeringDiv);
+        closeDialog = go.Visual.dialog(title, messageContainer, options);
+        no.tabIndex = 1;
+        yes.tabIndex = 1;
+        yes.onclick = function(e) {
+            e.preventDefault();
+            closeDialog();
+            if (callback) {
+                callback();
+            }
+        }
+        no.onclick = function(e) {
+            e.preventDefault();
+            closeDialog();
+        }
+        setTimeout(function() {
+            no.focus();
+        }, 250);
+        go.Events.trigger('go:confirm', title, question, closeDialog);
     },
     // Example pane usage scenarios:
     //   var testPane = GateOne.Visual.Pane();

@@ -240,11 +240,7 @@
     transform-origin: 50% 100%;
 }
 #{{container}} textarea {
-    background-color: #fff;
-    outline: none;
-    resize: none;
     font-family: monospace; /* For consistency */
-    line-height: 1.04;
 }
 .✈noanimate {
     -webkit-transition: none !important;
@@ -305,15 +301,19 @@ potential conflicts with other classes that may be on the page.
     margin: 0;
     display: -webkit-box;
     display: -moz-box;
+    display: -ms-box;
     display: box;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
+    -ms-box-orient: vertical;
     box-orient: vertical;
     -webkit-box-align: center;
     -moz-box-align: center;
+    -ms-box-align: center;
     flex-align: center;
     -webkit-box-pack: center;
     -moz-box-pack: center;
+    -ms-box-pack: center;
     flex-pack: center;
 }
 .✈wsinfo {
@@ -327,15 +327,19 @@ potential conflicts with other classes that may be on the page.
     background-color: rgba(0, 0, 0, 0.7);
     display: -webkit-box;
     display: -moz-box;
+    display: -ms-box;
     display: box;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
+    -ms-box-orient: vertical;
     box-orient: vertical;
     -webkit-box-align: center;
     -moz-box-align: center;
+    -ms-box-align: center;
     flex-align: center;
     -webkit-box-pack: center;
     -moz-box-pack: center;
+    -ms-box-pack: center;
     flex-pack: center;
 }
 .✈noticecontainer {
@@ -574,12 +578,12 @@ potential conflicts with other classes that may be on the page.
     content: "⏋ ";
 }
 #{{container}} label {
-    display: block;
+/*     display: block; */
     font-weight: bold;
     cursor: pointer;
-    position: relative;
-    z-index: 1;
-    padding-top: 0.2em;
+/*     position: relative; */
+/*     z-index: 1; */
+/*     padding-top: 0.2em; */
 }
 .✈medium {
     height: 5em;
@@ -675,30 +679,31 @@ potential conflicts with other classes that may be on the page.
     border-radius: 0.25em 0.25em 0 0;
 }
 .✈dialogcontainer p {
-    padding: 0.5em;
+/*     padding: 0.5em; */
+    margin: 0;
 }
 .✈dialogcontainer textarea {
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
     border-radius: 2px;
-    color: #000;
-    position: relative;
+/*     color: #000; */
+/*     position: relative; */
 }
 .✈dialogcontainer input {
-    margin-right: 1.3em;
+/*    margin-right: 1.3em;
     margin-bottom: 0.2em;
-    padding: 0.2em 0.2em;
+    padding: 0.2em 0.2em;*/
     border: 1px solid #bbb;
     border-radius: 2px;
     color: #000;
-    position: relative;
-    display: block;
-    width: 98%;
+/*     position: relative; */
+/*     display: block; */
+/*     width: 98%; */
 }
 .✈dialogcontainer label {
-    font-size: 1.2em;
-    padding-top: 0.5em;
-    display: inline-block;
+/*     font-size: 1.2em; */
+/*     padding-top: 0.5em; */
+/*     display: inline-block; */
     font-family: sans-serif;
 }
 .✈dialogtitle:hover {
@@ -761,11 +766,19 @@ potential conflicts with other classes that may be on the page.
 .✈draghandle:hover {
     cursor: se-resize;
 }
+.✈confirm_message {
+    min-width: 15em;
+    text-align: center;
+}
+.✈confirm_message p {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
 .✈widgetcontainer {
     font-family: sans-serif;
     position: absolute;
     overflow: hidden;
-    top: 20%;
+    top: 25%;
     left: 25%;
     background-color: transparent;
     max-width: 100%;
@@ -776,7 +789,7 @@ potential conflicts with other classes that may be on the page.
     cursor: move;
 }
 .✈widgetcontainer h3 {
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.25);
     color: #fff;
     padding-left: 0.5em;
     line-height: 1.5;
@@ -784,65 +797,52 @@ potential conflicts with other classes that may be on the page.
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
     text-align: center;
-    font-size: 1em;
+    font-size: 0.9em;
     /* Hidden by default */
     opacity: 0;
-}
-.✈widgetcontainer textarea {
-    margin-right: 1.3em;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    color: #000;
-    position: relative;
-}
-.✈widgetcontainer input {
-    margin-right: 1.3em;
-    margin-bottom: 0.2em;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    color: #000;
-    position: relative;
-    display: block;
-    width: 99%;
-}
-.✈widgetcontainer label {
-    font-size: 1.2em;
-    padding-top: 0.5em;
-    display: inline-block;
-    font-family: sans-serif;
 }
 .✈widgettitle:hover {
     cursor: move;
 }
-/* widgetdiv wraps widgetcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
 .✈widgetdiv {
-    float: left;
     position: relative;
-    left: 50%;
-    width: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 .✈widgetcontent:hover {
     border: solid 1px #000;
 }
 .✈widgetcontent {
-    float: left;
     position: relative;
-    left: -50%;
     width: 100%;
-    border: solid 1px transparent;
+    height: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
 }
-.✈widget_close {
+.✈widget_icons {
     position: absolute;
     top: 0;
     right: 0;
+}
+.✈widget_icon {
     margin-top: 0.2em;
-    margin-right: 0.2em;
+    margin-right: 0.3em;
     cursor: pointer;
     opacity: .75;
+    float: right;
+    display: inline-block;
 }
-.✈widget_close:hover {
+.✈widget_close {
+}
+.✈widget_icon svg {
+    width: 1em;
+    height: 1em;
+}
+.✈widget_icon:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
     opacity: 1;
 }

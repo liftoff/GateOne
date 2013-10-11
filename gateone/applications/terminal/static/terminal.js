@@ -362,16 +362,19 @@ go.Base.update(GateOne.Terminal, {
         }
         // Register our keyboard shortcuts
         if (!go.prefs.embedded) {
-            I.registerShortcut('KEY_P',
-                {'modifiers': {
-                    'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
-                    'action': 'go.Terminal.printScreen()'
+            I.registerShortcut('KEY_P', {
+                    'modifiers': {'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
+                    'action': 'GateOne.Terminal.printScreen();'
                 });
             // Helpful message so the user doesn't get confused as to why their terminal stopped working:
-            I.registerShortcut('KEY_S',
-                {'modifiers': {
-                    'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
+            I.registerShortcut('KEY_S', {
+                    'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
                     'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'
+                });
+            // Ctrl-Alt-P to open a popup terminal
+            I.registerGlobalShortcut('KEY_P', {
+                    'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                    'action': 'GateOne.Terminal.popupTerm(null, {"global": false});' // May change to global: true later
                 });
             E.on("terminal:new_terminal", go.Terminal.showIcons);
         }
@@ -458,10 +461,16 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
-        E.on("terminal:resume_popup", function(term) {
+        E.on("terminal:resume_popup", function(term, termObj) {
             setTimeout(function() {
                 // Popup terminals need a moment so they can finish being drawn
-                go.Terminal.popupTerm(term);
+                var options = {};
+                if (termObj['metadata']) {
+                    if (termObj['metadata']['where']) {
+                        options['where'] = u.getNode('#' + termObj['metadata']['where']) || u.getNode('.' + termObj['metadata']['where']);
+                    }
+                }
+                go.Terminal.popupTerm(term, options);
             }, 1150);
         });
         // Open/Create our terminal database
@@ -1895,14 +1904,20 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.switchTerminal(termNum);
         }
     },
-    popupTerm: function(/*opt*/term) {
+    popupTerm: function(/*opt*/term, /*opt*/options) {
         /**:GateOne.Terminal.popupTerm([term])
 
         Opens a dialog with a terminal contained within.  If *term* is given the created terminal will use that number.
 
+        The *options* argument may contain the following:
+
+            :global: If ``true`` the dialog will be appended to `document.body` instead of the current workspace (the default).
+            :where: If given, the popup terminal will be placed within the given element.
+
         If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.
         */
         term = term || go.Terminal.lastTermNumber + 1;
+        options = options || {};
         var content = u.createElement('div', {'class': '✈termdialog', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'width': '100%', 'height': '100%'}}),
             closeFunc = function(dialogContainer) {
                 go.Terminal.closeTerminal(term);
@@ -1920,15 +1935,22 @@ go.Base.update(GateOne.Terminal, {
                     t.alignTerminal(term);
                 }, 250);
             },
-            closeDialog = v.dialog("Pop-up Terminal", content, {'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'}),
+            currentWorkspace = localStorage[prefix+'selectedWorkspace'],
+            where = options['where'] || u.getNode('#'+prefix+'workspace'+currentWorkspace),
+            closeDialog,
             termQuitFunc = function(termNum) {
                 if (termNum == term) {
                     closeDialog();
                     E.off('terminal:term_closed', termQuitFunc);
                 }
             };
+        if (options['global']) {
+            where = go.node;
+        }
+        where = u.getNode(where); // In case of a string
+        closeDialog = v.dialog("Pop-up Terminal", content, {'where': where, 'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'});
         E.on('terminal:term_closed', termQuitFunc);
-        go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup"}, 'style': {'width': '100%', 'height': '100%'}}, content);
+        go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup", 'where': where.id || where.className}, 'style': {'width': '100%', 'height': '100%'}}, content);
         setTimeout(function() {
             // popup terminals need a moment before they're ready for a dimensions check
             t.sendDimensions(term);

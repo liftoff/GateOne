@@ -10,6 +10,7 @@ var document = window.document, // Have to do this because we're sandboxed
     v = go.Visual,
     E = go.Events,
     t = go.Terminal,
+    gettext = go.i18n.gettext,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -444,7 +445,10 @@ go.Base.update(go.SSH, {
             deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete ✈button ✈black', 'type': 'submit', 'value': 'Submit'}),
             uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
-            IDObj = null;
+            IDObj = null,
+            confirmDeletion = function(e) {
+                go.ws.send(JSON.stringify({'terminal:ssh_delete_identity': IDObj['name']}));
+            };
         // Retreive the metadata on the log in question
         for (var i in ssh.identities) {
             if (ssh.identities[i]['name'] == identity) {
@@ -463,22 +467,9 @@ go.Base.update(go.SSH, {
         deleteIDButton.innerHTML = "Delete " + IDObj['name'];
         deleteIDButton.title = "Delete this identity";
         deleteIDButton.onclick = function(e) {
-            // Display a confirmation dialog
-            var container = u.createElement('div', {'style': {'text-align': 'center'}}),
-                yes = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-                no = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
-            yes.innerHTML = "Yes";
-            no.innerHTML = "No";
-            container.appendChild(yes);
-            container.appendChild(no);
-            var closeDialog = go.Visual.dialog('Delete identity ' + IDObj['name'] + '?', container);
-            yes.onclick = function(e) {
-                go.ws.send(JSON.stringify({'terminal:ssh_delete_identity': IDObj['name']}));
-                closeDialog();
-            }
-            no.onclick = closeDialog;
+            v.confirm('Delete identity ' + IDObj['name'] + '?', gettext("Are you sure you wish to delete this identity?"), confirmDeletion);
         }
-        uploadCertificateButton.title = "An X.509 certificate may be uploaded to add to this identity.  If one already exists, the existing certificate will be overwritten.";
+        uploadCertificateButton.title = gettext("An X.509 certificate may be uploaded to add to this identity.  If one already exists, the existing certificate will be overwritten.");
         uploadCertificateButton.onclick = function(e) {
             ssh.uploadCertificateForm(identity);
         }
@@ -659,6 +650,7 @@ go.Base.update(go.SSH, {
             identityForm = u.createElement('form', {'name': prefix+'ssh_id_form', 'class': '✈ssh_id_form'}),
             nameInput = u.createElement('input', {'type': 'text', 'id': 'ssh_new_id_name', 'name': prefix+'ssh_new_id_name', 'placeholder': '<letters, numbers, underscore>', 'tabindex': 1, 'required': 'required', 'pattern': '[A-Za-z0-9_]+'}),
             nameLabel = u.createElement('label'),
+            keyBitsRow = u.createElement('div', {'class': '✈ssh_keybits_row'}),
             keytypeLabel = u.createElement('label'),
             keytypeSelect = u.createElement('select', {'id': 'ssh_new_id_keytype', 'name': prefix+'ssh_new_id_keytype'}),
             rsaType = u.createElement('option', {'value': 'rsa'}),
@@ -676,11 +668,12 @@ go.Base.update(go.SSH, {
             ecdsaBits = [bits256, bits384, bits521],
             dsaBits = [bits1024],
             rsaBits = [bits768, bits1024, bits2048, bits4096],
-            passphraseInput = u.createElement('input', {'type': 'password', 'id': 'ssh_new_id_passphrase', 'name': prefix+'ssh_new_id_passphrase', 'placeholder': '<Optional>', 'pattern': '.{4}.+'}), // That pattern means > 4 characters
+            passphraseInput = u.createElement('input', {'type': 'password', 'id': 'ssh_new_id_passphrase', 'name': prefix+'ssh_new_id_passphrase', 'class': '✈ssh_new_id_passphrase', 'placeholder': '<Optional>', 'pattern': '.{4}.+'}), // That pattern means > 4 characters
             verifyPassphraseInput = u.createElement('input', {'type': 'password', 'id': 'ssh_new_id_passphrase_verify', 'name': prefix+'ssh_new_id_passphrase_verify', 'placeholder': '<Optional>', 'pattern': '.{4}.+'}),
             passphraseLabel = u.createElement('label'),
             commentInput = u.createElement('input', {'type': 'text', 'id': 'ssh_new_id_comment', 'name': prefix+'ssh_new_id_comment', 'placeholder': '<Optional>'}),
             commentLabel = u.createElement('label'),
+            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'}),
             nameValidate = function(e) {
@@ -758,18 +751,20 @@ go.Base.update(go.SSH, {
         commentLabel.htmlFor = prefix+'ssh_new_id_comment';
         identityForm.appendChild(nameLabel);
         identityForm.appendChild(nameInput);
-        identityForm.appendChild(keytypeLabel);
-        identityForm.appendChild(keytypeSelect);
-        identityForm.appendChild(bitsLabel);
-        identityForm.appendChild(bitsSelect);
+        keyBitsRow.appendChild(keytypeLabel);
+        keyBitsRow.appendChild(keytypeSelect);
+        keyBitsRow.appendChild(bitsLabel);
+        keyBitsRow.appendChild(bitsSelect);
+        identityForm.appendChild(keyBitsRow);
         identityForm.appendChild(passphraseLabel);
         identityForm.appendChild(passphraseInput);
         identityForm.appendChild(verifyPassphraseInput);
         identityForm.appendChild(commentLabel);
         identityForm.appendChild(commentInput);
-        identityForm.appendChild(submit);
-        identityForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('New SSH Identity', identityForm);
+        buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(cancel);
+        identityForm.appendChild(buttonContainer);
+        var closeDialog = go.Visual.dialog('New SSH Identity', identityForm, {'style': {'width': '20em'}}); // Just an initial width
         cancel.onclick = closeDialog;
         setTimeout(function() {
             setTimeout(function() {
@@ -813,6 +808,7 @@ go.Base.update(go.SSH, {
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
             note = u.createElement('p', {'style': {'font-size': '80%', 'margin-top': '1em', 'margin-bottom': '1em'}}),
+            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
@@ -831,9 +827,10 @@ go.Base.update(go.SSH, {
         uploadIDForm.appendChild(certificateFileLabel);
         uploadIDForm.appendChild(certificateFile);
         uploadIDForm.appendChild(note);
-        uploadIDForm.appendChild(submit);
-        uploadIDForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('Upload SSH Identity', uploadIDForm);
+        buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(cancel);
+        uploadIDForm.appendChild(buttonContainer);
+        var closeDialog = go.Visual.dialog('Upload SSH Identity', uploadIDForm, {'style': {'width': '20em'}});
         cancel.onclick = closeDialog;
         uploadIDForm.onsubmit = function(e) {
             // Don't actually submit it
@@ -906,9 +903,10 @@ go.Base.update(go.SSH, {
         */
         var goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': '✈ssh_id_form'}),
+            uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': '✈ssh_id_form ✈centered_text'}),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
+            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
@@ -917,9 +915,10 @@ go.Base.update(go.SSH, {
         certificateFileLabel.htmlFor = prefix+'ssh_upload_id_cert';
         uploadCertForm.appendChild(certificateFileLabel);
         uploadCertForm.appendChild(certificateFile);
-        uploadCertForm.appendChild(submit);
-        uploadCertForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('Upload X.509 Certificate', uploadCertForm);
+        buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(cancel);
+        uploadCertForm.appendChild(buttonContainer);
+        var closeDialog = go.Visual.dialog('Upload X.509 Certificate', uploadCertForm, {'style': {'width': '20em'}});
         cancel.onclick = closeDialog;
         uploadCertForm.onsubmit = function(e) {
             // Don't actually submit it
@@ -953,22 +952,24 @@ go.Base.update(go.SSH, {
             passphraseLabel = u.createElement('label'),
             explanation = u.createElement('p', {'style': {'margin-top': '0.5em'}}),
             safetyNote = u.createElement('p', {'style': {'font-size': '80%'}}),
+            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
         passphrase.autofocus = "autofocus";
-        explanation.innerHTML = "The private key for this SSH identity is protected by a passphrase.  Please enter the passphrase so a public key can be generated.";
-        safetyNote.innerHTML = "<b>NOTE:</b> This passphrase will only be used to extract the public key and will not be stored.";
-        passphraseLabel.innerHTML = "Passphrase";
+        explanation.innerHTML = gettext("The private key for this SSH identity is protected by a passphrase.  Please enter the passphrase so a public key can be generated.");
+        safetyNote.innerHTML = gettext("<b>NOTE:</b> This passphrase will only be used to extract the public key and will not be stored.");
+        passphraseLabel.innerHTML = gettext("Passphrase");
         passphraseLabel.htmlFor = prefix+'ssh_passphrase';
         passphraseForm.appendChild(explanation);
         passphraseForm.appendChild(passphraseLabel);
         passphraseForm.appendChild(passphrase);
         passphraseForm.appendChild(safetyNote);
-        passphraseForm.appendChild(submit);
-        passphraseForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('Passphrase for "' + settings['name'] + '"', passphraseForm);
+        buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(cancel);
+        passphraseForm.appendChild(buttonContainer);
+        var closeDialog = go.Visual.dialog('Passphrase for "' + settings['name'] + '"', passphraseForm, {'style': {'width': '23em'}});
         // TODO: Make it so that the identity in question gets deleted if the user cancels out trying to enter the correct passphrase
         // TODO: Alternatively, hang on to the identity but provide a button to re-try the passphrase (will require some server-side detection too I think)
         if (settings['bad']) {

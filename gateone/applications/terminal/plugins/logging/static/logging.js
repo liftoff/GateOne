@@ -73,7 +73,7 @@ go.Base.update(GateOne.TermLogging, {
             logViewContent = u.createElement('div', {'id': 'logview_container', 'class': '✈sectrans'}),
             logPagination = u.createElement('div', {'id': 'log_pagination', 'class': '✈log_pagination ✈sectrans'}),
             logInfoContainer = u.createElement('div', {'id': 'log_info', 'class': '✈log_info'}),
-            logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
+            logListContainer = u.createElement('div', {'id': 'log_listcontainer', 'class': '✈log_listcontainer'}),
             logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'class': '✈log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
             hr = u.createElement('hr'),
             logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'✈table_header_row ✈logitems_header'}),
@@ -480,7 +480,7 @@ go.Base.update(GateOne.TermLogging, {
                 'Filename': logObj['filename'],
                 'Date': dateString,
                 'Frames': logObj['frames'],
-                'Size': logObj['size'],
+                'Size': u.humanReadableBytes(logObj['size'], 2),
                 'Rows': logObj['rows'],
                 'Columns': logObj['columns']
             };
@@ -533,11 +533,11 @@ go.Base.update(GateOne.TermLogging, {
                 previewIframe = u.getNode('#'+prefix+'log_preview'),
                 iframeDoc = previewIframe.contentWindow.document;
             // Highlight the selected row and show the metadata
-            u.toArray(u.getNodes('.✈table_row')).forEach(function(node) {
+            u.toArray(u.getNodes('.✈logitem')).forEach(function(node) {
                 // Reset them all before we apply the 'active' class to just the one
-                node.className = '✈halfsectrans ✈table_row';
+                node.classList.remove('✈active');
             });
-            this.className = '✈halfsectrans ✈table_row ✈active';
+            this.classList.add('✈active');
             iframeDoc.open();
             iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
             iframeDoc.close();

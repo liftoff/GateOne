@@ -1,4 +1,5 @@
 
+// TODO:  Add syntax highlighting for nmap (use GateOne.Terminal.lastCommand)
 GateOne.Base.superSandbox("GateOne.Convenience", ["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
 "use strict";
 

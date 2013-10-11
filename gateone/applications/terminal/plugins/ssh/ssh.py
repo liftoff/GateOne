@@ -447,12 +447,10 @@ def get_connect_string(self, term):
     that assigns the connection string sent by this function to
     `GateOne.Terminal.terminals[*term*]['sshConnectString']`.
     """
-    # Despite being attached to this instance of Terminal in initialize() the
-    # instance will lose the ssh_log attribute somehow for this function.
-    # Probably a multiprocessing/connection setup thing.
-    if not hasattr(self, 'ssh_log'):
-        self.ssh_log = go_logger(
-            "gateone.terminal.ssh", plugin='ssh', **self.log_metadata)
+    # This is the first function that normally gets called when a user uses SSH
+    # so it's a good time to update the logger with extra metadata
+    self.ssh_log = go_logger(
+        "gateone.terminal.ssh", plugin='ssh', **self.log_metadata)
     term = int(term)
     if term not in self.loc_terms:
         return # Nothing to do (already closed)
@@ -742,10 +740,10 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
     pubkey_path = "%s.pub" % path
     command = (
         "%s "       # Path to ssh-keygen
-        "-f %s "    # Key path
+        "-f '%s' "  # Key path
         "-y "       # Output public key to stdout
         "2>&1 "     # Redirect stderr to stdout so we can catch failures
-        "> %s"      # Redirect stdout to the public key path
+        "> '%s'"    # Redirect stdout to the public key path
         % (ssh_keygen_path, path, pubkey_path)
     )
     import termio
@@ -769,6 +767,7 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
     def atexit(child, exitstatus):
         "Raises an SSHKeygenException if the *exitstatus* isn't 0"
         if exitstatus != 0:
+            print(m.dump)
             raise SSHKeygenException(_(
                 "Error generating public key from private key at %s" % path))
     m.spawn(exitfunc=atexit)
@@ -821,35 +820,37 @@ def store_id_file(self, settings):
     with the private and public keys.  It will be saved as
     *settings['name']*-cert.pub.
 
-    .. note:: I've found the following website helpful in understanding how to use OpenSSH with SSL certificates: http://blog.habets.pp.se/2011/07/OpenSSH-certificates
+    .. note::
 
-    .. tip:: Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.
+        I've found the following website helpful in understanding how to use
+        OpenSSH with SSL certificates:
+        http://blog.habets.pp.se/2011/07/OpenSSH-certificates
+
+    .. tip::
+
+        Using signed-by-a-CA certificates is very handy because allows you to
+        revoke the user's SSH key(s).  e.g. If they left the company.
     """
     self.ssh_log.debug('store_id_file()')
     out_dict = {'result': 'Success'}
-    name, private, public, certificate = None, None, None, None
-    passphrase = None
     global TIMER
     try:
-        if 'name' in settings:
-            name = settings['name']
-        else:
+        name = settings.get('name', None)
+        if not name:
             raise SSHKeypairException(_("You must specify a valid *name*."))
-        if 'private' in settings:
-            private = settings['private']
-        if 'public' in settings:
-            public = settings['public']
-        if 'certificate' in settings:
-            certificate = settings['certificate']
-        if 'passphrase' in settings:
-            passphrase = settings['passphrase']
+        name = os.path.splitext(name)[0] # Remove .txt, .pub, etc
+        private = settings.get('private', None)
+        public = settings.get('public', None)
+        certificate = settings.get('certificate', None)
+        passphrase = settings.get('passphrase', None)
         if not private and not public and not certificate:
             raise SSHKeypairException(_("No files were given to save!"))
         users_ssh_dir = get_ssh_dir(self)
         private_key_path = os.path.join(users_ssh_dir, name)
-        public_key_name = name + '.pub'
+        # Strip any .pub or .txt from the end of the public key
         if name.endswith('.pub'):
             public_key_name = name # Get rid of the extra .pub
+        public_key_name = name + '.pub'
         public_key_path = os.path.join(users_ssh_dir, public_key_name)
         certificate_name = name + '-cert.pub'
         if name.endswith('-cert.pub'):
@@ -880,6 +881,8 @@ def store_id_file(self, settings):
                 io_loop = tornado.ioloop.IOLoop.instance()
                 io_loop.remove_timeout(TIMER)
                 TIMER = None
+            get_ids = partial(get_identities, self, None)
+            io_loop.add_timeout(timedelta(seconds=2), get_ids)
         elif private: # No biggie, generate one
             # Only generate a new public key if one isn't uploaded within 2
             # seconds (should be plenty of time since they're typically sent
@@ -892,7 +895,7 @@ def store_id_file(self, settings):
             def generate_public_key(): # I love closures
                 openssh_generate_public_key(self,
                     private_key_path, passphrase, settings=settings)
-                get_ids = partial(get_identities, None, self)
+                get_ids = partial(get_identities, self, None)
                 io_loop.add_timeout(timedelta(seconds=2), get_ids)
             # This gets removed if the public key is uploaded
             TIMER = io_loop.add_timeout(deadline, generate_public_key)
@@ -935,7 +938,7 @@ def delete_identity(self, name):
     }
     self.write_message(message)
 
-def get_identities(self, anything):
+def get_identities(self, *anything):
     """
     Sends a message to the client with a list of the identities stored on the
     server for the current user.
@@ -1128,8 +1131,7 @@ def initialize(self):
     Called inside of :meth:`TerminalApplication.initialize` shortly after the
     WebSocket is instantiated.
     """
-    self.ssh_log = go_logger(
-        "gateone.terminal.ssh", plugin='ssh', **self.log_metadata)
+    self.ssh_log = go_logger("gateone.terminal.ssh", plugin='ssh')
     # NOTE:  Why not use the 'Events' hook for these?  You can't attach two
     # functions to the same event via that mechanism because it's a dict
     # (one would override the other).
