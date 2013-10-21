@@ -37,6 +37,10 @@
 .✈centered_text {
     text-align: center;
 }
+.✈centered_buttons {
+    margin: 0 auto;
+    text-align: center;
+}
 .✈workspace {
     color: #FFF;
     position: static;
@@ -302,7 +306,7 @@ potential conflicts with other classes that may be on the page.
     display: -webkit-box;
     display: -moz-box;
     display: -ms-box;
-    display: box;
+    display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
     -ms-box-orient: vertical;
@@ -315,6 +319,8 @@ potential conflicts with other classes that may be on the page.
     -moz-box-pack: center;
     -ms-box-pack: center;
     flex-pack: center;
+    align-items: center;
+    justify-content: center;
 }
 .✈wsinfo {
     padding: 1em;
@@ -328,7 +334,7 @@ potential conflicts with other classes that may be on the page.
     display: -webkit-box;
     display: -moz-box;
     display: -ms-box;
-    display: box;
+    display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
     -ms-box-orient: vertical;
@@ -341,6 +347,8 @@ potential conflicts with other classes that may be on the page.
     -moz-box-pack: center;
     -ms-box-pack: center;
     flex-pack: center;
+    align-items: center;
+    justify-content: center;
 }
 .✈noticecontainer {
     display: block;
@@ -648,12 +656,11 @@ potential conflicts with other classes that may be on the page.
     font-family: sans-serif;
     position: fixed;
     overflow-x: hidden;
-    top: 25%;
-    left: 25%;
-    min-height: 4em;
+    top: 0; /* GateOne.Visual.dialog() will take care of placement */
+    left: 0;
     background-color: #CCC;
     z-index: 850;
-    border: solid 1px #000;
+/*     border: solid 1px #000; */
     color: #000;
     border-radius: 0.5em;
     box-shadow: 0.2em 0.2em 0.5em #000;
@@ -661,50 +668,48 @@ potential conflicts with other classes that may be on the page.
     background-image: -webkit-linear-gradient(#eee, #aaa);
     background-image: -o-linear-gradient(#eee, #aaa);
     background-image: linear-gradient(#eee, #aaa);
+    -webkit-transition: opacity 0.5s ease-in-out;
+    -moz-transition: opacity 0.5s ease-in-out;
+    -o-transition-property: opacity;
+    -o-transition-duration: 0.5s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.5s ease-in-out;
 }
 .✈dialogcontainer h3 {
     position: relative;
     top: 0;
     left: 0;
     z-index: 100;
-    background-color: #1F5470;
+    background-color: #3C3C3C;
     color: #fff;
-    padding-left: 0.5em;
-    line-height: 1.5;
     margin-top: 0;
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    padding-top: 0;
+    padding-bottom: .1em;
     text-align: center;
-    font-size: 1em;
+    font-size: 0.9em;
     border-radius: 0.25em 0.25em 0 0;
 }
 .✈dialogcontainer p {
-/*     padding: 0.5em; */
     margin: 0;
 }
 .✈dialogcontainer textarea {
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
     border-radius: 2px;
-/*     color: #000; */
-/*     position: relative; */
 }
 .✈dialogcontainer input {
-/*    margin-right: 1.3em;
-    margin-bottom: 0.2em;
-    padding: 0.2em 0.2em;*/
     border: 1px solid #bbb;
     border-radius: 2px;
     color: #000;
-/*     position: relative; */
-/*     display: block; */
-/*     width: 98%; */
 }
 .✈dialogcontainer label {
-/*     font-size: 1.2em; */
-/*     padding-top: 0.5em; */
-/*     display: inline-block; */
     font-family: sans-serif;
+}
+.✈dialogactive h3 {
+    background-color: #1F5470;
 }
 .✈dialogtitle:hover {
     cursor: move;
@@ -715,6 +720,8 @@ potential conflicts with other classes that may be on the page.
     left: 0;
     right: 0;
     bottom: 0;
+    box-sizing: content-box;
+    -moz-box-sizing: content-box;
     /* These will be replaced by more accurate px calculations by GateOne.Visual.dialog() */
     height: calc(100% - 2em);
     height: -webkit-calc(100% - 2em);
@@ -734,7 +741,7 @@ potential conflicts with other classes that may be on the page.
     right: 0;
 }
 .✈dialog_icon {
-    margin-top: 0.2em;
+    margin-top: 0.1em;
     margin-right: 0.3em;
     cursor: pointer;
     opacity: .75;
@@ -750,7 +757,7 @@ potential conflicts with other classes that may be on the page.
     opacity: 1;
 }
 .✈dialog_minimize {
-    margin-top: .55em;
+    margin-top: .4em;
     margin-right: 0.4em;
 }
 .✈dialog_close {

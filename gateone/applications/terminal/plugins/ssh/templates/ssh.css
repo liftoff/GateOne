@@ -85,10 +85,6 @@
     margin-bottom: 0.4em;
     margin-left: 0.4em;
 }
-.✈ssh_buttons {
-    margin: 0 auto;
-    text-align: center;
-}
 .✈ssh_id:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);

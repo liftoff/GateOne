@@ -108,7 +108,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     onMouseWheel: function(e) {
         /**:GateOne.Terminal.Input.onMouseWheel(e)
 
-        Attached to the `contextmenu` event on the Terminal application container; calls ``preventDefault()`` if "mouse motion" event tracking mode is enabled and instead sends equivalent xterm escape sequences to the server to emulate mouse scroll events.
+        Attached to the mousewheel event on the Terminal application container; calls ``preventDefault()`` if "mouse motion" event tracking mode is enabled and instead sends equivalent xterm escape sequences to the server to emulate mouse scroll events.
 
         If the ``Alt`` key is held the user will be able to scroll normally.
         */

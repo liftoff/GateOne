@@ -170,13 +170,13 @@ ul.✈bm_taglist li.bm_autotag:hover {
     padding: 0.2em;
     border: 1px #000 solid;
 }
-.✈bm_context a {
+div.✈bm_context a {
     color: #000;
     background-color: #eee;
     float: left;
     clear: both;
 }
-.✈bm_context a:hover {
+div.✈bm_context a:hover {
     color: #fff;
     background-color: #1F5470;
 }
@@ -590,6 +590,11 @@ ul.✈bm_taglist li.bm_autotag:hover {
 .✈bookmarks_upload {
     display: block;
     margin: 0 auto;
+}
+.✈bm_dialog_form {
+    display: block;
+    padding: 0.5em;
+    text-align: center;
 }
 .✈bm_new_form {
     padding: 0.5em;

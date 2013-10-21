@@ -142,7 +142,7 @@ self.addEventListener('message', function(e) {
         termUpdateObj = data.termUpdateObj,
         prefs= data.prefs,
         textTransforms = data.textTransforms,
-        result = null;
+        result;
     if (cmds) {
         cmds.forEach(function(cmd) {
             switch (cmd) {

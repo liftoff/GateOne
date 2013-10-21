@@ -5,7 +5,7 @@
 # For license information see LICENSE.txt
 
 # Meta
-__license__ = "Proprietary (see LICENSE.txt)"
+__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 try:
@@ -146,7 +146,7 @@ class AsyncRunner(object):
     so that future calls to the same functions with the same arguments will
     be returned instantly.
 
-    If no calls are made using the `AsyncRunner` instance after 1 minute
+    If no calls are made using the `AsyncRunner` instance after 30 seconds
     (default) it will shut down ``self.executor`` and clear the results
     (memoization) cache to save memory.  The executor will restarted
     automatically on-demand as needed.
@@ -193,7 +193,8 @@ class AsyncRunner(object):
 
     def shutdown(self, wait=True):
         """
-        Calls :meth:`self.executor.shutdown(wait)`
+        Calls :meth:`self.executor.shutdown(wait)` and removes and waiting
+        timeouts.
         """
         if self.shutdown_timeout:
             self.io_loop.remove_timeout(self.shutdown_timeout)

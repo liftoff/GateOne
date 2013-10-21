@@ -77,9 +77,10 @@ go.Base.update(GateOne.TermLogging, {
             logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'class': '✈log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
             hr = u.createElement('hr'),
             logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'✈table_header_row ✈logitems_header'}),
-            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'✈table_cell ✈table_header_cell'}),
-            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'✈table_cell ✈table_header_cell'}),
-            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'✈table_cell ✈table_header_cell'}),
+            // NOTE:  The 'white-space' style below is t work around a Firefox bug where 'float: right' causes a newline (against spec)
+            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'✈table_cell ✈table_header_cell', 'style': {'white-space': 'normal'}}),
+            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'✈table_cell ✈table_header_cell', 'style': {'white-space': 'normal'}}),
+            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'✈table_cell ✈table_header_cell', 'style': {'white-space': 'normal'}}),
             sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
             logMetadataDiv = u.createElement('div', {'id': 'log_metadata', 'class': '✈log_metadata'});
         logHeaderH2.innerHTML = 'Log Viewer: Loading...';

@@ -1685,7 +1685,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.appendChild(buttonContainer);
         bmHelp.innerHTML = '<i>Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".</i>'
         bmForm.appendChild(bmHelp);
-        var closeDialog = go.Visual.dialog("Import Bookmarks", bmForm);
+        var closeDialog = go.Visual.dialog("Import Bookmarks", bmForm, {'style': {'top': '15%'}}); // Looks better if a bit closer to the top of the page (as an initial location)
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -1870,7 +1870,7 @@ go.Base.update(GateOne.Bookmarks, {
         setTimeout(function() {
             u.getNode('#'+prefix+'bm_newurl').focus();
         }, 1000);
-        var closeDialog = go.Visual.dialog(formTitle, bmForm);
+        var closeDialog = go.Visual.dialog(formTitle, bmForm, {'style': {'top': '15%'}});
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -2425,20 +2425,23 @@ go.Base.update(GateOne.Bookmarks, {
 
         Creates a dialog where the user can rename the given *tagName*.
         */
-        var go = GateOne,
-            prefix = go.prefs.prefix,
-            u = go.Utils,
-            b = go.Bookmarks,
-            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans'}),
+        var closeDialog,
+            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans ✈bm_dialog_form'}),
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': 'Cancel', 'class': '✈button ✈black'});
-        bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">New Name</label><input type="text" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
+        bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">New Name</label><input type="text" class="✈bm_newtagname" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
         bmCancel.onclick = closeDialog;
-        bmForm.appendChild(bmSubmit);
-        bmForm.appendChild(bmCancel);
+        buttonContainer.appendChild(bmSubmit);
+        buttonContainer.appendChild(bmCancel);
+        bmForm.appendChild(buttonContainer);
         bmSubmit.innerHTML = gettext("Save");
         bmCancel.innerHTML = gettext("Cancel");
-        var closeDialog = go.Visual.dialog("Rename Tag: " + tagName, bmForm);
+        closeDialog = go.Visual.dialog("Rename Tag: " + tagName, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
+        setTimeout(function() {
+            // Because of the way dialogs appear the autofocus attribute doesn't work...
+            u.getNode('.✈bm_newtagname').focus();
+        }, 500);
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -2473,7 +2476,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmExportFiltered.innerHTML = "Filtered Bookmarks";
         bmCancel.innerHTML = "Cancel";
         bmForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog('Export Bookmarks', bmForm);
+        var closeDialog = go.Visual.dialog('Export Bookmarks', bmForm, {'style': {'top': '15%'}});
         bmCancel.onclick = closeDialog;
         bmExportAll.onclick = function(e) {
             e.preventDefault();
@@ -2491,19 +2494,20 @@ go.Base.update(GateOne.Bookmarks, {
 
         Creates a dialog where the user can utilize a keyword search *URL*.  *title* will be used to create the dialog title like this:  "Keyword Search: *title*".
         */
-        var go = GateOne,
-            b = go.Bookmarks,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans'}),
+        var closeDialog,
+            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans ✈bm_dialog_form'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
-        bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
+        bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" class="✈bm_searchstring" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
         bmForm.appendChild(bmSubmit);
         bmForm.appendChild(bmCancel);
         bmSubmit.innerHTML = gettext("Go");
         bmCancel.innerHTML = gettext("Cancel");
-        var closeDialog = go.Visual.dialog("Keyword Search: " + title, bmForm);
+        closeDialog = go.Visual.dialog("Keyword Search: " + title, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
+        setTimeout(function() {
+            // Because of the way dialogs appear the autofocus attribute doesn't work...
+            u.getNode('.✈bm_searchstring').focus();
+        }, 500);
         bmCancel.onclick = closeDialog;
         bmForm.onsubmit = function(e) {
             // Don't actually submit it

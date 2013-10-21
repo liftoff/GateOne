@@ -364,12 +364,14 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded) {
             I.registerShortcut('KEY_P', {
                     'modifiers': {'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
-                    'action': 'GateOne.Terminal.printScreen();'
+                    'action': 'GateOne.Terminal.printScreen();',
+                    'conditions': [go.Terminal.isActive] // So we don't clobber some other app's stuff
                 });
             // Helpful message so the user doesn't get confused as to why their terminal stopped working:
             I.registerShortcut('KEY_S', {
                     'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'
+                    'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();',
+                    'conditions': [go.Terminal.isActive] // So we don't display the message in other applications
                 });
             // Ctrl-Alt-P to open a popup terminal
             I.registerGlobalShortcut('KEY_P', {
@@ -2022,6 +2024,27 @@ go.Base.update(GateOne.Terminal, {
             });
         }
     },
+    isActive: function() {
+        /**:GateOne.Terminal.isActive()
+
+        Returns ``true`` if a terminal is the current application (selected by the user)
+        */
+        var currentWorkspace = localStorage[prefix+'selectedWorkspace'],
+            termFound = false;
+        // TODO: Make this switch to the appropriate terminal when multiple terminals share the same workspace (FUTURE)
+        for (var term in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (term % 1 === 0) {
+                if (go.Terminal.terminals[term]['workspace'] == currentWorkspace) {
+                    // At least one terminal is on this workspace; check if it is active
+                    if (!go.Terminal.terminals[term]['node'].classList.contains('✈inactive')) {
+                        termFound = term; // Terminals that don't contain '✈inactive' are active
+                    }
+                }
+            }
+        };
+        return termFound;
+    },
     switchTerminalEvent: function(term) {
         /**:GateOne.Terminal.switchTerminalEvent(term)
 
@@ -2237,6 +2260,7 @@ go.Base.update(GateOne.Terminal, {
             uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'class': '✈upload_bell_form'}),
             bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
             bellFileLabel = u.createElement('label'),
+            row1 = u.createElement('div', {'style': {'margin-top': '0.5em'}}), row2 = row1.cloneNode(false), row3 = row1.cloneNode(false),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black', 'style': {'float': 'right'}}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right'}});
         submit.innerHTML = "Submit";
@@ -2249,13 +2273,18 @@ go.Base.update(GateOne.Terminal, {
         }
         bellFileLabel.innerHTML = "Select a Sound File";
         bellFileLabel.htmlFor = prefix+'upload_bell';
-        uploadBellForm.appendChild(playBell);
-        uploadBellForm.appendChild(defaultBell);
-        uploadBellForm.appendChild(bellFileLabel);
-        uploadBellForm.appendChild(bellFile);
-        uploadBellForm.appendChild(submit);
-        uploadBellForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('Upload Bell Sound', uploadBellForm);
+        row1.appendChild(playBell);
+        row1.appendChild(defaultBell);
+        row2.appendChild(bellFileLabel);
+        row2.appendChild(bellFile);
+        row2.style['text-align'] = 'center';
+        uploadBellForm.appendChild(row1);
+        uploadBellForm.appendChild(row2);
+        row3.classList.add('✈centered_buttons');
+        row3.appendChild(submit);
+        row3.appendChild(cancel);
+        uploadBellForm.appendChild(row3);
+        var closeDialog = go.Visual.dialog('Upload Bell Sound', uploadBellForm, {'style': {'width': '25em'}});
         cancel.onclick = closeDialog;
         defaultBell.onclick = function(e) {
             e.preventDefault();

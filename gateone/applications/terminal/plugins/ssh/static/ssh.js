@@ -673,7 +673,7 @@ go.Base.update(go.SSH, {
             passphraseLabel = u.createElement('label'),
             commentInput = u.createElement('input', {'type': 'text', 'id': 'ssh_new_id_comment', 'name': prefix+'ssh_new_id_comment', 'placeholder': '<Optional>'}),
             commentLabel = u.createElement('label'),
-            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
+            buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'}),
             nameValidate = function(e) {
@@ -808,7 +808,7 @@ go.Base.update(go.SSH, {
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
             note = u.createElement('p', {'style': {'font-size': '80%', 'margin-top': '1em', 'margin-bottom': '1em'}}),
-            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
+            buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
@@ -906,7 +906,7 @@ go.Base.update(go.SSH, {
             uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': '✈ssh_id_form ✈centered_text'}),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
-            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
+            buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
@@ -952,7 +952,7 @@ go.Base.update(go.SSH, {
             passphraseLabel = u.createElement('label'),
             explanation = u.createElement('p', {'style': {'margin-top': '0.5em'}}),
             safetyNote = u.createElement('p', {'style': {'font-size': '80%'}}),
-            buttonContainer = u.createElement('div', {'class': '✈ssh_buttons'}),
+            buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";

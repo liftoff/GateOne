@@ -37,6 +37,10 @@
 .✈centered_text {
     text-align: center;
 }
+.✈centered_buttons {
+    margin: 0 auto;
+    text-align: center;
+}
 .✈workspace {
     color: #FFF;
     position: static;
@@ -302,7 +306,7 @@ potential conflicts with other classes that may be on the page.
     display: -webkit-box;
     display: -moz-box;
     display: -ms-box;
-    display: box;
+    display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
     -ms-box-orient: vertical;
@@ -315,6 +319,8 @@ potential conflicts with other classes that may be on the page.
     -moz-box-pack: center;
     -ms-box-pack: center;
     flex-pack: center;
+    align-items: center;
+    justify-content: center;
 }
 .✈wsinfo {
     padding: 1em;
@@ -327,7 +333,8 @@ potential conflicts with other classes that may be on the page.
     background-color: rgba(0, 0, 0, 0.7);
     display: -webkit-box;
     display: -moz-box;
-    display: box;
+    display: -ms-box;
+    display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
     -ms-box-orient: vertical;
@@ -340,6 +347,8 @@ potential conflicts with other classes that may be on the page.
     -moz-box-pack: center;
     -ms-box-pack: center;
     flex-pack: center;
+    align-items: center;
+    justify-content: center;
 }
 .✈noticecontainer {
     display: block;
@@ -640,10 +649,9 @@ potential conflicts with other classes that may be on the page.
     overflow-x: hidden;
     top: 25%;
     left: 25%;
-    min-height: 4em;
     background-color: #000;
     z-index: 850;
-    border: solid 1px #fff;
+/*     border: solid 1px #fff; */
     color: #FFF;
     border-radius: 0.5em;
 }
@@ -654,13 +662,13 @@ potential conflicts with other classes that may be on the page.
     z-index: 100;
     background-color: #272727;
     color: #fff;
-    padding-left: 0.5em;
-    line-height: 1.5;
     margin-top: 0;
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    padding-top: 0;
+    padding-bottom: .1em;
     text-align: center;
-    font-size: 1em;
+    font-size: 0.9em;
     border-radius: 0.25em 0.25em 0 0;
 }
 .✈dialogcontainer p {

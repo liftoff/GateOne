@@ -285,7 +285,7 @@ class AutoExpireDict(dict):
         string like, "1d", "30s" (will be passed through the
         `convert_to_timedelta` function).
         """
-        if not hasattr(self, "_timeout"):
+        if not hasattr(self, "_interval"):
             self._interval = 10000 # Default is every 10 seconds
         return self._interval
 
@@ -395,6 +395,22 @@ class memoize(object):
 def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
     pass
+
+def debug_info(name, *args, **kwargs):
+    """
+    This function returns a string like this::
+
+        >>> debug_info('some_function', 5, 10, foo="bar")
+        'some_function(5, 10, foo="bar")'
+
+    Primarily aimed at debugging.
+    """
+    out = name + "("
+    for arg in args:
+        out += "{0}, ".format(repr(arg))
+    for k, v in kwargs.items():
+        out += '{0}={1}, '.format(k, repr(v))
+    return out.rstrip().rstrip(',') + ")"
 
 # The following was taken from:
 # http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments

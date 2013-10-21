@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131010213705" # Gets replaced by git (holds the date/time)
+__commit__ = "20131010215602" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1159,8 +1159,10 @@ class MainHandler(BaseHandler):
             minified_js_abspath, 'gateone.min.js')
         js_init = self.settings['js_init']
         # Use the minified version if it exists
-        if os.path.exists(minified_js_abspath):
-            gateone_js = "%sstatic/gateone.min.js" % self.settings['url_prefix']
+        if options.logging.lower() != 'debug':
+            if os.path.exists(minified_js_abspath):
+                gateone_js = (
+                    "%sstatic/gateone.min.js" % self.settings['url_prefix'])
         template_path = os.path.join(GATEONE_DIR, 'templates')
         index_path = os.path.join(template_path, 'index.html')
         head_html = ""
@@ -1380,6 +1382,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.security = {}
         self.container = ""
         self.prefix = ""
+        self.latency_count = 12 # Starts at 12 so the first ping is logged
+        self.pinger = None # Replaced with a PeriodicCallback inside open()
+        self.timestamps = [] # Tracks/averages client latency
+        self.latency = 0 # Keeps a running average
         WebSocketHandler.__init__(self, application, request, **kwargs)
 
     @classmethod
@@ -1758,7 +1764,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
-        self.ping(bytes(int(time.time() * 1000)))
+        # Ping the client every 5 seconds so we can keep track of latency and
+        # ensure firewalls don't close the connection.
+        def send_ping():
+            self.ping(bytes(int(time.time() * 1000)))
+        send_ping()
+        interval = 5000 # milliseconds
+        self.pinger = tornado.ioloop.PeriodicCallback(send_ping, interval)
+        self.pinger.start()
         self.trigger("go:open")
 
     def on_message(self, message):
@@ -1833,6 +1846,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
         else:
             self.auth_log.info(_("WebSocket closed (unknown user)."))
+        if self.pinger:
+            self.pinger.stop()
         # Call applications' on_close() functions (if any)
         for app in self.apps:
             if hasattr(app, 'on_close'):
@@ -1849,8 +1864,17 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             This is the ``pong`` specified in the WebSocket protocol itself.
             The `pong` method is a Gate One-specific implementation.
         """
+        self.latency_count += 1
         latency = int(time.time() * 1000) - int(timestamp)
-        self.logger.info(_("WebSocket Latency: {0}ms").format(latency))
+        if latency < 0:
+            return # Something went wrong; skip this one
+        self.timestamps.append(latency)
+        if len(self.timestamps) > 10:
+            self.timestamps.pop(0)
+        self.latency = sum(self.timestamps)/len(self.timestamps)
+        if self.latency_count > 12: # Only log once a minute
+            self.latency_count = 0
+            self.logger.info(_("WebSocket Latency: {0}ms").format(self.latency))
 
     def pong(self, timestamp):
         """
@@ -4402,7 +4426,12 @@ def main():
             if hasattr(module, 'web_handlers'):
                 web_handlers.extend(module.web_handlers)
         except AttributeError:
-            pass # No apps--probably just a supporting .py file.
+            # No apps--probably just a supporting .py file.
+            # Uncomment if you can't figure out why your app isn't loading:
+            #print("Error initializing module: %s" % module)
+            #import traceback
+            #traceback.print_exc(file=sys.stdout)
+            pass
 
     logging.info(_("Imported applications: {0}".format(
         ', '.join([a.info['name'] for a in APPLICATIONS]))))
