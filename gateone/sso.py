@@ -140,6 +140,12 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
         self.auth_negotiate() or self.auth_basic() depending on what headers
         were provided by the client.
         """
+        keytab = self.settings.get('sso_keytab', None)
+        if keytab:
+            # The kerberos module does not take a keytab as a parameter when
+            # performing authentication but you can still specify it via an
+            # environment variable:
+            os.environ['KRB5_KTNAME'] = keytab
         auth_header = self.request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Negotiate'):
             self.auth_negotiate(auth_header, callback)

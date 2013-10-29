@@ -16,13 +16,16 @@ except ImportError:
     print('\tsudo pip install futures')
     import sys
     sys.exit(1)
-import pickle, signal, os
+import pickle, signal, os, logging
 from functools import wraps
 from datetime import timedelta
 from itertools import count
 from functools import partial
-from utils import AutoExpireDict, convert_to_timedelta
+from utils import AutoExpireDict, convert_to_timedelta, get_translation
 from tornado.ioloop import IOLoop
+
+# Localization support
+_ = get_translation()
 
 # A global to old memoized results (so multiple instances can share)
 MEMO = {}
@@ -111,7 +114,7 @@ def _cleanup_queue(identifier, future=None):
         if not ONE_CALLS[identifier]['queue']:
             del ONE_CALLS[identifier]
 
-def _call_complete(executor, identifier, f=None):
+def _call_complete(self, identifier, f=None):
     """
     Used by `AsyncRunner.call_one`; removes the given *identifier* from the
     global `ONE_CALLS` dict if there are no more calls remaining.  Otherwise
@@ -122,14 +125,17 @@ def _call_complete(executor, identifier, f=None):
             # Submit the next function in the queue
             (function, args,
                 kwargs, callback) = ONE_CALLS[identifier]['queue'].popleft()
-            future = executor.submit(safe_call, function, *args, **kwargs)
+            if not self.running: # Just in case (it happens, actually)
+                self.run()
+            self.restart_shutdown_timeout()
+            future = self.executor.submit(safe_call, function, *args, **kwargs)
             ONE_CALLS[identifier]['future'] = future
             if callback:
                 done_callback(future, lambda f: callback(f.result()))
             completed = partial(_cleanup_queue, identifier)
             done_callback(ONE_CALLS[identifier]['future'], completed)
             # Try again when complete
-            call_again = partial(_call_complete, executor, identifier)
+            call_again = partial(_call_complete, self, identifier)
             done_callback(ONE_CALLS[identifier]['future'], call_again)
     else:
         _cleanup_queue(identifier)
@@ -170,6 +176,7 @@ class AsyncRunner(object):
     """
     def __init__(self, **kwargs):
         self.io_loop = IOLoop.current()
+        self.executor = None
         self.shutdown_timeout = None
         self.timeout = kwargs.pop('timeout', None)
         if not self.timeout:
@@ -182,12 +189,19 @@ class AsyncRunner(object):
         global MEMO # Use a global so that instances can share the cache
         if not MEMO:
             MEMO = AutoExpireDict(timeout=self.timeout, interval=self.interval)
-        self.restart_shutdown_timeout()
 
     def run(self):
         """
         This method must be overridden by subclasses of `AsyncRunner`.  It must
         start (or re-create) ``self.executor`` when called.
+        """
+        raise NotImplementedError
+
+    @property
+    def running(self):
+        """
+        This property must be overridden by subclasses of `AsyncRunner`.  It
+        must return ``True`` if the executor is running, ``False`` if not.
         """
         raise NotImplementedError
 
@@ -198,7 +212,8 @@ class AsyncRunner(object):
         """
         if self.shutdown_timeout:
             self.io_loop.remove_timeout(self.shutdown_timeout)
-        if hasattr(self, 'executor'):
+        if self.running:
+            logging.debug(_("Shutting down %s" % repr(self)))
             self.executor.shutdown(wait=wait)
 
     def restart_shutdown_timeout(self):
@@ -249,7 +264,7 @@ class AsyncRunner(object):
         return future
 
     @restart_executor
-    def call_singleton(self, function, identifier=None, *args, **kwargs):
+    def call_singleton(self, function, identifier, *args, **kwargs):
         """
         Executes *function* if no other function with the given *identifier*
         is already running.  If a function is currently running with the given
@@ -277,11 +292,10 @@ class AsyncRunner(object):
                 'queue': deque()
             }
             if callback:
-                #done_callback(ONE_CALLS[identifier]['future'], callback)
                 done_callback(
                     ONE_CALLS[identifier]['future'],
                     lambda f: callback(f.result()))
-            completed = partial(_call_complete, self.executor, identifier)
+            completed = partial(_call_complete, self, identifier)
             done_callback(ONE_CALLS[identifier]['future'], completed)
         return ONE_CALLS[identifier]['future']
 
@@ -396,11 +410,14 @@ class ThreadedRunner(AsyncRunner):
         self.max_workers = max_workers
 
     def run(self):
+        logging.debug(
+            _("Starting the ThreadedRunner executor with %s worker threads.")
+            % self.max_workers)
         self.executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
 
     @property
     def running(self):
-        if not hasattr(self, 'executor'):
+        if not self.executor:
             return False
         ibrunning = True
         if self.executor._shutdown_thread:
@@ -415,29 +432,66 @@ class MultiprocessRunner(AsyncRunner):
 
     .. warn:: Only works when all objects used by the function(s) are picklable!
     """
-    # Enforce singleton on this one since there's only so many cores
-    instance = None
+    # Enforce singleton on the executor since there's only so many cores
+    executor_instance = None
+    # Keep track of all our instances so we only shut down once:
+    running_instances = set()
 
+    # NOTE: Why is there no default for max_workers below?  Because if it is set
+    # to `None` concurrent.futures.ProcessPoolExecutor will automatically use an
+    # appropriate number of workers using multiprocessing.cpu_count().
     def __init__(self, max_workers=None, **kwargs):
         super(MultiprocessRunner, self).__init__(**kwargs)
         self.max_workers = max_workers
 
     def run(self):
         cls = MultiprocessRunner
-        if not cls.instance:
+        started = False
+        if self not in cls.running_instances:
+            cls.running_instances.add(self)
+        if not cls.executor_instance:
             self.executor = futures.ProcessPoolExecutor(
                 max_workers=self.max_workers)
-            cls.instance = self
-        elif not cls.instance.running:
-            cls.instance.executor = futures.ProcessPoolExecutor(
+            cls.executor_instance = self
+            started = True
+        elif not cls.executor_instance.running:
+            cls.executor_instance.executor = futures.ProcessPoolExecutor(
                 max_workers=self.max_workers)
-        self.executor = cls.instance.executor
+            started = True
+        self.executor = cls.executor_instance.executor
+        if started:
+            workers = self.executor._max_workers # Derived from cpu_count()
+            logging.debug(
+                _("Starting the MultiprocessRunner executor with %s worker "
+                "processes.") % workers)
 
     @property
     def running(self):
-        if not hasattr(self, 'executor'):
+        if not self.executor:
             return False
         ibrunning = True
         if self.executor._shutdown_thread:
             ibrunning = False
         return ibrunning
+
+    def shutdown(self, wait=True):
+        """
+        An override of `AsyncRunner.shutdown` that is aware of the number of
+        running instances so we don't shut down the executor while another
+        instance is using it (Remember: This class enforces a singleton
+        pattern--only one instance of the executor is allowed).
+
+        .. note::
+
+            The executor will only be shut down when this method is called for
+            each instance of `MultiprocessRunner` that exists.
+        """
+        cls = MultiprocessRunner
+        if self.shutdown_timeout:
+            self.io_loop.remove_timeout(self.shutdown_timeout)
+        if self in cls.running_instances:
+            cls.running_instances.remove(self)
+        if not cls.running_instances:
+            if self.running:
+                logging.info("Shutting down the MultiprocessRunner executor.")
+                self.executor.shutdown(wait=wait)

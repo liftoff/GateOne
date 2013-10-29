@@ -627,6 +627,148 @@ def pua_counter():
             else:
                 n += 1
 
+# NOTE:  This is something I'm investigating as a way to use the new go_async
+# module.  A work-in-progress.  Ignore for now...
+def spanify_screen(state_obj):
+    """
+    Iterates over the lines in *screen* and *renditions*, applying HTML
+    markup (span tags) where appropriate and returns the result as a list of
+    lines. It also marks the cursor position via a <span> tag at the
+    appropriate location.
+    """
+    #logging.debug("_spanify_screen()")
+    results = []
+    # NOTE: Why these duplicates of self.* and globals?  Local variable
+    # lookups are faster--especially in loops.
+    #special = SPECIAL
+    rendition_classes = RENDITION_CLASSES
+    html_cache = state_obj['html_cache']
+    screen = state_obj['screen']
+    renditions = state_obj['renditions']
+    renditions_store = state_obj['renditions_store']
+    cursorX = state_obj['cursorX']
+    cursorY = state_obj['cursorY']
+    show_cursor = state_obj['show_cursor']
+    class_prefix = state_obj['class_prefix']
+    #captured_files = state_obj['captured_files']
+    spancount = 0
+    current_classes = set()
+    prev_rendition = None
+    foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
+    backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
+    html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
+    cursor_span = '<span class="%scursor">' % class_prefix
+    for linecount, line_rendition in enumerate(izip(screen, renditions)):
+        line = line_rendition[0]
+        rendition = line_rendition[1]
+        combined = (line + rendition).tounicode()
+        if html_cache and combined in html_cache:
+            # Always re-render the line with the cursor (or just had it)
+            if cursor_span not in html_cache[combined]:
+                # Use the cache...
+                results.append(html_cache[combined])
+                continue
+        if not len(line.tounicode().rstrip()) and linecount != cursorY:
+            results.append(line.tounicode())
+            continue # Line is empty so we don't need to process renditions
+        outline = ""
+        if current_classes:
+            outline += '<span class="%s%s">' % (
+                class_prefix,
+                (" %s" % class_prefix).join(current_classes))
+        charcount = 0
+        for char, rend in izip(line, rendition):
+            rend = renditions_store[rend] # Get actual rendition
+            #if ord(char) >= special: # Special stuff =)
+                ## Obviously, not really a single character
+                #if char in captured_files:
+                    #outline += captured_files[char].html()
+                    #continue
+            changed = True
+            if char in "&<>":
+                # Have to convert ampersands and lt/gt to HTML entities
+                char = html_entities[char]
+            if rend == prev_rendition:
+                # Shortcut...  So we can skip all the logic below
+                changed = False
+            else:
+                prev_rendition = rend
+            if changed and rend:
+                classes = imap(rendition_classes.get, rend)
+                for _class in classes:
+                    if _class and _class not in current_classes:
+                        # Something changed...  Start a new span
+                        if spancount:
+                            outline += "</span>"
+                            spancount -= 1
+                        if 'reset' in _class:
+                            if _class == 'reset':
+                                current_classes = set()
+                                if spancount:
+                                    for i in xrange(spancount):
+                                        outline += "</span>"
+                                    spancount = 0
+                            else:
+                                reset_class = _class.split('reset')[0]
+                                if reset_class == 'foreground':
+                                    # Remove any foreground classes
+                                    [current_classes.pop(i) for i, a in
+                                    enumerate(current_classes) if a in
+                                    foregrounds
+                                    ]
+                                elif reset_class == 'background':
+                                    [current_classes.pop(i) for i, a in
+                                    enumerate(current_classes) if a in
+                                    backgrounds
+                                    ]
+                                else:
+                                    try:
+                                        current_classes.remove(reset_class)
+                                    except KeyError:
+                                        # Trying to reset something that was
+                                        # never set.  Ignore
+                                        pass
+                        else:
+                            if _class in foregrounds:
+                                [current_classes.pop(i) for i, a in
+                                enumerate(current_classes) if a in
+                                foregrounds
+                                ]
+                            elif _class in backgrounds:
+                                [current_classes.pop(i) for i, a in
+                                enumerate(current_classes) if a in
+                                backgrounds
+                                ]
+                            current_classes.add(_class)
+                if current_classes:
+                    outline += '<span class="%s%s">' % (
+                        class_prefix,
+                        (" %s" % class_prefix).join(current_classes))
+                    spancount += 1
+            if linecount == cursorY and charcount == cursorX: # Cursor
+                if show_cursor:
+                    outline += '<span class="%scursor">%s</span>' % (
+                        class_prefix, char)
+                else:
+                    outline += char
+            else:
+                outline += char
+            charcount += 1
+        if outline:
+            # Make sure all renditions terminate at the end of the line
+            for whatever in xrange(spancount):
+                outline += "</span>"
+            results.append(outline)
+            if html_cache:
+                html_cache[combined] = outline
+        else:
+            results.append(None) # null is shorter than 4 spaces
+        # NOTE: The client has been programmed to treat None (aka null in
+        #       JavaScript) as blank lines.
+    for whatever in xrange(spancount): # Bit of cleanup to be safe
+        results[-1] += "</span>"
+    return (html_cache, results)
+
 # Exceptions
 class InvalidParameters(Exception):
     """
@@ -727,7 +869,7 @@ class AutoExpireDict(dict):
 # Don't use the HTML_CACHE if Tornado isn't available.
 try:
     from tornado.ioloop import IOLoop, PeriodicCallback
-    HTML_CACHE = AutoExpireDict(timeout=timedelta(minutes=5), interval=30000)
+    HTML_CACHE = AutoExpireDict(timeout=timedelta(minutes=1), interval=30000)
 except ImportError:
     HTML_CACHE = None
 
@@ -1469,7 +1611,7 @@ class Terminal(object):
     RE_SIGINT = re.compile(b'.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
-        linkpath='/tmp', icondir=None, encoding='utf-8', debug=False):
+    linkpath='/tmp', icondir=None, encoding='utf-8', async=None, debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -1490,7 +1632,8 @@ class Terminal(object):
         retrieve these files (for security or convenience reasons).  Here's a
         real world example of how it works::
 
-            >>> term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
+            >>> term = Terminal(
+            ... rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
             >>> term.write('About to write a PDF\\n')
             >>> pdf = open('/path/to/somefile.pdf').read()
             >>> term.write(pdf)
@@ -1547,6 +1690,7 @@ class Terminal(object):
         self.linkpath = linkpath
         self.icondir = icondir
         self.encoding = encoding
+        self.async = async
         # This controls how often we send a message to the client when capturing
         # a special file type.  The default is to update the user of progress
         # once every 1.5 seconds.
@@ -4037,6 +4181,37 @@ class Terminal(object):
         self.init_scrollback()
         self.modified = False
         return (scrollback, screen)
+
+# NOTE: This is a work-in-progress.  Don't use it.
+    def dump_html_async(self, identifier=None, renditions=True, callback=None):
+        """
+        Dumps the terminal screen as a list of HTML-formatted lines.  If
+        *renditions* is True (default) then terminal renditions will be
+        converted into HTML <span> elements so they will be displayed properly
+        in a browser.  Otherwise only the cursor <span> will be added to mark
+        its location.
+
+        .. note::
+
+            This places <span class="cursor">(current character)</span> around
+            the cursor location.
+        """
+        if self.async:
+            state_obj = {
+                'html_cache': HTML_CACHE,
+                'screen': self.screen,
+                'renditions': self.renditions,
+                'renditions_store': self.renditions_store,
+                'cursorX': self.cursorX,
+                'cursorY': self.cursorY,
+                'show_cursor': self.expanded_modes['25'],
+                'class_prefix': self.class_prefix
+            }
+            self.async.call_singleton(
+                spanify_screen, identifier, state_obj, callback=callback)
+        else:
+            scrollback, screen = self.dump_html(renditions=renditions)
+            callback(scrollback, screen)
 
     def dump_plain(self):
         """

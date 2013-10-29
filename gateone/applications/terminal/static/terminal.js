@@ -476,7 +476,7 @@ go.Base.update(GateOne.Terminal, {
             }, 1150);
         });
         // Open/Create our terminal database
-        go.Storage.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
+        S.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
         // Cleanup any old-style scrollback buffers that might be hanging around
         for (var key in localStorage) {
             if (key.indexOf(prefix+'scrollback') == 0) { // This is an old-style scrollback buffer

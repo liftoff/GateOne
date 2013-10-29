@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131010215602" # Gets replaced by git (holds the date/time)
+__commit__ = "20131020211850" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -4099,8 +4099,11 @@ def generate_server_conf():
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
-        'sso_realm', 'sso_service', 'ssl_auth'
+        'sso_keytab', 'sso_realm', 'sso_service', 'ssl_auth'
     ]
+    # Provide some kerberos (sso) defaults
+    auth_settings['sso_realm'] = "EXAMPLE.COM"
+    auth_settings['sso_keytab'] = None # Allow /etc/krb5.conf to control it
     for key, value in list(config_defaults.items()):
         if key in authentication_options:
             auth_settings.update({key: value})
