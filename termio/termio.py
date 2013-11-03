@@ -1572,7 +1572,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.capture_limit = -1
             self.restore_rate = None
         try:
-            with io.open(self.fd, 'rb', closefd=False,buffering=1024) as reader:
+            with io.open(self.fd, 'rb', closefd=False, buffering=0) as reader:
                 if bytes == -1:
                     # 2 seconds of blocking is too much.
                     timeout = timedelta(seconds=2)
