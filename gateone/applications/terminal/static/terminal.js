@@ -108,13 +108,14 @@ go.Base.update(GateOne.Terminal, {
         :where: An optional querySelector-like string or DOM node where the new Terminal should be placed.  If not given a new workspace will be created to contain the Terminal.
         */
         logDebug("GateOne.Terminal.__new__(" + JSON.stringify(settings) + ")");
-        var term, voiceExtDetected;
-        if (settings) {
-            // Make a copy of the settings just in case the caller is passing us the entry inside GateOne.User.applications:
-            settings = Object.create(settings);
-            if (settings['sub_application']) {
-                settings['command'] = settings['sub_application'];
-            }
+        var term, voiceExtDetected,
+            // NOTE: Most of these will always be empty/undefined/null except in special embedded situations
+            termSettings = {
+                'metadata': settings['metadata'] || {},
+                'command': settings['command'] || settings['sub_application'] || null
+            };
+        if (settings['encoding']) {
+            'encoding' = settings['encoding'];
         }
         where = where || go.Visual.newWorkspace();
         if (go.ws.readyState == 1) { // Only open a new terminal if we're connected
@@ -130,7 +131,7 @@ go.Base.update(GateOne.Terminal, {
                 }
                 go.Terminal.warnedAboutVoiceExt = true;
             }
-            term = go.Terminal.newTerminal(null, settings, where);
+            term = go.Terminal.newTerminal(null, termSettings, where);
         } else {
             v.closeWorkspace(workspace);
             v.displayMessage(gettex("Please wait until Gate One is reconnected."));

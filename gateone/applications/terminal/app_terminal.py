@@ -1122,13 +1122,15 @@ class TerminalApplication(GOApplication):
         environment_vars = policy.get('environment_vars', default_env)
         default_encoding = policy.get('default_encoding', 'utf-8')
         encoding = settings.get('encoding', default_encoding)
+        if not encoding: # Was passed as None or 'null'
+            encoding = default_encoding
         term_metadata = settings.get('metadata', {})
         settings_dir = self.settings['settings_dir']
         user_session_dir = os.path.join(options.session_dir, self.ws.session)
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
         #       terminal settings.
-        if 'command' in settings:
+        if 'command' in settings and settings['command']:
             command = settings['command']
         else:
             try:
