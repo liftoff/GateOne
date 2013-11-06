@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131020211850" # Gets replaced by git (holds the date/time)
+__commit__ = "20131104214722" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1320,7 +1320,7 @@ class GOApplication(OnOffMixin):
     def add_timeout(self, timeout, func):
         """
         A convenience function that calls the given *func* after *timeout* using
-        ``self.ioloop.add_timeout()`` (which uses
+        ``self.io_loop.add_timeout()`` (which uses
         :meth:`tornado.ioloop.IOLoop.add_timeout`).
 
         The given *timeout* may be a `datetime.timedelta` or a string compatible
@@ -1328,7 +1328,7 @@ class GOApplication(OnOffMixin):
         """
         if isinstance(timeout, basestring):
             timeout = convert_to_timedelta(timeout)
-        self.ioloop.add_timeout(timeout, func)
+        self.io_loop.add_timeout(timeout, func)
 
 class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     """

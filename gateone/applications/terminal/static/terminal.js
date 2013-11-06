@@ -2,7 +2,7 @@
 // TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
-GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Input", "GateOne.Storage", "GateOne.Help"], function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Input", "GateOne.Storage"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts

@@ -230,7 +230,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     7: 'reverse',
     8: 'hidden',
     9: 'strike',
-    10: 'resetfont', # NOTE: The font renditions don't do anything right now
+    10: 'fontreset', # NOTE: The font renditions don't do anything right now
     11: 'font11', # Mostly because I have no idea what they are supposed to look
     12: 'font12', # like.
     13: 'font13',
@@ -258,6 +258,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     36: 'f6', # Cyan
     37: 'f7', # White
     38: '', # 256-color support uses this like so: \x1b[38;5;<color num>sm
+    39: 'foregroundreset', # Special: Set FG to default
     # Backgrounds
     40: 'b0', # Black
     41: 'b1', # Red
@@ -303,6 +304,18 @@ for i in xrange(256):
     RENDITION_CLASSES[(i+1000)] = "fx%s" % i
     RENDITION_CLASSES[(i+10000)] = "bx%s" % i
 del i # Cleanup
+
+RESET_CLASSES = set([
+    'backgroundreset',
+    'boldreset',
+    'dimreset',
+    'italicreset',
+    'underlinereset',
+    'reversereset',
+    'hiddenreset',
+    'strikereset',
+    'resetfont'
+])
 
 try:
     unichr(0x10000) # Will throw a ValueError on narrow Python builds
@@ -4023,6 +4036,128 @@ class Terminal(object):
             # High likelyhood that nothing is defined.  No biggie.
             pass
 
+# NOTE:  This was something I was testing to simplify the code. It works
+# (mostly) but the performance was TERRIBLE.  Still needs investigation...
+    #def _classify_renditions(self):
+        #"""
+        #Returns ``self.renditions`` as a list of HTML classes for each position.
+        #"""
+        #return [[map(RENDITION_CLASSES.get, rend) for rend in map(
+                #self.renditions_store.get, rendition)]
+                    #for rendition in self.renditions]
+
+    #def _spanify_line(self, line, rendition, current_classes=None, cursor=False):
+        #"""
+        #Returns a string containing *line* with HTML spans applied representing
+        #*renditions*.
+        #"""
+        #outline = ""
+        #reset_classes = RESET_CLASSES # TODO
+        #html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
+        #foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
+        #backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
+        #prev_rendition = None
+        #if current_classes:
+            #outline += '<span class="%s%s">' % (
+                #self.class_prefix,
+                #(" %s" % self.class_prefix).join(current_classes))
+        #charcount = 0
+        #for char, rend in izip(line, rendition):
+            #changed = True
+            #if char in "&<>":
+                ## Have to convert ampersands and lt/gt to HTML entities
+                #char = html_entities[char]
+            #if rend == prev_rendition:
+                ## Shortcut...  So we can skip all the logic below
+                #changed = False
+            #else:
+                #prev_rendition = rend
+            #if changed:
+                #outline += "</span>"
+                #current_classes = [a for a in rend if a and 'reset' not in a]
+                ##if rend and rend[0] == 'reset':
+                    ##if len(current_classes) > 1:
+                        ##classes = (
+                            ##" %s" % self.class_prefix).join(current_classes)
+                ##else:
+                #classes = (" %s" % self.class_prefix).join(current_classes)
+                #if current_classes != ['reset']:
+                    #outline += '<span class="%s%s">' % (
+                        #self.class_prefix, classes)
+            #if cursor and charcount == cursor:
+                #outline += '<span class="%scursor">%s</span>' % (
+                    #self.class_prefix, char)
+            #else:
+                #outline += char
+            #charcount += 1
+        #open_spans = outline.count('<span')
+        #close_spans = outline.count('</span')
+        #if open_spans != close_spans:
+            #for i in xrange(open_spans - close_spans):
+                #outline += '</span>'
+        #return current_classes, outline
+
+    #def _spanify_screen_test(self):
+        #"""
+        #Iterates over the lines in *screen* and *renditions*, applying HTML
+        #markup (span tags) where appropriate and returns the result as a list of
+        #lines. It also marks the cursor position via a <span> tag at the
+        #appropriate location.
+        #"""
+        ##logging.debug("_spanify_screen()")
+        #results = []
+        ## NOTE: Why these duplicates of self.* and globals?  Local variable
+        ## lookups are faster--especially in loops.
+        #special = SPECIAL
+        ##rendition_classes = RENDITION_CLASSES
+        #html_cache = HTML_CACHE
+        #has_cache = isinstance(html_cache, AutoExpireDict)
+        #screen = self.screen
+        #renditions = self.renditions
+        #renditions_store = self.renditions_store
+        #classified_renditions = self._classify_renditions()
+        #cursorX = self.cursorX
+        #cursorY = self.cursorY
+        #show_cursor = self.expanded_modes['25']
+        ##spancount = 0
+        #current_classes = []
+        ##prev_rendition = None
+        ##foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
+        ##backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
+        ##html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
+        #cursor_span = '<span class="%scursor">' % self.class_prefix
+        #for linecount, line in enumerate(screen):
+            #rendition = classified_renditions[linecount]
+            #combined = (line + renditions[linecount]).tounicode()
+            #if has_cache and combined in html_cache:
+                ## Always re-render the line with the cursor (or just had it)
+                #if cursor_span not in html_cache[combined]:
+                    ## Use the cache...
+                    #results.append(html_cache[combined])
+                    #continue
+            #if not len(line.tounicode().rstrip()) and linecount != cursorY:
+                #results.append(line.tounicode())
+                #continue # Line is empty so we don't need to process renditions
+            #if linecount == cursorY and show_cursor:
+                #current_classes, outline = self._spanify_line(
+                    #line, rendition,
+                    #current_classes=current_classes,
+                    #cursor=cursorX)
+            #else:
+                #current_classes, outline = self._spanify_line(
+                    #line, rendition,
+                    #current_classes=current_classes,
+                    #cursor=False)
+            #if outline:
+                #results.append(outline)
+                #if html_cache:
+                    #html_cache[combined] = outline
+            #else:
+                #results.append(None) # null is less memory than spaces
+            ## NOTE: The client has been programmed to treat None (aka null in
+            ##       JavaScript) as blank lines.
+        #return results
+
     def _spanify_screen(self):
         """
         Iterates over the lines in *screen* and *renditions*, applying HTML
@@ -4037,6 +4172,7 @@ class Terminal(object):
         special = SPECIAL
         rendition_classes = RENDITION_CLASSES
         html_cache = HTML_CACHE
+        has_cache = isinstance(html_cache, AutoExpireDict)
         screen = self.screen
         renditions = self.renditions
         renditions_store = self.renditions_store
@@ -4050,11 +4186,10 @@ class Terminal(object):
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         cursor_span = '<span class="%scursor">' % self.class_prefix
-        for linecount, line_rendition in enumerate(izip(screen, renditions)):
-            line = line_rendition[0]
-            rendition = line_rendition[1]
+        for linecount, line in enumerate(screen):
+            rendition = renditions[linecount]
             combined = (line + rendition).tounicode()
-            if html_cache and combined in html_cache:
+            if has_cache and combined in html_cache:
                 # Always re-render the line with the cursor (or just had it)
                 if cursor_span not in html_cache[combined]:
                     # Use the cache...
@@ -4103,34 +4238,20 @@ class Terminal(object):
                                 else:
                                     reset_class = _class.split('reset')[0]
                                     if reset_class == 'foreground':
-                                        # Remove any foreground classes
-                                        [current_classes.pop(i) for i, a in
-                                        enumerate(current_classes) if a in
-                                        foregrounds
-                                        ]
+                                        [current_classes.remove(a) for a in
+                                        current_classes if a in foregrounds]
                                     elif reset_class == 'background':
-                                        [current_classes.pop(i) for i, a in
-                                        enumerate(current_classes) if a in
-                                        backgrounds
-                                        ]
-                                    else:
-                                        try:
-                                            current_classes.remove(reset_class)
-                                        except KeyError:
-                                            # Trying to reset something that was
-                                            # never set.  Ignore
-                                            pass
+                                        [current_classes.remove(a) for a in
+                                        current_classes if a in backgrounds]
+                                    elif reset_class in current_classes:
+                                        current_classes.remove(reset_class)
                             else:
                                 if _class in foregrounds:
-                                    [current_classes.pop(i) for i, a in
-                                    enumerate(current_classes) if a in
-                                    foregrounds
-                                    ]
+                                    [current_classes.remove(a) for a in
+                                    current_classes if a in foregrounds]
                                 elif _class in backgrounds:
-                                    [current_classes.pop(i) for i, a in
-                                    enumerate(current_classes) if a in
-                                    backgrounds
-                                    ]
+                                    [current_classes.remove(a) for a in
+                                    current_classes if a in backgrounds]
                                 current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s%s">' % (
@@ -4151,7 +4272,7 @@ class Terminal(object):
                 for whatever in xrange(spancount):
                     outline += "</span>"
                 results.append(outline)
-                if html_cache:
+                if has_cache:
                     html_cache[combined] = outline
             else:
                 results.append(None) # null is shorter than 4 spaces
@@ -4172,6 +4293,7 @@ class Terminal(object):
         results = []
         special = SPECIAL
         html_cache = HTML_CACHE
+        has_cache = isinstance(html_cache, AutoExpireDict)
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
         rendition_classes = RENDITION_CLASSES
@@ -4184,7 +4306,7 @@ class Terminal(object):
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for line, rendition in izip(screen, renditions):
             combined = (line + rendition).tounicode()
-            if combined in html_cache:
+            if has_cache and combined in html_cache:
                 # Most lines should be in the cache because they were rendered
                 # while they were on the screen.
                 results.append(html_cache[combined])
@@ -4225,31 +4347,20 @@ class Terminal(object):
                                 else:
                                     reset_class = _class.split('reset')[0]
                                     if reset_class == 'foreground':
-                                        [current_classes.pop(i) for i, a in
-                                        enumerate(current_classes) if a in
-                                        foregrounds
-                                        ]
+                                        [current_classes.remove(a) for a in
+                                        current_classes if a in foregrounds]
                                     elif reset_class == 'background':
-                                        [current_classes.pop(i) for i, a in
-                                        enumerate(current_classes) if a in
-                                        backgrounds
-                                        ]
-                                    else:
-                                        try:
-                                            current_classes.remove(reset_class)
-                                        except KeyError:
-                                            pass
+                                        [current_classes.remove(a) for a in
+                                        current_classes if a in backgrounds]
+                                    elif reset_class in current_classes:
+                                        current_classes.remove(reset_class)
                             else:
                                 if _class in foregrounds:
-                                    [current_classes.pop(i) for i, a in
-                                    enumerate(current_classes) if a in
-                                    foregrounds
-                                    ]
+                                    [current_classes.remove(a) for a in
+                                    current_classes if a in foregrounds]
                                 elif _class in backgrounds:
-                                    [current_classes.pop(i) for i, a in
-                                    enumerate(current_classes) if a in
-                                    backgrounds
-                                    ]
+                                    [current_classes.remove(a) for a in
+                                    current_classes if a in backgrounds]
                                 current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s%s">' % (
@@ -4303,6 +4414,7 @@ class Terminal(object):
                     screen.append(cursor_row)
                 else:
                     screen.append("".join(row))
+            scrollback = [a.tounicode() for a in self.scrollback_buf]
         # Empty the scrollback buffer:
         self.init_scrollback()
         self.modified = False

@@ -1136,9 +1136,8 @@ def get_applications(application_dir, enabled=None):
     """
     out_list = []
     for directory in os.listdir(application_dir):
-        application = directory
+        application = directory.lower()
         directory = os.path.join(application_dir, directory) # Make absolute
-        directory = directory.lower()
         if not os.path.isdir(directory):
             continue
         if enabled and application not in enabled:

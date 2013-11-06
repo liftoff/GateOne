@@ -23,6 +23,7 @@ from itertools import count
 from functools import partial
 from utils import AutoExpireDict, convert_to_timedelta, get_translation
 from tornado.ioloop import IOLoop
+from tornado.ioloop import PeriodicCallback as PC
 
 # Localization support
 _ = get_translation()
@@ -495,3 +496,47 @@ class MultiprocessRunner(AsyncRunner):
             if self.running:
                 logging.info("Shutting down the MultiprocessRunner executor.")
                 self.executor.shutdown(wait=wait)
+
+class PeriodicCallback(object):
+    """
+    A wrapper that uses either `tornado.ioloop.PeriodicCallback` or
+    `threading.Timer` to call functions at a specified interval depending on
+    whether or not there's a running instance of `tornado.ioloop.IOLoop`.
+
+    .. note::
+
+        The purpose of this class is primarily for debugging things in an
+        interactive Python interpreter.  It is expected that in production
+        you will be using a running `~tornado.ioloop.IOLoop`.
+    """
+    def __init__(self, callback, callback_time, io_loop=None):
+        self.callback = callback
+        self.callback_time = callback_time
+        self.io_loop = io_loop or IOLoop.current()
+        if self.io_loop._running:
+            # Use a regular PeriodicCallback
+            self._pc = PC(callback, callback_time, io_loop)
+        else:
+            from threading import Timer
+            # NOTE: PeriodicCallback uses ms while Timer uses seconds
+            def callback_wrapper():
+                "Runs the callback and restarts the Timer so it will run again"
+                self.callback()
+                if self._running:
+                    self._pc = Timer(callback_time / 1000, callback_wrapper)
+                    self._pc.start()
+            self._pc = Timer(callback_time / 1000, callback_wrapper)
+        self._running = False
+
+    def start(self):
+        """Starts the timer."""
+        self._running = True
+        self._pc.start() # Timer() and PeriodicCallback() both use start()
+
+    def stop(self):
+        """Stops the timer."""
+        self._running = False
+        if isinstance(self._pc, PC): # PeriodicCallback()
+            self._pc.stop()
+        else: # Timer()
+            self._pc.cancel()
