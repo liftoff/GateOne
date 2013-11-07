@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131104214722";
+GateOne.__commit__ = "20131105212653";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -171,7 +171,7 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
 
         });
 
-    :name: Name of the wrapped function.  It will be used to call any `init()` or `postInit()` functions.
+    :name: Name of the wrapped function.  It will be used to call any `init()` or `postInit()` functions.  If you just want dependencies checked you can just pass a unique string.
     :dependencies: An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.
     :func: A function containing the JavaScript code to execute as soon as the dependencies are available.
     */
@@ -2932,41 +2932,43 @@ GateOne.Base.update(GateOne.Visual, {
         */
         logDebug("GateOne.Visual.postInit()");
         if (!go.prefs.embedded) {
-            go.Input.registerShortcut('KEY_N',
-                {'modifiers': {
-                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.newWorkspaceWorkspace()'
-                });
-            go.Input.registerShortcut('KEY_W',
-                {'modifiers': {
-                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.closeWorkspace(localStorage[GateOne.prefs.prefix+"selectedWorkspace"])'
-                });
-            go.Input.registerShortcut('KEY_ARROW_LEFT',
-                {'modifiers': {
-                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Visual.slideLeft()'
-                });
-            go.Input.registerShortcut('KEY_ARROW_RIGHT',
-                {'modifiers': {
-                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Visual.slideRight()'
-                });
-            go.Input.registerShortcut('KEY_ARROW_UP',
-                {'modifiers': {
-                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Visual.slideUp()'
-                });
-            go.Input.registerShortcut('KEY_ARROW_DOWN',
-                {'modifiers': {
-                    'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Visual.slideDown()'
-                });
-            go.Input.registerShortcut('KEY_G',
-                {'modifiers': {
-                    'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.toggleGridView()'
-                });
+            go.Base.superSandbox("GateOne.Visual.postInitStuff", ["GateOne.Input"], function(window, undefined) {
+                go.Input.registerShortcut('KEY_N',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                        'action': 'GateOne.Visual.newWorkspaceWorkspace()'
+                    });
+                go.Input.registerShortcut('KEY_W',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                        'action': 'GateOne.Visual.closeWorkspace(localStorage[GateOne.prefs.prefix+"selectedWorkspace"])'
+                    });
+                go.Input.registerShortcut('KEY_ARROW_LEFT',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
+                        'action': 'GateOne.Visual.slideLeft()'
+                    });
+                go.Input.registerShortcut('KEY_ARROW_RIGHT',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
+                        'action': 'GateOne.Visual.slideRight()'
+                    });
+                go.Input.registerShortcut('KEY_ARROW_UP',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
+                        'action': 'GateOne.Visual.slideUp()'
+                    });
+                go.Input.registerShortcut('KEY_ARROW_DOWN',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': false, 'meta': false, 'shift': true},
+                        'action': 'GateOne.Visual.slideDown()'
+                    });
+                go.Input.registerShortcut('KEY_G',
+                    {'modifiers': {
+                        'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+                        'action': 'GateOne.Visual.toggleGridView()'
+                    });
+            });
         }
     },
     // NOTE: Work-in-progress:
@@ -3064,7 +3066,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             E = go.Events,
             prefix = go.prefs.prefix,
-            apps = go.User.applications,
+            apps = go.User.applications || [],
             selectedApp,
             spacers = 0,
             filteredApps = [],

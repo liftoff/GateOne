@@ -70,7 +70,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.doingUpdate = true;
             var cb = t.Input.charBuffer,
                 charString = "";
-            for (var i=0; i<=cb.length; i++) { charString += cb.pop() }
+            for (var i=0; i<=cb.length; i++) { charString += cb.pop(); }
             if (charString != "undefined") {
                 var message = {'c': charString};
                 E.trigger("terminal:send_chars", message); // Called before the message is sent so it can be manipulated.
@@ -102,7 +102,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 }
             }
         }
-        lineno = parseInt(u.last(className.split('_'))) + 1;
+        lineno = parseInt(u.last(className.split('_')), 10) + 1;
         return lineno;
     },
     onMouseWheel: function(e) {
@@ -236,7 +236,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         columns = termObj['columns'],
                         colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
                         width = termObj['screenNode'].offsetWidth;
-                    Y = parseInt(u.last(className.split('_'))) + 1;
+                    Y = parseInt(u.last(className.split('_')), 10) + 1;
                     X = Math.ceil(e.clientX/(width/(columns)));
                     go.Terminal.Input.startSelection = [X, Y]; // Block selection tracking
                     logDebug("onMouseDown(): Clicked on row/column: "+Y+"/"+X);
@@ -352,7 +352,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // This is for mouse tracking
         if (go.Terminal.mouseUpdater) {
             // CSI M CbCxCy
-            logDebug("elementUnder: ", elementUnder)
+            logDebug("elementUnder: ", elementUnder);
             if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
                 var termObj = go.Terminal.terminals[selectedTerm],
                     termNode = termObj['node'],
@@ -364,7 +364,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         e.preventDefault();
                     }
                 }
-                Y = parseInt(u.last(className.split('_'))) + 1;
+                Y = parseInt(u.last(className.split('_')), 10) + 1;
                 X = Math.ceil(e.clientX/(width/(columns)));
                 logDebug("onMouseUp(): Clicked on row/column: "+Y+"/"+X);
                 if (isNaN(Y)) {
@@ -604,9 +604,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug('GateOne.Terminal.Input.onKeyUp()');
         if (!t.Input.composition) {
             // If a non-shift modifier was depressed, emulate the given keystroke:
-            if (modifiers.alt || modifiers.ctrl || modifiers.meta) {
-                ;;
-            } else { // Just send the key if no modifiers:
+            if (!(modifiers.alt || modifiers.ctrl || modifiers.meta)) {
+                // Just send the key if no modifiers
                 // The value of the input node is really only necessary for IME-style input
                 t.Input.inputNode.value = ""; // Keep it empty until needed
             }
@@ -688,7 +687,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug("emulateKey() term: " +term+ ", key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         t.Input.sentBackspace = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
-        if (!modifiers.shift && t.Input.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
+        if (!modifiers.shift && t.Input.F11 === true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
             t.Input.F11 = false;
             clearTimeout(t.Input.F11timer);
             return; // Don't proceed further
@@ -774,6 +773,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             term = localStorage[prefix+'selectedTerminal'],
             keyboard = t.terminals[term]['keyboard'],
             buffer = t.Input.bufferEscSeq,
+            pastearea,
             q = function(c) {
                 e.preventDefault();
                 t.Input.queue(c);
@@ -871,8 +871,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 }
             } else if (key.string == 'KEY_V') {
                 // Macs need this to support pasting with ⌘-v (⌘-c doesn't need anything special)
-                var term = localStorage[go.prefs.prefix+'selectedTerminal'],
-                    pastearea = go.Terminal.terminals[term]['pasteNode'];
+                term = localStorage[go.prefs.prefix+'selectedTerminal'];
+                pastearea = go.Terminal.terminals[term]['pasteNode'];
                 pastearea.focus(); // So the browser will know to issue a paste event
             }
         }

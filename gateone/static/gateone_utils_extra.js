@@ -175,8 +175,7 @@ GateOne.Base.update(GateOne.Utils, {
             {'w': 8, 'h': 15}
         */
 //         logDebug('getEmDimensions('+elem+', id: '+elem.id+')');
-        var u = GateOne.Utils,
-            node = u.getNode(elem).cloneNode(false), // Work on a clone so we can leave the original alone
+        var node = u.getNode(elem).cloneNode(false), // Work on a clone so we can leave the original alone
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
@@ -291,7 +290,7 @@ GateOne.Base.update(GateOne.Utils, {
             elementDimensions = {
                 h: node.clientHeight,
                 w: node.clientWidth
-            },
+            };
             textDimensions = u.getEmDimensions(elem, where);
             where.removeChild(node);
         }
@@ -457,7 +456,7 @@ GateOne.Base.update(GateOne.Utils, {
         if (callback) {
             tag.onload = function() {
                 callback();
-            }
+            };
         }
         document.body.appendChild(tag);
         setTimeout(function() {

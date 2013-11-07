@@ -62,7 +62,7 @@ t.terminals = { // For keeping track of running terminals
         }
         return counter;
     }
-}
+};
 // These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
 t.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
 t.rowAdjust = 0; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
@@ -83,7 +83,7 @@ t.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can 
 t.dbVersion = 1; // NOTE: Must be an integer (no floats!)
 t.terminalDBModel = {
     'scrollback': {keyPath: 'term'} // Just storing the scrollback buffer for now
-}
+};
 t.outputSuspended = gettext("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume.");
 t.warnedAboutVoiceExt = false; // Tracks whether we've already warned the user about the presence of a problem extension.
 go.Base.update(GateOne.Terminal, {
@@ -115,7 +115,7 @@ go.Base.update(GateOne.Terminal, {
                 'command': settings['command'] || settings['sub_application'] || null
             };
         if (settings['encoding']) {
-            'encoding' = settings['encoding'];
+            encoding = settings['encoding'];
         }
         where = where || go.Visual.newWorkspace();
         if (go.ws.readyState == 1) { // Only open a new terminal if we're connected

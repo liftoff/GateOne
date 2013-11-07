@@ -73,7 +73,7 @@ GateOne.Base.update(GateOne.Input, {
             alt: false,
             ctrl: false,
             meta: false
-        }
+        };
         if (e.altGraph) out.altgr = true;
         if (e.altKey) out.alt = true;
         if (e.shiftKey) out.shift = true;
@@ -205,7 +205,7 @@ GateOne.Base.update(GateOne.Input, {
         if (e.type == 'keydown' || e.type == 'keyup') {
             k.code = e.keyCode;
             // Try the location-specific key string first, then the default location (0), then the Mac version, then finally give up
-            specialKeys = goIn.specialKeys[k.location] || goIn.specialKeys[0]
+            specialKeys = goIn.specialKeys[k.location] || goIn.specialKeys[0];
             k.string = specialKeys[k.code] || goIn.specialMacKeys[k.code] || 'KEY_UNKNOWN';
             return k;
         } else if (typeof(e.charCode) != 'undefined' && e.charCode !== 0 && !goIn.specialMacKeys[e.charCode]) {

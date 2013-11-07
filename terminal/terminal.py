@@ -4188,15 +4188,17 @@ class Terminal(object):
         cursor_span = '<span class="%scursor">' % self.class_prefix
         for linecount, line in enumerate(screen):
             rendition = renditions[linecount]
-            combined = (line + rendition).tounicode()
-            if has_cache and combined in html_cache:
+            line_chars = line.tounicode()
+            combined = line_chars + rendition.tounicode()
+            cursor_line = True if linecount == cursorY else False
+            if not cursor_line and has_cache and combined in html_cache:
                 # Always re-render the line with the cursor (or just had it)
                 if cursor_span not in html_cache[combined]:
                     # Use the cache...
                     results.append(html_cache[combined])
                     continue
-            if not len(line.tounicode().rstrip()) and linecount != cursorY:
-                results.append(line.tounicode())
+            if not len(line_chars.rstrip()) and linecount != cursorY:
+                results.append(line_chars)
                 continue # Line is empty so we don't need to process renditions
             outline = ""
             if current_classes:
@@ -4258,12 +4260,9 @@ class Terminal(object):
                             self.class_prefix,
                             (" %s" % self.class_prefix).join(current_classes))
                         spancount += 1
-                if linecount == cursorY and charcount == cursorX: # Cursor
-                    if show_cursor:
-                        outline += '<span class="%scursor">%s</span>' % (
-                            self.class_prefix, char)
-                    else:
-                        outline += char
+                if cursor_line and show_cursor and cursorX == charcount:
+                    outline += '<span class="%scursor">%s</span>' % (
+                        self.class_prefix, char)
                 else:
                     outline += char
                 charcount += 1
