@@ -4197,7 +4197,7 @@ class Terminal(object):
                     # Use the cache...
                     results.append(html_cache[combined])
                     continue
-            if not len(line_chars.rstrip()) and linecount != cursorY:
+            if not len(line_chars.rstrip()) and not cursor_line:
                 results.append(line_chars)
                 continue # Line is empty so we don't need to process renditions
             outline = ""
@@ -4260,7 +4260,7 @@ class Terminal(object):
                             self.class_prefix,
                             (" %s" % self.class_prefix).join(current_classes))
                         spancount += 1
-                if cursor_line and show_cursor and cursorX == charcount:
+                if cursor_line and show_cursor and charcount == cursorX:
                     outline += '<span class="%scursor">%s</span>' % (
                         self.class_prefix, char)
                 else:
@@ -4274,7 +4274,7 @@ class Terminal(object):
                 if has_cache:
                     html_cache[combined] = outline
             else:
-                results.append(None) # null is shorter than 4 spaces
+                results.append(None) # null is shorter than spaces
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe

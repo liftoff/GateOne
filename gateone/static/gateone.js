@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131105212653";
+GateOne.__commit__ = "20131107173929";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3890,7 +3890,7 @@ GateOne.Base.update(GateOne.Visual, {
         });
     },
     relocateWorkspace: function(workspace, location) {
-        /**:GateOne.Visual.relocateWorkspace(workspace)
+        /**:GateOne.Visual.relocateWorkspace(workspace, location)
 
         Relocates the given *workspace* (number) to the given *location* by firing the `go:relocate_workspace` event and *then* closing the workspace (if not already closed).  The given *workspace* and *location* will be passed to the event as the only arguments.
 
@@ -5702,8 +5702,13 @@ GateOne.Base.update(GateOne.User, {
 
         Sets `GateOne.User.applications` to the given list of *apps* (which is the list of applications the user is allowed to run).
         */
+        var newWSWS = u.getNode('✈new_workspace_workspace');
         // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
+        if (newWSWS) {
+            // Reload the New Workspace Workspace with this new list of apps
+            v.newWorkspaceWorkspace();
+        }
         // NOTE: In most cases applications' JavaScript will not be sent to the user if that user is not allowed to run it but this does not cover all use case scenarios.  For example, a user that has access to an application only if certain conditions are met (e.g. during a specific time window).  In those instances we don't want to force the user to reload the page...  We'll just send a new applications list when it changes (which is a feature that's on the way).
         GateOne.Events.trigger("go:applications", apps);
     },
@@ -5879,7 +5884,7 @@ GateOne.Base.update(GateOne.Events, {
                     var newList = [];
                     for (var n in callList) {
                         if (callback) {
-                             if (callList[n].callback.toString() == callback.toString()) {
+                             if (callList[n].callback && callList[n].callback.toString() == callback.toString()) {
                                 if (context && callList[n].context != context) {
                                     newList.push(callList[n]);
                                 } else if (context === null && callList[n].context) {
@@ -5938,12 +5943,14 @@ GateOne.Base.update(GateOne.Events, {
             }
             if (callList) {
                 callList.forEach(function(callObj) {
-                    var context = callObj.context || this
-                    callObj.callback.apply(context, args);
-                    if (callObj.times) {
-                        callObj.times -= 1;
-                        if (callObj.times == 0) {
-                            E.off(event, callObj.callback, callObj.context);
+                    var context = callObj.context || this;
+                    if (callObj.callback) {
+                        callObj.callback.apply(context, args);
+                        if (callObj.times) {
+                            callObj.times -= 1;
+                            if (callObj.times == 0) {
+                                E.off(event, callObj.callback, callObj.context);
+                            }
                         }
                     }
                 });
