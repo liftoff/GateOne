@@ -1001,6 +1001,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         'KEY_F47': {'default': ESC+"[23;6~"},
         'KEY_F48': {'default': ESC+"[24;6~"},
         'KEY_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
+        'KEY_NUM_PAD_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
         'KEY_BACKSPACE': {'default': String.fromCharCode(127), 'alt': ESC+String.fromCharCode(8)}, // Default is ^?. Will be changable to ^H eventually.
         'KEY_NUM_PAD_CLEAR': String.fromCharCode(12), // Not sure if this will do anything
         'KEY_SHIFT': null,
