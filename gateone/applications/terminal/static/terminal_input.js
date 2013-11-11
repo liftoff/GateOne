@@ -207,7 +207,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (t.terminals[selectedTerm] && t.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = t.terminals[selectedTerm]['pasteNode'];
         }
-        go.Terminal.setActive(selectedTerm);
+        t.setActive(selectedTerm);
         if (elementUnder.className) {
             className = elementUnder.className + ''; // Ensure it's a string for Firefox
         }
@@ -290,8 +290,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         selectedPastearea.focus();
                     }
                 }
-            } else {
-                t.Input.inputNode.focus();
             }
         } else {
             t.Input.inputNode.focus();
