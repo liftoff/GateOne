@@ -1927,6 +1927,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             "fatal": self.client_log.critical, # Python doesn't use "fatal"
             "critical": self.client_log.critical,
         }
+        if isinstance(log_obj["message"], bytes):
+            log_msg = log_obj["message"]
+        else:
+            log_msg = log_obj["message"].encode('utf-8')
         loggers[log_obj["level"].lower()](
             "Client Logging: {0}".format(log_obj["message"]))
 
