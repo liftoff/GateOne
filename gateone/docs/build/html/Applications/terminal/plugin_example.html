@@ -75,8 +75,8 @@
 <h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
 <p>example.js - The client-side portion of Gate One's Example plugin.</p>
 <dl class="function">
-<dt id="GateOne.Example.generateAuthObject">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">generateAuthObject</tt><big>(</big><em>api_key</em>, <em>secret</em>, <em>upn</em><big>)</big><a class="headerlink" href="#GateOne.Example.generateAuthObject" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Terminal.Example.generateAuthObject">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">generateAuthObject</tt><big>(</big><em>api_key</em>, <em>secret</em>, <em>upn</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.generateAuthObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a properly-constructed authentication object that can be used with Gate One's API authentication mode.  The timestamp, signature, signature_method, and api_version values will be created automatically.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -98,52 +98,52 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.init">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Example.init" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Terminal.Example.init">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>The init() function of every JavaScript plugin gets called automatically after the WebSocket is connected is authenticated.</p>
 <p>The Example plugin's <tt class="xref py py-obj docutils literal"><span class="pre">init()</span></tt> function sets up some internal variables, keyboard shortcuts (<tt class="kbd docutils literal"><span class="pre">Control-Alt-L</span></tt> to open the load graph), and adds some buttons to the Info &amp; Tools menu.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.stopGraph">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">stopGraph</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Example.stopGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Example.graphUpdateTimer</span></tt>, removes the canvas element, and stops the smoothie graph streaming.  <em>result</em> is unused.</p>
+<dt id="GateOne.Terminal.Example.stopGraph">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">stopGraph</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.stopGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Example.graphUpdateTimer</span></tt>, removes the canvas element, and stops the smoothie graph streaming.  <em>result</em> is unused.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.stopTop">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">stopTop</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Example.stopTop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Example.topUpdateTimer</span></tt> and removes the 'toptop' element.  <em>result</em> is unused.</p>
+<dt id="GateOne.Terminal.Example.toggleLoadGraph">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">toggleLoadGraph</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.toggleLoadGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt>).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.toggleLoadGraph">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">toggleLoadGraph</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Example.toggleLoadGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displays a real-time load graph of the given terminal (inside of it as a <a class="reference internal" href="../../Developer/js_gateone.html#GateOne.Visual.widget" title="GateOne.Visual.widget"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.widget()</span></tt></a>).</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="GateOne.Example.topTop">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">topTop</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Example.topTop" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Terminal.Example.topTop">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">topTop</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.topTop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.updateGraph">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">updateGraph</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Example.updateGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates GateOne.Example.line1 through line3 by parsing the <em>output</em> of the 'uptime' command.</p>
+<dt id="GateOne.Terminal.Example.updateGraph">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">updateGraph</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.updateGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates <tt class="docutils literal"><span class="pre">GateOne.Terminal.Example.line1</span></tt> through <tt class="docutils literal"><span class="pre">line3</span></tt> by parsing the <em>output</em> of the 'uptime' command.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Example.updateTop">
-<tt class="descclassname">GateOne.Example.</tt><tt class="descname">updateTop</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Example.updateTop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the <a class="reference internal" href="#GateOne.Example.topTop" title="GateOne.Example.topTop"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Example.topTop()</span></tt></a> output on the screen when we receive <em>output</em> from the Gate One server. Here's what the output should look like:</p>
+<dt id="GateOne.Terminal.Example.updateTop">
+<tt class="descclassname">GateOne.Terminal.Example.</tt><tt class="descname">updateTop</tt><big>(</big><em>output</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Example.updateTop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the <a class="reference internal" href="#GateOne.Terminal.Example.topTop" title="GateOne.Terminal.Example.topTop"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.Example.topTop()</span></tt></a> output on the screen when we receive <em>output</em> from the Gate One server. Here's what the output should look like:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="nx">PID</span> <span class="nx">USER</span>      <span class="nx">PR</span>  <span class="nx">NI</span>  <span class="nx">VIRT</span>  <span class="nx">RES</span>  <span class="nx">SHR</span> <span class="nx">S</span> <span class="o">%</span><span class="nx">CPU</span> <span class="o">%</span><span class="nx">MEM</span>    <span class="nx">TIME</span><span class="o">+</span>  <span class="nx">COMMAND</span>
   <span class="mi">1</span> <span class="nx">root</span>      <span class="mi">20</span>   <span class="mi">0</span> <span class="mi">24052</span> <span class="mi">2132</span> <span class="mi">1316</span> <span class="nx">S</span>  <span class="mf">0.0</span>  <span class="mf">0.4</span>   <span class="mi">0</span><span class="o">:</span><span class="mf">00.35</span> <span class="o">/</span><span class="nx">sbin</span><span class="o">/</span><span class="nx">init</span>
   <span class="mi">2</span> <span class="nx">root</span>      <span class="mi">20</span>   <span class="mi">0</span>     <span class="mi">0</span>    <span class="mi">0</span>    <span class="mi">0</span> <span class="nx">S</span>  <span class="mf">0.0</span>  <span class="mf">0.0</span>   <span class="mi">0</span><span class="o">:</span><span class="mf">00.00</span> <span class="p">[</span><span class="nx">kthreadd</span><span class="p">]</span>
   <span class="mi">3</span> <span class="nx">root</span>      <span class="mi">20</span>   <span class="mi">0</span>     <span class="mi">0</span>    <span class="mi">0</span>    <span class="mi">0</span> <span class="nx">S</span>  <span class="mf">0.0</span>  <span class="mf">0.0</span>   <span class="mi">0</span><span class="o">:</span><span class="mf">00.08</span> <span class="p">[</span><span class="nx">ksoftirqd</span><span class="o">/</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.Terminal.Example.stopTop">
+<tt class="descclassname">GateOne.Terminal.Terminal.Example.</tt><tt class="descname">stopTop</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Terminal.Example.stopTop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Example.topUpdateTimer</span></tt> and removes the 'toptop' element.  <em>result</em> is unused.</p>
 </dd></dl>
 
 </div>
@@ -183,7 +183,7 @@ bottom of this file.  It works just like any Tornado
 the Tornado framework.  Fairly boilerplate stuff.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The only reason we use <a class="reference internal" href="../../Developer/gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt> is so we have access to Gate One's <a class="reference internal" href="../../Developer/gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
+<p class="last">The only reason we use <tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt> instead of a vanilla <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt> is so we have access to Gate One's <tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt> function.</p>
 </div>
 <dl class="method">
 <dt id="example.ExampleHandler.get">
@@ -230,7 +230,7 @@ their ordering is unpredictable so always be sure to either pass <em>one</em>
 argument to your function (assuming it is a <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt>) or 100% keyword
 arguments.</p>
 <p>The <em>self</em> argument here is automatically assigned by
-<tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> using the <a class="reference internal" href="../../Developer/utils.html#utils.bind" title="utils.bind"><tt class="xref py py-obj docutils literal"><span class="pre">utils.bind</span></tt></a> method.</p>
+<tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> using the <tt class="xref py py-obj docutils literal"><span class="pre">utils.bind</span></tt> method.</p>
 <p>The typical naming convention for <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
 actions is: <tt class="xref py py-obj docutils literal"><span class="pre">&lt;plugin</span> <span class="pre">name&gt;_</span></tt>.  Whether or not your action names
 match your function names is up to you.  All that matters is that you line
@@ -244,7 +244,7 @@ plugin's 'static' dir).</p>
 
 <dl class="function">
 <dt id="example.example_opt_esc_handler">
-<tt class="descclassname">example.</tt><tt class="descname">example_opt_esc_handler</tt><big>(</big><em>self</em>, <em>message</em><big>)</big><a class="reference internal" href="../../_modules/example.html#example_opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">example.</tt><tt class="descname">example_opt_esc_handler</tt><big>(</big><em>self</em>, <em>message</em>, <em>term=None</em>, <em>multiplex=None</em><big>)</big><a class="reference internal" href="../../_modules/example.html#example_opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_opt_esc_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gate One includes a mechanism for plugins to send messages from terminal
 programs directly to plugins written in Python.  It's called the &quot;Special
 Optional Escape Sequence Handler&quot; or SOESH for short.  Here's how it works:

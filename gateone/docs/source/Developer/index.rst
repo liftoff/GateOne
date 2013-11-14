@@ -9,16 +9,17 @@ Gate One consists of gateone.py and several supporting Python modules and script
 
 .. toctree::
 
-    auth.rst
-    authpam.rst
-    gateone.rst
-    golog.rst
-    gopam.rst
+    authentication.rst
+    authorization.rst
+    pam.rst
+    ctypes_pam.rst
+    sso.rst
     logviewer.rst
     remote_syslog.rst
-    sso.rst
     terminal.rst
     termio.rst
+    log.rst
+    server.rst
     utils.rst
 
 JavaScript Code

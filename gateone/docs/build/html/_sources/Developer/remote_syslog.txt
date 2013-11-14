@@ -3,6 +3,6 @@
 
 .. moduleauthor:: Christian Stigen Larsen
 
-.. automodule:: remote_syslog
+.. automodule:: gateone.core.remote_syslog
     :members:
     :private-members:

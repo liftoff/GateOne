@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>gateone.auth.authorization &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gateone.auth.authorization</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
+<span class="c">#</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.2&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">.. _authorization.py:</span>
+
+<span class="s">Authorization</span>
+<span class="s">==============</span>
+<span class="s">This module contains Gate One&#39;s authorization helpers.</span>
+
+<span class="s">Docstrings</span>
+<span class="s">==========</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Import stdlib stuff</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">re</span>
+
+<span class="c"># Import our own stuff</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">RUDict</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">memoize</span>
+<span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span>
+
+<span class="c"># Localization support</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
+
+<span class="c"># Globals</span>
+<span class="n">GATEONE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+
+<span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
+
+<span class="c"># Authorization stuff</span>
+<span class="nd">@memoize</span>
+<span class="k">def</span> <span class="nf">applicable_policies</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">policies</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given an *application* and a *user* object, returns the merged/resolved</span>
+<span class="sd">    policies from the given *policies* :class:`RUDict`.</span>
+
+<span class="sd">    .. note:: Policy settings always start with &#39;*&#39;, &#39;user&#39;, or &#39;group&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Start with the default policy</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">(</span><span class="n">policies</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="n">application</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="c"># No default policy--not good but not mandatory</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">policies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;*&#39;</span><span class="p">:</span>
+            <span class="k">continue</span> <span class="c"># Default policy was already handled</span>
+        <span class="k">if</span> <span class="n">application</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">continue</span> <span class="c"># No sense processing inapplicable stuff</span>
+        <span class="c"># Handle users and their properties first</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;user=&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;user.upn=&#39;</span><span class="p">):</span>
+            <span class="c"># UPNs are very straightforward</span>
+            <span class="n">upn</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">upn</span><span class="p">,</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]):</span>
+                <span class="n">policy</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">application</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;user.&#39;</span><span class="p">):</span>
+            <span class="c"># An attribute check (e.g. &#39;user.ip_address=10.1.1.1&#39;)</span>
+            <span class="n">attribute</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="c"># Get rid of the &#39;user.&#39; part</span>
+            <span class="n">attribute</span><span class="p">,</span> <span class="n">must_match</span> <span class="o">=</span> <span class="n">attribute</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">must_match</span><span class="p">,</span> <span class="n">user</span><span class="p">[</span><span class="n">attribute</span><span class="p">]):</span>
+                    <span class="n">policy</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">application</span><span class="p">])</span>
+        <span class="c"># TODO: Group stuff here (need attribute repo stuff first)</span>
+    <span class="k">return</span> <span class="n">policy</span>
+
+<div class="viewcode-block" id="require"><a class="viewcode-back" href="../../../Developer/authorization.html#gateone.auth.authorization.require">[docs]</a><span class="k">class</span> <span class="nc">require</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A decorator to add authorization requirements to any given function or</span>
+<span class="sd">    method using condition classes. Condition classes are classes with check()</span>
+<span class="sd">    methods that return True if the condition is met.</span>
+
+<span class="sd">    Example of using @require with is_user()::</span>
+
+<span class="sd">        @require(is_user(&#39;administrator&#39;))</span>
+<span class="sd">        def admin_index(self):</span>
+<span class="sd">            return &#39;Hello, Administrator!&#39;</span>
+
+<span class="sd">    This would only allow the user, &#39;administrator&#39; access to the index page.</span>
+<span class="sd">    In this example the *condition* is the `is_user` function which checks that</span>
+<span class="sd">    the logged-in user&#39;s username (aka UPN) is &#39;administrator&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">conditions</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">conditions</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="n">conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span>
+        <span class="c"># The following only gets run when the wrapped method is called</span>
+        <span class="k">def</span> <span class="nf">wrapped_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># Now check the conditions</span>
+            <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+                <span class="c"># Conditions don&#39;t have access to self directly so we use the</span>
+                <span class="c"># &#39;self&#39; associated with the user&#39;s open connection to update</span>
+                <span class="c"># the condition&#39;s &#39;instance&#39; attribute</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">self</span>
+                <span class="c"># This lets the condition know what it is being applied to:</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">f</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">f_args</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">f_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">condition</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;current_user&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+                            <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                                <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} </span><span class="si">%s</span><span class="s"> -&gt; </span><span class="si">%s</span><span class="s"> &#39;</span>
+                                <span class="s">&#39;failed requirement: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                            <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} unknown user -&gt; </span><span class="si">%s</span><span class="s"> &#39;</span>
+                            <span class="s">&#39;failed requirement: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))</span>
+                        <span class="p">))</span>
+                    <span class="c"># Try to notify the client of their failings</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">condition</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;send_message&#39;</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;ws&#39;</span><span class="p">):</span> <span class="c"># Inside an app, use ws</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="c"># This can happen if the client disconnects in the</span>
+                        <span class="c"># middle of this operation.  Ignore.</span>
+                        <span class="k">pass</span>
+                    <span class="k">return</span> <span class="n">noop</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrapped_f</span>
+</div>
+<div class="viewcode-block" id="authenticated"><a class="viewcode-back" href="../../../Developer/authorization.html#gateone.auth.authorization.authenticated">[docs]</a><span class="k">class</span> <span class="nc">authenticated</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if the user is authenticated.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Only meant to be used with WebSockets.  `tornado.web.RequestHandler`</span>
+<span class="sd">        instances can use `@tornado.web.authenticated`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Only valid users may access this function&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;authenticated&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># These are just here as reminders that (they will be set when called)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_args</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_kwargs</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket for this level of fail</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="is_user"><a class="viewcode-back" href="../../../Developer/authorization.html#gateone.auth.authorization.is_user">[docs]</a><span class="k">class</span> <span class="nc">is_user</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if the given username/UPN matches what&#39;s in `self._current_user`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;You are not authorized to perform this action&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;is_user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upn</span><span class="p">):</span> <span class="c"># NOTE: upn is the username (aka userPrincipalName)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upn</span> <span class="o">=</span> <span class="n">upn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_args</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_kwargs</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">current_user</span>
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Checking if </span><span class="si">%s</span><span class="s"> == </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="policies"><a class="viewcode-back" href="../../../Developer/authorization.html#gateone.auth.authorization.policies">[docs]</a><span class="k">class</span> <span class="nc">policies</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if all the given conditions are within the limits specified in Gate One&#39;s</span>
+<span class="sd">    settings (e.g. 50limits.conf).  Here&#39;s an example::</span>
+
+<span class="sd">        @require(authenticated(), policies(&#39;terminal&#39;))</span>
+<span class="sd">        def new_terminal(self, settings):</span>
+<span class="sd">            # Actual function would be here</span>
+<span class="sd">            pass</span>
+
+<span class="sd">    That would apply all policies that are configured for the &#39;terminal&#39;</span>
+<span class="sd">    application.  It works like this:</span>
+
+<span class="sd">    The :class:`~app_terminal.TerminalApplication` application registers its</span>
+<span class="sd">    name and policy-checking function inside of</span>
+<span class="sd">    :meth:`~app_terminal.TerminalApplication.initialize` like so::</span>
+
+<span class="sd">        self.ws.security.update({&#39;terminal&#39;: terminal_policies})</span>
+
+<span class="sd">    Whenever a function decorated with ``@require(policies(&#39;terminal&#39;))`` is</span>
+<span class="sd">    called the registered policy-checking function (e.g.</span>
+<span class="sd">    :func:`app_terminal.terminal_policies`) will be called, passing the current</span>
+<span class="sd">    instance of :class:`policies` as the only argument.</span>
+
+<span class="sd">    It is then up to the policy-checking function to make a determination as to</span>
+<span class="sd">    whether or not the user is allowed to execute the decorated function and</span>
+<span class="sd">    must return `True` if allowed.  Also note that the policy-checking function</span>
+<span class="sd">    will be able to make modifications to the function and its arguments if the</span>
+<span class="sd">    security policies warrant it.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you write your own policy-checking function (like</span>
+<span class="sd">        :func:`terminal_policies`) it is often a good idea to send a</span>
+<span class="sd">        notification to the user indicating why they&#39;ve been denied.  You can</span>
+<span class="sd">        do this with the :meth:`instance.send_message` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># NOTE:  In the future if we wish to use this function with Gate One itself</span>
+    <span class="c"># (as opposed to just a GOApplication) the &#39;app&#39; will need to be &#39;gateone&#39;.</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your ability to perform this action has been restricted&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;policies: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_args</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_kwargs</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">security</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">security</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="ow">in</span> <span class="n">security</span><span class="p">:</span>
+            <span class="c"># Let the application&#39;s registered &#39;security&#39; function make its own</span>
+            <span class="c"># determination.</span>
+            <span class="k">return</span> <span class="n">security</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span> <span class="c"># Nothing is registered for this application so it&#39;s OK</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

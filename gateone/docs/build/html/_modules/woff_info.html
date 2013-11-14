@@ -133,7 +133,23 @@
 <span class="s">    The command line output is JSON so it can be easily used by other programs.</span>
 <span class="s">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">zlib</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">zlib</span><span class="o">,</span> <span class="nn">functools</span>
+
+<span class="k">def</span> <span class="nf">memoize</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">memoizer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+            <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">memoizer</span>
+
+<span class="c"># Try using Gate One&#39;s memoize decorator (with self-expiry!)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">memoize</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span> <span class="c"># No big, use the one above</span>
 
 <span class="c"># Globals</span>
 <span class="n">ENCODING_MAP</span> <span class="o">=</span> <span class="p">{</span>
@@ -350,7 +366,8 @@
                 <span class="n">name_dict</span><span class="p">[</span><span class="n">name_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
     <span class="k">return</span> <span class="n">name_dict</span>
 </div>
-<div class="viewcode-block" id="woff_info"><a class="viewcode-back" href="../Applications/terminal/woff_info.html#woff_info.woff_info">[docs]</a><span class="k">def</span> <span class="nf">woff_info</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="nd">@memoize</span>
+<span class="k">def</span> <span class="nf">woff_info</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a dictionary containing the English-language name (string) data</span>
 <span class="sd">    from the WOFF file at the given *path*.</span>
@@ -361,7 +378,7 @@
         <span class="n">human_name</span> <span class="o">=</span> <span class="n">NAME_ID_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_id</span><span class="p">,</span> <span class="s">&#39;Unknown Name ID: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name_id</span><span class="p">)</span>
         <span class="n">human_name_dict</span><span class="p">[</span><span class="n">human_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">human_name_dict</span>
-</div>
+
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">json</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>

@@ -3,6 +3,6 @@
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: utils
+.. automodule:: gateone.core.utils
     :members:
     :private-members:

@@ -38,8 +38,8 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" />
-    <link rel="prev" title="remote_syslog.py - A module to send syslog messaged directly over UDP" href="remote_syslog.html" /> 
+    <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
+    <link rel="prev" title="ctypes_pam.py - PAM Authentication Module" href="ctypes_pam.html" /> 
   </head>
   <body>
     <div class="related">
@@ -52,10 +52,10 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="remote_syslog.html" title="remote_syslog.py - A module to send syslog messaged directly over UDP"
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -67,8 +67,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-sso">
-<span id="sso-py-a-tornado-kerberos-single-sign-on-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module<a class="headerlink" href="#module-sso" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-gateone.auth.sso">
+<span id="sso-py-a-tornado-kerberos-single-sign-on-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module<a class="headerlink" href="#module-gateone.auth.sso" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="about-the-sso-module">
 <span id="sso-py"></span><h2>About The SSO Module<a class="headerlink" href="#about-the-sso-module" title="Permalink to this headline">¶</a></h2>
 <p>sso.py is a Tornado Single Sign-On (SSO) authentication module that implements
@@ -112,8 +112,8 @@ If you can get SSO working with SSH you can get SSO working with anything else.<
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="sso.KerberosAuthMixin">
-<em class="property">class </em><tt class="descclassname">sso.</tt><tt class="descname">KerberosAuthMixin</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin">
+<em class="property">class </em><tt class="descclassname">gateone.auth.sso.</tt><tt class="descname">KerberosAuthMixin</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Authenticates users via Kerberos-based Single Sign-On.  Requires that you
 define 'sso_realm' and 'sso_service' in your Tornado Application settings.
 For example:</p>
@@ -155,8 +155,8 @@ services).</p>
 </pre></div>
 </div>
 <dl class="method">
-<dt id="sso.KerberosAuthMixin.initialize">
-<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.initialize" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print out helpful error messages if the requisite settings aren't
 configured.</p>
 <p>NOTE: It won't hurt anything to override this method in your
@@ -164,29 +164,29 @@ RequestHandler.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sso.KerberosAuthMixin.get_authenticated_user">
-<tt class="descname">get_authenticated_user</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin.get_authenticated_user">
+<tt class="descname">get_authenticated_user</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Processes the client's Authorization header and calls
 self.auth_negotiate() or self.auth_basic() depending on what headers
 were provided by the client.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sso.KerberosAuthMixin.auth_negotiate">
-<tt class="descname">auth_negotiate</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_negotiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_negotiate" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin.auth_negotiate">
+<tt class="descname">auth_negotiate</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin.auth_negotiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin.auth_negotiate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform Negotiate (GSSAPI/SSO) authentication via Kerberos.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sso.KerberosAuthMixin.auth_basic">
-<tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin.auth_basic">
+<tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform Basic authentication using Kerberos against
 <tt class="xref py py-obj docutils literal"><span class="pre">self.settings['sso_realm']</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sso.KerberosAuthMixin.authenticate_redirect">
-<tt class="descname">authenticate_redirect</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.auth.sso.KerberosAuthMixin.authenticate_redirect">
+<tt class="descname">authenticate_redirect</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/sso.html#KerberosAuthMixin.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.sso.KerberosAuthMixin.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Informs the browser that this resource requires authentication (status
 code 401) which should prompt the browser to reply with credentials.</p>
 <p>The browser will be informed that we support both Negotiate (GSSAPI/SSO)
@@ -220,11 +220,11 @@ and Basic auth.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="remote_syslog.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>
+  <p class="topless"><a href="ctypes_pam.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">ctypes_pam.py</span></tt> - PAM Authentication Module</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="terminal.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+  <p class="topless"><a href="logviewer.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/sso.txt"
@@ -257,10 +257,10 @@ and Basic auth.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
              >next</a> |</li>
         <li class="right" >
-          <a href="remote_syslog.html" title="remote_syslog.py - A module to send syslog messaged directly over UDP"
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 

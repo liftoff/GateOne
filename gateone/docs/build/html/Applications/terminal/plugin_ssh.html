@@ -81,6 +81,16 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.SSH.bookmarkIconHandler">
+<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">bookmarkIconHandler</tt><big>(</big><em>bookmark</em><big>)</big><a class="headerlink" href="#GateOne.SSH.bookmarkIconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Icons.SSH</span></tt> icon in the given bookmark using <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.storeFavicon()</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This gets registered for the 'ssh' and 'telnet' inside of <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.SSH.postInit()</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.SSH.commandCompleted">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">commandCompleted</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.SSH.commandCompleted" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses the contents of <em>message</em> to report the results of the command executed via <a class="reference internal" href="#GateOne.SSH.execRemoteCmd" title="GateOne.SSH.execRemoteCmd"><tt class="xref js js-meth docutils literal"><span class="pre">execRemoteCmd()</span></tt></a>.</p>
@@ -99,6 +109,13 @@
 </pre></div>
 </div>
 <p>Otherwise the output will just be displayed to the user.  After the callback has executed it will be removed from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.SSH.remoteCmdCallbacks</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.SSH.connect">
+<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">connect</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.SSH.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the given SSH <em>URL</em>.</p>
+<p>If the current terminal is sitting at the SSH Connect prompt it will be used to make the connection.  Otherwise a new terminal will be opened.</p>
 </dd></dl>
 
 <dl class="function">
@@ -182,9 +199,9 @@
 
 <dl class="function">
 <dt id="GateOne.SSH.handleReconnect">
-<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">handleReconnect</tt><big>(</big><em>jsonDoc</em><big>)</big><a class="headerlink" href="#GateOne.SSH.handleReconnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:sshjs_reconnect</span></tt> WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example <em>jsonDoc</em>:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="p">{</span><span class="mi">1</span><span class="o">:</span> <span class="s1">&#39;user@host1:22&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="o">:</span> <span class="s1">&#39;user@host2:22&#39;</span><span class="p">}</span>
+<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">handleReconnect</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.SSH.handleReconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:sshjs_reconnect</span></tt> WebSocket action which should provide an object containing each terminal's SSH connection string.  Example <em>message</em>:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="p">{</span><span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;connect_string&quot;</span><span class="o">:</span> <span class="s2">&quot;user@host1:22&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -229,6 +246,16 @@
 <dt id="GateOne.SSH.newIDForm">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">newIDForm</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.SSH.newIDForm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the dialog/form where the user can create or edit an SSH identity.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.SSH.postInit">
+<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">postInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.SSH.postInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers our 'ssh' and 'telnet' protocol handlers with the Bookmarks plugin.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These things are run inside of the <tt class="docutils literal"><span class="pre">postInit()</span></tt> function in order to ensure that <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks</span></tt> is loaded (and ready-to-go) first.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -366,7 +393,7 @@ end of the command output is detected.</p>
 <dl class="function">
 <dt id="ssh.terminate_sub_channel">
 <tt class="descclassname">ssh.</tt><tt class="descname">terminate_sub_channel</tt><big>(</big><em>m_instance</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#terminate_sub_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.terminate_sub_channel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">m_instance.terminate()</span></tt> and deletes it from the OPEN_SUBCHANNELS dict.</p>
+<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">m_instance.terminate()</span></tt> and deletes it from <tt class="xref py py-obj docutils literal"><span class="pre">OPEN_SUBCHANNELS</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -549,11 +576,14 @@ with the private and public keys.  It will be saved as
 <em>settings['name']</em>-cert.pub.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">I've found the following website helpful in understanding how to use OpenSSH with SSL certificates: <a class="reference external" href="http://blog.habets.pp.se/2011/07/OpenSSH-certificates">http://blog.habets.pp.se/2011/07/OpenSSH-certificates</a></p>
+<p class="last">I've found the following website helpful in understanding how to use
+OpenSSH with SSL certificates:
+<a class="reference external" href="http://blog.habets.pp.se/2011/07/OpenSSH-certificates">http://blog.habets.pp.se/2011/07/OpenSSH-certificates</a></p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.</p>
+<p class="last">Using signed-by-a-CA certificates is very handy because allows you to
+revoke the user's SSH key(s).  e.g. If they left the company.</p>
 </div>
 </dd></dl>
 
@@ -567,7 +597,7 @@ ssh directory (and 'testkey-cert.pub' if present).</p>
 
 <dl class="function">
 <dt id="ssh.get_identities">
-<tt class="descclassname">ssh.</tt><tt class="descname">get_identities</tt><big>(</big><em>self</em>, <em>anything</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#get_identities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_identities" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">get_identities</tt><big>(</big><em>self</em>, <em>*anything</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#get_identities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_identities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client with a list of the identities stored on the
 server for the current user.</p>
 <p><em>anything</em> is just there because the client needs to send <em>something</em> along
@@ -588,13 +618,27 @@ SSH connections by writing them to <tt class="xref py py-obj docutils literal"><
 </dd></dl>
 
 <dl class="function">
+<dt id="ssh.set_ssh_socket">
+<tt class="descclassname">ssh.</tt><tt class="descname">set_ssh_socket</tt><big>(</big><em>self</em>, <em>term</em>, <em>path</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#set_ssh_socket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.set_ssh_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>term</em> and <em>path</em>, sets
+<tt class="docutils literal"><span class="pre">self.loc_terms[term]['ssh_socket']</span> <span class="pre">=</span> <span class="pre">path</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.set_ssh_connect_string">
+<tt class="descclassname">ssh.</tt><tt class="descname">set_ssh_connect_string</tt><big>(</big><em>self</em>, <em>term</em>, <em>connect_string</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#set_ssh_connect_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.set_ssh_connect_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>term</em> and <em>connect_string</em>, sets
+<tt class="docutils literal"><span class="pre">self.loc_terms[term]['ssh_connect_string']</span> <span class="pre">=</span> <span class="pre">connect_string</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ssh.opt_esc_handler">
-<tt class="descclassname">ssh.</tt><tt class="descname">opt_esc_handler</tt><big>(</big><em>self</em>, <em>text</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">opt_esc_handler</tt><big>(</big><em>self</em>, <em>text</em>, <em>term=None</em>, <em>multiplex=None</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles text passed from the special optional escape sequance handler.  We
 use it to tell ssh.js what the SSH connection string is so it can use that
 information to duplicate sessions (if the user so desires).  For reference,
 the specific string which will call this function from a terminal app is:</p>
-<div class="highlight-python"><pre>\x1b]_;ssh|&lt;whatever&gt;</pre>
+<div class="highlight-python"><pre>\x1b]_;ssh|&lt;whatever&gt;\x07</pre>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>

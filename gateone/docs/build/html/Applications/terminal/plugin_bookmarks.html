@@ -136,6 +136,7 @@
 <li><strong>bmContainer</strong> (<em>DOM_node</em>) -- The DOM node we're going to be placing the bookmark.</li>
 <li><strong>bookmark</strong> (<em>object</em>) -- A bookmark object (presumably taken from <a class="reference internal" href="#GateOne.Bookmarks.bookmarks" title="GateOne.Bookmarks.bookmarks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt></a>)</li>
 <li><strong>delay</strong> (<em>number</em>) -- The amount of milliseconds to wait before translating (sliding) the bookmark into view.</li>
+<li><strong>ad</strong> (<em>boolean</em>) -- If true, will not bother adding tags or edit/delete/share links.</li>
 </ul>
 </td>
 </tr>
@@ -260,6 +261,12 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Bookmarks.httpIconHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">httpIconHandler</tt><big>(</big><em>bookmark</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.httpIconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the icon for the given HTTP or HTTPS <em>bookmark</em> and saves it in the bookmarks DB.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Bookmarks.incrementVisits">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">incrementVisits</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.incrementVisits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Increments by 1 the 'visits' value of the bookmark object associated with the given <em>URL</em>.</p>
@@ -300,9 +307,8 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.openBookmark">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openBookmark</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openBookmark" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the current terminal is in a disconnected state, connects to the given <em>URL</em> in the current terminal.</p>
-<p>If the current terminal is already connected, opens a new terminal before opening the given <em>URL</em>.</p>
-<p>If the given <em>URL</em> does not start with '<a class="reference external" href="ssh://">ssh://</a>' it will be opened in a new browser tab/window.</p>
+<dd><p>Calls the function in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.URLHandlers</span></tt> associated with the protocol of the given <em>URL</em>.</p>
+<p>If no function is registered for the given <em>URL</em> protocol a new browser window will be opened using the given <em>URL</em>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -341,6 +347,20 @@
 <dt id="GateOne.Bookmarks.panelToggleIn">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">panelToggleIn</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.panelToggleIn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when <tt class="xref py py-obj docutils literal"><span class="pre">panel_toggle:in</span></tt> event is triggered, calls <a class="reference internal" href="#GateOne.Bookmarks.createPanel" title="GateOne.Bookmarks.createPanel"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.createPanel()</span></tt></a> if <em>panel</em> is the Bookmarks panel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.registerIconHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">registerIconHandler</tt><big>(</big><em>protocol</em>, <em>handler</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.registerIconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given <em>handler</em> as the function to use whenever a bookmark icon needs to be retrieved for the given <em>protocol</em>.</p>
+<p>When the given <em>handler</em> is called it will be passed the bookmark object as the only argument.  It is up to the handler to call (or not) <tt class="docutils literal"><span class="pre">GateOne.Bookmarks.storeFavicon(bookmark,</span> <span class="pre">&lt;icon</span> <span class="pre">data</span> <span class="pre">URI&gt;);</span></tt> to store the icon.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.registerURLHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">registerURLHandler</tt><big>(</big><em>protocol</em>, <em>handler</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.registerURLHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given <em>handler</em> as the function to use whenever a bookmark is opened with a matching <em>protocol</em>.</p>
+<p>When the given <em>handler</em> is called it will be passed the URL as the only argument.</p>
 </dd></dl>
 
 <dl class="function">
@@ -424,6 +444,10 @@
 <dt id="GateOne.Bookmarks.storeFavicon">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">storeFavicon</tt><big>(</big><em>bookmark</em>, <em>dataURI</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.storeFavicon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stores the given <em>dataURI</em> as the 'favicon' image for the given <em>bookmark</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><em>dataURI</em> must be pre-encoded <a class="reference external" href="data:URI">data:URI</a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -453,13 +477,14 @@
 <dl class="function">
 <dt id="GateOne.Bookmarks.toggleSortOrder">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">toggleSortOrder</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.toggleSortOrder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reverses the order of the bookmarks list</p>
+<dd><p>Reverses the order of the bookmarks list.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Bookmarks.updateIcon">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">updateIcon</tt><big>(</big><em>bookmark</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.updateIcon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Makes an AJAX call to <tt class="xref py py-obj docutils literal"><span class="pre">&lt;Gate</span> <span class="pre">One</span> <span class="pre">URL&gt;/bookmarks/fetchicon</span></tt> to retrieve a favicon for the given <em>bookmark</em> and calls <a class="reference internal" href="#GateOne.Bookmarks.storeFavicon" title="GateOne.Bookmarks.storeFavicon"><tt class="xref js js-meth docutils literal"><span class="pre">storeFavicon()</span></tt></a> if an icon was able to be retrieved.</p>
+<dd><p>Calls the handler in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.iconHandlers</span></tt> associated with the given <em>bookmark.url</em> protocol.</p>
+<p>If no handler can be found no operation will be performed.</p>
 </dd></dl>
 
 <dl class="function">

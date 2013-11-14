@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>gateone.core.log &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gateone.core.log</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">.. _log.py:</span>
+
+<span class="s">Logging Module for Gate One</span>
+<span class="s">===========================</span>
+
+<span class="s">This module contains a number of pre-defined loggers for use within Gate One:</span>
+
+<span class="s">    ==========  =============================================================</span>
+<span class="s">    Name        Description</span>
+<span class="s">    ==========  =============================================================</span>
+<span class="s">    go_log      Used for logging internal Gate One events.</span>
+<span class="s">    auth_log    Used for logging authentication and authorization events.</span>
+<span class="s">    msg_log     Used for logging messages sent to/from users.</span>
+<span class="s">    ==========  =============================================================</span>
+
+<span class="s">Applications may also use their own loggers for differentiation purposes.  Such</span>
+<span class="s">loggers should be prefixed with &#39;gateone.app.&#39; like so::</span>
+
+<span class="s">    &gt;&gt;&gt; import logging</span>
+<span class="s">    &gt;&gt;&gt; logger = logging.getLogger(&quot;gateone.app.myapp&quot;)</span>
+
+<span class="s">Additional loggers may be defined within a `GOApplication` with additional</span>
+<span class="s">prefixing::</span>
+
+<span class="s">    &gt;&gt;&gt; xfer_log = logging.getLogger(&quot;gateone.app.myapp.xfer&quot;)</span>
+<span class="s">    &gt;&gt;&gt; lookup_log = logging.getLogger(&quot;gateone.app.myapp.lookup&quot;)</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    This module does not cover session logging within the Terminal application.</span>
+<span class="s">    That is a built-in feature of the `termio` module.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="kn">import</span> <span class="n">LogFormatter</span>
+
+<span class="n">LOGS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Holds a list of all our log paths so we can fix permissions</span>
+
+<div class="viewcode-block" id="JSONAdapter"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.JSONAdapter">[docs]</a><span class="k">class</span> <span class="nc">JSONAdapter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">LoggerAdapter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `logging.LoggerAdapter` that prepends keyword argument information to log</span>
+<span class="sd">    entries.  Expects the passed in dict-like object which will be included.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s">&#39;metadata&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">extra</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">extra</span><span class="p">:</span>
+            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s">&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">msg</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="go_logger"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.go_logger">[docs]</a><span class="k">def</span> <span class="nf">go_logger</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a new `logging.Logger` instance using the given *name*</span>
+<span class="sd">    pre-configured to match Gate One&#39;s usual logging output.  The given *name*</span>
+<span class="sd">    will automatically be prefixed with &#39;gateone.&#39; if it is not already.  So if</span>
+<span class="sd">    *name* is &#39;app.foo&#39; the `~logging.Logger` would end up named</span>
+<span class="sd">    &#39;gateone.app.foo&#39;.  If the given *name* is already prefixed with &#39;gateone.&#39;</span>
+<span class="sd">    it will be left as-is.</span>
+
+<span class="sd">    The log will be saved in the same location as Gate One&#39;s configured</span>
+<span class="sd">    `log_file_prefix` using the given *name* with the following convention:</span>
+
+<span class="sd">        ``gateone/logs/&lt;modified *name*&gt;.log``</span>
+
+<span class="sd">    The file name will be modified like so:</span>
+
+<span class="sd">        * It will have the &#39;gateone&#39; portion removed (since it&#39;s redundant).</span>
+<span class="sd">        * Dots will be replaced with dashes (-).</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; auth_logger = go_logger(&#39;gateone.auth.terminal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; auth_logger.info(&#39;test1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; app_logger = go_logger(&#39;gateone.app.terminal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; app_logger.info(&#39;test2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; os.lisdir(&#39;/opt/gateone/logs&#39;)</span>
+<span class="sd">        [&#39;auth.log&#39;, &#39;auth-terminal.log&#39;, &#39;app-terminal.log&#39; &#39;webserver.log&#39;]</span>
+
+<span class="sd">    If any *kwargs* are given they will be JSON-encoded and included in the log</span>
+<span class="sd">    message after the date/metadata like so::</span>
+
+<span class="sd">        &gt;&gt;&gt; auth_logger.info(&#39;test3&#39;, {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;})</span>
+<span class="sd">        [I 130828 15:00:56 app.py:10] {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;} test3</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>
+        <span class="c"># Logging is disabled but we still have to return the adapter so that</span>
+        <span class="c"># passing metadata to the logger won&#39;t throw exceptions</span>
+        <span class="k">return</span> <span class="n">JSONAdapter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># root logger; leave it alone</span>
+        <span class="n">LOGS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logger</span>
+    <span class="c"># Remove any existing handlers on the logger</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">upper</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.log&#39;</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basepath</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span>
+            <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">basepath</span><span class="p">):</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span>
+        <span class="n">LOGS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">maxBytes</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_max_size</span><span class="p">,</span>
+            <span class="n">backupCount</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_num_backups</span><span class="p">)</span>
+        <span class="n">channel</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LogFormatter</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">JSONAdapter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">logger</span>
+</div>
+<span class="n">go_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">)</span>
+<span class="n">app_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.app&quot;</span><span class="p">)</span> <span class="c"># Not used--just defines the parent</span>
+<span class="n">auth_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.auth&quot;</span><span class="p">)</span>
+<span class="n">msg_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.messaging&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

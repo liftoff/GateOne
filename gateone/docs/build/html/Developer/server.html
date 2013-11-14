@@ -1,0 +1,1672 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>server.py - Gate One&#39;s Core Script &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
+    <link rel="prev" title="log.py - Gate One Logging Module" href="log.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils.py - Supporting Functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="log.html" title="log.py - Gate One Logging Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gateone.core.server">
+<span id="server-py-gate-one-s-core-script"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">server.py</span></tt> - Gate One's Core Script<a class="headerlink" href="#module-gateone.core.server" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="gate-one">
+<span id="gateone-py"></span><h2>Gate One<a class="headerlink" href="#gate-one" title="Permalink to this headline">¶</a></h2>
+<p>Gate One is a web-based terminal emulator written in Python using the Tornado
+web framework.  This module runs the primary daemon process and acts as a
+central controller for all running terminals and terminal programs.  It supports
+numerous configuration options and can also be called with the --kill switch
+to kill all running terminal programs (if using dtach--otherwise they die on
+their own when gateone.py is stopped).</p>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends
+on the following 3rd party Python modules:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://www.tornadoweb.org/">Tornado</a> 3.0+ - A non-blocking web server framework that powers FriendFeed.</li>
+</ul>
+</div></blockquote>
+<p>The following modules are optional and can provide Gate One with additional
+functionality:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://launchpad.net/pyopenssl">pyOpenSSL</a> 0.10+ - An OpenSSL module/wrapper for Python.  Only used to generate self-signed SSL keys and certificates.  If pyOpenSSL isn't available Gate One will fall back to using the 'openssl' command to generate self-signed certificates.</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/kerberos">kerberos</a> 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</li>
+<li><a class="reference external" href="http://packages.debian.org/lenny/python-pam">python-pam</a> 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.</li>
+<li><a class="reference external" href="http://www.pythonware.com/products/pil/">PIL (Python Imaging Library)</a> 1.1.7+ - A Python module for manipulating images.  <strong>Alternative:</strong> <a class="reference external" href="https://github.com/python-imaging/Pillow">Pillow</a> 2.0+ - A &quot;friendly fork&quot; of PIL that works with Python 3.</li>
+<li><a class="reference external" href="https://code.google.com/p/mutagen/">mutagen</a> 1.21+ - A Python module to handle audio metadata.  Makes it so that if you <tt class="docutils literal"><span class="pre">cat</span> <span class="pre">music_file.ogg</span></tt> in a terminal you'll get useful track/tag information.</li>
+</ul>
+</div></blockquote>
+<p>With the exception of python-pam, all required and optional modules can usually be installed via one of these commands:</p>
+<blockquote>
+<div><pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install --upgrade tornado pyopenssl kerberos pillow mutagen
+</pre>
+</div></blockquote>
+<p>...or:</p>
+<blockquote>
+<div><pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;legacy-host<span class="ansi-bold ansi-blue">:~ $</span> sudo easy_install tornado pyopenssl kerberos pillow mutagen
+</pre>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The use of pip is recommended.  See <a class="reference external" href="http://www.pip-installer.org/en/latest/installing.html">http://www.pip-installer.org/en/latest/installing.html</a> if you don't have it.</p>
+</div>
+<p>The python-pam module is available in most Linux distribution repositories.  Simply executing one of the following should take care of it:</p>
+<blockquote>
+<div><pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;debian-or-ubuntu-host<span class="ansi-bold ansi-blue">:~ $</span> sudo apt-get install python-pam
+</pre>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;redhat-host<span class="ansi-bold ansi-blue">:~ $</span> sudo yum install python-pam
+</pre>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;gentoo-host<span class="ansi-bold ansi-blue">:~ $</span> sudo emerge python-pam
+</pre>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;suse-host<span class="ansi-bold ansi-blue">:~ $</span> sudo yast -i python-pam
+</pre>
+</div></blockquote>
+</div>
+<div class="section" id="settings">
+<h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
+<p>Most of Gate One's options can be controlled by command line switches or via
+.conf files in the settings directory.  If you haven't configured Gate One
+before a number of .conf files will be automatically generated using defaults
+and/or the command line switches provided the first time you run <tt class="xref py py-obj docutils literal"><span class="pre">gateone.py</span></tt>.</p>
+<p>Settings in the various <tt class="xref py py-obj docutils literal"><span class="pre">settings/*.conf</span></tt> files are JSON-formatted:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Technically, JSON doesn't allow comments but Gate One's .conf files do.</p>
+</div>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span> <span class="c1">// You can use single-line comments like this</span>
+<span class="cm">/*</span>
+<span class="cm">Or multi-line comments like this.</span>
+<span class="cm">*/</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// The * here designates this as &quot;default&quot; values</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// Settings in this dict are specific to the &quot;gateone&quot; app</span>
+            <span class="s2">&quot;address&quot;</span><span class="o">:</span> <span class="s2">&quot;10.0.0.100&quot;</span><span class="p">,</span> <span class="c1">// A string value</span>
+            <span class="s2">&quot;log_file_num_backups&quot;</span><span class="o">:</span> <span class="mi">10</span><span class="p">,</span> <span class="c1">// An integer value</span>
+            <span class="c1">// Here&#39;s an example list:</span>
+            <span class="s2">&quot;origins&quot;</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;10.0.0.100&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;https_redirect&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// Booleans are all lower case</span>
+            <span class="s2">&quot;log_to_stderr&quot;</span><span class="o">:</span> <span class="kc">null</span> <span class="c1">// Same as `None` in Python (also lower case)</span>
+            <span class="c1">// NOTE: No comma after last item</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;terminal&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// Example of a different application&#39;s settings</span>
+            <span class="s2">&quot;default_command&quot;</span><span class="o">:</span> <span class="s2">&quot;SSH&quot;</span><span class="p">,</span> <span class="c1">// &lt;-- don&#39;t leave traling commas like this!</span>
+            <span class="p">...</span> <span class="c1">// So on and so forth</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You <em>must</em> use double quotes (&quot;&quot;) to define strings.  Single quotes <em>can</em> be
+used inside double quotes, however.  <tt class="xref py py-obj docutils literal"><span class="pre">&quot;example&quot;:</span> <span class="pre">&quot;of</span> <span class="pre">'single'</span> <span class="pre">quotes&quot;</span></tt>  To
+escape a double-quote inside a double quote use three slashes:
+<tt class="xref py py-obj docutils literal"><span class="pre">&quot;\\\&quot;foo\\\&quot;&quot;</span></tt></p>
+</div>
+<p>You can have as many .conf files in your settings directory as you like.  When
+Gate One runs it reads all files in alphanumeric order and combines all settings
+into a single Python dictionary.  Files loaded last will override settings from
+earlier files.  Example:</p>
+<div class="topic">
+<p class="topic-title first">20example.conf</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;terminal&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;session_logging&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;default_command&quot;</span><span class="o">:</span> <span class="s2">&quot;SSH&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="topic">
+<p class="topic-title first">99override.conf</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;terminal&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;default_command&quot;</span><span class="o">:</span> <span class="s2">&quot;my_override&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>If Gate One loaded the above example .conf files the resulting dict would be:</p>
+<div class="topic">
+<p class="topic-title first">Merged settings</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;terminal&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;session_logging&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;default_command&quot;</span><span class="o">:</span> <span class="s2">&quot;my_override&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These settings are loaded using the <tt class="xref py py-obj docutils literal"><span class="pre">RUDict</span></tt> (Recusive Update Dict)
+class.</p>
+</div>
+<p>There are a few important differences between the configuration file and
+command line switches in regards to boolean values (True/False).  A switch such
+as <tt class="xref py py-obj docutils literal"><span class="pre">--debug</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">&quot;debug&quot;</span> <span class="pre">=</span> <span class="pre">true</span></tt> in 10server.conf:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;debug&quot;</span> <span class="o">=</span> <span class="kc">true</span> <span class="c1">// Booleans are all lower case (not in quotes)</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Use <tt class="xref py py-obj docutils literal"><span class="pre">--setting=True</span></tt>, <tt class="xref py py-obj docutils literal"><span class="pre">--setting=False</span></tt>, or <tt class="xref py py-obj docutils literal"><span class="pre">--setting=None</span></tt> to avoid
+confusion.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The following values in 10server.conf are case sensitive: <tt class="xref py py-obj docutils literal"><span class="pre">true</span></tt>, <tt class="xref py py-obj docutils literal"><span class="pre">false</span></tt>
+and <tt class="xref py py-obj docutils literal"><span class="pre">null</span></tt> (and should not be placed in quotes).</p>
+</div>
+<p>Running gateone.py with the <tt class="xref py py-obj docutils literal"><span class="pre">--help</span></tt> switch will print the usage information as
+well as descriptions of what each configurable option does:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ./gateone.py --help
+Usage: ./gateone.py [OPTIONS]
+
+Options:
+
+--address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run on the given address.  Default is all
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addresses (IPv6 included).  Multiple address
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can be s
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pecified using a semicolon as a
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;separator (e.g. '127.0.0.1;::1;10.1.1.100').
+--api_keys&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The 'key:secret,...' API key pairs you wish
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to use (only applies if using API
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;authentication)
+--api_timestamp_window&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;How long before an API authentication object
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;becomes invalid.  Default is '30s' (30
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seconds). (default 30s)
+--auth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Authentication method to use.  Valid options
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;are: none, api, google, ssl, kerberos, pam
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default none)
+--ca_certs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to a file containing any number of
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;concatenated CA certificates in PEM format.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;They will be used to authenticate clients if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the 'ssl_auth' option is set to 'optional'
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or 'required'.
+--cache_dir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path where Gate One should store temporary
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;global files (e.g. rendered templates, CSS,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;JS, etc). (default /tmp/gateone_cache)
+--certificate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the SSL certificate.  Will be auto-
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generated if none is provided. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;certificate.pem)
+--combine_css&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Combines all of Gate One's CSS Template
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;files into one big file and saves it at the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;given path (e.g. ./gateone.py
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--combine_css=/tmp/gateone.css).
+--combine_css_container&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use this setting in conjunction with
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--combine_css if the &lt;div&gt; where Gate One
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lives is named something other than #gateone
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default #gateone)
+--combine_js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Combines all of Gate One's JavaScript files
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;into one big file and saves it at the given
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path (e.g. ./gateone.py
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--combine_js=/tmp/gateone.js)
+--command&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DEPRECATED: Use the 'commands' option in the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;terminal settings.
+--config&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DEPRECATED.  Use --settings_dir. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/opt/gateone/server.conf)
+--cookie_secret&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use the given 45-character string for cookie
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;encryption.
+--debug&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enable debugging features such as auto-
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;restarting when files are modified. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;False)
+--disable_ssl&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If enabled, Gate One will run without SSL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(generally not a good idea). (default False)
+--dtach&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Wrap terminals with dtach. Allows sessions
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to be resumed even if Gate One is stopped
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and started (which is a sweet feature).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default True)
+--embedded&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When embedding Gate One, this option is
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;available to templates. (default False)
+--enable_unix_socket&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enable Unix socket support. (default False)
+--gid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Drop privileges and run Gate One as this
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;group/gid. (default 0)
+--help&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;show this help information
+--https_redirect&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If enabled, a separate listener will be
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;started on port 80 that redirects users to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the configured port using HTTPS. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;False)
+--js_init&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A JavaScript object (string) that will be
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;used when running GateOne.init() inside
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index.html.  Example: --js_init=&quot;{scheme:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'white'}&quot; would result in
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GateOne.init({scheme: 'white'})
+--keyfile&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the SSL keyfile.  Will be auto-
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generated if none is provided. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;keyfile.pem)
+--kill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kill any running Gate One terminal processes
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;including dtach'd processes. (default False)
+--locale&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The locale (e.g. pt_PT) Gate One should use
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for translations.  If not provided, will
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default to $LANG (which is 'en_US' in your
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current shell), or en_US if not set.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default en_US)
+--new_api_key&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Generate a new API key that an external
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;application can use to embed Gate One.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default False)
+--origins&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A semicolon-separated list of origins you
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wish to allow access to your Gate One server
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;over the WebSocket.  This value must contain
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the hostnames and FQDNs (e.g. foo;foo.bar;)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;users will use to connect to your Gate One
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;server as well as the hostnames/FQDNs of any
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sites that will be embedding Gate One.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Here's the default on your system: 'localhos
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t;127.0.0.1;enterprise.lan;enterprise;localh
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ost;enterprise.lan;enterprise;enterprise.exa
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mple.com;127.0.0.1;10.1.1.100'.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alternatively, '*' may be  specified to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow access from anywhere. (default localho
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;st;127.0.0.1;enterprise.lan;enterprise;local
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;host;enterprise.lan;enterprise;enterprise.ex
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ample.com;127.0.0.1;10.1.1.100)
+--pam_realm&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Basic auth REALM to display when
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;authenticating clients.  Default: hostname.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Only relevant if PAM authentication is
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enabled. (default enterprise)
+--pam_service&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAM service to use.  Defaults to 'login'.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Only relevant if PAM authentication is
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enabled. (default login)
+--pid_file&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Define the path to the pid file.  Default:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/tmp/gateone.pid (default /tmp/gateone.pid)
+--port&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run on the given port. (default 443)
+--session_dir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the location where session
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;information will be stored. (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/tmp/gateone)
+--session_logging&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If enabled, logs of user sessions will be
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enabled (default True)
+--session_timeout&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Amount of time that a session is allowed to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;idle before it is killed.  Accepts &lt;num&gt;X
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;where X could be one of s, m, h, or d for
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seconds, minutes, hours, and days.  Default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is '5d' (5 days).  Set to '0' to disable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the ability to resume sessions. (default 5d)
+--settings_dir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the settings directory.  Default:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/opt/gateone/settings (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/opt/gateone/settings)
+--ssl_auth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enable the use of client SSL (X.509)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;certificates as a secondary authentication
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;factor (the configured 'auth' type will come
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;after SSL auth).  May be one of 'none',
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'optional', or 'required'.  NOTE: Only works
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if the 'ca_certs' option is configured.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default none)
+--sso_realm&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kerberos REALM (aka DOMAIN) to use when
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;authenticating clients. Only relevant if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kerberos authentication is enabled.
+--sso_service&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kerberos service (aka application) to use.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to HTTP. Only relevant if Kerberos
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;authentication is enabled. (default HTTP)
+--syslog_facility&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Syslog facility to use when logging to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;syslog (if syslog_session_logging is
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enabled).  Must be one of: auth, cron,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;daemon, kern, local0, local1, local2,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local3, local4, local5, local6, local7, lpr,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mail, news, syslog, user, uucp.  Default:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;daemon (default daemon)
+--syslog_host&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remote host to send syslog messages to if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;syslog_logging is enabled.  Default: None
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(log to the local syslog daemon directly).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NOTE:  This setting is required on platforms
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that don't include Python's syslog module.
+--syslog_session_logging&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If enabled, logs of user sessions will be
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;written to syslog. (default False)
+--uid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Drop privileges and run Gate One as this
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;user/uid. (default 0)
+--unix_socket_path&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the Unix socket (if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--enable_unix_socket=True). (default
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/tmp/gateone.sock)
+--url_prefix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;An optional prefix to place before all Gate
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One URLs. e.g. '/gateone/'.  Use this if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Gate One will be running behind a reverse
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;proxy where you want it to be located at
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;some sub-URL path. (default /)
+--user_dir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path to the location where user files will
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;be stored. (default /opt/gateone/users)
+--user_logs_max_age&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum amount of length of time to keep any
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;given user log before it is removed.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default 30d)
+
+/usr/local/lib/python2.7/dist-packages/tornado/log.py options:
+
+--log_file_max_size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;max size of log files before rollover
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default 100000000)
+--log_file_num_backups&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number of log files to keep (default 10)
+--log_file_prefix=PATH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Path prefix for log files. Note that if you
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;are running multiple tornado processes,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log_file_prefix must be different for each
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;of them (e.g. include the port number)
+--log_to_stderr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send log output to stderr (colorized if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;possible). By default use stderr if
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--log_file_prefix is not set and no other
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logging is configured.
+--logging=debug|info|warning|error|none
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set the Python log level. If 'none', tornado
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;won't touch the logging configuration.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(default info)
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some of these options (e.g. log_file_prefix) are inherent to the
+Tornado framework.  You won't find them anywhere in gateone.py.</p>
+</div>
+</div>
+<div class="section" id="file-paths">
+<h3>File Paths<a class="headerlink" href="#file-paths" title="Permalink to this headline">¶</a></h3>
+<p>Gate One stores its files, temporary session information, and persistent user
+data in the following locations (Note: Many of these are configurable):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">File/Directory</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>authpam.py</td>
+<td>Contains the PAM authentication Mixin used by auth.py.</td>
+</tr>
+<tr class="row-odd"><td>auth.py</td>
+<td>Authentication classes.</td>
+</tr>
+<tr class="row-even"><td>babel_gateone.cfg</td>
+<td>Pybabel configuration for generating localized translations of Gate One's strings.</td>
+</tr>
+<tr class="row-odd"><td>certificate.pem</td>
+<td>The default certificate Gate One will use in SSL communications.</td>
+</tr>
+<tr class="row-even"><td>docs/</td>
+<td>Gate One's documentation.</td>
+</tr>
+<tr class="row-odd"><td>gateone.py</td>
+<td>Gate One's primary executable/script. Also, the file containing this documentation.</td>
+</tr>
+<tr class="row-even"><td>gopam.py</td>
+<td>PAM (Authentication) Python module (used by authpam.py).</td>
+</tr>
+<tr class="row-odd"><td>i18n/</td>
+<td>Gate One's internationalization (i18n) support and locale/translation files.</td>
+</tr>
+<tr class="row-even"><td>keyfile.pem</td>
+<td>The default private key used with SSL communications.</td>
+</tr>
+<tr class="row-odd"><td>logviewer.py</td>
+<td>A utility to view Gate One session logs.</td>
+</tr>
+<tr class="row-even"><td>plugins/</td>
+<td>(Global) Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</td>
+</tr>
+<tr class="row-odd"><td>remote_syslog.py</td>
+<td>A module that supports sending syslog messages over UDP to a remote syslog host.</td>
+</tr>
+<tr class="row-even"><td>settings/</td>
+<td>All Gate One settings files live here (.conf files).</td>
+</tr>
+<tr class="row-odd"><td>sso.py</td>
+<td>A Kerberos Single Sign-on module for Tornado (used by auth.py)</td>
+</tr>
+<tr class="row-even"><td>static/</td>
+<td>Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).</td>
+</tr>
+<tr class="row-odd"><td>templates/</td>
+<td>Tornado template files such as index.html.</td>
+</tr>
+<tr class="row-even"><td>tests/</td>
+<td>Various scripts and tools to test Gate One's functionality.</td>
+</tr>
+<tr class="row-odd"><td>utils.py</td>
+<td>Various supporting functions.</td>
+</tr>
+<tr class="row-even"><td>users/</td>
+<td>Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</td>
+</tr>
+<tr class="row-odd"><td>users/&lt;user&gt;/logs</td>
+<td>This is where session logs get stored if session_logging is set.</td>
+</tr>
+<tr class="row-even"><td>/tmp/gateone</td>
+<td>Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</td>
+</tr>
+<tr class="row-odd"><td>/tmp/gateone_cache</td>
+<td>Used to store cached files such as minified JavaScript and CSS.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="running">
+<h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
+<p>Executing Gate One is as simple as:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ./gateone.py
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By default Gate One will run on port 443 which requires root on most
+systems.  Use <tt class="xref py py-obj docutils literal"><span class="pre">--port=(something</span> <span class="pre">higher</span> <span class="pre">than</span> <span class="pre">1024)</span></tt> for non-root users.</p>
+</div>
+</div>
+<div class="section" id="applications-and-plugins">
+<h3>Applications and Plugins<a class="headerlink" href="#applications-and-plugins" title="Permalink to this headline">¶</a></h3>
+<p>Gate One supports both <em>applications</em> and <em>plugins</em>.  The difference is mostly
+architectural.  Applications go in the <tt class="xref py py-obj docutils literal"><span class="pre">gateone/applications</span></tt> directory while
+(global) plugins reside in <tt class="xref py py-obj docutils literal"><span class="pre">gateone/plugins</span></tt>.  The scope of application code
+applies only to the application wheras global Gate One plugin code will apply
+to Gate One itself and all applications.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Applications may have plugins of their own (e.g. terminal/plugins).</p>
+</div>
+<p>Gate One applications and plugins can be written using any combination of the
+following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Python</li>
+<li>JavaScript</li>
+<li>CSS</li>
+</ul>
+</div></blockquote>
+<p>Applications and Python plugins can integrate with Gate One in a number ways:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Adding or overriding request handlers to provide custom URLs (with a given regex).</li>
+<li>Adding or overriding methods in <a class="reference internal" href="#gateone.core.server.GOApplication" title="gateone.core.server.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a> to handle asynchronous WebSocket &quot;actions&quot;.</li>
+<li>Adding or overriding events via the <tt class="xref py py-meth docutils literal"><span class="pre">on()</span></tt>, <tt class="xref py py-meth docutils literal"><span class="pre">off()</span></tt>, <tt class="xref py py-meth docutils literal"><span class="pre">once()</span></tt>, and <tt class="xref py py-meth docutils literal"><span class="pre">trigger()</span></tt> functions.</li>
+<li>Delivering custom content to clients (e.g. JavaScript and CSS templates).</li>
+</ul>
+</div></blockquote>
+<p>JavaScript and CSS plugins will be delivered over the WebSocket and cached at
+the client by way of a novel synchronization mechanism.  Once JavaScript and CSS
+assets have been delivered they will only ever have to be re-delivered to
+clients if they have been modified (on the server).  This mechanism is extremely
+bandwidth efficient and should allow clients to load Gate One content much more
+quickly than traditional HTTP GET requests.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you install the <tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt> and/or <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> Python modules all JavaScript
+and CSS assets will be automatically minified before being delivered to
+clients.</p>
+</div>
+</div>
+</div>
+<div class="section" id="class-docstrings">
+<h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gateone.core.server._">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">_</tt><big>(</big><em>string</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server._" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps user_locale.translate so we don't get errors if loading a locale fails
+(or we output a message before it is initialized).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.cleanup_user_logs">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">cleanup_user_logs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#cleanup_user_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.cleanup_user_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up all user logs (everything in the user's 'logs' directory and
+subdirectories that ends in 'log') older than the <tt class="xref py py-obj docutils literal"><span class="pre">user_logs_max_age</span></tt>
+setting.  The log directory is assumed to be:</p>
+<blockquote>
+<div><em>user_dir</em>/&lt;user&gt;/logs</div></blockquote>
+<p>...where <em>user_dir</em> is whatever Gate One happens to have configured for
+that particular setting.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.cleanup_old_sessions">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">cleanup_old_sessions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#cleanup_old_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.cleanup_old_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up old session directories inside the <tt class="xref py py-obj docutils literal"><span class="pre">session_dir</span></tt>.  Any directories
+found that are older than the <tt class="xref py py-obj docutils literal"><span class="pre">auth_timeout</span></tt> (global gateone setting) will
+be removed.  The modification time is what will be checked.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.clean_up">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">clean_up</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#clean_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.clean_up" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regularly called via the <tt class="xref py py-obj docutils literal"><span class="pre">CLEANER</span></tt> <tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt>, calls
+<a class="reference internal" href="#gateone.core.server.cleanup_user_logs" title="gateone.core.server.cleanup_user_logs"><tt class="xref py py-obj docutils literal"><span class="pre">cleanup_user_logs</span></tt></a> and <a class="reference internal" href="#gateone.core.server.cleanup_old_sessions" title="gateone.core.server.cleanup_old_sessions"><tt class="xref py py-obj docutils literal"><span class="pre">cleanup_old_sessions</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">How often this function gets called can be controlled by adding a
+<tt class="xref py py-obj docutils literal"><span class="pre">cleanup_interval</span></tt> setting to 10server.conf ('gateone' section).</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.policy_send_user_message">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">policy_send_user_message</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#policy_send_user_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.policy_send_user_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.gateone_policies" title="gateone.core.server.gateone_policies"><tt class="xref py py-func docutils literal"><span class="pre">gateone_policies()</span></tt></a>, returns True if the user is
+authorized to send messages to other users and if applicable, all users
+(broadcasts).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.policy_broadcast">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">policy_broadcast</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#policy_broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.policy_broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.gateone_policies" title="gateone.core.server.gateone_policies"><tt class="xref py py-func docutils literal"><span class="pre">gateone_policies()</span></tt></a>, returns True if the user is
+authorized to broadcast messages using the
+<tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.broadcast()</span></tt> method.  It makes this determination
+by checking the <tt class="xref py py-obj docutils literal"><span class="pre">['gateone']['send_broadcasts']</span></tt> policy.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.policy_list_users">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">policy_list_users</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#policy_list_users"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.policy_list_users" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.gateone_policies" title="gateone.core.server.gateone_policies"><tt class="xref py py-func docutils literal"><span class="pre">gateone_policies()</span></tt></a>, returns True if the user is
+authorized to retrieve a list of the users currently connected to the Gate
+One server via the <tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.list_server_users()</span></tt> method.
+It makes this determination by checking the <tt class="xref py py-obj docutils literal"><span class="pre">['gateone']['list_users']</span></tt>
+policy.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.gateone_policies">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">gateone_policies</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#gateone_policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.gateone_policies" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets registered under 'gateone' in the
+<tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket.security</span></tt> dict and is called by the
+<tt class="xref py py-func docutils literal"><span class="pre">require()</span></tt> decorator by way of the <tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt> sub-function. It
+returns True or False depending on what is defined in the settings dir and
+what function is being called.</p>
+<p>This function will keep track of and place limits on the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Who can send messages to other users (including broadcasts).</li>
+<li>Who can retrieve a list of connected users.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.kill_all_sessions">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><em>timeout=False</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#kill_all_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls all 'kill_session_callbacks' attached to all <tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS</span></tt>.</p>
+<p>If <em>timeout</em> is <tt class="docutils literal"><span class="pre">True</span></tt>, emulate a session timeout event in order to
+<em>really</em> kill any user sessions (to ensure things like dtach processes get
+killed too).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.shutdown_async">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">shutdown_async</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#shutdown_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.shutdown_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shuts down our asynchronous processes/threads.  Specifically, calls
+<tt class="docutils literal"><span class="pre">CPU_ASYNC.shutdown()</span></tt> and <tt class="docutils literal"><span class="pre">IO_ASYNC.shutdown()</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.timeout_sessions">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">timeout_sessions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#timeout_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.timeout_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loops over the SESSIONS dict killing any sessions that haven't been used
+for the length of time specified in <em>TIMEOUT</em> (global).  The value of
+<em>TIMEOUT</em> can be set in 10server.conf or specified on the command line via
+the <em>session_timeout</em> value.</p>
+<p>Applications and plugins can register functions to be called when a session
+times out by attaching them to the user's session inside the <tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS</span></tt>
+dict under 'timeout_callbacks'.  The best place to do this is inside of the
+application's <tt class="xref py py-obj docutils literal"><span class="pre">authenticate()</span></tt> function or by attaching them to the
+<tt class="xref py py-obj docutils literal"><span class="pre">go:authenticate</span></tt> event.  Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Imagine this is inside an application&#39;s authenticate() method:</span>
+<span class="n">sess</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">session</span><span class="p">]</span>
+<span class="c"># Pretend timeout_sesssion() is a function we wrote to kill stuff</span>
+<span class="k">if</span> <span class="n">timeout_session</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sess</span><span class="p">[</span><span class="s">&quot;timeout_session&quot;</span><span class="p">]:</span>
+    <span class="n">sess</span><span class="p">[</span><span class="s">&quot;timeout_session&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timeout_session</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is meant to be called via Tornado's
+<tt class="xref py py-meth docutils literal"><span class="pre">PeriodicCallback()</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.StaticHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">StaticHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.StaticFileHandler</span></tt> to ensure that the
+Access-Control-Allow-Origin header gets set correctly.  This is necessary in
+order to support embedding Gate One into other web-based applications.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Gate One performs its own origin checking so header-based access
+controls at the client are unnecessary.</p>
+</div>
+<dl class="method">
+<dt id="gateone.core.server.StaticHandler.set_extra_headers">
+<tt class="descname">set_extra_headers</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler.set_extra_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler.set_extra_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the Access-Control-Allow-Origin header to allow cross-origin
+access to static content for applications embedding Gate One.
+Specifically, this is necessary in order to support loading fonts
+from different origins.</p>
+<p>Also sets the 'X-UA-Compatible' header to 'IE=edge' to enforce IE 10+
+into standards mode when content is loaded from intranet sites.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.StaticHandler.options">
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
+header, etc).  Since this is just the static file handler we don't
+include any extra information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.BaseHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base handler that all Gate One RequestHandlers will inherit methods from.</p>
+<p>Provides the <a class="reference internal" href="#gateone.core.server.BaseHandler.get_current_user" title="gateone.core.server.BaseHandler.get_current_user"><tt class="xref py py-meth docutils literal"><span class="pre">get_current_user()</span></tt></a> method, sets default headers, and
+provides a default <a class="reference internal" href="#gateone.core.server.BaseHandler.options" title="gateone.core.server.BaseHandler.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a> method that can be used for monitoring
+purposes and also for enumerating useful information about this Gate One
+server (see below for more info).</p>
+<dl class="method">
+<dt id="gateone.core.server.BaseHandler.set_default_headers">
+<tt class="descname">set_default_headers</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#BaseHandler.set_default_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.BaseHandler.set_default_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of <tt class="xref py py-meth docutils literal"><span class="pre">tornado.web.RequestHandler.set_default_headers()</span></tt>
+(which is how Tornado wants you to set default headers) that
+adds/overrides the following headers:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Server:</th><td class="field-body">'GateOne'</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">X-UA-Compatible:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">'IE=edge' (forces IE 10+ into Standards mode)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.BaseHandler.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tornado standard method--implemented our way.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.BaseHandler.options">
+<tt class="descname">options</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#BaseHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.BaseHandler.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
+header, etc) but also includes some useful information in the response
+body that lists which authentication API features we support in
+addition to which applications are installed.  The response body is
+conveniently JSON-encoded:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> curl -k             -X OPTIONS https://gateone.company.com/ | python -mjson.tool
+&nbsp;&nbsp;% Total&nbsp;&nbsp;&nbsp;&nbsp;% Received % Xferd&nbsp;&nbsp;Average Speed&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Time&nbsp;&nbsp;Current
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dload&nbsp;&nbsp;Upload&nbsp;&nbsp;&nbsp;Total&nbsp;&nbsp;&nbsp;Spent&nbsp;&nbsp;&nbsp;&nbsp;Left&nbsp;&nbsp;Speed
+100&nbsp;&nbsp;&nbsp;158&nbsp;&nbsp;100&nbsp;&nbsp;&nbsp;158&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;6793&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0 --:--:-- --:--:-- --:--:--&nbsp;&nbsp;7181
+{
+&nbsp;&nbsp;&nbsp;&nbsp;&quot;applications&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;File Transfer&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Terminal&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;X11&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;],
+&nbsp;&nbsp;&nbsp;&nbsp;&quot;auth_api&quot;: {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;hmacs&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA1&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA256&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA384&quot;,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;HMAC-SHA512&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;versions&quot;: [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;1.0&quot;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The 'Server' header does not supply the version information.  This
+is intentional as it amounts to an unnecessary information
+disclosure.  We don't need to make an attacker's job any easier.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.HTTPSRedirectHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">HTTPSRedirectHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#HTTPSRedirectHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.HTTPSRedirectHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A handler to redirect clients from HTTP to HTTPS.  Only used if
+<tt class="xref py py-obj docutils literal"><span class="pre">https_redirect</span></tt> is True in Gate One's settings.</p>
+<dl class="method">
+<dt id="gateone.core.server.HTTPSRedirectHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#HTTPSRedirectHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.HTTPSRedirectHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just redirects the client from HTTP to HTTPS</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.DownloadHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">DownloadHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#DownloadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.DownloadHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt> to serve up files that wind up in a
+given user's <tt class="xref py py-obj docutils literal"><span class="pre">session_dir</span></tt> in the 'downloads' directory.  Generally speaking
+these files are generated by the terminal emulator (e.g. cat somefile.pdf)
+but it can be used by applications and plugins as a way to serve up
+all sorts of (temporary/transient) files to users.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.MainHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">MainHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#MainHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.MainHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders index.html which loads Gate One.</p>
+<p>Will include the minified version of gateone.js if available as
+gateone.min.js.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.GOApplication">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">GOApplication</tt><big>(</big><em>ws</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base from which all Gate One Applications will inherit.  Applications
+are expected to be written like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SomeApplication</span><span class="p">(</span><span class="n">GOApplication</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the Application is instantiated.&quot;</span>
+        <span class="n">initialize_stuff</span><span class="p">()</span>
+        <span class="c"># Here&#39;s some good things to do in an initialize() function...</span>
+        <span class="c"># Register a policy-checking function:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;some_app&#39;</span><span class="p">:</span> <span class="n">policy_checking_func</span><span class="p">})</span>
+        <span class="c"># Register some WebSocket actions (note the app:action naming convention)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s">&#39;some_app:do_stuff&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_stuff</span><span class="p">,</span>
+            <span class="s">&#39;some_app:do_other_stuff&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_other_stuff</span>
+        <span class="p">})</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the connection is established.&quot;</span>
+        <span class="c"># Setup whatever is necessary for session tracking and whatnot.</span>
+    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the user *successfully* authenticates.&quot;</span>
+        <span class="c"># Here&#39;s the best place to instantiate things, send the user</span>
+        <span class="c"># JavaScript/CSS files, and similar post-authentication details.</span>
+    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the connection is closed.&quot;</span>
+        <span class="c"># This is a good place to halt any background/periodic operations.</span>
+</pre></div>
+</div>
+<p>GOApplications will be automatically imported into Gate One and registered
+appropriately as long as they follow the following conventions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The application and its module(s) should live inside its own directory inside the 'applications' directory.  For example, <tt class="xref py py-obj docutils literal"><span class="pre">/opt/gateone/applications/some_app/some_app.py</span></tt></li>
+<li>Subclasses of <a class="reference internal" href="#gateone.core.server.GOApplication" title="gateone.core.server.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a> must be added to an <tt class="xref py py-obj docutils literal"><span class="pre">apps</span></tt> global (list) inside of the application's module(s) like so: <tt class="xref py py-obj docutils literal"><span class="pre">apps</span> <span class="pre">=</span> <span class="pre">[SomeApplication]</span></tt> (usually a good idea to put that at the very bottom of the module).</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All .py modules inside of the application's main directory will be
+imported even if they do not contain or register a <a class="reference internal" href="#gateone.core.server.GOApplication" title="gateone.core.server.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a>.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can add command line arguments to Gate One by calling
+<tt class="xref py py-func docutils literal"><span class="pre">tornado.options.define()</span></tt> anywhere in your application's global
+namespace.  This works because the <tt class="xref py py-func docutils literal"><span class="pre">define()</span></tt>
+function registers options in Gate One's global namespace (as
+<tt class="xref py py-obj docutils literal"><span class="pre">tornado.options.options</span></tt>) and Gate One imports application modules
+before it evaluates command line arguments.</p>
+</div>
+<dl class="method">
+<dt id="gateone.core.server.GOApplication.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.open" title="gateone.core.server.ApplicationWebSocket.open"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></tt></a> after __init__().
+GOApplications can override this function to perform their own actions
+when the Application is initialized (happens just before the WebSocket
+is opened).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.GOApplication.open">
+<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.open" title="gateone.core.server.ApplicationWebSocket.open"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></tt></a> after the WebSocket is
+opened.  GOApplications can override this function to perform their own
+actions when the WebSocket is opened.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.GOApplication.on_close">
+<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.on_close" title="gateone.core.server.ApplicationWebSocket.on_close"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.on_close()</span></tt></a> after the WebSocket is
+closed.  GOApplications can override this function to perform their own
+actions when the WebSocket is closed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.GOApplication.add_handler">
+<tt class="descname">add_handler</tt><big>(</big><em>pattern</em>, <em>handler</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication.add_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication.add_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>handler</em> (<tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt>) to the Tornado
+Application (<tt class="xref py py-obj docutils literal"><span class="pre">self.ws.application</span></tt>) to handle URLs matching <em>pattern</em>.
+If given, <em>kwargs</em> will be added to the <tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.URLSpec</span></tt> when the
+complete handler is assembled.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the <em>pattern</em> does not start with the configured <tt class="xref py py-obj docutils literal"><span class="pre">url_prefix</span></tt> it
+will be automatically prepended.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.GOApplication.add_timeout">
+<tt class="descname">add_timeout</tt><big>(</big><em>timeout</em>, <em>func</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#GOApplication.add_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.GOApplication.add_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function that calls the given <em>func</em> after <em>timeout</em> using
+<tt class="docutils literal"><span class="pre">self.io_loop.add_timeout()</span></tt> (which uses
+<tt class="xref py py-meth docutils literal"><span class="pre">tornado.ioloop.IOLoop.add_timeout()</span></tt>).</p>
+<p>The given <em>timeout</em> may be a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt> or a string compatible
+with <tt class="xref py py-obj docutils literal"><span class="pre">utils.convert_to_timedelta</span></tt> such as, &quot;5s&quot; or &quot;10m&quot;.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.ApplicationWebSocket">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">ApplicationWebSocket</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main WebSocket interface for Gate One, this class is setup to call
+WebSocket 'actions' which are methods registered in <tt class="xref py py-obj docutils literal"><span class="pre">self.actions</span></tt>.
+Methods that are registered this way will be exposed and directly callable
+over the WebSocket.</p>
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket.file_checker">
+<em class="property">classmethod </em><tt class="descname">file_checker</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.file_checker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.file_checker" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-obj docutils literal"><span class="pre">Tornado.IOLoop.PeriodicCallback</span></tt> that regularly checks all files
+registered in the <tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.watched_files</span></tt> dict for changes.</p>
+<p>If changes are detected the corresponding function(s) in
+<tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.file_update_funcs</span></tt> will be called.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket.watch_file">
+<em class="property">classmethod </em><tt class="descname">watch_file</tt><big>(</big><em>path</em>, <em>func</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.watch_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.watch_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>A classmethod that registers the given file <em>path</em> and <em>func</em> in
+<tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.watched_files</span></tt> and
+<tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.file_update_funcs</span></tt>, respectively.  The given
+<em>func</em> will be called (by <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.file_checker" title="gateone.core.server.ApplicationWebSocket.file_checker"><tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.file_checker</span></tt></a>) whenever
+the file at <em>path</em> is modified.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket.load_prefs">
+<em class="property">classmethod </em><tt class="descname">load_prefs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.load_prefs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.load_prefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads all of Gate One's settings from <tt class="xref py py-obj docutils literal"><span class="pre">options.settings_dir</span></tt> into
+<tt class="docutils literal"><span class="pre">cls.prefs</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This <tt class="docutils literal"><span class="pre">classmethod</span></tt> gets called automatically whenever a change is
+detected inside Gate One's <tt class="docutils literal"><span class="pre">settings_dir</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket.broadcast_file_update">
+<em class="property">classmethod </em><tt class="descname">broadcast_file_update</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.broadcast_file_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.broadcast_file_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's an update to the <tt class="xref py py-obj docutils literal"><span class="pre">broadcast_file</span></tt> (e.g.
+<tt class="xref py py-obj docutils literal"><span class="pre">&lt;session_dir&gt;/broadcast</span></tt>); broadcasts its contents to all connected
+users.  The message will be displayed via the
+<a class="reference internal" href="js_gateone.html#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a> function at the client and can
+be formatted with HTML.  For this reason it is important to strictly
+control write access to the broadcast file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Under normal circumstances only root (or the owner of the
+gateone.py process) can enter and/or write to files inside
+Gate One's <tt class="xref py py-obj docutils literal"><span class="pre">session_dir</span></tt> directory.</p>
+</div>
+<p>The path to the broadcast file can be configured via the
+<tt class="xref py py-obj docutils literal"><span class="pre">broadcast_file</span></tt> setting which can be placed anywhere under the
+'gateone' application/scope (e.g. inside 10server.conf).  The setting
+isn't there by default but you can simply add it if you wish:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;broadcast_file&quot;</span><span class="o">:</span> <span class="s2">&quot;/whatever/path/you/want/broadcast&quot;</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Want to broadcast a message to all the users currently connected to
+Gate One?  Just <tt class="xref py py-obj docutils literal"><span class="pre">sudo</span> <span class="pre">echo</span> <span class="pre">&quot;your</span> <span class="pre">message&quot;</span> <span class="pre">&gt;</span> <span class="pre">/tmp/gateone/broadcast</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>apps=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets called by the Tornado framework when <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket" title="gateone.core.server.ApplicationWebSocket"><tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket</span></tt></a> is
+instantiated.  It will be passed the list of <em>apps</em> (Gate One
+applications) that are assigned inside the <a class="reference internal" href="#gateone.core.server.GOApplication" title="gateone.core.server.GOApplication"><tt class="xref py py-class docutils literal"><span class="pre">GOApplication</span></tt></a>
+object.  These <tt class="xref py py-class docutils literal"><span class="pre">GOApplication`s</span> <span class="pre">will</span> <span class="pre">be</span> <span class="pre">instantiated</span> <span class="pre">and</span> <span class="pre">stored</span>
+<span class="pre">in</span> <span class="pre">`self.apps</span></tt>.</p>
+<p>These <em>apps</em> will be mutated in-place so that <tt class="xref py py-obj docutils literal"><span class="pre">self</span></tt> will refer to the
+current instance of <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket" title="gateone.core.server.ApplicationWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">ApplicationWebSocket</span></tt></a>.  Kind of like a
+dynamic mixin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_extra">
+<tt class="descname">send_extra</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_extra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_extra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends any extra JS/CSS files placed in Gate One's 'static/extra'
+directory.  Can be useful if you want to use Gate One's file
+synchronization and caching capabilities in your app.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You may have to create the 'static/extra' directory before putting
+files in there.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.allow_draft76">
+<tt class="descname">allow_draft76</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.allow_draft76"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.allow_draft76" title="Permalink to this definition">¶</a></dt>
+<dd><p>By overriding this function we're allowing the older version of the
+WebSockets protocol.  As long as communications happens over SSL there
+shouldn't be any security concerns with this.  This is mostly to support
+iOS Safari.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mostly identical to the function of the same name in MainHandler.  The
+difference being that when API authentication is enabled the WebSocket
+will expect and perform its own auth of the client.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.write_binary">
+<tt class="descname">write_binary</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.write_binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.write_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the given <em>message</em> to the WebSocket in binary mode (opcode
+0x02).  Binary WebSocket messages are handled differently from regular
+messages at the client (they use a completely different 'action'
+mechanism).  For more information see the JavaScript developer
+documentation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.open">
+<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a new WebSocket is opened.  Will deny access to any
+origin that is not defined in <tt class="xref py py-obj docutils literal"><span class="pre">self.settings['origin']</span></tt>.  Also sends
+any relevant localization data (JavaScript) to the client and calls the
+<a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.open" title="gateone.core.server.ApplicationWebSocket.open"><tt class="xref py py-meth docutils literal"><span class="pre">open()</span></tt></a> method of any and all enabled Applications.</p>
+<p>Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:open</span></tt> event.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><tt class="xref py py-obj docutils literal"><span class="pre">self.settings</span></tt> comes from the Tornado framework and includes most
+command line arguments and the settings from the <tt class="xref py py-obj docutils literal"><span class="pre">settings_dir</span></tt> that
+fall under the &quot;gateone&quot; scope.  It is not the same thing as
+<tt class="xref py py-obj docutils literal"><span class="pre">self.prefs</span></tt> which includes <em>all</em> of Gate One's settings (including
+settings for other applications and scopes).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.on_message">
+<tt class="descname">on_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.on_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.on_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we receive a message from the client.  Performs some basic
+validation of the message, decodes it (JSON), and finally calls an
+appropriate WebSocket action (registered method) with the message
+contents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.on_close">
+<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the client terminates the connection.  Also calls the
+<a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.on_close" title="gateone.core.server.ApplicationWebSocket.on_close"><tt class="xref py py-meth docutils literal"><span class="pre">on_close()</span></tt></a> method of any and all enabled Applications.</p>
+<p>Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:close</span></tt> event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.on_pong">
+<tt class="descname">on_pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.on_pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.on_pong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records the latency of clients (from the server's perspective) via a
+log message.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is the <tt class="docutils literal"><span class="pre">pong</span></tt> specified in the WebSocket protocol itself.
+The <a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.pong" title="gateone.core.server.ApplicationWebSocket.pong"><tt class="xref py py-obj docutils literal"><span class="pre">pong</span></tt></a> method is a Gate One-specific implementation.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.pong">
+<tt class="descname">pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.pong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping</span></tt> WebSocket action; responds to a client's
+<tt class="docutils literal"><span class="pre">ping</span></tt> by returning the value (<em>timestamp</em>) that was sent.  This
+allows the client to measure the round-trip time of the WebSocket.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is a WebSocket action specific to Gate One. It</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.api_auth">
+<tt class="descname">api_auth</tt><big>(</big><em>auth_obj</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.api_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.api_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the <em>auth_obj</em> dict validates, returns the user dict and sets
+<tt class="docutils literal"><span class="pre">self.current_user</span></tt>.  If it doesn't validate, returns <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+<p>This function also takes care of creating the user's directory if it
+does not exist and creating/updating the user's 'session' file (which
+just stores metadata related to their session).</p>
+<p>Example usage:</p>
+<div class="highlight-python"><pre>auth_obj = {
+    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
+    'upn': 'joe@company.com',
+    'timestamp': '1323391717238',
+    'signature': &lt;gibberish&gt;,
+    'signature_method': 'HMAC-SHA1',
+    'api_version': '1.0'
+}
+result = self.api_auth(auth_obj)</pre>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="embedding.html#api-auth"><em>API Authentication</em></a> documentation.</p>
+</div>
+<p>Here's a rundown of the required <em>auth_obj</em> parameters:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">api_key:</th><td class="field-body">The first half of what gets generated when you run
+<tt class="docutils literal"><span class="pre">./gateone.py</span> <span class="pre">--new_api_key</span></tt> (the other half is the secret).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">upn:</th><td class="field-body">The userPrincipalName (aka username) of the user being
+authenticated.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">timestamp:</th><td class="field-body">A 13-digit &quot;time since the epoch&quot; JavaScript-style timestamp.
+Both integers and strings are accepted.
+Example JavaScript: <tt class="docutils literal"><span class="pre">var</span> <span class="pre">timestamp</span> <span class="pre">=</span> <span class="pre">new</span> <span class="pre">Date().getTime()</span></tt></td>
+</tr>
+<tr class="field-even field"><th class="field-name">signature:</th><td class="field-body">The HMAC signature of the combined <em>api_key</em>, <em>upn</em>, and
+<em>timestamp</em>; hashed using the secret associated with the given
+<em>api_key</em>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">signature_method:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">The hashing algorithm used to create the <em>signature</em>.  Currently
+this must be one of &quot;HMAC-SHA1&quot;, &quot;HMAC-SHA256&quot;, &quot;HMAC-SHA384&quot;,
+or &quot;HMAC-SHA512&quot;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">api_version:</th><td class="field-body">Which version of the authentication API to use when performing
+authentication.  Currently the only supported version is '1.0'.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Any additional key/value pairs that are included in the <em>auth_obj</em>
+will be assigned to the <tt class="docutils literal"><span class="pre">self.current_user</span></tt> object.  So if you're
+embedding Gate One and wish to associate extra metadata with the
+user you may do so via the API authentication process.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.authenticate">
+<tt class="descname">authenticate</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Authenticates the client by first trying to use the 'gateone_user'
+cookie or if Gate One is configured to use API authentication it will
+use <em>settings['auth']</em>.  Additionally, it will accept
+<em>settings['container']</em> and <em>settings['prefix']</em> to apply those to the
+equivalent properties (<tt class="xref py py-obj docutils literal"><span class="pre">self.container</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">self.prefix</span></tt>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">'container' refers to the element on which Gate One was initialized
+at the client (e.g. <tt class="xref py py-obj docutils literal"><span class="pre">#gateone</span></tt>).  'prefix' refers to the string that
+will be prepended to all Gate One element IDs when added to the web
+page (to avoid namespace conflicts).  Both these values are only
+used when generating CSS templates.</p>
+</div>
+<p>If <em>settings['location']</em> is something other than 'default' all new
+application instances will be associated with the given (string) value.
+These applications will be treated separately so they can exist in a
+different browser tab/window.</p>
+<p>Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:authenticate</span></tt> event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket._start_session_watcher">
+<tt class="descname">_start_session_watcher</tt><big>(</big><em>restart=False</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket._start_session_watcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket._start_session_watcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts up the <tt class="xref py py-obj docutils literal"><span class="pre">SESSION_WATCHER</span></tt> (assigned to that global)
+<tt class="xref py py-class docutils literal"><span class="pre">PeriodicCallback</span></tt> that regularly checks for user
+sessions that have timed out via the <a class="reference internal" href="#gateone.core.server.timeout_sessions" title="gateone.core.server.timeout_sessions"><tt class="xref py py-func docutils literal"><span class="pre">timeout_sessions()</span></tt></a> function
+and cleans them up (shuts down associated processes).</p>
+<p>The interval in which it performs this check is controlled via the
+<tt class="xref py py-obj docutils literal"><span class="pre">session_timeout_check_interval</span></tt> setting. This setting is not included
+in Gate One's 10server.conf by default but can be added if needed to
+override the default value of 30 seconds.  Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;session_timeout_check_interval&quot;</span><span class="o">:</span> <span class="s2">&quot;30s&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket._start_cleaner">
+<tt class="descname">_start_cleaner</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket._start_cleaner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket._start_cleaner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts up the <tt class="xref py py-obj docutils literal"><span class="pre">CLEANER</span></tt> (assigned to that global)
+<tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> that regularly checks for and
+deletes expired user logs (e.g. terminal session logs or anything in the
+<tt class="xref py py-obj docutils literal"><span class="pre">GATEONE_DIR/users/&lt;user&gt;/logs</span></tt> dir) and old session directories via the
+<a class="reference internal" href="#gateone.core.server.cleanup_user_logs" title="gateone.core.server.cleanup_user_logs"><tt class="xref py py-func docutils literal"><span class="pre">cleanup_user_logs()</span></tt></a> and <a class="reference internal" href="#gateone.core.server.cleanup_old_sessions" title="gateone.core.server.cleanup_old_sessions"><tt class="xref py py-func docutils literal"><span class="pre">cleanup_old_sessions()</span></tt></a> functions.</p>
+<p>The interval in which it performs this check is controlled via the
+<tt class="xref py py-obj docutils literal"><span class="pre">cleanup_interval</span></tt> setting. This setting is not included in Gate One's
+10server.conf by default but can be added if needed to override the
+default value of 5 minutes.  Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;cleanup_interval&quot;</span><span class="o">:</span> <span class="s2">&quot;5m&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket._start_file_watcher">
+<tt class="descname">_start_file_watcher</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket._start_file_watcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket._start_file_watcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts up the <tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket.file_watcher</span></tt>
+<tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> (which regularly calls
+<a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.file_checker" title="gateone.core.server.ApplicationWebSocket.file_checker"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.file_checker()</span></tt></a> and immediately starts it
+watching the broadcast file for changes (if not already watching it).</p>
+<p>The path to the broadcast file defaults to '<em>settings_dir</em>/broadcast'
+but can be changed via the 'broadcast_file' setting.  This setting is
+not included in Gate One's 10server.conf by default but can be added if
+needed to overrided the default value.  Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;broadcast_file&quot;</span><span class="o">:</span> <span class="s2">&quot;/some/path/to/broadcast&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can send messages to all users currently connected to the Gate
+One server by writing text to the broadcast file.  Example:
+<tt class="xref py py-obj docutils literal"><span class="pre">sudo</span> <span class="pre">echo</span> <span class="pre">&quot;Server</span> <span class="pre">will</span> <span class="pre">be</span> <span class="pre">rebooted</span> <span class="pre">as</span> <span class="pre">part</span> <span class="pre">of</span> <span class="pre">regularly</span> <span class="pre">scheduled</span>
+<span class="pre">maintenance</span> <span class="pre">in</span> <span class="pre">5</span> <span class="pre">minutes.</span>&nbsp; <span class="pre">Pleas</span> <span class="pre">save</span> <span class="pre">your</span> <span class="pre">work.&quot;</span> <span class="pre">&gt;</span>
+<span class="pre">/tmp/gateone/broadcast</span></tt></p>
+</div>
+<p>The interval in which it performs this check is controlled via the
+<tt class="xref py py-obj docutils literal"><span class="pre">file_check_interval</span></tt> setting. This setting is not included in
+Gate One's 10server.conf by default but can be added if needed to
+override the default value of 5 seconds.  Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;file_check_interval&quot;</span><span class="o">:</span> <span class="s2">&quot;5s&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.list_applications">
+<tt class="descname">list_applications</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.list_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.list_applications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the client indiciating which applications and
+sub-applications are available to the user.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">What's the difference between an &quot;application&quot; and a
+&quot;sub-application&quot;?  An &quot;application&quot; is a <a class="reference internal" href="#gateone.core.server.GOApplication" title="gateone.core.server.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a> like
+<a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication" title="app_terminal.TerminalApplication"><tt class="xref py py-obj docutils literal"><span class="pre">app_terminal.TerminalApplication</span></tt></a> while a &quot;sub-application&quot; would
+be something like &quot;SSH&quot; or &quot;nethack&quot; which runs inside the parent
+application.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.render_style">
+<tt class="descname">render_style</tt><big>(</big><em>style_path</em>, <em>force=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.render_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.render_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders the CSS template at <em>style_path</em> using <em>kwargs</em> and returns the
+path to the rendered result.  If the given style has already been
+rendered the existing cache path will be returned.</p>
+<p>If <em>force</em> is <tt class="docutils literal"><span class="pre">True</span></tt> the stylesheet will be rendered even if it
+already exists (cached).</p>
+<p>This method also cleans up older versions of the same rendered template.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.get_theme">
+<tt class="descname">get_theme</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.get_theme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.get_theme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the theme stylesheets matching the properties specified in
+<em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>container</strong> - The element Gate One resides in (e.g. 'gateone')</li>
+<li><strong>prefix</strong> - The string being used to prefix all elements (e.g. 'go_')</li>
+<li><strong>theme</strong> - The name of the CSS theme to be retrieved.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This will send the theme files for all applications and plugins that
+have a matching stylesheet in their 'templates' directory.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.cache_cleanup">
+<tt class="descname">cache_cleanup</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.cache_cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.cache_cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:cache_cleanup</span></tt> WebSocket action; rifles through the
+given list of <em>message['filenames']</em> from the client and sends a
+<tt class="xref py py-obj docutils literal"><span class="pre">go:cache_expired</span></tt> WebSocket action to the client with a list of files
+that no longer exist in <tt class="xref py py-obj docutils literal"><span class="pre">self.file_cache</span></tt> (so it can clean them up).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.file_request">
+<tt class="descname">file_request</tt><big>(</big><em>files_or_hash</em>, <em>use_client_cache=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.file_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.file_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:file_request</span></tt> WebSocket action; minifies, caches,
+and finally sends the requested file to the client.  If
+<em>use_client_cache</em> is <tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt> the client will be instructed not to cache
+the file.  Example message from the client requesting a file:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+    <span class="s1">&#39;go:file_request&#39;</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;some_file.js&#39;</span><span class="p">}}));</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In reality 'some_file.js' will be a unique/unguessable hash.</p>
+</div>
+<p>Optionally, <em>files_or_hash</em> may be given as a list or tuple and all the
+requested files will be sent.</p>
+<p>Files will be cached after being minified until a file is modified or
+Gate One is restarted.</p>
+<p>If the <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> module is installed JavaScript files will be minified
+before being sent to the client.</p>
+<p>If the <tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt> module is installed CSS files will be minified before
+being sent to the client.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_js_or_css">
+<tt class="descname">send_js_or_css</tt><big>(</big><em>paths_or_fileobj</em>, <em>kind</em>, <em>element_id=None</em>, <em>requires=None</em>, <em>media='screen'</em>, <em>filename=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiates a file synchronization of the given <em>paths_or_fileobj</em> with
+the client to ensure it has the latest version of the file(s).</p>
+<p>The <em>kind</em> argument must be one of 'js' or 'css' to indicate JavaScript
+or CSS, respectively.</p>
+<p>Optionally, <em>element_id</em> may be provided which will be assigned to the
+&lt;script&gt; or &lt;style&gt; tag that winds up being created (only works with
+single files).</p>
+<p>Optionally, a <em>requires</em> string or list/tuple may be given which will
+ensure that the given file gets loaded after any dependencies.</p>
+<p>Optionally, a <em>media</em> string may be provided to specify the 'media='
+value when creating a &lt;style&gt; tag to hold the given CSS.</p>
+<p>Optionally, a <em>filename</em> string may be provided which will be used
+instead of the name of the actual file when file synchronization occurs.
+This is useful for multi-stage processes (e.g. rendering templates)
+where you wish to preserve the original filename.  Just be aware that
+if you do this the given <em>filename</em> must be unique.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_js">
+<tt class="descname">send_js</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_js" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'js',</span> <span class="pre">**kwargs)</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_css">
+<tt class="descname">send_css</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'css',</span> <span class="pre">**kwargs)</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.wrap_and_send_js">
+<tt class="descname">wrap_and_send_js</tt><big>(</big><em>js_path</em>, <em>exports={}</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.wrap_and_send_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.wrap_and_send_js" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps the JavaScript code at <em>js_path</em> in a (JavaScript) sandbox which
+exports whatever global variables are provided via <em>exports</em> then
+minifies, caches, and sends the result to the client.</p>
+<p>The provided <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs will be passed to the
+<a class="reference internal" href="#gateone.core.server.ApplicationWebSocket.send_js" title="gateone.core.server.ApplicationWebSocket.send_js"><tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.send_js</span></tt></a> method.</p>
+<p>The <em>exports</em> dict needs to be in the following format:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">exports</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;global&quot;</span><span class="p">:</span> <span class="s">&quot;export_name&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example, if you wanted to use underscore.js but didn't want to
+overwrite the global <tt class="docutils literal"><span class="pre">_</span></tt> variable (if already being used by a parent
+web application):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">exports</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;_&quot;</span><span class="p">:</span> <span class="s">&quot;GateOne._&quot;</span><span class="p">}</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wrap_and_send_js</span><span class="p">(</span><span class="s">&#39;/path/to/underscore.js&#39;</span><span class="p">,</span> <span class="n">exports</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This would result in the &quot;_&quot; global being exported as &quot;GateOne._&quot;.  In
+other words, this is what will end up at the bottom of the wrapped
+JavaScript just before the end of the sandbox:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nb">window</span><span class="p">.</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">_</span> <span class="o">=</span> <span class="nx">_</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This method should make it easy to include any given JavaScript library
+without having to worry (as much) about namespace conflicts.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You don't have to prefix your export with 'GateOne'.  You can export
+the global with whatever name you like.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.render_and_send_css">
+<tt class="descname">render_and_send_css</tt><big>(</big><em>css_path</em>, <em>element_id=None</em>, <em>media='screen'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.render_and_send_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.render_and_send_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders, caches (in the <tt class="xref py py-obj docutils literal"><span class="pre">cache_dir</span></tt>), and sends a stylesheet template at
+the given <em>css_path</em>.  The template will be rendered with the following
+keyword arguments:</p>
+<div class="highlight-python"><pre>container = self.container
+prefix = self.prefix
+url_prefix = self.settings['url_prefix']
+**kwargs</pre>
+</div>
+<p>Returns the path to the rendered template.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to serve Gate One's CSS via a different mechanism
+(e.g. nginx) this functionality can be completely disabled by adding
+<tt class="xref py py-obj docutils literal"><span class="pre">&quot;send_css&quot;:</span> <span class="pre">false</span></tt> to gateone/settings/10server.conf</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_plugin_static_files">
+<tt class="descname">send_plugin_static_files</tt><big>(</big><em>plugins_dir</em>, <em>application=None</em>, <em>requires=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_plugin_static_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_plugin_static_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends all plugin .js and .css files to the client that exist inside
+<em>plugins_dir</em>.  Optionally, if <em>application</em> is given the policies that
+apply to the current user for that application will be used to determine
+whether or not a given plugin's static files will be sent.</p>
+<p>If <em>requires</em> is given it will be passed along to <tt class="xref py py-obj docutils literal"><span class="pre">self.send_js()</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to serve Gate One's JavaScript via a different mechanism
+(e.g. nginx) this functionality can be completely disabled by adding
+<tt class="xref py py-obj docutils literal"><span class="pre">&quot;send_js&quot;:</span> <span class="pre">false</span></tt> to gateone/settings/10server.conf</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.enumerate_themes">
+<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.enumerate_themes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a JSON-encoded object containing the installed themes and text
+color schemes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_js_translation">
+<tt class="descname">send_js_translation</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_js_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_js_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the client containing a JSON-encoded table of strings
+that have been translated to the user's locale.</p>
+<p>If a <em>path</em> is given it will be used to send the client that file.  If
+more than one JSON translation is sent to the client the new translation
+will be merged into the existing one.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Translation files must be the result of a
+<tt class="xref py py-obj docutils literal"><span class="pre">pojson</span> <span class="pre">/path/to/translation.po</span></tt> conversion.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_message">
+<tt class="descname">send_message</tt><big>(</big><em>message</em>, <em>session=None</em>, <em>upn=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the given <em>message</em> to the client using the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_message</span></tt>
+WebSocket action at the currently-connected client.</p>
+<p>If <em>upn</em> is provided the <em>message</em> will be sent to all users with a
+matching 'upn' value.</p>
+<p>If <em>session</em> is provided the message will be sent to all users with a
+matching session ID.  This is useful in situations where all users share
+the same 'upn' (i.e. ANONYMOUS).</p>
+<p>if <em>upn</em> is 'AUTHENTICATED' all users will get the message.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket._deliver">
+<em class="property">classmethod </em><tt class="descname">_deliver</tt><big>(</big><em>message</em>, <em>upn='AUTHENTICATED'</em>, <em>session=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket._deliver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket._deliver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the given <em>message</em> (string) to all users matching <em>upn</em> using
+the write_message() function.  If <em>upn</em> is not provided or is
+&quot;AUTHENTICATED&quot;, will send the <em>message</em> to all users.</p>
+<p>Alternatively a <em>session</em> ID may be specified instead of a <em>upn</em>.  This
+is useful when more than one user shares a UPN (i.e. ANONYMOUS).</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gateone.core.server.ApplicationWebSocket._list_connected_users">
+<em class="property">classmethod </em><tt class="descname">_list_connected_users</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket._list_connected_users"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket._list_connected_users" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of user objects representing the users that are
+currently connected (and authenticated) to this Gate One server.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.server.ErrorHandler">
+<em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ErrorHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ErrorHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an error response with status_code for all requests.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.define_options">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">define_options</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#define_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.define_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">tornado.options.define</span></tt> for all of Gate One's command-line options.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.generate_server_conf">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">generate_server_conf</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#generate_server_conf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.generate_server_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a fresh settings/10server.conf file using the arguments provided
+on the command line to override defaults.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.convert_old_server_conf">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">convert_old_server_conf</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#convert_old_server_conf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.convert_old_server_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts old-style server.conf files to the new settings/10server.conf
+format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.apply_cli_overrides">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">apply_cli_overrides</tt><big>(</big><em>go_settings</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#apply_cli_overrides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.apply_cli_overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates <em>go_settings</em> in-place with values given on the command line.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.server.set_license">
+<tt class="descclassname">gateone.core.server.</tt><tt class="descname">set_license</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#set_license"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.set_license" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the __license__ global based on what can be found in <tt class="xref py py-obj docutils literal"><span class="pre">GATEONE_DIR</span></tt>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">server.py</span></tt> - Gate One's Core Script</a><ul>
+<li><a class="reference internal" href="#gate-one">Gate One</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#settings">Settings</a></li>
+<li><a class="reference internal" href="#file-paths">File Paths</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#applications-and-plugins">Applications and Plugins</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="log.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">log.py</span></tt> - Gate One Logging Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/server.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils.py - Supporting Functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="log.html" title="log.py - Gate One Logging Module"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

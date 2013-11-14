@@ -85,8 +85,7 @@
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span><span class="p">,</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
-<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">PLUGINS</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">raw</span><span class="p">,</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
@@ -311,7 +310,7 @@
             <span class="c"># Nobody wants to see plain ESC sequences in the buf...</span>
             <span class="n">match_obj</span> <span class="o">=</span> <span class="n">esc_sequence</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">esc_buffer</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">match_obj</span><span class="p">:</span>
-                <span class="n">seq_type</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="c">#seq_type = match_obj.group(1)</span>
                 <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Just when you thought you&#39;ve ESC&#39;d...</span>
                 <span class="k">continue</span>
             <span class="c"># CSI ESC sequences...  These are worth a second look</span>
@@ -352,7 +351,6 @@
 <span class="sd">        Converts our standard recording-based log format into something that</span>
 <span class="sd">        can be used with grep and similar search/filter tools.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">gzip</span>
     <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">SPECIAL</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_log_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;rows&#39;</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
@@ -361,7 +359,6 @@
         <span class="c"># Try the old metadata format which used &#39;cols&#39;:</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cols&#39;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
     <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
     <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="c"># We skip the first frame, [1:] because it holds the recording metadata</span>

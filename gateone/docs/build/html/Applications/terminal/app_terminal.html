@@ -80,8 +80,18 @@
 also be killed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This function gets appended to the <tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS[session][&quot;terminal_callbacks&quot;]</span></tt> list inside of <a class="reference internal" href="#app_terminal.TerminalApplication.authenticate" title="app_terminal.TerminalApplication.authenticate"><tt class="xref py py-meth docutils literal"><span class="pre">TerminalApplication.authenticate()</span></tt></a>.</p>
+<p class="last">This function gets appended to the
+<tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS[session][&quot;kill_session_callbacks&quot;]</span></tt> list inside of
+<a class="reference internal" href="#app_terminal.TerminalApplication.authenticate" title="app_terminal.TerminalApplication.authenticate"><tt class="xref py py-meth docutils literal"><span class="pre">TerminalApplication.authenticate()</span></tt></a>.</p>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="app_terminal.timeout_session">
+<tt class="descclassname">app_terminal.</tt><tt class="descname">timeout_session</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#timeout_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.timeout_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to Gate One's 'timeout_callbacks'; kills the given session.</p>
+<p>If 'dtach' support is enabled the dtach processes associated with the
+session will also be killed.</p>
 </dd></dl>
 
 <dl class="function">
@@ -137,15 +147,11 @@ terminal.</p>
 <dt id="app_terminal.TermStaticFiles">
 <em class="property">class </em><tt class="descclassname">app_terminal.</tt><tt class="descname">TermStaticFiles</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TermStaticFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TermStaticFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serves static files in the <tt class="xref py py-obj docutils literal"><span class="pre">gateone/applications/terminal/static</span></tt> directory.</p>
-<dl class="method">
-<dt id="app_terminal.TermStaticFiles.set_extra_headers">
-<tt class="descname">set_extra_headers</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TermStaticFiles.set_extra_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TermStaticFiles.set_extra_headers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the Access-Control-Allow-Origin header to allow cross-origin
-access to static content for applications embedding Gate One.
-Specifically, this is necessary in order to support loading fonts
-from different origins.</p>
-</dd></dl>
-
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is configured via the <tt class="xref py py-obj docutils literal"><span class="pre">web_handlers</span></tt> global (a feature inherent to
+Gate One applications).</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -187,6 +193,34 @@ Sends all plugin JavaScript files to the client and triggers the
 <tt class="descname">enumerate_colors</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.enumerate_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.enumerate_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a JSON-encoded object containing the installed text color
 schemes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.save_term_settings">
+<tt class="descname">save_term_settings</tt><big>(</big><em>term</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.save_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.save_term_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves whatever <em>settings</em> (must be JSON-encodable) are provided in the
+user's session directory; associated with the given <em>term</em>.</p>
+<p>The <a class="reference internal" href="#app_terminal.TerminalApplication.restore_term_settings" title="app_terminal.TerminalApplication.restore_term_settings"><tt class="xref py py-obj docutils literal"><span class="pre">restore_term_settings</span></tt></a> function can be used to restore the provided
+settings.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is primarily to aid dtach support.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.restore_term_settings">
+<tt class="descname">restore_term_settings</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.restore_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.restore_term_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the settings associated with the given <em>term</em> that are stored in
+the user's session directory and applies them to
+<tt class="docutils literal"><span class="pre">self.loc_terms[term]</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.clear_term_settings">
+<tt class="descname">clear_term_settings</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.clear_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.clear_term_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes any settings associated with the given <em>term</em> in the user's
+term_settings.json file (in their session directory).</p>
 </dd></dl>
 
 <dl class="method">
@@ -306,11 +340,14 @@ Gate One into other apps).</p>
 <dd><p>Sends the text color stylesheet matching the properties specified in
 <em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
 <blockquote>
-<div><ul class="simple">
-<li><strong>container</strong> - The element Gate One resides in (e.g. 'gateone')</li>
-<li><strong>prefix</strong> - The string being used to prefix all elements (e.g. 'go_')</li>
-<li><strong>colors</strong> - The name of the CSS text color scheme to be retrieved.</li>
-</ul>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">colors:</th><td class="field-body">The name of the CSS text color scheme to be retrieved.</td>
+</tr>
+</tbody>
+</table>
 </div></blockquote>
 </dd></dl>
 
@@ -333,11 +370,19 @@ generated rendering will be skipped.</p>
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_print_stylesheet">
 <tt class="descname">send_print_stylesheet</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_print_stylesheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_print_stylesheet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the 'templates/printing/default.css' stylesheet to the client
+<dd><p>Sends the 'templates/printing/printing.css' stylesheet to the client
 using <tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.ws.send_css</span></tt> with the &quot;media&quot; set to
 &quot;print&quot;.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="app_terminal.apply_cli_overrides">
+<tt class="descclassname">app_terminal.</tt><tt class="descname">apply_cli_overrides</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#apply_cli_overrides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.apply_cli_overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates <em>settings</em> in-place with values given on the command line and
+updates the <tt class="xref py py-obj docutils literal"><span class="pre">options</span></tt> global with the values from <em>settings</em> if not provided
+on the command line.</p>
 </dd></dl>
 
 <dl class="function">

@@ -96,10 +96,10 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
-<span class="kn">from</span> <span class="nn">golog</span> <span class="kn">import</span> <span class="n">go_logger</span>
+<span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span>
 
 <span class="c"># Special optional escape sequence handler (see docs on how it works)</span>
-<div class="viewcode-block" id="notice_esc_seq_handler"><a class="viewcode-back" href="../Applications/terminal/plugin_notice.html#notice.notice_esc_seq_handler">[docs]</a><span class="k">def</span> <span class="nf">notice_esc_seq_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="notice_esc_seq_handler"><a class="viewcode-back" href="../Applications/terminal/plugin_notice.html#notice.notice_esc_seq_handler">[docs]</a><span class="k">def</span> <span class="nf">notice_esc_seq_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">multiplex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles text passed from the special optional escape sequance handler to</span>
 <span class="sd">    display a *message* to the connected client (browser).  It can be invoked</span>
@@ -115,12 +115,11 @@
 <span class="sd">        :func:`terminal.Terminal._opt_handler`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;notice_log&#39;</span><span class="p">):</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&quot;upn&quot;</span><span class="p">],</span>
-            <span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
-        <span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">notice_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.notice&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">notice_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Notice Plugin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notice_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span>
+            <span class="s">&#39;gateone.terminal.notice&#39;</span><span class="p">,</span> <span class="n">plugin</span><span class="o">=</span><span class="s">&#39;notice&#39;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">log_metadata</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">notice_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s">&quot;Notice Plugin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">})</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Term {term}: {message}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>

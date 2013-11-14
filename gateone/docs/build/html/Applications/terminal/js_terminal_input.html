@@ -79,13 +79,33 @@
 <dl class="staticmethod">
 <dt id="GateOne.Terminal.Input.init">
 <tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates GateOne.Terminal.Input.inputNode to capture keys/IME composition and attaches appropriate events.</p>
+<dd><p>Creates <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt> to capture keys/IME composition and attaches appropriate events.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Terminal.Input.sendChars">
 <tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">sendChars</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.sendChars" title="Permalink to this definition">¶</a></dt>
 <dd><p>pop()s out the current <tt class="xref py py-obj docutils literal"><span class="pre">charBuffer</span></tt> and sends it to the server.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseWheel">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseWheel</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseWheel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the mousewheel event on the Terminal application container; calls <tt class="docutils literal"><span class="pre">preventDefault()</span></tt> if &quot;mouse motion&quot; event tracking mode is enabled and instead sends equivalent xterm escape sequences to the server to emulate mouse scroll events.</p>
+<p>If the <tt class="docutils literal"><span class="pre">Alt</span></tt> key is held the user will be able to scroll normally.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseMove">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseMove</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">contextmenu</span></tt> event on the Terminal application container; calls <tt class="docutils literal"><span class="pre">preventDefault()</span></tt> if &quot;mouse motion&quot; event tracking mode is enabled to prevent the usual context menu from popping up.</p>
+<p>If the <tt class="docutils literal"><span class="pre">Alt</span></tt> key is held while right-clicking the normal context menu will appear.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseMove</tt><big>(</big><em>e</em><big>)</big></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">mousemove</span></tt> event on the Terminal application container when mouse event tracking is enabled; pre-sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.mouseUpEscSeq</span></tt> with the current mouse coordinates.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -122,7 +142,7 @@
 
 <dl class="staticmethod">
 <dt id="GateOne.Terminal.Input.disableCapture">
-<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">disableCapture</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.disableCapture" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">disableCapture</tt><big>(</big><em>e</em><span class="optional">[</span>, <em>force</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.disableCapture" title="Permalink to this definition">¶</a></dt>
 <dd><p>Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).</p>
 </dd></dl>
 

@@ -104,8 +104,8 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
 <span class="c"># Our stuff</span>
-<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">gateone.core.server</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">json_encode</span>
 
 <span class="c"># Tornado stuff</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
@@ -707,7 +707,7 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;updateSequenceNum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bookmarks_db</span><span class="o">.</span><span class="n">get_highest_USN</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">traceback</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Got exception synchronizing bookmarks: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Got exception synchronizing bookmarks: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
         <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;errors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;errors&#39;</span><span class="p">]:</span>

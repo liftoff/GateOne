@@ -77,7 +77,7 @@
 <li><a class="reference internal" href="#GateOne.Base" title="GateOne.Base"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Base</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Events" title="GateOne.Events"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Events</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.i18n" title="GateOne.i18n"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.i18n</span></tt></a></li>
-<li><a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></a></li>
+<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></li>
 <li><a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Storage" title="GateOne.Storage"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Storage</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual</span></tt></a></li>
@@ -100,7 +100,7 @@
 <dl class="staticmethod">
 <dt id="GateOne.Base.module">
 <tt class="descclassname">GateOne.Base.</tt><tt class="descname">module</tt><big>(</big><em>parent</em>, <em>name</em>, <em>version</em><span class="optional">[</span>, <em>deps</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Base.module" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a new <em>name</em> module in a <em>parent</em> namespace. This function will create a new empty module object with <em>NAME</em>, <em>VERSION</em>, <em>toString</em> and <em>__repr__</em> properties. It will also verify that all the strings in deps are defined in parent, or an error will be thrown.</p>
+<dd><p>Creates a new <em>name</em> module in a <em>parent</em> namespace. This function will create a new empty module object with <em>__name__</em>, <em>__version__</em>, <em>toString</em> and <em>__repr__</em> properties. It will also verify that all the strings in deps are defined in parent, or an error will be thrown.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -123,6 +123,47 @@
 <span class="go">&quot;GateOne.Net&quot;</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Base.superSandbox">
+<tt class="descclassname">GateOne.Base.</tt><tt class="descname">superSandbox</tt><big>(</big><em>name</em>, <em>dependencies</em>, <em>func</em><big>)</big><a class="headerlink" href="#GateOne.Base.superSandbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A sandbox to wrap JavaScript which will delay-repeat loading itself if <em>dependencies</em> are not met.  If dependencies cannot be found by the time specified in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Base.dependencyTimeout</span></tt> an exception will be thrown.  Here's an example of how to use this function:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Base</span><span class="p">.</span><span class="nx">superSandbox</span><span class="p">(</span><span class="s2">&quot;GateOne.ExampleApp&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;GateOne.Terminal&quot;</span><span class="p">],</span> <span class="kd">function</span><span class="p">(</span><span class="nb">window</span><span class="p">,</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
+    <span class="s2">&quot;use strict&quot;</span><span class="p">;</span> <span class="c1">// Don&#39;t forget this!</span>
+
+    <span class="kd">var</span> <span class="nx">stuff</span> <span class="o">=</span> <span class="s2">&quot;Put your code here&quot;</span><span class="p">.</span>
+
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>The above example would ensure that <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal</span></tt> is loaded before the contents of the superSandboxed function are loaded.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Sandboxed functions are always passed the <tt class="docutils literal"><span class="pre">window</span></tt> object as the first argument.</p>
+</div>
+<p>You can put whatever globals you like in the dependencies; they don't have to be GateOne modules.  Here's another example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="c1">// Require underscore.js and jQuery:</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Base</span><span class="p">.</span><span class="nx">superSandbox</span><span class="p">(</span><span class="s2">&quot;GateOne.ExampleApp&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;jQuery&quot;</span><span class="p">],</span> <span class="kd">function</span><span class="p">(</span><span class="nb">window</span><span class="p">,</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
+    <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
+
+    <span class="kd">var</span> <span class="nx">stuff</span> <span class="o">=</span> <span class="s2">&quot;Put your code here&quot;</span><span class="p">.</span>
+
+<span class="p">});</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Name :</th><td class="field-body">Name of the wrapped function.  It will be used to call any <tt class="xref py py-obj docutils literal"><span class="pre">init()</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">postInit()</span></tt> functions.  If you just want dependencies checked you can just pass a unique string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Dependencies :</th><td class="field-body">An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Func :</th><td class="field-body">A function containing the JavaScript code to execute as soon as the dependencies are available.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -159,8 +200,9 @@
 <dd><p>A module to store and retrieve localized translations of strings.</p>
 <dl class="staticmethod">
 <dt id="GateOne.i18n.gettext">
-<tt class="descclassname">GateOne.i18n.</tt><tt class="descname">gettext</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#GateOne.i18n.gettext" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a localized translation of <em>string</em> if available.  Returns <em>string</em> if no translation is available.</p>
+<tt class="descclassname">GateOne.i18n.</tt><tt class="descname">gettext</tt><big>(</big><em>stringOrArray</em><big>)</big><a class="headerlink" href="#GateOne.i18n.gettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a localized translation of <em>stringOrArray</em> if available.  If <em>stringOrArray</em> is an array it will be joined into a single string via <tt class="docutils literal"><span class="pre">join('')</span></tt>.</p>
+<p>If no translation of <em>stringOrArray</em> is available the text will be returned as-is (or joined, in the case of an Array).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -273,7 +315,7 @@
 <span class="go">{&#39;w&#39;: 8, &#39;h&#39;: 15}</span>
 </pre></div>
 </div>
-<p>Both code examples above work because <a class="reference internal" href="#GateOne.Utils.getEmDimensions" title="GateOne.Utils.getEmDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">getEmDimensions()</span></tt></a> uses <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-meth docutils literal"><span class="pre">getNode()</span></tt></a> to return the node of a given argument.  Because of this, <a class="reference internal" href="#GateOne.Utils.getEmDimensions" title="GateOne.Utils.getEmDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">getEmDimensions()</span></tt></a> doesn't require strict string or node arguments (one or the other) and can support both selector strings and nodes at the same time.</p>
+<p>Both code examples above work because <tt class="xref js js-meth docutils literal"><span class="pre">getEmDimensions()</span></tt> uses <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-meth docutils literal"><span class="pre">getNode()</span></tt></a> to return the node of a given argument.  Because of this, <tt class="xref js js-meth docutils literal"><span class="pre">getEmDimensions()</span></tt> doesn't require strict string or node arguments (one or the other) and can support both selector strings and nodes at the same time.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -382,79 +424,6 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Can be very useful for debugging.</p>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.itemgetter">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">itemgetter</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#GateOne.Utils.itemgetter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copied from <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/Base.html#fn-itemgetter">MochiKit.Base.itemgetter</a>.  Returns a <tt class="docutils literal"><span class="pre">function(obj)</span></tt> that returns <tt class="docutils literal"><span class="pre">obj[name]</span></tt>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<em>value</em>) -- The value that will be used as the key when the returned function is called to retrieve an item.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A function.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>To better understand what this function does it is probably best to simply provide the code:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">itemgetter</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">arg</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">arg</span><span class="p">[</span><span class="nx">name</span><span class="p">];</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Here's an example of how to use it:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">object1</span> <span class="o">=</span> <span class="p">{};</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">object2</span> <span class="o">=</span> <span class="p">{};</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">object1</span><span class="p">.</span><span class="nx">someNumber</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">object2</span><span class="p">.</span><span class="nx">someNumber</span> <span class="o">=</span> <span class="mi">37</span><span class="p">;</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">numberGetter</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">itemgetter</span><span class="p">(</span><span class="s2">&quot;someNumber&quot;</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">numberGetter</span><span class="p">(</span><span class="nx">object1</span><span class="p">);</span>
-<span class="go">12</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">numberGetter</span><span class="p">(</span><span class="nx">object2</span><span class="p">);</span>
-<span class="go">37</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Yes, it can be confusing.  Especially when thinking up use cases but it actually is incredibly useful when the need arises!</p>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.hasElementClass">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">hasElementClass</tt><big>(</big><em>element</em>, <em>className</em><big>)</big><a class="headerlink" href="#GateOne.Utils.hasElementClass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Almost a direct copy of <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass">MochiKit.DOM.hasElementClass</a>...  Returns true if <em>className</em> is found on <em>element</em>. <em>element</em> is looked up with <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-func docutils literal"><span class="pre">getNode()</span></tt></a> so <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-style identifiers or DOM nodes are acceptable.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>element</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-<li><strong>className</strong> -- The name of the class you're checking is applied to <em>element</em>.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">true/false</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">hasElementClass</span><span class="p">(</span><span class="s1">&#39;#go_panel_info&#39;</span><span class="p">,</span> <span class="s1">&#39;panel&#39;</span><span class="p">);</span>
-<span class="go">true</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">hasElementClass</span><span class="p">(</span><span class="s1">&#39;#go_panel_info&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">);</span>
-<span class="go">false</span>
-</pre></div>
 </div>
 </dd></dl>
 
@@ -761,19 +730,19 @@
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Utils.getOffset">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getOffset</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getOffset" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Utils.getSelText">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getSelText</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.getSelText" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An object representing <tt class="docutils literal"><span class="pre">elem.offsetTop</span></tt> and <tt class="docutils literal"><span class="pre">elem.offsetLeft</span></tt>.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The text that is currently highlighted in the browser.</td>
 </tr>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getOffset</span><span class="p">(</span><span class="nx">someNode</span><span class="p">);</span>
-<span class="go">{&quot;top&quot;:130, &quot;left&quot;:50}</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getSelText</span><span class="p">();</span>
+<span class="go">&quot;localhost&quot; // Assuming the user had highlighted the word, &quot;localhost&quot;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -834,85 +803,6 @@
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Utils.scrollLines">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">scrollLines</tt><big>(</big><em>elem</em>, <em>lines</em><big>)</big><a class="headerlink" href="#GateOne.Utils.scrollLines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scrolls the given element (<em>elem</em>) by the number given in <em>lines</em>.  It will automatically determine the line height using <a class="reference internal" href="#GateOne.Utils.getEmDimensions" title="GateOne.Utils.getEmDimensions"><tt class="xref js js-func docutils literal"><span class="pre">getEmDimensions()</span></tt></a>.  <em>lines</em> can be a positive or negative integer (to scroll down or up, respectively).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-<li><strong>lines</strong> (<em>number</em>) -- The number of lines to scroll <em>elem</em> by.  Can be positive or negative.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">scrollLines</span><span class="p">(</span><span class="s1">&#39;#go_term1_pre&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">There must be a scrollbar visible (and <tt class="docutils literal"><span class="pre">overflow-y</span> <span class="pre">=</span> <span class="pre">&quot;auto&quot;</span></tt> or equivalent) for this to work.</p>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.scrollToBottom">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">scrollToBottom</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.scrollToBottom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scrolls the given element (<em>elem</em>) to the very bottom (all the way down).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">scrollLines</span><span class="p">(</span><span class="s1">&#39;#term1_pre&#39;</span><span class="p">);</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.replaceURLWithHTMLLinks">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">replaceURLWithHTMLLinks</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#GateOne.Utils.replaceURLWithHTMLLinks" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><em>text</em> with URLs transformed into links.</td>
-</tr>
-</tbody>
-</table>
-<p>Turns textual URLs like '<a class="reference external" href="http://whatever.com/">http://whatever.com/</a>' into links.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>text</strong> (<em>string</em>) -- Any text with or without links in it (no URLs == no changes)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">replaceURLWithHTMLLinks</span><span class="p">(</span><span class="s1">&#39;Downloading http://foo.bar.com/some/file.zip&#39;</span><span class="p">);</span>
-<span class="go">&quot;Downloading &lt;a href=&#39;http://foo.bar.com/some/file.zip&#39;&gt;http://foo.bar.com/some/file.zip&lt;/a&gt;&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
 <dt id="GateOne.Utils.isEven">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isEven</tt><big>(</big><em>someNumber</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isEven" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns true if <em>someNumber</em> is even.</p>
@@ -935,145 +825,6 @@
 <span class="go">true</span>
 <span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isEven</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
 <span class="go">false</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.isDescendant">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isDescendant</tt><big>(</big><em>parent</em>, <em>child</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isDescendant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns true if <em>child</em> is a descendent of <em>parent</em> (in the DOM).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>parent</strong> (<em>node</em>) -- A DOM node.</li>
-<li><strong>child</strong> (<em>node</em>) -- A DOM node.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">true/false</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isDescendant</span><span class="p">(</span><span class="nx">go</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="nx">pastearea</span><span class="p">);</span>
-<span class="go">true</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isDescendant</span><span class="p">(</span><span class="nx">go</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">);</span>
-<span class="go">false</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.getSelText">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getSelText</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.getSelText" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The text that is currently highlighted in the browser.</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getSelText</span><span class="p">();</span>
-<span class="go">&quot;localhost&quot; // Assuming the user had highlighted the word, &quot;localhost&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.getEmDimensions">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getEmDimensions</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.getEmDimensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the height and width of 1em inside the given elem (e.g. '#term1_pre').  The returned object will be in the form of:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">width</span> <span class="k">in</span> <span class="nx">px</span><span class="o">&gt;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">height</span> <span class="k">in</span> <span class="nx">px</span><span class="o">&gt;</span><span class="p">}</span>
-</pre></div>
-</div>
-<p>If <em>where</em> (element) is given, the EM dimensions calculation will be based on what sizes would apply if the given <em>elem</em> were placed inside <em>where</em>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-<li><strong>where</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An object containing the width and height as obj.w and obj.h.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getEmDimensions</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">);</span>
-<span class="go">{&#39;w&#39;: 8, &#39;h&#39;: 15}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.getRowsAndColumns">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getRowsAndColumns</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.getRowsAndColumns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates and returns the number of text rows and colunmns that will fit in the given element (<em>elem</em>) as an object like so:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;cols&#39;</span><span class="o">:</span> <span class="mi">165</span><span class="p">,</span> <span class="s1">&#39;rows&#39;</span><span class="o">:</span> <span class="mi">45</span><span class="p">}</span>
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
-</li>
-<li><strong>where</strong> -- An optional location to please a cloned node of the given <em>elem</em> before performing calculations.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An object with obj.cols and obj.rows representing the maximum number of columns and rows of text that will fit inside <em>elem</em>.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last"><em>elem</em> must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.</p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function only works properly with monospaced fonts but it does work with high-resolution displays (so users with properly-configured high-DPI displays will be happy =).  Other similar functions I've found on the web had hard-coded pixel widths for known fonts at certain point sizes.  These break on any display with a resolution higher than 96dpi.</p>
-</div>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getRowsAndColumns</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">);</span>
-<span class="go">{&#39;cols&#39;: 165, &#39;rows&#39;: 45}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.setActiveStyleSheet">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">setActiveStyleSheet</tt><big>(</big><em>title</em><big>)</big><a class="headerlink" href="#GateOne.Utils.setActiveStyleSheet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the stylesheet matching <em>title</em> to be active.</p>
-<p>Thanks to <a class="reference external" href="http://www.alistapart.com/authors/s/paulsowden">Paul Sowden</a> at <a class="reference external" href="http://www.alistapart.com/">A List Apart</a> for this function.
-See: <a class="reference external" href="http://www.alistapart.com/articles/alternate/">http://www.alistapart.com/articles/alternate/</a> for a great article on how to control active/alternate stylesheets in JavaScript.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>title</strong> (<em>string</em>) -- The title of the stylesheet to set active.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">setActiveStyleSheet</span><span class="p">(</span><span class="s2">&quot;myplugin_stylesheet&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1132,35 +883,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Utils.loadCSS">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadCSS</tt><big>(</big><em>url</em>, <em>id</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadCSS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads and applies the CSS at <em>url</em>.  When the <tt class="docutils literal"><span class="pre">&lt;link&gt;</span></tt> element is created it will use <em>id</em> like so:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">+</span> <span class="nx">id</span><span class="p">}</span>
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>url</strong> (<em>string</em>) -- The URL path to the style sheet.</li>
-<li><strong>id</strong> (<em>string</em>) -- The 'id' that will be applied to the <tt class="docutils literal"><span class="pre">&lt;link&gt;</span></tt> element when it is created.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If an existing <tt class="docutils literal"><span class="pre">&lt;link&gt;</span></tt> element already exists with the same <em>id</em> it will be overridden.</p>
-</div>
-<p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadCSS</span><span class="p">(</span><span class="s2">&quot;static/css/some_app.css&quot;</span><span class="p">,</span> <span class="s2">&quot;some_app_css&quot;</span><span class="p">);</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
 <dt id="GateOne.Utils.loadTheme">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadTheme</tt><big>(</big><em>theme</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadTheme" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the <tt class="xref py py-obj docutils literal"><span class="pre">go:get_theme</span></tt> WebSocket action to the server asking it to send/sync/load the given <em>theme</em>.</p>
@@ -1177,35 +899,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadTheme</span><span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">);</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.loadScriptError">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadScriptError</tt><big>(</big><em>url</em>, <em>scriptTag</em>, <em>callback</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadScriptError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when <a class="reference internal" href="#GateOne.Utils.loadScript" title="GateOne.Utils.loadScript"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Utils.loadScript()</span></tt></a> fails to load the .js file at the given <em>url</em>.  Under the assumption that the user has yet to accept the Gate One server's SSL certificate, it will pop-up an alert that instructs the user they will be redirected to a page where they can accept Gate One's SSL certificate (when they click OK).</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.loadScript">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadScript</tt><big>(</big><em>url</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.loadScript" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the JavaScript (.js) file at <em>URL</em> and appends it to <a class="reference external" href="https://developer.mozilla.org/en/DOM/document.body">document.body</a>.  If <em>callback</em> is given, it will be called after the script has been loaded.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>URL</strong> (<em>string</em>) -- The URL of a JavaScript file.</li>
-<li><strong>callback</strong> (<em>function</em>) -- <em>Optional:</em> A function to call after the script has been loaded.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">myfunc</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;finished loading whatever.js&quot;</span><span class="p">);</span> <span class="p">};</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadScript</span><span class="p">(</span><span class="s2">&quot;https://someserver.com/static/whatever.js&quot;</span><span class="p">,</span> <span class="nx">myfunc</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1264,6 +957,21 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <span class="o">&lt;</span><span class="nx">head</span><span class="o">&gt;</span>
 <span class="p">...</span>
 </pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Utils.isVisible">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isVisible</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isVisible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if <em>node</em> is visible (checks parent nodes recursively too).  <em>node</em> may be a DOM node or a selector string.</p>
+<p>Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isVisible</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="o">+</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span><span class="o">+</span><span class="s1">&#39;pastearea1&#39;</span><span class="p">);</span>
+<span class="go">true</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Relies on checking elem.style.opacity and elem.style.display.  Does <em>not</em> check transforms.</p>
 </div>
 </dd></dl>
 
@@ -1330,51 +1038,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </table>
 <p>Examples:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">deleteCookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span> <span class="c1">// Deletes the &#39;gateone_user&#39; cookie</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.isPrime">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isPrime</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isPrime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns true if <em>n</em> is a prime number.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>n</strong> (<em>number</em>) -- The number we're checking to see if it is prime or not.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">true/false</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPrime</span><span class="p">(</span><span class="mi">13</span><span class="p">);</span>
-<span class="kc">true</span>
-<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPrime</span><span class="p">(</span><span class="mi">14</span><span class="p">);</span>
-<span class="kc">false</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.randomPrime">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">randomPrime</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.randomPrime" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A random prime number &lt;= 9 digits.</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomPrime</span><span class="p">();</span>
-<span class="mi">618690239</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1489,39 +1152,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Utils.rtrim">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">rtrim</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#GateOne.Utils.rtrim" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <em>string</em> minus right-hand whitespace</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.ltrim">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">ltrim</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#GateOne.Utils.ltrim" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <em>string</em> minus left-hand whitespace</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.stripHTML">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">stripHTML</tt><big>(</big><em>html</em><big>)</big><a class="headerlink" href="#GateOne.Utils.stripHTML" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the contents of <em>html</em> minus the HTML.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.isVisible">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isVisible</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isVisible" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns true if <em>node</em> is visible (checks parent nodes recursively too).  <em>node</em> may be a DOM node or a selector string.</p>
-<p>Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isVisible</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="o">+</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span><span class="o">+</span><span class="s1">&#39;pastearea1&#39;</span><span class="p">);</span>
-<span class="go">true</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Relies on checking elem.style.opacity and elem.style.display.  Does <em>not</em> check transforms.</p>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
 <dt id="GateOne.Utils.getQueryVariable">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getQueryVariable</tt><big>(</big><em>variable</em><span class="optional">[</span>, <em>url</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.getQueryVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the value of a query string variable from <tt class="xref js js-attr docutils literal"><span class="pre">window.location</span></tt>.</p>
@@ -1540,21 +1170,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">removeQueryVariable</tt><big>(</big><em>variable</em><big>)</big><a class="headerlink" href="#GateOne.Utils.removeQueryVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the given query string variable from <tt class="xref js js-attr docutils literal"><span class="pre">window.location.href</span></tt> using <tt class="xref js js-meth docutils literal"><span class="pre">window.history.replaceState()</span></tt>.  Leaving all other query string variables alone.</p>
 <p>Returns the new query string.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Utils.last">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">last</tt><big>(</big><em>iterable</em>, <em>n</em>, <em>guard</em><big>)</big><a class="headerlink" href="#GateOne.Utils.last" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the last element of the given <em>iterable</em>.</p>
-<p>If <em>n</em> is given it will return the last N values in the array.  Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">last</span><span class="p">(</span><span class="s2">&quot;foobar&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
-<span class="go">[&quot;b&quot;, &quot;a&quot;, &quot;r&quot;]</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <em>guard</em> variable is there so it will work with <tt class="xref js js-meth docutils literal"><span class="pre">Array.prototype.map()</span></tt>.</p>
-</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1814,7 +1429,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="GateOne.Net.init">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the <tt class="xref py py-obj docutils literal"><span class="pre">go:timeout</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">go:locations</span></tt> WebSocket actions as well as the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event (which just displays a message to the user indicating as such).</p>
+<dd><p>Assigns the <tt class="xref py py-obj docutils literal"><span class="pre">go:ping_timeout</span></tt> event (which just displays a message to the user indicating as such).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2045,7 +1660,41 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="GateOne.Net.locationsAction">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">locationsAction</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.locationsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:locations</span></tt> WebSocket action.  Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.locations</span></tt> to <em>locations</em>.</p>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:locations</span></tt> WebSocket action.  Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.locations</span></tt> to <em>locations</em> which should be an object that looks something like this:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="o">:</span>
+    <span class="p">{</span><span class="s2">&quot;terminal&quot;</span><span class="o">:</span><span class="p">{</span>
+        <span class="s2">&quot;1&quot;</span><span class="o">:</span><span class="p">{</span>
+            <span class="s2">&quot;created&quot;</span><span class="o">:</span><span class="mi">1380590438000</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="o">:</span><span class="s2">&quot;SSH&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="o">:</span><span class="s2">&quot;user@enterprise: ~&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;2&quot;</span><span class="o">:</span><span class="p">{</span>
+            <span class="s2">&quot;created&quot;</span><span class="o">:</span><span class="mi">1380590633000</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="o">:</span><span class="s2">&quot;login&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="o">:</span><span class="s2">&quot;root@enterprise: /var/log&quot;</span>
+        <span class="p">},</span>
+    <span class="s2">&quot;x11&quot;</span><span class="o">:</span><span class="p">{</span>
+        <span class="s2">&quot;1&quot;</span><span class="o">:</span><span class="p">{</span>
+            <span class="s2">&quot;created&quot;</span><span class="o">:</span><span class="mi">1380590132000</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="o">:</span><span class="s2">&quot;google-chrome-unstable&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="o">:</span><span class="s2">&quot;Liftoff Software | Next stop, innovation - Google Chrome&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;2&quot;</span><span class="o">:</span><span class="p">{</span>
+            <span class="s2">&quot;created&quot;</span><span class="o">:</span><span class="mi">1380591192000</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="o">:</span><span class="s2">&quot;subl&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="o">:</span><span class="s2">&quot;~/workspace/SuperSandbox/SuperSandbox.js - Sublime Text (UNREGISTERED)&quot;</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;transfer&quot;</span><span class="o">:</span><span class="p">{</span>
+        <span class="s2">&quot;1&quot;</span><span class="o">:</span><span class="p">{</span>
+            <span class="s2">&quot;created&quot;</span><span class="o">:</span><span class="mi">1380590132000</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="o">:</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="o">:</span><span class="s2">&quot;From: bittorrent://kubuntu-13.04-desktop-armhf+omap4.img.torrent To: sftp://user@enterprise/home/user/downloads/ To: sftp://upload@ec2inst22/ubuntu-isos/ To: user@enterprise (client)&quot;</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2068,48 +1717,6 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="member">
-<dt id="GateOne.Input">
-<tt class="descclassname">GateOne.</tt><tt class="descname">Input</tt><a class="headerlink" href="#GateOne.Input" title="Permalink to this definition">¶</a></dt>
-<dd><p>GateOne.Input is in charge of all keyboard input as well as copy &amp; paste stuff and touch events.</p>
-<dl class="staticmethod">
-<dt id="GateOne.Input.init">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Input.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attaches our global keydown/keyup events and touch events</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Input.onKeyUp">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onKeyUp</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onKeyUp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since &quot;meta&quot; doesn't work as an actual modifier on some browsers/platforms.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Input.onKeyDown">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onKeyDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onKeyDown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Input.onGlobalKeyDown">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onGlobalKeyDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onGlobalKeyDown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles global keystroke events (i.e. those attached to the window object).</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Input.execKeystroke">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">execKeystroke</tt><big>(</big><em>e</em>, <em>global</em><big>)</big><a class="headerlink" href="#GateOne.Input.execKeystroke" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes the keystroke or shortcut associated with the given keydown event (<em>e</em>).  If <em>global</em> is true, will only execute global shortcuts (no regular keystroke overrides).</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Input.registerGlobalShortcut">
-<tt class="descclassname">GateOne.Input.</tt><tt class="descname">registerGlobalShortcut</tt><big>(</big><em>keyString</em>, <em>shortcutObj</em><big>)</big><a class="headerlink" href="#GateOne.Input.registerGlobalShortcut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to register a <em>global</em> shortcut.  Identical to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Input.registerShortcut()</span></tt> with the exception that shortcuts registered via this function will work even if <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> (e.g. #gateone) doesn't currently have focus (i.e. it will work even after disableCapture() is called).</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="member">
 <dt id="GateOne.Visual">
 <tt class="descclassname">GateOne.</tt><tt class="descname">Visual</tt><a class="headerlink" href="#GateOne.Visual" title="Permalink to this definition">¶</a></dt>
 <dd><p>This module contains all of Gate One's visual effect functions.  It is just like <a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a> but specific to visual effects and DOM manipulations.</p>
@@ -2122,7 +1729,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="staticmethod">
 <dt id="GateOne.Visual.init">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the 'grid' icon to <a class="reference internal" href="#GateOne.Icons" title="GateOne.Icons"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Icons</span></tt></a> and adds it to the toolbar for users to click on to bring up/down the grid view.</p>
+<dd><p>Adds the 'grid' icon to the toolbar for users to click on to bring up/down the grid view.</p>
 <p>Registers the following WebSocket actions:</p>
 <blockquote>
 <div><table border="1" class="docutils">
@@ -2161,7 +1768,10 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:switch_workspace</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Visual.slideToWorkspace" title="GateOne.Visual.slideToWorkspace"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt></a></td>
 </tr>
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:cleanup_workspaces</span></tt></td>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:switch_workspace</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.locationsCheck" title="GateOne.Visual.locationsCheck"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.locationsCheck()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">go:cleanup_workspaces</span></tt></td>
 <td><a class="reference internal" href="#GateOne.Visual.cleanupWorkspaces" title="GateOne.Visual.cleanupWorkspaces"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.cleanupWorkspaces()</span></tt></a></td>
 </tr>
 </tbody>
@@ -2189,12 +1799,18 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </tbody>
 </table>
 </div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.postInit">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">postInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.postInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up our default keyboard shortcuts and opens the New Workspace Workspace if no other applications have opened themselves after a short timeout (500ms).</p>
 <p>Registers the following keyboard shortcuts:</p>
 <blockquote>
 <div><table border="1" class="docutils">
 <colgroup>
-<col width="60%" />
-<col width="40%" />
+<col width="61%" />
+<col width="39%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Function</th>
@@ -2202,24 +1818,54 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </tr>
 </thead>
 <tbody valign="top">
+<tr class="row-even"><td>New Workspace</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-N</span></tt></td>
+</tr>
+<tr class="row-odd"><td>Close Workspace</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-W</span></tt></td>
+</tr>
 <tr class="row-even"><td>Show Grid</td>
 <td><tt class="kbd docutils literal"><span class="pre">Control-Alt-G</span></tt></td>
 </tr>
-<tr class="row-odd"><td>Switch to the terminal on the left</td>
+<tr class="row-odd"><td>Switch to the workspace on the left</td>
 <td><tt class="kbd docutils literal"><span class="pre">Shift-LeftArrow</span></tt></td>
 </tr>
-<tr class="row-even"><td>Switch to the terminal on the right</td>
+<tr class="row-even"><td>Switch to the workspace on the right</td>
 <td><tt class="kbd docutils literal"><span class="pre">Shift-RightArrow</span></tt></td>
 </tr>
-<tr class="row-odd"><td>Switch to the terminal above</td>
+<tr class="row-odd"><td>Switch to the workspace above</td>
 <td><tt class="kbd docutils literal"><span class="pre">Shift-UpArrow</span></tt></td>
 </tr>
-<tr class="row-even"><td>Switch to the terminal below</td>
+<tr class="row-even"><td>Switch to the workspace below</td>
 <td><tt class="kbd docutils literal"><span class="pre">Shift-DownArrow</span></tt></td>
 </tr>
 </tbody>
 </table>
 </div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.locationsPanel">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">locationsPanel</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.locationsPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the locations panel and adds it to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt> (hidden by default).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.showLocationsIcon">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">showLocationsIcon</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.showLocationsIcon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates then adds the location panel icon to the toolbar.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">showLocationsIcon</tt><big>(</big><big>)</big></dt>
+<dd><p>Removes the locations panel icon from the toolbar.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.locationsCheck">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">locationsCheck</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.locationsCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will add or remove the locations panel icon to/from the toolbar if the application residing in the current workspace supports locations.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2229,10 +1875,32 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="GateOne.Visual.setTitle">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">setTitle</tt><big>(</big><em>title</em><big>)</big><a class="headerlink" href="#GateOne.Visual.setTitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the innerHTML of the '✈sideinfo' element to <em>title</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The location of the '✈sideinfo' is controlled by the theme but it is typically on the right-hand side of the window.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="GateOne.Visual.updateDimensions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">updateDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.updateDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets <a class="reference internal" href="#GateOne.Visual.goDimensions" title="GateOne.Visual.goDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.goDimensions</span></tt></a> to the current width/height of <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>.  Typically called when the browser window is resized.</p>
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">updateDimensions</span><span class="p">();</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.transitionEvent">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">transitionEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.transitionEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the correct name of the 'transitionend' event for the current browser.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">transitionEvent</span><span class="p">());</span> <span class="c1">// Pretend we&#39;re using Chrome</span>
+<span class="go">&#39;webkitTransitionEnd&#39;</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">transitionEvent</span><span class="p">());</span> <span class="c1">// Pretend we&#39;re using Firefox</span>
+<span class="go">&#39;transitionend&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2359,7 +2027,8 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <li><strong>message</strong> (<em>string</em>) -- The message to display.</li>
 <li><strong>timeout</strong> (<em>integer</em>) -- Milliseconds; How long to display the message before starting the <em>removeTimeout</em> timer.  <strong>Default:</strong> 1000.</li>
 <li><strong>removeTimeout</strong> (<em>integer</em>) -- Milliseconds; How long to delay before calling <a class="reference internal" href="#GateOne.Utils.removeElement" title="GateOne.Utils.removeElement"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.removeElement()</span></tt></a> on the message DIV.  <strong>Default:</strong> 5000.</li>
-<li><strong>id</strong> (<em>string</em>) -- The ID to assign the message DIV.  <strong>Default:</strong> &quot;notice&quot;.</li>
+<li><strong>id</strong> (<em>string</em>) -- The ID to assign the message DIV.  <strong>Default:</strong> <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.prefix+&quot;notice&quot;</span></tt>.</li>
+<li><strong>noLog</strong> (<em>boolean</em>) -- If set to <tt class="docutils literal"><span class="pre">true</span></tt> the message will not be logged.</li>
 </ul>
 </td>
 </tr>
@@ -2380,38 +2049,33 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Visual.disableTransitions">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.disableTransitions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the 'noanimate' class on <em>elem</em> which can be a node or querySelector-like string (e.g. #someid).  This class sets all CSS3 transformations to happen instantly without delay (which would animate).</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.enableTransitions">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.enableTransitions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the 'noanimate' class from <em>elem</em> (if set) which can be a node or querySelector-like string (e.g. #someid).</p>
+<dt id="GateOne.Visual.handleVisibility">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">handleVisibility</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Visual.handleVisibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets called whenever a tab connected to Gate One becomes visible or invisible.  Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:visible</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">go:invisible</span></tt> events.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.newWorkspace">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">newWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.newWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new workspace on the grid and returns the DOM node that is the new workspace.</p>
+<p>If the currently-selected workspace happens to be the New Workspace Workspace it will be emptied and returned instead of creating a new one.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.closeWorkspace">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">closeWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.closeWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the given <em>workspace</em> from the 'gridwrapper' element and triggers the '<a class="reference external" href="go:workspace_closed">go:workspace_closed</a>' event.</p>
+<dd><p>Removes the given <em>workspace</em> from the 'gridwrapper' element and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:close_workspace</span></tt> event.</p>
 <p>If <em>message</em> (string) is given it will be displayed to the user when the workspace is closed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you're writing an application for Gate One you'll definitely want to attach a function to the '<a class="reference external" href="go:workspace_closed">go:workspace_closed</a>' event to either close your application or move it to a new workspace.</p>
+<p class="last">If you're writing an application for Gate One you'll definitely want to attach a function to the <tt class="xref py py-obj docutils literal"><span class="pre">go:close_workspace</span></tt> event to close your application.</p>
 </div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.switchWorkspace">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">switchWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.switchWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Triggers the '<a class="reference external" href="go:switch_workspace">go:switch_workspace</a>' event which by default calls <a class="reference internal" href="#GateOne.Visual.slideToWorkspace" title="GateOne.Visual.slideToWorkspace"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt></a>.</p>
+<dd><p>Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:switch_workspace</span></tt> event which by default calls <a class="reference internal" href="#GateOne.Visual.slideToWorkspace" title="GateOne.Visual.slideToWorkspace"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.slideToWorkspace()</span></tt></a>.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">If you wish to use your own workspace-switching animation just write your own function to handle it and call <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Events.off('go:switch_workspace',</span> <span class="pre">GateOne.Visual.slideToWorkspace);</span> <span class="pre">GateOne.Events.on('go:switch_workspace',</span> <span class="pre">yourFunction);</span></tt></p>
@@ -2421,7 +2085,25 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <dl class="staticmethod">
 <dt id="GateOne.Visual.cleanupWorkspaces">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">cleanupWorkspaces</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.cleanupWorkspaces" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets attached to the '<a class="reference external" href="go:cleanup_workspaces">go:cleanup_workspaces</a>' event and should be triggered by any function that may leave a workspace empty.  It walks through all the workspaces and removes any that are empty.</p>
+<dd><p>This gets attached to the '<a class="reference external" href="go:cleanup_workspaces">go:cleanup_workspaces</a>' event which should be triggered by any function that may leave a workspace empty.  It walks through all the workspaces and removes any that are empty.</p>
+<p>For example, let's say your app just removed itself from the workspace as a result of a server-controlled action (perhaps a BOFH killed the user's process).  At the end of your <tt class="xref py py-obj docutils literal"><span class="pre">closeMyApp()</span></tt> function you want to put this:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s2">&quot;go:cleanup_workspaces&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Make sure you trigger the event instead of calling this function directly so that other attached functions can do their part.</p>
+</div>
+<div class="explanation container">
+Why is this mechanism the opposite of everything else where you call the function and that function triggers its associated event?  Embedded mode, of course!  In embedded mode the parent web page may use something other than workspaces (e.g. tabs).  In embedded mode this function never gets attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:cleanup_workspaces</span></tt> event so this function will never get called.  This allows the page embedding Gate One to attach its own function to this event to perform an equivalent action (for whatever workspace-like mechanism it is using).</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.relocateWorkspace">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">relocateWorkspace</tt><big>(</big><em>workspace</em>, <em>location</em><big>)</big><a class="headerlink" href="#GateOne.Visual.relocateWorkspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Relocates the given <em>workspace</em> (number) to the given <em>location</em> by firing the <tt class="xref py py-obj docutils literal"><span class="pre">go:relocate_workspace</span></tt> event and <em>then</em> closing the workspace (if not already closed).  The given <em>workspace</em> and <em>location</em> will be passed to the event as the only arguments.</p>
+<p>The 'data-application' attribute of the DOM node associated with the given <em>workspace</em> will be used to determine whether or not the application running on the workspace is relocatable.  It does this by checking the matching application's '__appinfo__.relocatable' attribute.</p>
+<p>Applications that support relocation must ensure that they set the appropriate 'data-application' attribute on the workspace if they create workspaces on their own.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2466,8 +2148,49 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.resetGrid">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">resetGrid</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.resetGrid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Places all workspaces in their proper position in the grid instantly (no animations).</p>
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">resetGrid</tt><big>(</big><em>animate</em><big>)</big><a class="headerlink" href="#GateOne.Visual.resetGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places all workspaces in their proper position in the grid.  By default this happens instantly with no animations but if <em>animate</em> is <tt class="docutils literal"><span class="pre">true</span></tt> CSS3 transitions will take effect.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.gridWorkspaceDragStart">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">gridWorkspaceDragStart</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Visual.gridWorkspaceDragStart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the user starts dragging a workspace in grid view; creates drop targets above each workspace and sets up the 'dragover', 'dragleave', and 'drop' events.</p>
+<p>This function is also responsible for creating the thumbnail of the workspace being dragged.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.gridWorkspaceDragOver">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">gridWorkspaceDragOver</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Visual.gridWorkspaceDragOver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the various drop targets while a workspace is being dragged in grid view; sets the style of the drop target to indicate to the user that the workspace can be dropped there.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.gridWorkspaceDragLeave">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">gridWorkspaceDragLeave</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Visual.gridWorkspaceDragLeave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the various drop targets while a workspace is being dragged in grid view; sets the background color of the drop target back to 'transparent' to give the user a clear visual indiciation that the drag is no longer above the drop target.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.gridWorkspaceDrop">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">gridWorkspaceDrop</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Visual.gridWorkspaceDrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the various drop targets while a workspace is being dragged in grid view; handles the 'drop' of a workspace on to another.  Will swap the dragged workspace with the one to which it was dropped by calling <a class="reference internal" href="#GateOne.Visual.swapWorkspaces" title="GateOne.Visual.swapWorkspaces"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.swapWorkspaces()</span></tt></a></p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.swapWorkspaces">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">swapWorkspaces</tt><big>(</big><em>ws1</em>, <em>ws2</em><big>)</big><a class="headerlink" href="#GateOne.Visual.swapWorkspaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Swaps the location of the given workspaces in the grid and fires the <tt class="xref py py-obj docutils literal"><span class="pre">go:swapped_workspaces</span></tt> event with <em>ws1</em> and <em>ws2</em> as the arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ws1 number:</th><td class="field-body">The workspace number.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Ws2 number:</th><td class="field-body">The other workspace number.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2506,12 +2229,43 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
 <li><strong>title</strong> (<em>string</em>) -- Will appear at the top of the dialog.</li>
 <li><strong>content</strong> (<em>stringOrNode</em>) -- String or JavaScript DOM node - The content of the dialog.</li>
-<li><strong>options</strong> (<em>object</em>) -- An associative array of parameters that change the look and/or behavior of the dialog.  Presently unused.</li>
+<li><strong>options</strong> (<em>object</em>) -- An associative array of parameters that change the look and/or behavior of the dialog.  See below.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p><strong>Options</strong></p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">events:</th><td class="field-body">An object containing DOM events that will be attached to the dialog node.  Example: <tt class="docutils literal"><span class="pre">{'mousedown':</span> <span class="pre">someFunction}</span></tt>.  There are a few special/simulated events of which you may also attach: 'focused', 'closed', 'opened', 'resized', and 'moved'.  Except for 'close', these special event functions will be passed the dialog node as the only argument.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">resizable:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">false</span></tt> the dialog will not be resizable (all dialogs are resizable by default).  Note that if a dialog may not be resized it will also not be maximizable.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">maximizable:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">false</span></tt> the dialog will not have a maximize icon.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">minimizable:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">false</span></tt> the dialog will not have a minimize icon.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">above:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will be kept above others.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">data:</th><td class="field-body">(object) If given, any contained properties will be set as 'data-<a href="#id42"><span class="problematic" id="id43">*</span></a>' attributes on the dialogContainer.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">where:</th><td class="field-body">If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt>) and will be movable anywhere on the page.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">noEsc:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will not watch for the ESC key to close itself.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">noTransitions:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> CSS3 transitions will not be enabled for this dialog.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">class:</th><td class="field-body">Any additional CSS classes you wish to add to the dialog (space-separated).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">style:</th><td class="field-body">Any CSS you wish to apply to the dialog.  Example:  <tt class="docutils literal"><span class="pre">{'style':</span> <span class="pre">{'width':</span> <span class="pre">'50%',</span> <span class="pre">'height':</span> <span class="pre">'25%'}}</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2544,119 +2298,9 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Visual.widget">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">widget</tt><big>(</big><em>title</em>, <em>content</em><span class="optional">[</span>, <em>options</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an on-screen widget with the given <em>title</em> and <em>content</em>.  Returns a function that will remove the widget when called.</p>
-<p>Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).</p>
-<p>Widgets can be attached to a specific element by specifying a DOM object or querySelector string in <em>options['where']</em>.  Otherwise the widget will be attached to the currently-selected workspace.</p>
-<p>Widgets can be 'global' (attached to document.body) by setting <em>options['where']</em> to 'global'.</p>
-<p>By default widgets will appear in the upper-right corner of a given workspace.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>title</strong> (<em>string</em>) -- Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.</li>
-<li><strong>content</strong> (<em>string</em>) -- HTML string or JavaScript DOM node:  The content of the widget.</li>
-<li><strong>options</strong> (<em>object</em>) -- An associative array of parameters that change the look and/or behavior of the widget.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Here's the possible options:</p>
-<blockquote>
-<div><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">onopen:</th><td class="field-body">Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">onclose:</th><td class="field-body">Assign a function to this option and it will be called when the widget is closed.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">onconfig:</th><td class="field-body">If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">where:</th><td class="field-body">The node where we'll be attaching this widget or 'global' to add the widget to document.body.</td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-</dd></dl>
-
-<dl class="member">
-<dt id="GateOne.Visual.Pane">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">Pane</tt><a class="headerlink" href="#GateOne.Visual.Pane" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">elem:</th><td class="field-body">A querySelector-like string or a DOM node.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">options:</th><td class="field-body">A JavaScript object which may contain a number of configurable options (see below).</td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<p>An object that represents a pane on the page.  A new Pane may be created like so:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">pane</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">Pane</span><span class="p">(</span><span class="nx">elem</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
-</pre></div>
-</div>
-<p>Options:</p>
-<blockquote>
-<div><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">name:</th><td class="field-body">What to call this Pane so you can reference it later.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">scroll:</th><td class="field-body">A boolean value representing whether or not this Pane will be scrollable.</td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.split">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">split</tt><big>(</big><em>axis</em>, <em>way</em><span class="optional">[</span>, <em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.split" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split this Pane into two.  The <em>axis</em> argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.</p>
-<p>The <em>way</em> argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.</p>
-<p>If provided, the given <em>newNode</em> will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using <tt class="xref py py-obj docutils literal"><span class="pre">cloneNode(false)</span></tt>).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.</p>
-</div>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.vsplit">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">vsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.vsplit" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('vertical')</span></tt></p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.hsplit">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">hsplit</tt><big>(</big><span class="optional">[</span><em>newNode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.hsplit" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.Pane.split('horizontal')</span></tt></p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.relocate">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">relocate</tt><big>(</big><em>where</em><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.relocate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Moves the Pane from wherever it currently resides into the element at <em>where</em>.  The <em>splitAxis</em> argument will be used to determine how to split <em>where</em> to accomodate this Pane.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.minimize">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">minimize</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.minimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Minimizes the Pane by docking it to the 'top', 'bottom', 'left', or 'right' of the view depending on <em>way</em>.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.Pane.remove">
-<tt class="descclassname">GateOne.Visual.Pane.</tt><tt class="descname">remove</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.Pane.remove" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the Pane from the page.</p>
-</dd></dl>
-
+<dt id="GateOne.Visual.showDock">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">showDock</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#GateOne.Visual.showDock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens up the given <em>name</em> for the user to view.  If the dock does not already exist it will be created and added to the toolbar.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2677,12 +2321,6 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableOverlay</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.disableOverlay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the overlay above Gate One (if present).</p>
 <p>The state of the overlay is tracked via the <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.overlay</span></tt> variable.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.nodeThumb">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">nodeThumb</tt><big>(</big><em>elem</em>, <em>scale</em><big>)</big><a class="headerlink" href="#GateOne.Visual.nodeThumb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a miniature clone of the given <em>elem</em> that is reduced in size by the amount given by <em>scale</em> (e.g. 0.25 for 1/4 size).</p>
 </dd></dl>
 
 </dd></dl>
@@ -2820,12 +2458,22 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <p>If <em>callback</em> is given, will execute it after the database has been opened successfuly.</p>
 <p>If this is the first time we're opening this database a <em>model</em> must be given.  Also, if the database already exists, the <em>model</em> argument will be ignored so it is safe to pass it with every call to this function.</p>
 <p>If provided, the <em>version</em> of the database will be set.  Otherwise it will be set to 1.</p>
+<p>Example usage:</p>
+<div class="highlight-js"><div class="highlight"><pre>
+</pre></div>
+</div>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">model</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;BookmarksDB&#39;</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;bookmarks&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;url&quot;</span><span class="p">},</span> <span class="s1">&#39;tags&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;name&quot;</span><span class="p">}}};</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">openDB</span><span class="p">(</span><span class="s1">&#39;somedb&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">)</span> <span class="p">{</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">);},</span> <span class="nx">model</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases[&#39;somedb&#39;]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Storage.clearDatabase">
-<tt class="descclassname">GateOne.Storage.</tt><tt class="descname">clearDatabase</tt><big>(</big><em>DB</em>, <em>storeName</em><big>)</big><a class="headerlink" href="#GateOne.Storage.clearDatabase" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Storage.</tt><tt class="descname">clearDatabase</tt><big>(</big><em>DB</em><span class="optional">[</span>, <em>storeName</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Storage.clearDatabase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clears the contents of the given <em>storeName</em> in the given database (<em>DB</em>).  AKA &quot;the nuclear option.&quot;</p>
+<p>If a <em>storeName</em> is not given the whole database will be deleted.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2898,7 +2546,7 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <dl class="staticmethod">
 <dt id="GateOne.User.applicationsAction">
 <tt class="descclassname">GateOne.User.</tt><tt class="descname">applicationsAction</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.applicationsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.User.applications</span></tt> to be the given list of <em>apps</em> (which is the list of applications the user is allowed to run).</p>
+<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.User.applications</span></tt> to the given list of <em>apps</em> (which is the list of applications the user is allowed to run).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2927,20 +2575,6 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <dt id="GateOne.Events">
 <tt class="descclassname">GateOne.</tt><tt class="descname">Events</tt><a class="headerlink" href="#GateOne.Events" title="Permalink to this definition">¶</a></dt>
 <dd><p>An object for event-specific stuff.  Inspired by Backbone.js Events.</p>
-<dl class="staticmethod">
-<dt id="GateOne.Events.before">
-<tt class="descclassname">GateOne.Events.</tt><tt class="descname">before</tt><big>(</big><em>f</em>, <em>callback</em><span class="optional">[</span>, <em>context</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Events.before" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attaches the given <em>callback</em> to the given function (<em>f</em>) to be called <strong>before</strong> <em>f</em> is called.  If provided, <em>callback</em> will be called with the given <em>context</em> via <tt class="xref py py-obj docutils literal"><span class="pre">callback.apply(context)</span></tt>.  Otherwise <em>callback</em> will be called with whatever arguments were given to <em>f</em> via <tt class="xref py py-obj docutils literal"><span class="pre">callback.apply(arguments)</span></tt>.</p>
-<p>If the given <em>callback</em> returns a value other than <tt class="xref py py-obj docutils literal"><span class="pre">undefined</span></tt> that value will be passed to <em>f</em> as its arguments.  This allows <em>callback</em> to modify the arguments passed to <em>f</em> before it is called; aka the decorator pattern.</p>
-<p>Returns the modified function (<em>f</em>).</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Events.after">
-<tt class="descclassname">GateOne.Events.</tt><tt class="descname">after</tt><big>(</big><em>f</em>, <em>callback</em><span class="optional">[</span>, <em>context</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Events.after" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attaches the given <em>callback</em> to the given function (<em>f</em>) to be called <strong>after</strong> it (<em>f</em>) has been executed.  If provided, the <em>callback</em> will be called with the given <em>context</em>.  Otherwise <em>callback</em> will be called with whatever arguments were given to the function (<em>f</em>).</p>
-</dd></dl>
-
 <dl class="staticmethod">
 <dt id="GateOne.Events.on">
 <tt class="descclassname">GateOne.Events.</tt><tt class="descname">on</tt><big>(</big><em>events</em>, <em>callback</em><span class="optional">[</span>, <em>context</em><span class="optional">[</span>, <em>times</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Events.on" title="Permalink to this definition">¶</a></dt>
@@ -3031,6 +2665,37 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.openApplication">
+<tt class="descclassname">GateOne.</tt><tt class="descname">openApplication</tt><big>(</big><em>app</em><span class="optional">[</span>, <em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.openApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the given <em>app</em> using its <tt class="docutils literal"><span class="pre">__new__()</span></tt> method.</p>
+<p>If <em>where</em> is provided the application will be placed there.  Otherwise a new workspace will be created and the app placed inside.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">App :</th><td class="field-body">The name of the application to open.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Settings :</th><td class="field-body">Optional settings which will be passed to the application's <tt class="docutils literal"><span class="pre">__new__()</span></tt> method.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Where :</th><td class="field-body">A querySelector-like string or DOM node where you wish to place the application.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.disableTransitions">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>elem2</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.disableTransitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'noanimate' class on <em>elem</em> and any additional elements passed as arguments which can be a node or querySelector-like string (e.g. #someid).  This class sets all CSS3 transformations to happen instantly without delay (which would animate).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.enableTransitions">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>elem2</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.enableTransitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the 'noanimate' class from <em>elem</em> and any additional elements passed as arguments (if set) which can be a node or querySelector-like string (e.g. #someid).</p>
 </dd></dl>
 
 </div>

@@ -111,9 +111,10 @@
 
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
-<span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span><span class="p">,</span> <span class="n">render_log_frames</span>
+<span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span>
+<span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">render_log_frames</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
@@ -162,7 +163,7 @@
 <span class="sd">    Log objects will be returned to the client one at a time by sending</span>
 <span class="sd">    &#39;logging_log&#39; actions to the client over the WebSocket (*self*).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;enumerate_logs(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;enumerate_logs(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
     <span class="c"># Sometimes IOLoop detects multiple events on the fd before we&#39;ve finished</span>
     <span class="c"># doing a get() from the queue.  This variable is used to ensure we don&#39;t</span>
     <span class="c"># send the client duplicates:</span>
@@ -207,7 +208,7 @@
 <span class="sd">        file descriptor events.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="c">#logging.debug(&#39;message: %s&#39; % message)</span>
+        <span class="c">#self.term_log.debug(&#39;message: %s&#39; % message)</span>
         <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&#39;complete&#39;</span><span class="p">:</span>
             <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
             <span class="n">total_bytes</span> <span class="o">=</span> <span class="mi">0</span>
@@ -255,7 +256,10 @@
     <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">log_files</span><span class="p">:</span>
         <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Getting metadata from: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">log_path</span><span class="p">)</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
+            <span class="k">continue</span> <span class="c"># Something wrong with this log; skip</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="p">:</span>
             <span class="c"># Broken log file -- may be being written to</span>
             <span class="k">continue</span> <span class="c"># Just skip it</span>

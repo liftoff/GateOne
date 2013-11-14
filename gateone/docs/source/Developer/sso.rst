@@ -3,6 +3,6 @@
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: sso
+.. automodule:: gateone.auth.sso
     :members:
     :private-members:

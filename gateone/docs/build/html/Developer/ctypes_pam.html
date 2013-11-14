@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>ctypes_pam.py - PAM Authentication Module &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" />
+    <link rel="prev" title="pam.py - A PAM Authentication Module" href="pam.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pam.html" title="pam.py - A PAM Authentication Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gateone.auth.ctypes_pam">
+<span id="ctypes-pam-py-pam-authentication-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">ctypes_pam.py</span></tt> - PAM Authentication Module<a class="headerlink" href="#module-gateone.auth.ctypes_pam" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pam-authentication-module-for-python">
+<span id="gopam-py"></span><h2>PAM Authentication Module for Python<a class="headerlink" href="#pam-authentication-module-for-python" title="Permalink to this headline">¶</a></h2>
+<p>Provides an authenticate function that will allow the caller to authenticate
+a user against the Pluggable Authentication Modules (PAM) on the system.</p>
+<p>Implemented using ctypes, so no compilation is necessary.</p>
+<dl class="function">
+<dt id="gateone.auth.ctypes_pam.authenticate">
+<tt class="descclassname">gateone.auth.ctypes_pam.</tt><tt class="descname">authenticate</tt><big>(</big><em>username</em>, <em>password</em>, <em>service='login'</em>, <em>tty='console'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/ctypes_pam.html#authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.ctypes_pam.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the given username and password authenticate for the
+given service.  Returns False otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>username</strong> (<em>string</em>) -- The username to authenticate.</li>
+<li><strong>password</strong> (<em>string</em>) -- The password in plain text.</li>
+<li><strong>service</strong> (<em>string</em>) -- The PAM service to authenticate against.  Defaults to 'login'.</li>
+<li><strong>tty</strong> (<em>string</em>) -- Name of the TTY device to use when authenticating.  Defaults to
+'console' (to allow root).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>If additional keyword arguments are provided they will be passed to
+PAM_SET_ITEM() like so:</p>
+<div class="highlight-python"><pre>PAM_SET_ITEM(handle, &lt;keyword mapped to PAM_whatever&gt;, &lt;value&gt;)</pre>
+</div>
+<p>Where the keyword will be automatically converted to a PAM_whatever constant
+if present in this file.  Example:</p>
+<div class="highlight-python"><pre>authenticate(user, pass, PAM_RHOST="myhost")</pre>
+</div>
+<p>...would result in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">PAM_SET_ITEM</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;myhost&quot;</span><span class="p">)</span> <span class="c"># PAM_RHOST (4) taken from the global</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">ctypes_pam.py</span></tt> - PAM Authentication Module</a><ul>
+<li><a class="reference internal" href="#pam-authentication-module-for-python">PAM Authentication Module for Python</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pam.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">pam.py</span></tt> - A PAM Authentication Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sso.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/ctypes_pam.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pam.html" title="pam.py - A PAM Authentication Module"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

@@ -39,7 +39,7 @@
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="gateone.js" href="js_gateone.html" />
-    <link rel="prev" title="termio.py - Terminal Input/Output Module" href="termio.html" /> 
+    <link rel="prev" title="server.py - Gate One&#39;s Core Script" href="server.html" /> 
   </head>
   <body>
     <div class="related">
@@ -55,7 +55,7 @@
           <a href="js_gateone.html" title="gateone.js"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="termio.html" title="termio.py - Terminal Input/Output Module"
+          <a href="server.html" title="server.py - Gate One&#39;s Core Script"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -67,46 +67,46 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-utils">
-<span id="utils-py-supporting-functions"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-gateone.core.utils">
+<span id="utils-py-supporting-functions"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions<a class="headerlink" href="#module-gateone.core.utils" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="gate-one-utility-functions-and-classes">
 <span id="utils-py"></span><h2>Gate One Utility Functions and Classes<a class="headerlink" href="#gate-one-utility-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="exception">
-<dt id="utils.UnknownFacility">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/utils.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.UnknownFacility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised if <a class="reference internal" href="#utils.string_to_syslog_facility" title="utils.string_to_syslog_facility"><tt class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></tt></a> is given a string that doesn't match
+<dt id="gateone.core.utils.UnknownFacility">
+<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.UnknownFacility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised if <a class="reference internal" href="#gateone.core.utils.string_to_syslog_facility" title="gateone.core.utils.string_to_syslog_facility"><tt class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></tt></a> is given a string that doesn't match
 a known syslog facility.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="utils.MimeTypeFail">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">MimeTypeFail</tt><a class="reference internal" href="../_modules/utils.html#MimeTypeFail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.MimeTypeFail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised by <a class="reference internal" href="#utils.create_data_uri" title="utils.create_data_uri"><tt class="xref py py-obj docutils literal"><span class="pre">create_data_uri</span></tt></a> if the mimetype of a file could not be guessed.</p>
+<dt id="gateone.core.utils.MimeTypeFail">
+<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">MimeTypeFail</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#MimeTypeFail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.MimeTypeFail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#gateone.core.utils.create_data_uri" title="gateone.core.utils.create_data_uri"><tt class="xref py py-obj docutils literal"><span class="pre">create_data_uri</span></tt></a> if the mimetype of a file could not be guessed.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="utils.SSLGenerationError">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">SSLGenerationError</tt><a class="reference internal" href="../_modules/utils.html#SSLGenerationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.SSLGenerationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised by <a class="reference internal" href="#utils.gen_self_signed_ssl" title="utils.gen_self_signed_ssl"><tt class="xref py py-obj docutils literal"><span class="pre">gen_self_signed_ssl</span></tt></a> if an error is encountered generating a
+<dt id="gateone.core.utils.SSLGenerationError">
+<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">SSLGenerationError</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#SSLGenerationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.SSLGenerationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#gateone.core.utils.gen_self_signed_ssl" title="gateone.core.utils.gen_self_signed_ssl"><tt class="xref py py-obj docutils literal"><span class="pre">gen_self_signed_ssl</span></tt></a> if an error is encountered generating a
 self-signed SSL certificate.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="utils.ChownError">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">ChownError</tt><a class="reference internal" href="../_modules/utils.html#ChownError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.ChownError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised by <a class="reference internal" href="#utils.recursive_chown" title="utils.recursive_chown"><tt class="xref py py-obj docutils literal"><span class="pre">recursive_chown</span></tt></a> if an OSError is encountered while trying to
+<dt id="gateone.core.utils.ChownError">
+<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">ChownError</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#ChownError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.ChownError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#gateone.core.utils.recursive_chown" title="gateone.core.utils.recursive_chown"><tt class="xref py py-obj docutils literal"><span class="pre">recursive_chown</span></tt></a> if an OSError is encountered while trying to
 recursively chown a directory.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="utils.SettingsError">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">SettingsError</tt><a class="reference internal" href="../_modules/utils.html#SettingsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.SettingsError" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.SettingsError">
+<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">SettingsError</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#SettingsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.SettingsError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raised when we encounter an error parsing .conf files in the settings dir.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="utils.RUDict">
-<em class="property">class </em><tt class="descclassname">utils.</tt><tt class="descname">RUDict</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="reference internal" href="../_modules/utils.html#RUDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.RUDict" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.RUDict">
+<em class="property">class </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">RUDict</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#RUDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.RUDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dict that will recursively update keys and values in a safe manner so that
 sub-dicts will be merged without one clobbering the other.</p>
 <div class="admonition note">
@@ -115,57 +115,165 @@ sub-dicts will be merged without one clobbering the other.</p>
 </div>
 </dd></dl>
 
+<dl class="class">
+<dt id="gateone.core.utils.AutoExpireDict">
+<em class="property">class </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">AutoExpireDict</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of Python's <tt class="xref py py-obj docutils literal"><span class="pre">dict</span></tt> that expires keys after a given
+<em>_expire_timeout</em> timeout (<tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt>).  The default expiration
+is one hour.  It is used like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">expiring_dict</span> <span class="o">=</span> <span class="n">AutoExpireDict</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expiring_dict</span><span class="p">[</span><span class="s">&#39;somekey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;some value&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># You can see when this key was created:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">expiring_dict</span><span class="o">.</span><span class="n">creation_times</span><span class="p">[</span><span class="s">&#39;somekey&#39;</span><span class="p">])</span>
+<span class="go">2013-04-15 18:44:18.224072</span>
+</pre></div>
+</div>
+<p>10 minutes later your key will be gone:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;somekey&#39;</span> <span class="ow">in</span> <span class="n">expiring_dict</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>The 'timeout' may be be given as a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt> object or a string
+like, &quot;1d&quot;, &quot;30s&quot; (will be passed through the <a class="reference internal" href="#gateone.core.utils.convert_to_timedelta" title="gateone.core.utils.convert_to_timedelta"><tt class="xref py py-obj docutils literal"><span class="pre">convert_to_timedelta</span></tt></a>
+function).</p>
+<p>By default <a class="reference internal" href="#gateone.core.utils.AutoExpireDict" title="gateone.core.utils.AutoExpireDict"><tt class="xref py py-obj docutils literal"><span class="pre">AutoExpireDict</span></tt></a> will check for expired keys every 30 seconds but
+this can be changed by setting the 'interval':</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">expiring_dict</span> <span class="o">=</span> <span class="n">AutoExpireDict</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span> <span class="c"># 5 secs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Or to change it after you&#39;ve created one:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expiring_dict</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="s">&quot;10s&quot;</span>
+</pre></div>
+</div>
+<p>The 'interval' may be an integer, a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt> object, or a string
+such as '10s' or '5m' (will be passed through the <a class="reference internal" href="#gateone.core.utils.convert_to_timedelta" title="gateone.core.utils.convert_to_timedelta"><tt class="xref py py-obj docutils literal"><span class="pre">convert_to_timedelta</span></tt></a>
+function).</p>
+<p>If there are no keys remaining the <tt class="xref py py-obj docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt> (
+<tt class="docutils literal"><span class="pre">self._key_watcher</span></tt>) that checks expiration will be automatically stopped.
+As soon as a new key is added it will be started back up again.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only works if there's a running instances of <tt class="xref py py-obj docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt>.</p>
+</div>
+<dl class="attribute">
+<dt id="gateone.core.utils.AutoExpireDict.timeout">
+<tt class="descname">timeout</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict.timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict.timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-obj docutils literal"><span class="pre">property</span></tt> that controls how long a key will last before being
+automatically removed.  May be be given as a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt>
+object or a string like, &quot;1d&quot;, &quot;30s&quot; (will be passed through the
+<a class="reference internal" href="#gateone.core.utils.convert_to_timedelta" title="gateone.core.utils.convert_to_timedelta"><tt class="xref py py-obj docutils literal"><span class="pre">convert_to_timedelta</span></tt></a> function).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gateone.core.utils.AutoExpireDict.interval">
+<tt class="descname">interval</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict.interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict.interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-obj docutils literal"><span class="pre">property</span></tt> that controls how often we check for expired keys.  May be
+given as milliseconds (integer), a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt> object, or a
+string like, &quot;1d&quot;, &quot;30s&quot; (will be passed through the
+<a class="reference internal" href="#gateone.core.utils.convert_to_timedelta" title="gateone.core.utils.convert_to_timedelta"><tt class="xref py py-obj docutils literal"><span class="pre">convert_to_timedelta</span></tt></a> function).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.utils.AutoExpireDict.renew">
+<tt class="descname">renew</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict.renew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict.renew" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the timeout on the given <em>key</em>; like it was just created.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.utils.AutoExpireDict.update">
+<tt class="descname">update</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override that calls <tt class="docutils literal"><span class="pre">self.renew()</span></tt> for every key that gets updated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.utils.AutoExpireDict.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override that empties <tt class="docutils literal"><span class="pre">self.creation_times</span></tt> and calls
+<tt class="docutils literal"><span class="pre">self._key_watcher.stop()</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.utils.AutoExpireDict._timeout_checker">
+<tt class="descname">_timeout_checker</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#AutoExpireDict._timeout_checker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.AutoExpireDict._timeout_checker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Walks <tt class="docutils literal"><span class="pre">self</span></tt> and removes keys that have passed the expiration point.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.core.utils.memoize">
+<em class="property">class </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">memoize</tt><big>(</big><em>fn</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#memoize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.memoize" title="Permalink to this definition">¶</a></dt>
+<dd><p>A memoization decorator that works with multiple arguments as well as
+unhashable arguments (e.g. dicts).  It also self-expires any memoized
+calls after the timedelta specified via <em>timeout</em>.</p>
+<p>If a <em>timeout</em> is not given memoized information will be discared after five
+minutes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Expiration checks will be performed every 30 seconds.</p>
+</div>
+</dd></dl>
+
 <dl class="function">
-<dt id="utils.noop">
-<tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.noop">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">noop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.noop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do nothing (i.e. &quot;No Operation&quot;)</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.remove_comments">
-<tt class="descclassname">utils.</tt><tt class="descname">remove_comments</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="../_modules/utils.html#remove_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.remove_comments" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.debug_info">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">debug_info</tt><big>(</big><em>name</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#debug_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.debug_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a string like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">debug_info</span><span class="p">(</span><span class="s">&#39;some_function&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="s">&quot;bar&quot;</span><span class="p">)</span>
+<span class="go">&#39;some_function(5, 10, foo=&quot;bar&quot;)&#39;</span>
+</pre></div>
+</div>
+<p>Primarily aimed at debugging.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.utils.remove_comments">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">remove_comments</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#remove_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.remove_comments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes C-style comments from <em>text</em> and returns the result.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_settings">
-<tt class="descclassname">utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em>, <em>add_default=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.get_settings">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em>, <em>add_default=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads any and all <em>.conf files containing JSON (JS-style comments are OK)
-inside *path</em> and returns them as an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a>.  Optionally, <em>path</em>
+inside *path</em> and returns them as an <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a>.  Optionally, <em>path</em>
 may be a specific file (as opposed to just a directory).</p>
-<p>By default, all returned <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> objects will include a '*' dict
+<p>By default, all returned <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> objects will include a '*' dict
 which indicates &quot;all users&quot;.  This behavior can be skipped by setting the
 <em>add_default</em> keyword argument to <tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.options_to_settings">
-<tt class="descclassname">utils.</tt><tt class="descname">options_to_settings</tt><big>(</big><em>options</em><big>)</big><a class="reference internal" href="../_modules/utils.html#options_to_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.options_to_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.options_to_settings">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">options_to_settings</tt><big>(</big><em>options</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#options_to_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.options_to_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts the given Tornado-style <em>options</em> to new-style settings.  Returns
-an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> containing all the settings.</p>
+an <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> containing all the settings.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.write_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#write_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.write_pid" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.write_pid">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#write_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.write_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes our PID to <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.read_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">read_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#read_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.read_pid" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.read_pid">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">read_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#read_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.read_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads our current PID from <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.remove_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">remove_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#remove_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.remove_pid" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.remove_pid">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">remove_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#remove_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.remove_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the PID file at <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.shell_command">
-<tt class="descclassname">utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="reference internal" href="../_modules/utils.html#shell_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.shell_command" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.shell_command">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#shell_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.shell_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the SIGCHLD signal handler (if necessary), executes <em>cmd</em> via
 <tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt>, then re-enables the SIGCHLD handler (if
 it was set to something other than SIG_DFL).  Returns the result of
@@ -181,38 +289,38 @@ auto-killed and the following will be returned:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.json_encode">
-<tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.json_encode">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.json_encode" title="Permalink to this definition">¶</a></dt>
 <dd><p>On some platforms (CentOS 6.2, specifically) <tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_translation">
-<tt class="descclassname">utils.</tt><tt class="descname">get_translation</tt><big>(</big><em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_translation" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.get_translation">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_translation</tt><big>(</big><em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_translation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Looks inside Gate One's settings to determine the configured locale and
 returns a matching locale.get_translation function.  If no locale is set
 (e.g. first time running Gate One) the local <tt class="xref py py-obj docutils literal"><span class="pre">$LANG</span></tt> environment variable
 will be used.</p>
 <p>This function is meant to be used like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.gen_self_signed_ssl">
-<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_ssl</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_ssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_ssl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a self-signed SSL certificate using pyOpenSSL or the openssl
-command depending on what's available,  The resulting key/certificate will
-use the RSA algorithm at 4096 bits.</p>
+<dt id="gateone.core.utils.gen_self_signed_ssl">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">gen_self_signed_ssl</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#gen_self_signed_ssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.gen_self_signed_ssl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a self-signed SSL certificate using <tt class="xref py py-obj docutils literal"><span class="pre">pyOpenSSL</span></tt> or the <a class="reference external" href="http://www.openssl.org/docs/apps/openssl.html">openssl</a> command depending on
+what's available,  The resulting key/certificate will use the RSA algorithm
+at 4096 bits.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.gen_self_signed_openssl">
-<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_openssl</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_openssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_openssl" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.gen_self_signed_openssl">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">gen_self_signed_openssl</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#gen_self_signed_openssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.gen_self_signed_openssl" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method will generate a secure self-signed SSL key/certificate pair
 (using the <a class="reference external" href="http://www.openssl.org/docs/apps/openssl.html">openssl</a>
 command) saving the result as 'certificate.pem' and 'keyfile.pem' to <em>path</em>.
@@ -225,10 +333,10 @@ directory.  The certificate will be valid for 10 years.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.gen_self_signed_pyopenssl">
-<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_pyopenssl</tt><big>(</big><em>notAfter=None</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_pyopenssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_pyopenssl" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.gen_self_signed_pyopenssl">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">gen_self_signed_pyopenssl</tt><big>(</big><em>notAfter=None</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#gen_self_signed_pyopenssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.gen_self_signed_pyopenssl" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method will generate a secure self-signed SSL key/certificate pair
-(using pyOpenSSL) saving the result as 'certificate.pem' and 'keyfile.pem'
+(using <tt class="xref py py-obj docutils literal"><span class="pre">pyOpenSSL</span></tt>) saving the result as 'certificate.pem' and 'keyfile.pem'
 in <em>path</em>.  If <em>path</em> is not given the result will be saved in the current
 working directory.  By default the certificate will be valid for 10 years
 but this can be overridden by passing a valid timestamp via the
@@ -245,8 +353,8 @@ but this can be overridden by passing a valid timestamp via the
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.none_fix">
-<tt class="descclassname">utils.</tt><tt class="descname">none_fix</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#none_fix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.none_fix" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.none_fix">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">none_fix</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#none_fix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.none_fix" title="Permalink to this definition">¶</a></dt>
 <dd><p>If <em>val</em> is a string that utlimately means 'none', return None.  Otherwise
 return <em>val</em> as-is.  Examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">none_fix</span><span class="p">(</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
@@ -260,8 +368,8 @@ return <em>val</em> as-is.  Examples:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.str2bool">
-<tt class="descclassname">utils.</tt><tt class="descname">str2bool</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#str2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.str2bool" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.str2bool">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">str2bool</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#str2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.str2bool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts strings like, 'false', 'true', '0', and '1' into their boolean
 equivalents (in Python).  If no logical match is found, return False.
 Examples:</p>
@@ -276,8 +384,8 @@ Examples:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.generate_session_id">
-<tt class="descclassname">utils.</tt><tt class="descname">generate_session_id</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#generate_session_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.generate_session_id" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.generate_session_id">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">generate_session_id</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#generate_session_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.generate_session_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a random, 45-character session ID.  Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">generate_session_id</span><span class="p">()</span>
 <span class="go">&quot;NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O&quot;</span>
@@ -287,8 +395,8 @@ Examples:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.mkdir_p">
-<tt class="descclassname">utils.</tt><tt class="descname">mkdir_p</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#mkdir_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.mkdir_p" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.mkdir_p">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">mkdir_p</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#mkdir_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.mkdir_p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pythonic version of &quot;mkdir -p&quot;.  Example equivalents:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mkdir_p</span><span class="p">(</span><span class="s">&#39;/tmp/test/testing&#39;</span><span class="p">)</span> <span class="c"># Does the same thing as...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
@@ -302,8 +410,8 @@ Examples:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.cmd_var_swap">
-<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.cmd_var_swap">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>cmd</em> with %variable% replaced with the keys/values passed in via
 <em>kwargs</em>.  This function is used by Gate One's Terminal application to
 swap the following Gate One variables in defined terminal 'commands':</p>
@@ -357,8 +465,8 @@ output as <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.short_hash">
-<tt class="descclassname">utils.</tt><tt class="descname">short_hash</tt><big>(</big><em>to_shorten</em><big>)</big><a class="reference internal" href="../_modules/utils.html#short_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.short_hash" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.short_hash">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">short_hash</tt><big>(</big><em>to_shorten</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#short_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.short_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts <em>to_shorten</em> into a really short hash depenendent on the length of
 <em>to_shorten</em>.  The result will be safe for use as a file name.</p>
 <div class="admonition note">
@@ -369,8 +477,8 @@ is used.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_process_tree">
-<tt class="descclassname">utils.</tt><tt class="descname">get_process_tree</tt><big>(</big><em>parent_pid</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_process_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_process_tree" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.get_process_tree">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_process_tree</tt><big>(</big><em>parent_pid</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_process_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_process_tree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of child pids that were spawned from <em>parent_pid</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -379,44 +487,54 @@ is used.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.kill_dtached_proc_bsd">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_bsd</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_bsd" title="Permalink to this definition">¶</a></dt>
-<dd><p>A BSD-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't have
-/proc.  Seems simpler than <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually having to
+<dt id="gateone.core.utils.kill_dtached_proc_bsd">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">kill_dtached_proc_bsd</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#kill_dtached_proc_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.kill_dtached_proc_bsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BSD-specific implementation of <a class="reference internal" href="#gateone.core.utils.kill_dtached_proc" title="gateone.core.utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't have
+/proc.  Seems simpler than <a class="reference internal" href="#gateone.core.utils.kill_dtached_proc" title="gateone.core.utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually having to
 call a subprocess is less efficient (due to the sophisticated signal
-handling required by <a class="reference internal" href="#utils.shell_command" title="utils.shell_command"><tt class="xref py py-func docutils literal"><span class="pre">shell_command()</span></tt></a>).</p>
+handling required by <a class="reference internal" href="#gateone.core.utils.shell_command" title="gateone.core.utils.shell_command"><tt class="xref py py-func docutils literal"><span class="pre">shell_command()</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.killall_bsd">
-<tt class="descclassname">utils.</tt><tt class="descname">killall_bsd</tt><big>(</big><em>session_dir</em>, <em>pid_file=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall_bsd" title="Permalink to this definition">¶</a></dt>
-<dd><p>A BSD-specific version of <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
+<dt id="gateone.core.utils.killall_bsd">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">killall_bsd</tt><big>(</big><em>session_dir</em>, <em>pid_file=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#killall_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.killall_bsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BSD-specific version of <a class="reference internal" href="#gateone.core.utils.killall" title="gateone.core.utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><em>pid_file</em> is not used by this function.  It is simply here to provide
-compatibility with <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a>.</p>
+compatibility with <a class="reference internal" href="#gateone.core.utils.killall" title="gateone.core.utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a>.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_applications">
-<tt class="descclassname">utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_applications" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.kill_session_processes">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">kill_session_processes</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#kill_session_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.kill_session_processes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills all processes that match a given <em>session</em> (which is a unique,
+45-character string).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.utils.get_applications">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_applications" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds applications' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a list containing
 the name of each application.  If given, only applications in the <em>enabled</em>
 list will be returned.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_plugins">
-<tt class="descclassname">utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_plugins" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.get_plugins">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em>, <em>basepath=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_plugins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds plugins' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a dictionary of
 JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
 <div class="highlight-python"><pre>{
     'js': [ // NOTE: These would be be inside *plugin_dir*/static
-        '/static/happy_plugin/whatever.js',
-        '/static/ssh/ssh.js',
+        'happy_plugin/static/whatever.js',
+        'ssh/static/ssh.js',
     ],
-    'css': ['/cssrender?plugin=bookmarks&amp;template=bookmarks.css'],
+    'css': [
+        'bookmarks/static/bookmarks.css',
+        'ssh/templates/ssh.css'
+    ],
     // NOTE: CSS URLs will require '&amp;container=&lt;container&gt;' and '&amp;prefix=&lt;prefix&gt;' to load.
     'py': [ // NOTE: These will get added to sys.path
         'happy_plugin',
@@ -434,11 +552,21 @@ added to Gate One's index.html like so:</p>
 <p>*.css files will get imported automatically by GateOne.init()</p>
 <p>Optionally, a list of <em>enabled</em> (Python) plugins may be provided and only
 those plugins will be added to the 'py' portion of the returned dict.</p>
+<p>Optionally, if a <em>basepath</em> is given imported plugin modules will be
+imported like so:</p>
+<blockquote>
+<div>&lt;basepath&gt;.plugin_module_name</div></blockquote>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">get_plugins</span><span class="p">(</span>
+    <span class="s">&quot;/path/to/gateone/applications/terminal/plugins&quot;</span><span class="p">,</span>
+    <span class="n">basepath</span><span class="o">=</span><span class="s">&quot;gateone.application.terminal.plugins&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.load_modules">
-<tt class="descclassname">utils.</tt><tt class="descname">load_modules</tt><big>(</big><em>modules</em><big>)</big><a class="reference internal" href="../_modules/utils.html#load_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.load_modules" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.load_modules">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">load_modules</tt><big>(</big><em>modules</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#load_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.load_modules" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of Python <em>modules</em>, imports them.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -447,8 +575,8 @@ those plugins will be added to the 'py' portion of the returned dict.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.merge_handlers">
-<tt class="descclassname">utils.</tt><tt class="descname">merge_handlers</tt><big>(</big><em>handlers</em><big>)</big><a class="reference internal" href="../_modules/utils.html#merge_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.merge_handlers" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.merge_handlers">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">merge_handlers</tt><big>(</big><em>handlers</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#merge_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.merge_handlers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes a list of Tornado <em>handlers</em> like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">[</span>
     <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">MainHandler</span><span class="p">),</span>
@@ -477,8 +605,8 @@ SomePluginHandler; overriding Gate One's default StyleHandler.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.convert_to_timedelta">
-<tt class="descclassname">utils.</tt><tt class="descname">convert_to_timedelta</tt><big>(</big><em>time_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_timedelta" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.convert_to_timedelta">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">convert_to_timedelta</tt><big>(</big><em>time_val</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#convert_to_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.convert_to_timedelta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>time_val</em> (string) such as '5d', returns a <tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt>
 object representing the given value (e.g. <tt class="xref py py-obj docutils literal"><span class="pre">timedelta(days=5)</span></tt>).  Accepts the
 following '&lt;num&gt;&lt;char&gt;' formats:</p>
@@ -515,6 +643,14 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <td>Days</td>
 <td>'7d'  -&gt; 7 Days</td>
 </tr>
+<tr class="row-odd"><td>M</td>
+<td>Months</td>
+<td>'2M'  -&gt; 2 Months</td>
+</tr>
+<tr class="row-even"><td>y</td>
+<td>Years</td>
+<td>'10y' -&gt; 10 Years</td>
+</tr>
 </tbody>
 </table>
 <p>Examples:</p>
@@ -531,8 +667,8 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.convert_to_bytes">
-<tt class="descclassname">utils.</tt><tt class="descname">convert_to_bytes</tt><big>(</big><em>size_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_bytes" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.convert_to_bytes">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">convert_to_bytes</tt><big>(</big><em>size_val</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#convert_to_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.convert_to_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>size_val</em> (string) such as '100M', returns an integer representing
 an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <table border="1" class="docutils">
@@ -605,8 +741,15 @@ an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' 
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.process_opt_esc_sequence">
-<tt class="descclassname">utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.total_seconds">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">total_seconds</tt><big>(</big><em>td</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#total_seconds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.total_seconds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a timedelta (<em>td</em>) return an integer representing the equivalent of
+Python 2.7's <tt class="xref py py-meth docutils literal"><span class="pre">datetime.timdelta.total_seconds()</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.utils.process_opt_esc_sequence">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse the <em>chars</em> passed from <tt class="xref py py-class docutils literal"><span class="pre">terminal.Terminal</span></tt> by way of the
 special, optional escape sequence handler (e.g. '&lt;plugin&gt;|&lt;text&gt;') into a
 tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
@@ -617,8 +760,8 @@ tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.raw">
-<tt class="descclassname">utils.</tt><tt class="descname">raw</tt><big>(</big><em>text</em>, <em>replacement_dict=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.raw" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.raw">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">raw</tt><big>(</big><em>text</em>, <em>replacement_dict=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.raw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>text</em> as a string with special characters replaced by visible
 equivalents using <em>replacement_dict</em>.  If <em>replacement_dict</em> is None or
 False the global REPLACEMENT_DICT will be used.  Example:</p>
@@ -630,45 +773,52 @@ False the global REPLACEMENT_DICT will be used.  Example:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.string_to_syslog_facility">
-<tt class="descclassname">utils.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/utils.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.string_to_syslog_facility">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a string (<em>facility</em>) such as, &quot;daemon&quot; returns the numeric
 syslog.LOG_* equivalent.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.create_data_uri">
-<tt class="descclassname">utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em>, <em>mimetype=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.create_data_uri">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em>, <em>mimetype=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a file at <em>filepath</em>, return that file as a data URI.</p>
-<p>Raises a <a class="reference internal" href="#utils.MimeTypeFail" title="utils.MimeTypeFail"><tt class="xref py py-obj docutils literal"><span class="pre">MimeTypeFail</span></tt></a> exception if the mimetype could not be guessed.</p>
+<p>Raises a <a class="reference internal" href="#gateone.core.utils.MimeTypeFail" title="gateone.core.utils.MimeTypeFail"><tt class="xref py py-obj docutils literal"><span class="pre">MimeTypeFail</span></tt></a> exception if the mimetype could not be guessed.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.human_readable_bytes">
-<tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>nbytes</em><big>)</big><a class="reference internal" href="../_modules/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.human_readable_bytes">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>nbytes</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>nbytes</em> as a human-readable string in a similar fashion to how it
 would be displayed by <tt class="xref py py-obj docutils literal"><span class="pre">ls</span> <span class="pre">-lh</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">df</span> <span class="pre">-h</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.which">
-<tt class="descclassname">utils.</tt><tt class="descname">which</tt><big>(</big><em>binary</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#which"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.which" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.which">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">which</tt><big>(</big><em>binary</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#which"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.which" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the full path of <em>binary</em> (string) just like the 'which' command.
 Optionally, a <em>path</em> (colon-delimited string) may be given to use instead of
 <tt class="xref py py-obj docutils literal"><span class="pre">os.environ['PATH']</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.timeout_func">
-<tt class="descclassname">utils.</tt><tt class="descname">timeout_func</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>timeout_duration=10</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#timeout_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.timeout_func" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.touch">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">touch</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#touch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.touch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emulates the 'touch' command by creating the file at <em>path</em> if it does not
+exist.  If the file exist its modification time will be updated.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.utils.timeout_func">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">timeout_func</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>timeout_duration=10</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#timeout_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.timeout_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets a timeout on the given function, passing it the given args, kwargs,
 and a <em>default</em> value to return in the event of a timeout.  If <em>default</em> is
 a function that function will be called in the event of a timeout.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.valid_hostname">
-<tt class="descclassname">utils.</tt><tt class="descname">valid_hostname</tt><big>(</big><em>hostname</em>, <em>allow_underscore=False</em><big>)</big><a class="reference internal" href="../_modules/utils.html#valid_hostname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.valid_hostname" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.valid_hostname">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">valid_hostname</tt><big>(</big><em>hostname</em>, <em>allow_underscore=False</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#valid_hostname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.valid_hostname" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if the given <em>hostname</em> is valid according to RFC rules.  Works
 with Internationalized Domain Names (IDN) and optionally, hostnames with an
 underscore (if <em>allow_underscore</em> is True).</p>
@@ -702,21 +852,21 @@ underscore (if <em>allow_underscore</em> is True).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.recursive_chown">
-<tt class="descclassname">utils.</tt><tt class="descname">recursive_chown</tt><big>(</big><em>path</em>, <em>uid</em>, <em>gid</em><big>)</big><a class="reference internal" href="../_modules/utils.html#recursive_chown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.recursive_chown" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.recursive_chown">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">recursive_chown</tt><big>(</big><em>path</em>, <em>uid</em>, <em>gid</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#recursive_chown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.recursive_chown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Emulates 'chown -R <em>uid</em>:<em>gid</em> <em>path</em>' in pure Python</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.check_write_permissions">
-<tt class="descclassname">utils.</tt><tt class="descname">check_write_permissions</tt><big>(</big><em>user</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#check_write_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.check_write_permissions" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.check_write_permissions">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">check_write_permissions</tt><big>(</big><em>user</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#check_write_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.check_write_permissions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt> if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
 can be a UID (int) or a username (string).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.bind">
-<tt class="descclassname">utils.</tt><tt class="descname">bind</tt><big>(</big><em>function</em>, <em>self</em><big>)</big><a class="reference internal" href="../_modules/utils.html#bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.bind" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.bind">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">bind</tt><big>(</big><em>function</em>, <em>self</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.bind" title="Permalink to this definition">¶</a></dt>
 <dd><p>Will return <em>function</em> with <em>self</em> bound as the first argument.  Allows one
 to write functions like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">whatever</span><span class="p">):</span>
@@ -727,24 +877,24 @@ to write functions like this:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.minify">
-<tt class="descclassname">utils.</tt><tt class="descname">minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="reference internal" href="../_modules/utils.html#minify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.minify" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.minify">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#minify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.minify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>path_or_fileobj</em> as a minified string.  <em>kind</em> should be one of
 'js' or 'css'.  Works with JavaScript and CSS files using <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> and
 <tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt>, respectively.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils._minify">
-<tt class="descclassname">utils.</tt><tt class="descname">_minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="headerlink" href="#utils._minify" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils._minify">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">_minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="headerlink" href="#gateone.core.utils._minify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>path_or_fileobj</em> as a minified string.  <em>kind</em> should be one of
 'js' or 'css'.  Works with JavaScript and CSS files using <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> and
 <tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt>, respectively.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.get_or_cache">
-<tt class="descclassname">utils.</tt><tt class="descname">get_or_cache</tt><big>(</big><em>cache_dir</em>, <em>path</em>, <em>minify=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_or_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_or_cache" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.get_or_cache">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_or_cache</tt><big>(</big><em>cache_dir</em>, <em>path</em>, <em>minify=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_or_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_or_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>path</em>, returns the cached version of that file.  If the file has
 yet to be cached, cache it and return the result.  If <em>minify</em> is <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt>
 (the default), the file will be minified as part of the caching process (if
@@ -752,8 +902,8 @@ possible).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.drop_privileges">
-<tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#drop_privileges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.drop_privileges">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#drop_privileges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drop privileges by changing the current process owner/group to
 <em>uid</em>/<em>gid</em> (both may be an integer or a string).  If <em>supl_groups</em> (list)
 is given the process will be assigned those values as its effective
@@ -779,8 +929,8 @@ gid=&lt;owner&gt;).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.settings_template">
-<tt class="descclassname">utils.</tt><tt class="descname">settings_template</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#settings_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.settings_template" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.settings_template">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">settings_template</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#settings_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.settings_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders and returns the Tornado template at <em>path</em> using the given <em>kwargs</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -788,16 +938,9 @@ gid=&lt;owner&gt;).</p>
 </div>
 </dd></dl>
 
-<dl class="class">
-<dt id="utils.memoize">
-<em class="property">class </em><tt class="descclassname">utils.</tt><tt class="descname">memoize</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="../_modules/utils.html#memoize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.memoize" title="Permalink to this definition">¶</a></dt>
-<dd><p>A memoization decorator that works with multiple arguments as well as
-unhashable arguments (e.g. dicts).</p>
-</dd></dl>
-
 <dl class="function">
-<dt id="utils.strip_xss">
-<tt class="descclassname">utils.</tt><tt class="descname">strip_xss</tt><big>(</big><em>html</em>, <em>whitelist=None</em>, <em>replacement=u'\u2421'</em><big>)</big><a class="reference internal" href="../_modules/utils.html#strip_xss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.strip_xss" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.strip_xss">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">strip_xss</tt><big>(</big><em>html</em>, <em>whitelist=None</em>, <em>replacement=u'\u2421'</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#strip_xss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.strip_xss" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function returns a tuple containing:</p>
 <blockquote>
 <div><ul class="simple">
@@ -848,8 +991,8 @@ you find something we missed.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.create_signature">
-<tt class="descclassname">utils.</tt><tt class="descname">create_signature</tt><big>(</big><em>*parts</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_signature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_signature" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.create_signature">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">create_signature</tt><big>(</big><em>*parts</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#create_signature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.create_signature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an HMAC signature using the given <em>parts</em> and <em>kwargs</em>.  The first
 argument <strong>must</strong> be the 'secret' followed by any arguments that are to be
 part of the hash.  The only <em>kwargs</em> that is used is 'hmac_algo'.
@@ -871,8 +1014,8 @@ provided, <tt class="xref py py-obj docutils literal"><span class="pre">hashlib.
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.combine_javascript">
-<tt class="descclassname">utils.</tt><tt class="descname">combine_javascript</tt><big>(</big><em>path</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_javascript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_javascript" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.combine_javascript">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">combine_javascript</tt><big>(</big><em>path</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#combine_javascript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.combine_javascript" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines all application and plugin .js files into one big one; saved to the
 given <em>path</em>.  If given, <em>settings_dir</em> will be used to determine which
 applications and plugins should be included in the dump based on what is
@@ -880,8 +1023,8 @@ enabled.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.combine_css">
-<tt class="descclassname">utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em>, <em>log=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_css" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.combine_css">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em>, <em>log=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.combine_css" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines all application and plugin .css template files into one big one;
 saved to the given <em>path</em>.  Templates will be rendered using the given
 <em>container</em> as the replacement for templates use of '#{{container}}'.</p>
@@ -893,16 +1036,16 @@ programatic use).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.kill_dtached_proc">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.kill_dtached_proc">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>location</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills the dtach processes associated with the given <em>session</em> that matches
 the given <em>location</em> and <em>term</em>.  All the dtach'd sub-processes will be
 killed as well.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.killall">
-<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em>, <em>pid_file</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.core.utils.killall">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em>, <em>pid_file</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.killall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills all running Gate One terminal processes including any detached dtach
 sessions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -938,8 +1081,8 @@ sessions.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="termio.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
+  <p class="topless"><a href="server.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">server.py</span></tt> - Gate One's Core Script</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_gateone.html"
                         title="next chapter">gateone.js</a></p>
@@ -978,7 +1121,7 @@ sessions.</p>
           <a href="js_gateone.html" title="gateone.js"
              >next</a> |</li>
         <li class="right" >
-          <a href="termio.html" title="termio.py - Terminal Input/Output Module"
+          <a href="server.html" title="server.py - Gate One&#39;s Core Script"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
