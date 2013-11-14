@@ -439,7 +439,7 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
             // Ensure any scaled terminals are un-scaled so there's no overlap:
-            v.applyTransform(u.getNodes('.✈terminal pre'), '');
+            v.applyTransform(u.getNodes('.✈terminal_pre'), '');
             u.hideElements('.✈pastearea');
             go.Terminal.Input.disableCapture(null, true);
         });
@@ -924,6 +924,9 @@ go.Base.update(GateOne.Terminal, {
         if (prevRows == prefs.rows && prevCols == prefs.columns) {
             return; // Nothing to do
         }
+        // Apply user-defined rows and columns (if set)
+        if (go.prefs.columns) { prefs.columns = go.prefs.columns };
+        if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         if (noTerm) {
             for (var term in go.Terminal.terminals) {
                 // Only want terminals which are integers; not the 'count()' function
@@ -941,9 +944,6 @@ go.Base.update(GateOne.Terminal, {
             // Tell the server the new dimensions
             go.ws.send(JSON.stringify({'terminal:resize': prefs}));
         }
-        // Apply user-defined rows and columns (if set)
-        if (go.prefs.columns) { prefs.columns = go.prefs.columns };
-        if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         go.Terminal.prevCols = prefs['columns'];
         go.Terminal.prevRows = prefs['rows'];
         // Execute any sendDimensionsCallbacks
@@ -1141,13 +1141,13 @@ go.Base.update(GateOne.Terminal, {
         var emDimensions = u.getEmDimensions(screenSpan, terminalNode);
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
+//                 termPre.style.height = 'auto'; // For some reason if you don't set this the terminal may appear waaay above where it is supposed to.
                 var nodeHeight = screenSpan.offsetHeight + (emDimensions.h * rowAdjust), // The +em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
                 if (nodeHeight < where.offsetHeight) { // Resize to fit
-                    var scaleY = where.offsetHeight / nodeHeight,
-                        scaleX = where.offsetWidth / nodeWidth,
-                        scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
-                        transform = transform = "scale(" + scale + ", " + scale + ")";
+                    var scaleY = (where.offsetHeight /(emDimensions.h * (go.prefs.rows+go.Terminal.rowAdjust))),
+                        scaleX = (where.offsetWidth / (emDimensions.w * (go.prefs.columns+go.Terminal.colAdjust))),
+                        transform = transform = "scale(" + scaleX + ", " + scaleY + ")";
                     v.applyTransform(termPre, transform);
                 }
             }
@@ -1247,6 +1247,7 @@ go.Base.update(GateOne.Terminal, {
                             }
                         }
                     }
+                    go.Terminal.alignTerminal(term);
                 }
                 if (existingScreen) { // Update the terminal display
                     go.Terminal.applyScreen(screen, term);
@@ -1729,7 +1730,7 @@ go.Base.update(GateOne.Terminal, {
         pastearea = go.Terminal.newPastearea(term);
         terminal.appendChild(pastearea);
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
-        termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+        termPre = u.createElement('pre', {'id': 'term'+term+'_pre', 'class': '✈terminal_pre'});
         terminal.appendChild(termPre);
         go.Terminal.terminals[term]['node'] = termPre; // For faster access
         if (settings && settings['style']) {
@@ -1804,17 +1805,23 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
+        } else {
+            // Pre-fill the scrollback buffer so terminals stay bottom-aligned when scaled (hard-set rows/columns)
+            for (var i=0; i<go.prefs.scrollback; i++) {
+                go.Terminal.terminals[term]['scrollback'][i] = ' \n';
+            }
         }
         termPre.appendChild(screenSpan);
         termPre.oncopy = function(e) {
             // Convert to plaintext before copying
-            // NOTE: This process doesn't work in Firefox...  It will auto-empty the clipboard if you try.
-            if (navigator.userAgent.indexOf('Firefox') != -1) {
-                return true; // Firefox doesn't appear to copy formatting anyway so fortunately this function isn't necessary
-            }
             var text = u.getSelText().replace(/\s+$/mg, '\n'),
                 selection = window.getSelection(),
                 tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
+            // NOTE: This process doesn't work in Firefox...  It will auto-empty the clipboard if you try.
+            if (navigator.userAgent.indexOf('Firefox') != -1) {
+                v.displayMessage("WARNING: Firefox does not preserve newlines when copying text!<br>Please vote for <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=116083'>this bug</a> and add a comment saying you are impacted.<br>It's over 12 years old <i>and still open</i>!");
+                return true; // Firefox doesn't appear to copy formatting anyway so fortunately this function isn't necessary
+            }
             tempTextArea.value = text;
             document.body.appendChild(tempTextArea);
             tempTextArea.select();

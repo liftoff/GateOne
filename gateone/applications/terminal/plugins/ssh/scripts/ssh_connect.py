@@ -27,6 +27,9 @@ gettext.bindtextdomain('ssh_connect', 'i18n')
 gettext.textdomain('ssh_connect')
 _ = gettext.gettext
 
+if bytes != str: # Python 3
+    raw_input = input
+
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
@@ -383,9 +386,9 @@ def openssh_connect(
         os.chmod(basedir, 0o700) # 0700 for good security practices
         args.insert(1, socket_arg) # After -M so it is easier to see in ps
     if additional_args:
-        if isinstance(additional_args, list):
+        if isinstance(additional_args, (list, tuple)):
             args.extend(additional_args)
-        elif isinstance(additional_args, basestring):
+        else:
             args.extend(additional_args.split())
     args.insert(0, command) # Command has to go first
     args.append(host) # Host should be last
@@ -679,7 +682,7 @@ def main():
                 additional_args=options.additional_args,
                 socket=options.socket
             )
-    except Exception, e:
+    except Exception:
         pass # Something ain't right.  Try the interactive entry method...
     password = None
     try:

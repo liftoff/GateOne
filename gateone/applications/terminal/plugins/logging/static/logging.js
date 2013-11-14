@@ -645,7 +645,7 @@ go.Base.update(GateOne.TermLogging, {
                 }
             });
             newWindow.document.body.appendChild(goDiv);
-            logContainer.innerHTML = '<pre style="overflow: visible; position: static; white-space: pre-wrap;">' + logLines.join('\n') + '</pre>';
+            logContainer.innerHTML = '<pre style="overflow: visible; position: static; white-space: pre-wrap;" class="✈terminal_pre">' + logLines.join('\n') + '</pre>';
             logViewContent.appendChild(logContainer);
             goDiv.style['overflow'] = 'visible';
             goDiv.appendChild(logViewContent);

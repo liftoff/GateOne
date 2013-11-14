@@ -19,19 +19,23 @@ from datetime import datetime, timedelta
 from functools import partial
 
 # Gate One imports
-from gateone import GATEONE_DIR, BaseHandler, GOApplication, StaticHandler
-from auth import require, authenticated, applicable_policies, policies
-from utils import cmd_var_swap, json_encode, get_settings, short_hash
-from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
-from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import which, get_translation, json_decode, RUDict
-from golog import go_logger
+from gateone import GATEONE_DIR, SESSIONS
+from gateone.core.server import StaticHandler, BaseHandler, GOApplication
+from gateone.auth.authorization import require, authenticated
+from gateone.auth.authorization import applicable_policies, policies
+from gateone.core.utils import cmd_var_swap, json_encode, get_settings
+from gateone.core.utils import mkdir_p, string_to_syslog_facility, get_plugins
+from gateone.core.utils import process_opt_esc_sequence, bind, MimeTypeFail
+from gateone.core.utils import which, get_translation, json_decode, RUDict
+from gateone.core.utils import short_hash, load_modules, create_data_uri
+from gateone.core.log import go_logger
+from .logviewer import main as logviewer_main
 
 # 3rd party imports
 from tornado.options import options, define
 
 # Globals
-SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
+#SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 # NOTE: The overwriting of SESSIONS happens inside of gateone.py
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
@@ -44,29 +48,34 @@ _ = get_translation()
 
 # Terminal-specific command line options.  These become options you can pass to
 # gateone.py (e.g. --session_logging)
-define(
-    "session_logging",
-    default=True,
-    help=_("If enabled, logs of user sessions will be saved in "
-            "<user_dir>/<user>/logs.  Default: Enabled")
-)
-define( # This is an easy way to support cetralized logging
-    "syslog_session_logging",
-    default=False,
-    help=_("If enabled, logs of user sessions will be written to syslog.")
-)
-define(
-    "dtach",
-    default=True,
-    help=_("Wrap terminals with dtach. Allows sessions to be resumed even "
-            "if Gate One is stopped and started (which is a sweet feature).")
-)
-define(
-    "kill",
-    default=False,
-    help=_("Kill any running Gate One terminal processes including dtach'd "
-            "processes.")
-)
+if not hasattr(options, 'session_logging'):
+    define(
+        "session_logging",
+        default=True,
+        group='terminal',
+        help=_("If enabled, logs of user sessions will be saved in "
+                "<user_dir>/<user>/logs.  Default: Enabled")
+    )
+    define( # This is an easy way to support cetralized logging
+        "syslog_session_logging",
+        default=False,
+        group='terminal',
+        help=_("If enabled, logs of user sessions will be written to syslog.")
+    )
+    define(
+        "dtach",
+        default=True,
+        group='terminal',
+        help=_("Wrap terminals with dtach. Allows sessions to be resumed even "
+                "if Gate One is stopped and started (which is a sweet feature).")
+    )
+    define(
+        "kill",
+        default=False,
+        group='terminal',
+        help=_("Kill any running Gate One terminal processes including dtach'd "
+                "processes.")
+    )
 
 def kill_session(session, kill_dtach=False):
     """
@@ -82,7 +91,7 @@ def kill_session(session, kill_dtach=False):
     """
     term_log.debug('kill_session(%s)' % session)
     if kill_dtach:
-        from utils import kill_dtached_proc
+        from gateone.core.utils import kill_dtached_proc
     for location, apps in list(SESSIONS[session]['locations'].items()):
         loc = SESSIONS[session]['locations'][location]['terminal']
         terms = apps['terminal']
@@ -104,7 +113,7 @@ def timeout_session(session):
 
 @atexit.register
 def quit():
-    from utils import killall
+    from gateone.core.utils import killall
     if not options.dtach:
         # If we're not using dtach play it safe by cleaning up any leftover
         # processes.  When passwords are used with the ssh_conenct.py script
@@ -439,6 +448,7 @@ class TerminalApplication(GOApplication):
         self.plugin_new_term_hooks = {}
         self.plugin_env_hooks = {}
         for plugin_name, hooks in self.plugin_hooks.items():
+            plugin_name = plugin_name.split('.')[-1]
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket actions
                 for ws_command, func in hooks['WebSocket'].items():
@@ -496,6 +506,7 @@ class TerminalApplication(GOApplication):
         'terminal:authenticate' event.
         """
         term_log.debug('TerminalApplication.authenticate()')
+        print(SESSIONS)
         self.log_metadata = {
             'application': 'terminal',
             'upn': self.current_user['upn'],
@@ -646,7 +657,7 @@ class TerminalApplication(GOApplication):
         """
         Returns a JSON-encoded object containing the installed fonts.
         """
-        from woff_info import woff_info
+        from .woff_info import woff_info
         fonts_path = os.path.join(APPLICATION_PATH, 'static', 'fonts')
         fonts = os.listdir(fonts_path)
         font_list = []
@@ -693,7 +704,7 @@ class TerminalApplication(GOApplication):
             self.send_css(
                 rendered_path, element_id="terminal_font", filename=filename)
             return
-        from woff_info import woff_info
+        from .woff_info import woff_info
         fonts_path = os.path.join(APPLICATION_PATH, 'static', 'fonts')
         fonts = os.listdir(fonts_path)
         woffs = {}
@@ -765,7 +776,7 @@ class TerminalApplication(GOApplication):
         .. note:: This method is primarily to aid dtach support.
         """
         self.term_log.debug("save_term_settings(%s, %s)" % (term, settings))
-        from term_utils import save_term_settings as _save
+        from .term_utils import save_term_settings as _save
         term = str(term) # JSON wants strings as keys
         def saved(result): # NOTE: result will always be None
             """
@@ -800,7 +811,7 @@ class TerminalApplication(GOApplication):
         """
         term = str(term) # JSON wants strings as keys
         self.term_log.debug("restore_term_settings(%s)" % term)
-        from term_utils import restore_term_settings as _restore
+        from .term_utils import restore_term_settings as _restore
         def restore(settings):
             """
             Saves the *settings* returned by :func:`restore_term_settings`
@@ -871,7 +882,7 @@ class TerminalApplication(GOApplication):
                     }})
         # Check for any dtach'd terminals we might have missed
         if options.dtach and which('dtach'):
-            from term_utils import restore_term_settings
+            from .term_utils import restore_term_settings
             term_settings = restore_term_settings(
                 self.ws.location, self.ws.session)
             session_dir = options.session_dir
@@ -1491,7 +1502,7 @@ class TerminalApplication(GOApplication):
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
             if options.dtach: # dtach needs special love
-                from utils import kill_dtached_proc
+                from gateone.core.utils import kill_dtached_proc
                 kill_dtached_proc(self.ws.session, self.ws.location, term)
             if multiplex.isalive():
                 multiplex.terminate()
@@ -1920,7 +1931,8 @@ class TerminalApplication(GOApplication):
         """
         bell_path = os.path.join(APPLICATION_PATH, 'static')
         bell_path = os.path.join(bell_path, 'bell.ogg')
-        fallback_path = os.path.join(APPLICATION_PATH, 'fallback_bell.txt')
+        fallback_path = os.path.join(
+            APPLICATION_PATH, 'static', 'fallback_bell.txt')
         if os.path.exists(bell_path):
             try:
                 bell_data_uri = create_data_uri(bell_path)
@@ -2072,7 +2084,7 @@ class TerminalApplication(GOApplication):
             the shared terminal without having to enter a password.
         """
         self.term_log.debug("share_terminal(%s)" % settings)
-        from utils import generate_session_id
+        from gateone.core.utils import generate_session_id
         out_dict = {'result': 'Success'}
         share_dict = {}
         term = settings.get('term', self.current_term)
@@ -2415,7 +2427,8 @@ class TerminalApplication(GOApplication):
         cached_256_colors = os.path.join(cache_dir, '256_colors.css')
         if os.path.exists(cached_256_colors):
             return cached_256_colors
-        colors_json_path = os.path.join(APPLICATION_PATH, '256colors.json')
+        colors_json_path = os.path.join(
+            APPLICATION_PATH, 'static', '256colors.json')
         color_map = get_settings(colors_json_path, add_default=False)
         # Setup our 256-color support CSS:
         colors_256 = ""
@@ -2550,7 +2563,7 @@ def init(settings):
         settings_path = options.settings_dir
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
         if not os.path.exists(terminal_conf_path):
-            from utils import settings_template
+            from gateone.core.utils import settings_template
             # TODO: Think about moving 50terminal.conf template into the
             # terminal application's directory.
             template_path = os.path.join(
@@ -2587,7 +2600,7 @@ def init(settings):
                 s.write(new_term_settings)
     term_settings = settings['*']['terminal']
     if options.kill:
-        from utils import killall
+        from gateone.core.utils import killall
         go_settings = settings['*']['gateone']
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(go_settings['session_dir'], go_settings['pid_file'])
@@ -2659,3 +2672,8 @@ web_handlers.append((
     TermStaticFiles,
     {"path": os.path.join(APPLICATION_PATH, 'static')}
 ))
+
+# Command line argument commands
+commands = {
+    'termlog': logviewer_main
+}

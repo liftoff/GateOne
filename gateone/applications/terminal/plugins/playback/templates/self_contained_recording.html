@@ -46,7 +46,7 @@ body {
 {{colors}}
 {{colors_256}}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
-.✈terminal pre {
+.✈terminal_pre {
     height: 100%;
     width: 100%;
 }
@@ -171,7 +171,7 @@ function addPlaybackControls() {
             // Now update the terminal window to reflect the (approximate) selected frame
             var selectedFrame = terminals[term]['playbackFrames'][currentFrame],
                 dateTime = new Date(selectedFrame['time']);
-            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
             document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
             // Set the milliseconds global to accurately reflect the selected position:
             milliseconds = Math.round(totalMilliseconds * percent);
@@ -239,7 +239,7 @@ function playbackRealtime() {
     frameTime.setMilliseconds(frameTime.getMilliseconds() + milliseconds);
     try {
         if (selectedFrameIndex == null) { // All done
-            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
             document.getElementById('{{prefix}}clock').innerHTML = lastDateTime.toLocaleTimeString();
             document.getElementById('{{prefix}}progressBar').style.width = '100%';
             scrollToBottom('{{prefix}}term1_pre');
@@ -249,7 +249,7 @@ function playbackRealtime() {
             return;
         }
         document.getElementById('{{prefix}}clock').innerHTML = frameTime.toLocaleTimeString();
-        document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+        document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
         scrollToBottom('{{prefix}}term1_pre');
         // Update progress bar
         var firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']);
@@ -377,7 +377,7 @@ function wheelFunc(e) {
     if (selectedFrameIndex == lastFrame) {
         progressBar.style.width = '100%';
     }
-    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
     // Set the milliseconds global to accurately reflect the selected position:
     milliseconds = Math.round(totalMilliseconds * (percent/100));
@@ -398,7 +398,7 @@ window.onload = function() {
     terminal.className = '✈terminal ✈termcontainer ✈full';
     document.getElementById('{{prefix}}gridwrapper').appendChild(terminal);
     addPlaybackControls();
-    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
     scrollToBottom('{{prefix}}term1_pre');
     // Add the sidebar text

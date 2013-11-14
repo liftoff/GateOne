@@ -205,6 +205,7 @@ GateOne.Base.update(GateOne.Utils, {
             for (var i=0; i <= 255; i++) {
                 fillerY.push(fillerX);
             }
+            sizingPre.className = '✈terminal_pre';
             sizingPre.innerHTML = fillerY.join('\n');
             // Set the attributes of our copy to reflect a minimal-size block element
             node.style.position = 'fixed';

@@ -85,7 +85,7 @@ def memoize(obj):
 
 # Try using Gate One's memoize decorator (with self-expiry!)
 try:
-    from utils import memoize
+    from gateone.core.utils import memoize
 except ImportError:
     pass # No big, use the one above
 

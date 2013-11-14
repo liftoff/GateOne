@@ -13,7 +13,7 @@
 # Start/stops the Gate One daemon (gateone.py).
 #
 
-GATEONE_DIR=/opt/gateone
+GATEONE=`which gateone`
 GATEONE_PID=/var/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 
@@ -28,21 +28,21 @@ if [ -d /lib/init/upstart-job ]; then
 fi
 
 # Make sure gateone.py is available and executable
-test -x ${GATEONE_DIR}/gateone.py || exit 0
+test -x ${GATEONE} || exit 0
 
 . /lib/lsb/init-functions
 
 case "$1" in
     start)
-        log_daemon_msg "Starting Gate One daemon" "gateone.py"
-        if ! start-stop-daemon --background --start --quiet --exec ${GATEONE_DIR}/gateone.py -- ${GATEONE_OPTS}; then
+        log_daemon_msg "Starting Gate One daemon" "gateone"
+        if ! start-stop-daemon --background --start --quiet --exec ${GATEONE} -- ${GATEONE_OPTS}; then
             log_end_msg 1
             exit 1
         fi
         log_end_msg 0
         ;;
     stop)
-        log_daemon_msg "Stopping Gate One daemon" "gateone.py"
+        log_daemon_msg "Stopping Gate One daemon" "gateone"
         start-stop-daemon --stop --quiet --pidfile $GATEONE_PID
         # Wait a little and remove stale PID file
         sleep 1
@@ -62,7 +62,7 @@ case "$1" in
     killterms)
         log_daemon_msg "Killing all running Gate One terminals..."
         # This instructs Gate One to kill all of it's subprocesses including open SSH connections and whatnot
-        ${GATEONE_DIR}/gateone.py --kill
+        ${GATEONE} --kill
         # NOTE: Also kills dtach sessions (if that feature is enabled)
         ;;
     *)

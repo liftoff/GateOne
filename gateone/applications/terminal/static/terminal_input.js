@@ -411,7 +411,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var terms = u.toArray(u.getNodes('.✈terminal')),
             selectedText = u.getSelText();
         if (!t.Input.inputNode) {
-            t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
+            t.Input.inputNode = u.createElement('textarea', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
             go.node.appendChild(t.Input.inputNode);
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
@@ -703,6 +703,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
         if (key.string == "KEY_UNKNOWN") {
             return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
+        }
+        if (!t.terminals[term]) {
+            return; // Nothing to do
         }
         if (key.string != "KEY_SHIFT" && key.string != "KEY_CTRL" && key.string != "KEY_ALT" && key.string != "KEY_META") {
             // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)

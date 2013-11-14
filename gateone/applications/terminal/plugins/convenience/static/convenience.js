@@ -269,7 +269,7 @@ GateOne.Base.update(GateOne.Convenience, {
         Calls 'getent passwd ' + elem.innerHTML on the server using GateOne.SSH.execRemoteCmd().  The result will be handled by `GateOne.Convenience.displayUserInfo()`
         */
         var term = localStorage[prefix+'selectedTerminal'],
-            invalid = validate = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
+            invalid = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
             user = elem.innerHTML;
         if (elem.innerHTML.search(invalid) == -1) {
             v.displayMessage("Looking up info for user <i>" + user + "</i>...");
@@ -328,7 +328,7 @@ GateOne.Base.update(GateOne.Convenience, {
         Calls 'getent group ' + elem.innerHTML on the server using GateOne.SSH.execRemoteCmd().  The result will be handled by `GateOne.Convenience.displayGroupInfo()`
         */
         var term = localStorage[prefix+'selectedTerminal'],
-            invalid = validate = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
+            invalid = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
             group = elem.innerHTML;
         if (elem.innerHTML.search(invalid) == -1) {
             v.displayMessage("Looking up info for group <i>" + group + "</i>...");
@@ -388,7 +388,7 @@ GateOne.Base.update(GateOne.Convenience, {
             groupname = output.split(':')[0],
             usersViaGID = output.split(':')[1],
             table = go.Convenience.groupTemp[groupname],
-            titleDiv = u.createElement('div', {'style': {'text-align': 'center', 'text-decoration': 'underline'}})
+            titleDiv = u.createElement('div', {'style': {'text-align': 'center', 'text-decoration': 'underline'}}),
             container = u.createElement('p');
         gidUsersRow.innerHTML = '<td nowrap="nowrap">Users via GID&nbsp;&nbsp;&nbsp;</td><td style="max-width: 20em;">' + usersViaGID + '</td>';
         titleDiv.innerHTML = "Group Info";

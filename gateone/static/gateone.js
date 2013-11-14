@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131111135253";
+GateOne.__commit__ = "20131113222707";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -787,18 +787,14 @@ var go = GateOne.Base.update(GateOne, {
         v.togglePanel(); // Scales them all away
         E.on("go:connection_established", function() {
             // This is really for reconnect events
-            setTimeout(function() {
-                // If there's no workspaces after a while make the new workspace workspace
-                var workspaces = u.getNodes('.✈workspace');
-                if (!workspaces.length) {v.newWorkspaceWorkspace();}
-            }, 250);
+            // If there's no workspaces make the new workspace workspace
+            var workspaces = u.getNodes('.✈workspace');
+            if (!workspaces.length) {v.newWorkspaceWorkspace();}
         });
         E.on("go:js_loaded", function(apps) {
-            setTimeout(function() {
-                if (!u.getNodes('.✈workspace').length) {
-                    v.newWorkspaceWorkspace();
-                }
-            }, 250);
+            if (!u.getNodes('.✈workspace').length) {
+                v.newWorkspaceWorkspace();
+            }
         });
         go.initialized = true; // Don't use this to determine if everything is loaded yet.  Use the "go:js_loaded" event for that.
         E.trigger("go:initialized");
@@ -2918,17 +2914,17 @@ GateOne.Base.update(GateOne.Visual, {
 
         Registers the following keyboard shortcuts:
 
-            ===================================  =======================
-            Function                             Shortcut
-            ===================================  =======================
-            New Workspace                        :kbd:`Control-Alt-N`
-            Close Workspace                      :kbd:`Control-Alt-W`
-            Show Grid                            :kbd:`Control-Alt-G`
-            Switch to the workspace on the left  :kbd:`Shift-LeftArrow`
-            Switch to the workspace on the right :kbd:`Shift-RightArrow`
-            Switch to the workspace above        :kbd:`Shift-UpArrow`
-            Switch to the workspace below        :kbd:`Shift-DownArrow`
-            ===================================  =======================
+            ====================================  =======================
+            Function                              Shortcut
+            ====================================  =======================
+            New Workspace                         :kbd:`Control-Alt-N`
+            Close Workspace                       :kbd:`Control-Alt-W`
+            Show Grid                             :kbd:`Control-Alt-G`
+            Switch to the workspace on the left   :kbd:`Shift-LeftArrow`
+            Switch to the workspace on the right  :kbd:`Shift-RightArrow`
+            Switch to the workspace above         :kbd:`Shift-UpArrow`
+            Switch to the workspace below         :kbd:`Shift-DownArrow`
+            ====================================  =======================
         */
         logDebug("GateOne.Visual.postInit()");
         if (!go.prefs.embedded) {
@@ -3175,36 +3171,36 @@ GateOne.Base.update(GateOne.Visual, {
         if (failedDepCheck) {
             return; // Don't do anything more
         }
-        if (filteredApps.length == 1) {
-            // No workspace created yet; check if we should launch the default app (if only one)
-            // Check for sub-applications
-            var subApps = [];
-            if (filteredApps[0]['sub_applications']) {
-                filteredApps[0]['sub_applications'].forEach(function(settings) {
-                    if (!settings['hidden']) {
-                        subApps.push(settings);
-                    }
-                });
-            }
-            if (!subApps.length) {
-                // If there's only one app don't bother making a listing; just launch the app
-                setTimeout(function() {
-                    workspace = v.newWorkspace();
-                    workspace.setAttribute('data-application', filteredApps[0]['name']);
-                    go.loadedApplications[filteredApps[0]['name']].__new__(filteredApps[0], workspace);
-                }, 5); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
-                return;
-            } else if (subApps.length == 1){
-                // There's only one sub-application in one app; launch it
-                var settings = subApps[0];
-                setTimeout(function() {
-                    workspace = v.newWorkspace();
-                    workspace.setAttribute('data-application', filteredApps[0]['name']);
-                    go.loadedApplications[filteredApps[0]['name']].__new__(settings, workspace);
-                }, 5);
-                return;
-            }
-        }
+//         if (filteredApps.length == 1) {
+//             // No workspace created yet; check if we should launch the default app (if only one)
+//             // Check for sub-applications
+//             var subApps = [];
+//             if (filteredApps[0]['sub_applications']) {
+//                 filteredApps[0]['sub_applications'].forEach(function(settings) {
+//                     if (!settings['hidden']) {
+//                         subApps.push(settings);
+//                     }
+//                 });
+//             }
+//             if (!subApps.length) {
+//                 // If there's only one app don't bother making a listing; just launch the app
+//                 setTimeout(function() {
+//                     workspace = v.newWorkspace();
+//                     workspace.setAttribute('data-application', filteredApps[0]['name']);
+//                     go.loadedApplications[filteredApps[0]['name']].__new__(filteredApps[0], workspace);
+//                 }, 5); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
+//                 return;
+//             } else if (subApps.length == 1){
+//                 // There's only one sub-application in one app; launch it
+//                 var settings = subApps[0];
+//                 setTimeout(function() {
+//                     workspace = v.newWorkspace();
+//                     workspace.setAttribute('data-application', filteredApps[0]['name']);
+//                     go.loadedApplications[filteredApps[0]['name']].__new__(settings, workspace);
+//                 }, 5);
+//                 return;
+//             }
+//         }
         titleH2.innerHTML = "Gate One - Applications";
         wsContainer.style.opacity = 0;
         wsContainer.appendChild(titleH2);
@@ -3262,7 +3258,9 @@ GateOne.Base.update(GateOne.Visual, {
                     appIcons[go.Visual.lastAppPosition].focus();
                     selectedApp = appIcons[go.Visual.lastAppPosition];
                 } else if (key.string == "KEY_ENTER") {
-                    selectedApp.dispatchEvent(clickEvent);
+                    if (document.activeElement.classList.contains('✈application')) {
+                        document.activeElement.dispatchEvent(clickEvent);
+                    }
                 }
             }
         }, true);
@@ -5702,7 +5700,7 @@ GateOne.Base.update(GateOne.User, {
 
         Sets `GateOne.User.applications` to the given list of *apps* (which is the list of applications the user is allowed to run).
         */
-        var newWSWS = u.getNode('✈new_workspace_workspace');
+        var newWSWS = u.getNode('.✈new_workspace_workspace');
         // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
         if (newWSWS) {

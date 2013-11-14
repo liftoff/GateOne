@@ -4363,11 +4363,11 @@ def main():
     define_options()
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.
-    settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    settings_dir = os.path.join(os.path.sep, 'etc', 'gateone', 'conf.d')
     for arg in sys.argv:
         if arg.startswith('--settings_dir'):
             settings_dir = arg.split('=', 1)[1]
-    if not os.path.exists(settings_dir):
+    if not os.path.isdir(settings_dir):
         # Try to create it
         try:
             mkdir_p(settings_dir)

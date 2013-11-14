@@ -45,7 +45,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 import os, re, logging
 import terminal
-from utils import get_translation
+from gateone.core.utils import get_translation
 
 _ = get_translation()
 
@@ -64,9 +64,9 @@ class HTMLOutput(terminal.FileType):
     mimetype = "text/html"
     suffix = ".html"
     re_html_tag = re.compile( # This matches HTML tags (if used correctly)
-      "(?i)<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>")
-    re_header = re.compile('.*\x90;HTML\|', re.DOTALL)
-    re_capture = re.compile('(\x90;HTML\|.+?\x90)', re.DOTALL)
+     b"(?i)<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>")
+    re_header = re.compile(b'.*\x90;HTML\|', re.DOTALL)
+    re_capture = re.compile(b'(\x90;HTML\|.+?\x90)', re.DOTALL)
     # Why have a tag whitelist?  So programs like 'wall' don't enable XSS
     # exploits.
     tag_whitelist = set([
@@ -79,7 +79,7 @@ class HTMLOutput(terminal.FileType):
         'time', 'track', 'u', 'ul', 'var', 'video', 'wbr'
     ])
     # This will match things like 'onmouseover=' ('on<whatever>=')
-    on_events_re = re.compile('.*\s+(on[a-z]+\s*=).*')
+    on_events_re = re.compile(b'.*\s+(on[a-z]+\s*=).*')
 
     def __init__(self, path="", **kwargs):
         """

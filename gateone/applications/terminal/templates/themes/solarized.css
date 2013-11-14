@@ -30,7 +30,7 @@
 .✈terminal a:visited {
     color: #93a1a1;
 }
-.✈terminal pre {
+.✈terminal_pre {
     background-color: #002b36;
     color: #839496;
     line-height: 1;
@@ -129,7 +129,7 @@ span.✈cursor { color: #002b36; background-color: #eee8d5; }
     background-color: #002b36;
 }
 @media only screen and (max-width: 800px) {
-    .✈terminal pre {
+    .✈terminal_pre {
         /* On mobile devices it's best to let the device's default monospace font handle things */
         font-family: monospace !important;
     }

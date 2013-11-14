@@ -28,17 +28,18 @@ import os
 
 # Import Gate One stuff
 # These are things you'll definitely need:
-from gateone import GOApplication
-from auth import require, authenticated, applicable_policies, policies
-from golog import go_logger # So your app will have its own log
+from gateone.core.server import GOApplication
+from gateone.auth.authorization import require, authenticated
+from gateone.auth.authorization import applicable_policies, policies
+from gateone.core.log import go_logger # So your app will have its own log
 # These are things you'll *probably* need:
-from gateone import BaseHandler
-from utils import bind
+from gateone.core.server import BaseHandler
+from gateone.core.utils import bind
 # If you want your app to be able to use its own plugins you'll need these:
-from utils import get_plugins, load_modules
+from gateone.core.utils import get_plugins, load_modules
 # You can use this for providing localization but you could just use the stdlib
 # gettext stuff if you want:
-from utils import get_translation
+from gateone.core.utils import get_translation
 
 
 # 3rd party imports
@@ -455,7 +456,7 @@ def init(settings):
         # This is the final destination of our 50example.conf:
         example_conf_path = os.path.join(settings_path, '50example.conf')
         if not os.path.exists(example_conf_path): # Only if not already present
-            from utils import settings_template
+            from gateone.core.utils import settings_template
             template_path = os.path.join(
                 APPLICATION_PATH, 'templates', 'settings', '50example.conf')
             settings['*']['example'] = {}

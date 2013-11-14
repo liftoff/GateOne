@@ -5,8 +5,8 @@
 # chkconfig: 2345 55 25
 # description: Gate One is a web-based terminal emulator and SSH client.
 #
-# processname: gateone.py
-# config: /opt/gateone/server.conf
+# processname: gateone
+# config: /etc/gateone/conf.d/
 # pidfile: /var/run/gateone.pid
 #
 
@@ -18,7 +18,7 @@
 
 RETVAL=0
 
-GATEONE_DIR=/opt/gateone
+GATEONE=`which gateone`
 GATEONE_PID=/var/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 
@@ -32,7 +32,7 @@ test -x /opt/gateone/gateone.py || exit 0
 start() {
     echo -n $"Starting Gate One: "
     # Start me up!
-    daemon "nohup ${GATEONE_DIR}/gateone.py ${GATEONE_OPTS} > /dev/null 2>&1 &"
+    daemon "nohup ${GATEONE} ${GATEONE_OPTS} > /dev/null 2>&1 &"
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/gateone
@@ -79,7 +79,7 @@ case "$1" in
     ;;
   killterms)
     echo "Killing all running Gate One terminals..."
-    ${GATEONE_DIR}/gateone.py --kill
+    ${GATEONE} --kill
     ;;
   *)
     echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|killterms}"

@@ -42,17 +42,16 @@ import os, sys, time, json, socket
 from functools import partial
 
 # Our stuff
-from gateone import BaseHandler
-from utils import noop, json_encode
+from gateone.core.server import BaseHandler
+from gateone.core.utils import noop, json_encode
 
 # Tornado stuff
 import tornado.web
 from tornado.escape import json_decode
 
 # 3rd party stuff
-# The following two lines let us import modules in the "dependencies" dir
 PLUGIN_PATH = os.path.split(__file__)[0]
-sys.path.append(os.path.join(PLUGIN_PATH, "dependencies"))
+#sys.path.append(os.path.join(PLUGIN_PATH, "dependencies"))
 
 # Globals
 boolean_fix = {

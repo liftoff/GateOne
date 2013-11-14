@@ -48,10 +48,10 @@ from datetime import datetime, timedelta
 from functools import partial
 
 # Our stuff
-from gateone import BaseHandler
-from utils import get_translation, mkdir_p, shell_command, which
-from utils import noop, bind
-from golog import go_logger
+from gateone.core.server import BaseHandler
+from gateone.core.utils import get_translation, mkdir_p, shell_command, which
+from gateone.core.utils import noop, bind
+from gateone.core.log import go_logger
 
 _ = get_translation()
 

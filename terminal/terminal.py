@@ -4303,13 +4303,15 @@ class Terminal(object):
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
+        cursor_span = '<span class="%scursor">' % self.class_prefix
         for line, rendition in izip(screen, renditions):
             combined = (line + rendition).tounicode()
             if has_cache and combined in html_cache:
                 # Most lines should be in the cache because they were rendered
                 # while they were on the screen.
-                results.append(html_cache[combined])
-                continue
+                if cursor_span not in html_cache[combined]:
+                    results.append(html_cache[combined])
+                    continue
             if not len(line.tounicode().rstrip()):
                 results.append(line.tounicode())
                 continue # Line is empty so we don't need to process renditions

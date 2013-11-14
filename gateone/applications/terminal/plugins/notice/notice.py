@@ -34,7 +34,7 @@ __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
-from golog import go_logger
+from gateone.core.log import go_logger
 
 # Special optional escape sequence handler (see docs on how it works)
 def notice_esc_seq_handler(self, message, term=None, multiplex=None):

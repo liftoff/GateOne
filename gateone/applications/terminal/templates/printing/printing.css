@@ -44,7 +44,7 @@ textarea {
 .✈terminal a:visited {
     color: maroon;
 }
-.✈terminal pre {
+.✈terminal_pre {
     font-family: monospace;
     font-size: 1em;
     line-height: 1;

@@ -28,7 +28,7 @@
 .✈terminal a:visited {
     color: maroon;
 }
-.✈terminal pre {
+.✈terminal_pre {
     background-color: #fff;
     color: #000;
     line-height: 1;
@@ -128,7 +128,7 @@ span.✈reverse { background-color: #aaa; color: #fff; }
     background-color: #fff;
 }
 @media only screen and (max-width: 800px) {
-    .✈terminal pre {
+    .✈terminal_pre {
         /* On mobile devices it's best to let the device's default monospace font handle things */
         font-family: monospace !important;
     }

@@ -1,6 +1,6 @@
 {% try %}
 {% if font_family == 'monospace' %}
-.✈terminal pre {
+.✈terminal_pre {
     font-family: monospace !important;
     font-size: {{font_size}};
 }
@@ -14,19 +14,19 @@
   src: {{woff["locals"]}}, url('{{woff["url"]}}') format('woff');
 }
 {% end %}
-.✈terminal pre {
+.✈terminal_pre {
     font-family: '{{font_family}}' !important;
     font-size: {{font_size}};
 }
 {% end %}
 {% except %}
 {% try %}
-.✈terminal pre {
+.✈terminal_pre {
     font-family: monospace !important;
     font-size: {{font_size}};
 }
 {% except %}
-.✈terminal pre {
+.✈terminal_pre {
     font-family: monospace !important;
     font-size: 0.9em;
 }

@@ -37,7 +37,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os
 
 # Then I like to import things from Gate One itself or my own stuff...
-from gateone import BaseHandler
+from gateone.core.server import BaseHandler
 #from gateone import GATEONE_DIR # <--if you need that path it's here
 
 # This is where I'd typically put 3rd party imports such as Tornado...

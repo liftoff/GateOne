@@ -324,7 +324,7 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                     if ord(char) >= SPECIAL:
                         adjusted = escape_escape_seq(out_line, rstrip=True)
                         adjusted = frame_time + u' %s\n' % adjusted
-                        file_like.write(adjusted)
+                        file_like.write(adjusted.encode('utf-8'))
                         out_line = u""
                         if char in term.captured_files:
                             captured_file = term.captured_files[char].file_obj
@@ -339,7 +339,7 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
             if not out_line:
                 continue
             adjusted = frame_time + u' %s\n' % out_line.strip()
-            file_like.write(adjusted)
+            file_like.write(adjusted.encode('utf-8'))
             out_line = u""
             continue
         else:
@@ -356,7 +356,7 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                 else:
                     adjusted = escape_escape_seq(out_line, rstrip=True)
                 adjusted = frame_time + u' %s\n' % adjusted
-                file_like.write(adjusted)
+                file_like.write(adjusted.encode('utf-8'))
                 out_line = u""
                 continue
             if char == u'\n':
@@ -368,7 +368,7 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                     out_line = u"" # Skip empty lines
                     continue
                 adjusted = frame_time + u' %s\n' % adjusted
-                file_like.write(adjusted)
+                file_like.write(adjusted.encode('utf-8'))
                 out_line = u""
                 cr = False
             elif char == u'\r':

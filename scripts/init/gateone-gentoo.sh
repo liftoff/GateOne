@@ -3,7 +3,7 @@
 # Options are controlled via /etc/conf.d/gateone
 
 extra_commands="killterms reload"
-GATEONE_DIR=/opt/gateone
+GATEONE=`which gateone`
 
 depend() {
         need net
@@ -12,13 +12,13 @@ depend() {
 
 start() {
         ebegin "Starting Gate One"
-        start-stop-daemon --background --start --exec ${GATEONE_DIR}/gateone.py -- ${GATEONE_OPTS}
+        start-stop-daemon --background --start --exec ${GATEONE} -- ${GATEONE_OPTS}
         eend $?
 }
 
 stop() {
         ebegin "Stopping Gate One"
-        start-stop-daemon --stop --name gateone.py
+        start-stop-daemon --stop --name gateone
         eend $?
 }
 
