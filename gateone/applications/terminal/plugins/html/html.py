@@ -110,7 +110,7 @@ class HTMLOutput(terminal.FileType):
                     "HTML Plugin: Sorry but the '%s' tag is not allowed."
                     % short_tag)
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421" # Replace with the ␡ char
                 break
             # Also make sure the tag can't execute any JavaScript
             if "javascript:" in tag_lower:

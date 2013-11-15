@@ -613,6 +613,10 @@ def main(args=sys.argv):
     if not os.path.exists(log_path):
         print("ERROR: %s does not exist" % log_path)
         sys.exit(1)
+    sys_stdout = sys.stdout
+    if bytes != str: # Python 3
+        sys_stdout = sys.stdout.buffer
+    sys.stdout.flush() # Make sure it's empty before writing to the buffer
     try:
         if options.metadata:
             import json
@@ -626,13 +630,13 @@ def main(args=sys.argv):
         elif options.flat:
             flatten_log(
                 log_path,
-                sys.stdout,
+                sys_stdout,
                 preserve_renditions=options.pretty, show_esc=options.raw)
         elif options.html:
             result = render_html_playback(log_path)
             print(result)
         else:
-            playback_log(log_path, sys.stdout, show_esc=options.raw)
+            playback_log(log_path, sys_stdout, show_esc=options.raw)
     except (IOError, KeyboardInterrupt):
         # Move the cursor to the bottom of the screen to ensure it isn't in the
         # middle of the log playback output

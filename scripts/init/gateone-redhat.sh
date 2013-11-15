@@ -26,8 +26,7 @@ GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 [ "$NETWORKING" = "no" ] && exit 0
 
 # Make sure gateone.py is available and executable
-test -x /opt/gateone/gateone.py || exit 0
-
+test -x ${GATEONE} || exit 0
 
 start() {
     echo -n $"Starting Gate One: "
@@ -66,7 +65,7 @@ case "$1" in
       stop
     ;;
   status)
-    status gateone.py
+    status gateone
     ;;
   restart)
       restart

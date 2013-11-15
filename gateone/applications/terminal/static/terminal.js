@@ -1102,12 +1102,12 @@ go.Base.update(GateOne.Terminal, {
                             // Update the existing screen array in-place to cut down on GC
                             go.Terminal.terminals[term]['screen'][i] = screen[i];
                         }
-                        existingLine.innerHTML = screen[i];
+                        existingLine.innerHTML = screen[i] + '\n';
                     }
                 } else { // Size of the terminal increased
                     var classes = '✈termline ' + prefix + 'line_' + i,
                         lineSpan = u.createElement('span', {'class': classes});
-                    lineSpan.innerHTML = screen[i];
+                    lineSpan.innerHTML = screen[i] + '\n';
                     existingScreen.appendChild(lineSpan);
                     go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
                 }
@@ -1616,14 +1616,6 @@ go.Base.update(GateOne.Terminal, {
         Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         */
         logDebug("newTerminal(" + term + ", " + JSON.stringify(settings) + ", " + where + ")");
-        if (!go.Storage.loadedFiles['font.css']) {
-            // Don't do anything until the font.css is loaded so that dimensions can be calculated properly
-            setTimeout(function() {
-                // Retry in a few ms
-                go.Terminal.newTerminal(term, settings, where);
-            }, 50);
-            return;
-        }
         var t = go.Terminal,
             currentTerm, terminal, emDimensions, dimensions, rows, columns, pastearea, switchTermFunc,
             // NOTE: trulyNew tracks whether or not we were passed a *term* (terminal number) as an argument.
@@ -1792,12 +1784,12 @@ go.Base.update(GateOne.Terminal, {
         for (var i=0; i<rows; i++) {
             var classes = '✈termline ' + prefix + 'line_' + i,
                 lineSpan = u.createElement('span', {'class': classes});
-            lineSpan.innerHTML = ' ';
+            lineSpan.innerHTML = ' \n';
             screenSpan.appendChild(lineSpan);
             // Fill out prevScreen with spaces
-            go.Terminal.terminals[term]['prevScreen'][i] = ' ';
+            go.Terminal.terminals[term]['prevScreen'][i] = ' \n';
             // Update the existing screen array in-place to cut down on GC
-            go.Terminal.terminals[term]['screen'][i] = ' ';
+            go.Terminal.terminals[term]['screen'][i] = ' \n';
             // Update the lineCache too
             go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
         }
@@ -1819,7 +1811,6 @@ go.Base.update(GateOne.Terminal, {
                 tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
             // NOTE: This process doesn't work in Firefox...  It will auto-empty the clipboard if you try.
             if (navigator.userAgent.indexOf('Firefox') != -1) {
-                v.displayMessage("WARNING: Firefox does not preserve newlines when copying text!<br>Please vote for <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=116083'>this bug</a> and add a comment saying you are impacted.<br>It's over 12 years old <i>and still open</i>!");
                 return true; // Firefox doesn't appear to copy formatting anyway so fortunately this function isn't necessary
             }
             tempTextArea.value = text;

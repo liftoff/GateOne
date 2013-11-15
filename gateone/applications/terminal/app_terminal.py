@@ -405,15 +405,19 @@ class TerminalApplication(GOApplication):
             'enabled_plugins', [])
         self.plugins = get_plugins(
             os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
+        py_plugins = []
+        for module_path in self.plugins['py']:
+            name = module_path.split('.')[0]
+            py_plugins.append(name)
         js_plugins = []
         for js_path in self.plugins['js']:
-            name = js_path.split(os.path.sep)[-2]
+            name = js_path.split(os.path.sep)[0]
             js_plugins.append(name)
         css_plugins = []
         for css_path in css_plugins:
             name = css_path.split(os.path.sep)[-2]
             css_plugins.append(name)
-        plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
+        plugin_list = list(set(py_plugins + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         term_log.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
         # Setup some events
@@ -506,7 +510,6 @@ class TerminalApplication(GOApplication):
         'terminal:authenticate' event.
         """
         term_log.debug('TerminalApplication.authenticate()')
-        print(SESSIONS)
         self.log_metadata = {
             'application': 'terminal',
             'upn': self.current_user['upn'],

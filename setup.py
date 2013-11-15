@@ -4,11 +4,6 @@
 from setuptools import setup
 import sys, os, shutil
 
-try:
-   from distutils.command.build_py import build_py_2to3 as build_py
-except ImportError:
-   from distutils.command.build_py import build_py
-
 # Globals
 PYTHON3 = False
 POSIX = 'posix' in sys.builtin_module_names
@@ -21,6 +16,7 @@ if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
     sys.exit(1)
 if major == 2:
+    from distutils.command.build_py import build_py
     requires.append('futures') # Added in 3.2 (only needed in 2.6 and 2.7)
 if major == 2 and minor == 6:
     requires.append('ordereddict') # This was added in Python 2.7+
@@ -28,9 +24,13 @@ if major == 3:
     PYTHON3 = True
     extra['use_2to3'] = True # Automatically convert to Python 3; love it!
     try:
-        import lib2to3 # Just a check--the module is not actually used
+        from distutils.command.build_py import build_py_2to3 as build_py
     except ImportError:
         print("Python 3.X support requires the 2to3 tool.")
+        print(
+            "It normally comes with Python 3.X but (apparenty) not on your "
+            "distribution.\nPlease find out what package you need to get 2to3"
+            "and install it.")
         sys.exit(1)
 
 # Some paths we can reference

@@ -45,9 +45,39 @@ go.Base.update(go.SSH, {
             infoPanel = u.getNode('#'+prefix+'panel_info'),
             h3 = u.createElement('h3'),
             sshQueryString = u.getQueryVariable('ssh'),
+            sshOnce = u.getQueryVariable('ssh_once'),
             infoPanelDuplicateSession = u.createElement('button', {'id': 'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             infoPanelManageIdentities = u.createElement('button', {'id': 'manage_identities', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
+            prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            handleQueryString = function(str) {
+                var termNum;
+                // Perform a bit of validation so someone can't be tricked into going to a malicious URL
+                if (!str.match(/[\$\n\!\;&` |<>]/)) { // Check for bad characters
+                    if (u.startsWith('ssh://', str) || u.startsWith('telnet://', str)) {
+                        var connect = function(term) {
+                            // This ensures that we only send this string if it's a new terminal
+                            if (go.Terminal.terminals[term]['title'] == 'SSH Connect') {
+                                go.Terminal.sendString(str + '\n', term);
+                            }
+                        }
+                        if (sshOnce && sshOnce.toLowerCase() == 'true') {
+                            u.removeQueryVariable('ssh'); // Clean up the URL
+                            u.removeQueryVariable('ssh_once');
+                            termNum = go.Terminal.newTerminal();
+                            setTimeout(function() {
+                                connect(termNum);
+                            }, 500);
+                        } else {
+                            go.Events.on("terminal:new_terminal", connect);
+                            termNum = go.Terminal.newTerminal();
+                        }
+                    } else {
+                        logError("SSH Plugin:  ssh query string must start with ssh:// or telnet:// (e.g. ssh=ssh://)");
+                    }
+                } else {
+                    logError("Bad characters in ssh query string: " + str.match(/[\$\n\!\;&` |<>]/));
+                }
+            };
         prefsPanelKnownHosts.innerHTML = "Edit Known Hosts";
         prefsPanelKnownHosts.onclick = function() {
             u.xhrGet(go.prefs.url+'ssh?known_hosts=True', go.SSH.updateKH);
@@ -69,24 +99,16 @@ go.Base.update(go.SSH, {
             infoPanel.appendChild(prefsPanelKnownHosts);
             go.SSH.createKHPanel();
         }
-        // Connect to the given ssh:// URL if we were given an 'ssh' query string variable (e.g. https://gateone/ssh?ssh://whatever:22)
+        // Connect to the given ssh:// URL if we were given an 'ssh' query string variable (e.g. https://gateone/?ssh=ssh://whatever:22)
         if (sshQueryString) {
-            // Perform a bit of validation so someone can't be tricked into going to a malicious URL
-            if (!sshQueryString.match(/[\$\n\!\;&` |<>]/)) { // Check for bad characters
-                if (u.startsWith('ssh://', sshQueryString) || u.startsWith('telnet://', sshQueryString)) {
-                    var connect = function(term) {
-                        // This ensures that we only send this string if it's a new terminal
-                        if (go.Terminal.terminals[term]['title'] == 'Gate One') {
-                            go.Terminal.sendString(sshQueryString + '\n', term);
-                        }
-                        u.removeQueryVariable('ssh'); // Clean up the URL
-                    }
-                    go.Events.on("terminal:new_terminal", connect);
-                } else {
-                    logError("SSH Plugin:  ssh query string must start with ssh:// or telnet:// (e.g. ssh=ssh://)");
-                }
+            if (u.isArray(sshQueryString)) {
+                // Assume it's all one-time only if multiple ssh:// URLs were provided
+                sshOnce = 'true';
+                sshQueryString.forEach(function(str) {
+                    handleQueryString(str);
+                });
             } else {
-                logError("Bad characters in ssh query string: " + sshQueryString.match(/[\$\n\!\;&` |<>]/));
+                handleQueryString(sshQueryString);
             }
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened

@@ -147,11 +147,19 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         logging.debug("user_login(%s)" % user['upn'])
         user.update(additional_attributes(user))
         # Make a directory to store this user's settings/files/logs/etc
-        user_dir = os.path.join(self.settings['user_dir'], user['upn'])
-        if not os.path.exists(user_dir):
-            logging.info(_("Creating user directory: %s" % user_dir))
-            mkdir_p(user_dir)
-            os.chmod(user_dir, 0o700)
+        try:
+            user_dir = os.path.join(self.settings['user_dir'], user['upn'])
+            if not os.path.exists(user_dir):
+                logging.info(_("Creating user directory: %s" % user_dir))
+                mkdir_p(user_dir)
+                os.chmod(user_dir, 0o700)
+        except UnicodeEncodeError:
+            logging.error(_(
+                "You're trying to use non-ASCII user information on a system "
+                "that has the locale set to ASCII (or similar).  Please change"
+                "your system's locale to something that supports Unicode "
+                "characters. "))
+            return
         session_file = os.path.join(user_dir, 'session')
         session_file_exists = os.path.exists(session_file)
         if session_file_exists:

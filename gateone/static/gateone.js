@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131113222707";
+GateOne.__commit__ = "20131113224209";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1880,7 +1880,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Optionally, a *url* may be specified to perform the same evaluation on *url* insead of :js:attr:`window.location`.
         */
-        var query = window.location.search.substring(1), vars;
+        var query = window.location.search.substring(1), vars, result;
         if (url) {
             query = url.split('?').slice(1).join('?'); // Removes the leading URL up to the first question mark (preserving extra question marks)
         }
@@ -1888,9 +1888,18 @@ GateOne.Base.update(GateOne.Utils, {
         for (var i = 0; i < vars.length; i++) {
             var pair = vars[i].split('=');
             if (decodeURIComponent(pair[0]) == variable) {
-                return decodeURIComponent(pair[1]);
+                if (!result) {
+                    result = decodeURIComponent(pair[1]);
+                } else {
+                    // Multiple parameters with the same name; return an array containing all of the values
+                    if (!GateOne.Utils.isArray(result)) {
+                        result = [result];
+                    }
+                    result.push(decodeURIComponent(pair[1]));
+                }
             }
         }
+        return result;
     },
     removeQueryVariable: function(variable) {
         /**:GateOne.Utils.removeQueryVariable(variable)

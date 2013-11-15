@@ -35,7 +35,6 @@ span.✈scrollback {
 }
 span.✈termline {
     width: 100%;
-    display: block;
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
 .✈go_none {

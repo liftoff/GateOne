@@ -222,7 +222,8 @@ def openssh_connect(
         sshfp=False,
         randomart=False,
         identities=None,
-        additional_args=None):
+        additional_args=None,
+        debug=False):
     """
     Starts an interactive SSH session to the given host as the given user on the
     given port.
@@ -252,6 +253,8 @@ def openssh_connect(
 
     If *additional_args* is given this value (or values if it is a list) will be
     added to the arguments passed to the ssh command.
+
+    If *debug* is ``True`` then '-vvv' will be passed to the ssh command.
     """
     try:
         int(port)
@@ -310,6 +313,8 @@ def openssh_connect(
         "-p", str(port),
         "-l", user,
     ]
+    if debug:
+        args.append('-vvv')
     # If we're given specific identities use them exclusively
     if identities:
         if isinstance(identities, (unicode, str)):
@@ -399,7 +404,7 @@ def openssh_connect(
         temp.write(('#!/bin/sh\necho "{0}"\n'.format(password)).encode('utf-8'))
         temp.close()
         env['SSH_ASKPASS'] = temp.name
-        env['DISPLAY'] = ':9999'
+        env['DISPLAY'] = ':9999' # TODO: Get this using the user's actual X11
         # This removes the temporary file in a timely manner
         from subprocess import Popen
         Popen("sleep 15 && /bin/rm -f %s" % temp.name, shell=True)
@@ -426,6 +431,10 @@ def openssh_connect(
         temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
         script_path = "%s" % temp.name
         temp.close() # Will be written to below
+    if password:
+        # SSH_ASKPASS needs some special handling
+        # Make sure setsid gets set in our shell script
+        args.insert(0, 'exec setsid')
     # Create our little shell script to wrap the SSH command
     script = wrapper_script.format(
         socket=socket,
@@ -437,10 +446,6 @@ def openssh_connect(
     # By doing this instead of keeping ssh_connect.py running we can save a lot
     # of memory (depending on how many terminals are open).
     os.chmod(script_path, 0o700) # 0700 for good security practices
-    if password:
-        # SSH_ASKPASS needs some special handling
-        # Detach from parent process.
-        os.setsid() # This is the key
     # Execute then immediately quit so we don't use up any more memory than we
     # need.
     os.execvpe('/bin/sh', [
@@ -516,9 +521,17 @@ def telnet_connect(user, host, port=23, env=None):
 
 def parse_url(url):
     """
-    Parses a URL like, 'ssh://user@host:22' and returns a tuple of::
+    Parses a URL like, 'ssh://user@host:22' and returns a dict of::
 
-        (scheme, user, host, port, password, identities)
+        {
+            'scheme': scheme,
+            'user': user,
+            'host': host,
+            'port': port,
+            'password': password,
+            'identities': identities,
+            'debug': debug
+        }
 
     .. note:: 'web+ssh://' URLs are also supported.
 
@@ -532,19 +545,20 @@ def parse_url(url):
     .. note:: *password* and *identities* may be returned as None and [], respectively.
     """
     identities = set()
+    debug = False
     import urlparse, socket
-    o = urlparse.urlparse(url)
-    if o.query:
-        q_attrs = urlparse.parse_qs(o.query)
+    parsed = urlparse.urlparse(url)
+    if parsed.query:
+        q_attrs = urlparse.parse_qs(parsed.query)
         for ident in q_attrs.get('identities', []):
             identities.update(ident.split(','))
-    if o.port:
-        port = o.port
+        debug = q_attrs.get('debug', False)
+        if debug: # Passing anything turns on debug
+            debug = True
+    if parsed.port:
+        port = parsed.port
     else:
-        port = socket.getservbyname(o.scheme, 'tcp')
-    username = None
-    if o.username:
-        username = o.username
+        port = socket.getservbyname(parsed.scheme, 'tcp')
     # Commented these out so that users can enter an arbitrary username.  It is
     # more user-friendly this way since users won't have to have multiple
     # bookmarks to the same host just to connect with different usernames.
@@ -552,7 +566,16 @@ def parse_url(url):
         #username = os.environ['GO_USER']
     #elif os.environ.get('USER'):
         #username = os.environ['USER']
-    return (o.scheme, username, o.hostname, port, o.password, identities)
+    #return (o.scheme, username, o.hostname, port, o.password, identities)
+    return {
+        'scheme': parsed.scheme,
+        'user': parsed.username,
+        'host': parsed.hostname,
+        'port': port,
+        'password': parsed.password,
+        'identities': identities,
+        'debug': debug
+    }
 
 def bad_chars(chars):
     """
@@ -653,18 +676,19 @@ def main():
     #       usernames or passwords (if using autoConnectURL).
     try:
         if len(args) == 1:
-            scheme, user, host, port, password, identities = parse_url(args[0])
-            if scheme == 'telnet':
-                telnet_connect(user, host, port)
+            parsed = parse_url(args[0])
+            if parsed['scheme'] == 'telnet':
+                telnet_connect(parsed['user'], parsed['host'], parsed['port'])
             else:
-                openssh_connect(user, host, port,
+                openssh_connect(parsed['user'], parsed['host'], parsed['port'],
                     command=options.command,
-                    password=password,
+                    password=parsed['password'],
                     sshfp=options.sshfp,
                     randomart=options.randomart,
-                    identities=identities,
+                    identities=parsed.get('identities', []),
                     additional_args=options.additional_args,
-                    socket=options.socket
+                    socket=options.socket,
+                    debug=parsed.get('debug', False)
                 )
         elif len(args) == 2: # No port given, assume 22
             openssh_connect(args[0], args[1], options.default_port,
@@ -707,6 +731,7 @@ def main():
         user = None
         port = None
         validated = False
+        debug = False
         invalid_hostname_err = _(
             'Error:  You must enter a valid hostname or IP address.')
         invalid_port_err = _(
@@ -739,7 +764,14 @@ def main():
                     raw_input(invalid_hostname_err)
                     continue
             elif url.find('://') >= 0:
-               protocol, user, host, port, password, identities = parse_url(url)
+                parsed = parse_url(url)
+                protocol = parsed['scheme']
+                user = parsed['user']
+                host = parsed['host']
+                port = parsed['port']
+                password = parsed['password']
+                identities = parsed.get('identities', [])
+                debug = parsed.get('debug', False)
             else:
                 # Always assume SSH unless given a telnet:// URL
                 protocol = 'ssh'
@@ -804,7 +836,8 @@ def main():
                 randomart=options.randomart,
                 identities=identities,
                 additional_args=options.additional_args,
-                socket=options.socket
+                socket=options.socket,
+                debug=debug
             )
         elif protocol == 'telnet':
             if user:
