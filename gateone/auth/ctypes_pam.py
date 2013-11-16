@@ -7,9 +7,7 @@
 # pam_set_item (specificallly, to support setting a PAM_TTY)
 
 # Meta
-__version__ = '1.0'
 __license__ = "MIT"
-__version_info__ = (1.0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\

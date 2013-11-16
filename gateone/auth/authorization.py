@@ -4,9 +4,7 @@
 #
 
 # Meta
-__version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1.2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -24,8 +22,10 @@ Docstrings
 import os, logging, re
 
 # Import our own stuff
-from gateone.core.utils import noop, RUDict
-from gateone.core.utils import get_translation, memoize
+from gateone.core.utils import noop
+from gateone.core.utils import memoize
+from gateone.core.configuration import RUDict
+from gateone.core.locale import get_translation
 from gateone.core.log import go_logger
 
 # Localization support

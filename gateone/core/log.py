@@ -3,8 +3,6 @@
 #       Copyright 2013 Liftoff Software Corporation
 
 # Meta
-__version__ = '1.0'
-__version_info__ = (1, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __doc__ = """
 .. _log.py:
@@ -42,9 +40,39 @@ prefixing::
 
 import os.path, logging, json
 from .utils import mkdir_p
+from tornado.options import options
 from tornado.log import LogFormatter
 
 LOGS = [] # Holds a list of all our log paths so we can fix permissions
+# These should match what's in the syslog module (hopefully not platform-dependent)
+FACILITIES = {
+    'auth': 32,
+    'cron': 72,
+    'daemon': 24,
+    'kern': 0,
+    'local0': 128,
+    'local1': 136,
+    'local2': 144,
+    'local3': 152,
+    'local4': 160,
+    'local5': 168,
+    'local6': 176,
+    'local7': 184,
+    'lpr': 48,
+    'mail': 16,
+    'news': 56,
+    'syslog': 40,
+    'user': 8,
+    'uucp': 64
+}
+
+# Exceptions
+class UnknownFacility(Exception):
+    """
+    Raised if `string_to_syslog_facility` is given a string that doesn't match
+    a known syslog facility.
+    """
+    pass
 
 class JSONAdapter(logging.LoggerAdapter):
     """
@@ -61,6 +89,17 @@ class JSONAdapter(logging.LoggerAdapter):
         else:
             line = msg
         return (line, kwargs)
+
+def string_to_syslog_facility(facility):
+    """
+    Given a string (*facility*) such as, "daemon" returns the numeric
+    syslog.LOG_* equivalent.
+    """
+    if facility.lower() in FACILITIES:
+        return FACILITIES[facility.lower()]
+    else:
+        raise UnknownFacility(
+            "%s does not match a known syslog facility" % repr(facility))
 
 def go_logger(name, **kwargs):
     """
@@ -97,7 +136,6 @@ def go_logger(name, **kwargs):
         >>> auth_logger.info('test3', {"user": "bob", "ip": "10.1.1.100"})
         [I 130828 15:00:56 app.py:10] {"user": "bob", "ip": "10.1.1.100"} test3
     """
-    from tornado.options import options
     logger = logging.getLogger(name)
     if not options.log_file_prefix or options.logging.upper() == 'NONE':
         # Logging is disabled but we still have to return the adapter so that

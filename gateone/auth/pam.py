@@ -5,8 +5,6 @@
 #   Thanks to Alan Schmitz for contributing the original version of this module!
 
 # Meta
-__version__ = '1.0'
-__version_info__ = (1, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __doc__ = """
 .. _pam.py:

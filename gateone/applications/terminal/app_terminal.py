@@ -23,21 +23,21 @@ from gateone import GATEONE_DIR, SESSIONS
 from gateone.core.server import StaticHandler, BaseHandler, GOApplication
 from gateone.auth.authorization import require, authenticated
 from gateone.auth.authorization import applicable_policies, policies
-from gateone.core.utils import cmd_var_swap, json_encode, get_settings
-from gateone.core.utils import mkdir_p, string_to_syslog_facility, get_plugins
+from gateone.core.configuration import get_settings, RUDict
+from gateone.core.utils import cmd_var_swap, json_encode
+from gateone.core.utils import mkdir_p, get_plugins
 from gateone.core.utils import process_opt_esc_sequence, bind, MimeTypeFail
-from gateone.core.utils import which, get_translation, json_decode, RUDict
+from gateone.core.utils import which
 from gateone.core.utils import short_hash, load_modules, create_data_uri
-from gateone.core.log import go_logger
+from gateone.core.locale import get_translation
+from gateone.core.log import go_logger, string_to_syslog_facility
 from .logviewer import main as logviewer_main
 
 # 3rd party imports
+from tornado.escape import json_decode
 from tornado.options import options, define
 
 # Globals
-#SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
-# NOTE: The overwriting of SESSIONS happens inside of gateone.py
-# This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
 web_handlers = [] # Assigned in init()
@@ -2566,7 +2566,7 @@ def init(settings):
         settings_path = options.settings_dir
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
         if not os.path.exists(terminal_conf_path):
-            from gateone.core.utils import settings_template
+            from gateone.core.configuration import settings_template
             # TODO: Think about moving 50terminal.conf template into the
             # terminal application's directory.
             template_path = os.path.join(

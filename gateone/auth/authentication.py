@@ -4,9 +4,7 @@
 #
 
 # Meta
-__version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1.2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -79,8 +77,9 @@ import os, logging
 
 # Import our own stuff
 from gateone.core.utils import mkdir_p, generate_session_id
-from gateone.core.utils import get_translation, convert_to_timedelta
+from gateone.core.utils import convert_to_timedelta
 from gateone.core.utils import total_seconds
+from gateone.core.locale import get_translation
 from gateone.core.log import go_logger
 
 # 3rd party imports

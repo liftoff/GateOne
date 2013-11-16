@@ -5,7 +5,12 @@ include babel_gateone.cfg
 include *.rst
 graft scripts
 graft gateone
+graft onoff
+graft terminal
+graft termio
 exclude .gitignore
 global-exclude *.kate-swp
 global-exclude *.pyc
+global-exclude *.pye
 global-exclude *.git
+global-exclude .directory

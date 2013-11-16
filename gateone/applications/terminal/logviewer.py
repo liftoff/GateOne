@@ -23,7 +23,8 @@ except ImportError:
 
 # Import our own stuff
 from gateone import GATEONE_DIR
-from gateone.core.utils import raw, get_settings, combine_css
+from gateone.core.utils import raw
+from gateone.core.configuration import get_settings, combine_css
 
 # 3rd party imports
 from tornado.escape import json_encode, json_decode

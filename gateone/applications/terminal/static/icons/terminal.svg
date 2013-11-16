@@ -1,0 +1,26 @@
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="556.26" width="554.83" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/">
+	<defs>
+		<radialGradient id="radialGradient5754" gradientUnits="userSpaceOnUse" cy="505.93" cx="318.57" gradientTransform="matrix(1,0,0,1.0025748,0,-1.3026647)" r="277.41">
+			<stop stop-color="#FFF" offset="0"/>
+			<stop stop-color="#000" stop-opacity="0.73205739" offset="0.5"/>
+			<stop stop-color="#000" offset="1"/>
+		</radialGradient>
+	</defs>
+	<metadata>
+		<rdf:RDF>
+			<cc:Work rdf:about="">
+				<dc:format>image/svg+xml</dc:format>
+				<dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+				<dc:title/>
+			</cc:Work>
+		</rdf:RDF>
+	</metadata>
+	<g transform="translate(-41.157106,-227.805)">
+		<rect stroke-linejoin="round" stroke-dasharray="none" ry="38.67" height="504.55" width="503.12" stroke="#333" stroke-linecap="round" stroke-miterlimit="2" y="253.66" x="67.01" stroke-width="51.706" fill="url(#radialGradient5754)"/>
+		<flowRoot style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" font-weight="normal" xml:space="preserve" font-size="24px" line-height="125%" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" fill="#000000"><flowRegion><rect y="365.22" width="41.429" x="112.86" height="274.29"/></flowRegion><flowPara/></flowRoot>
+		<flowRoot style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" font-weight="normal" xml:space="preserve" font-size="24px" line-height="125%" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" fill="#000000"><flowRegion><rect y="360.93" width="95.714" x="118.57" height="215.71"/></flowRegion><flowPara/></flowRoot>
+		<flowRoot style="letter-spacing:0px;word-spacing:0px;text-anchor:middle;text-align:center;" font-weight="normal" xml:space="preserve" font-size="24px" line-height="125%" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" fill="black"><flowRegion><rect y="114.07" width="76.562" x="85.938" height="120.31"/></flowRegion><flowPara/></flowRoot>
+		<text style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" font-weight="normal" xml:space="preserve" transform="scale(0.68225155,1.465735)" font-style="normal" font-stretch="normal" font-size="630.05578613px" font-variant="normal" y="567.43604" x="467.02911" font-family="Droid Sans Mono" line-height="125%" fill="#ffffff"><tspan x="467.02911" y="567.43604">&lt;&gt;</tspan></text>
+	</g>
+</svg>

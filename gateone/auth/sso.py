@@ -4,9 +4,7 @@
 #
 
 # Meta
-__version__ = '1.0'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -69,7 +67,7 @@ Class Docstrings
 import os, logging, base64
 
 # Import our own stuff
-from gateone.core.utils import get_translation
+from gateone.core.locale import get_translation
 # Enable localization support
 _ = get_translation()
 

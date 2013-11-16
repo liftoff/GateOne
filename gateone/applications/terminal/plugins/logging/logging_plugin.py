@@ -52,7 +52,8 @@ from gateone import GATEONE_DIR
 from gateone.applications.terminal.logviewer import flatten_log
 from gateone.applications.terminal.logviewer import render_log_frames
 from termio import get_or_update_metadata
-from gateone.core.utils import get_translation, json_encode
+from gateone.core.utils import json_encode
+from gateone.core.locale import get_translation
 
 _ = get_translation()
 

@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+from distutils.command.install import INSTALL_SCHEMES
 import sys, os, shutil
+
+for scheme in INSTALL_SCHEMES.values():
+    scheme['data'] = scheme['purelib']
 
 # Globals
 PYTHON3 = False
@@ -106,14 +110,14 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
     ]
     if '__init__.py' in filenames:
         package = '.'.join(fullsplit(dirpath))
-        if package.count('.') < 3:
-            packages.append(package)
-        else:
-            data_files.append([
-                dirpath, [os.path.join(dirpath, f)
-                for f in filenames
-                if f not in ignore_list]
-            ])
+        #if package.count('.') < 3:
+        packages.append(package)
+        #else:
+            #data_files.append([
+                #dirpath, [os.path.join(dirpath, f)
+                #for f in filenames
+                #if f not in ignore_list]
+            #])
     elif filenames:
         data_files.append([
             dirpath, [os.path.join(dirpath, f)
@@ -145,9 +149,9 @@ try:
             f.write(out)
             f.write('\n//# sourceURL=/static/gateone.js\n')
     except Exception as e:
-        import traceback
         print("Got an exception trying to minify gateone.js; skipping")
-        traceback.print_exc(file=sys.stdout)
+        #import traceback
+        #traceback.print_exc(file=sys.stdout)
 except ImportError:
     pass
 
@@ -185,12 +189,11 @@ setup(
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
     requires = requires,
-    zip_safe = False,
+    zip_safe = False, # TODO: Convert everything to using pkg_resources
     py_modules = ["gateone"],
     entry_points = {
         'console_scripts': [
-            'gateone = gateone.core.server:main',
-            'go_term_logviewer = gateone.applications.terminal.logviewer:main'
+            'gateone = gateone.core.server:main'
         ]
     },
     provides = ['gateone', 'termio', 'terminal', 'onoff'],
@@ -217,4 +220,5 @@ now start Gate One by simply running 'gateone' (it should be in your $PATH).
 if os.path.exists('/opt/gateone/settings'):
     print("""\
 \x1b[1mTIP:\x1b[0m If you wish to preserve your old settings:
-    sudo cp /opt/gateone/settings/*.conf /etc/gateone/conf.d/""")
+    sudo mkdir -p /etc/gateone
+    sudo mv /opt/gateone/settings /etc/gateone/conf.d""")

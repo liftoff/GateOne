@@ -18,10 +18,13 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os, io
 
 # Gate One imports
-from gateone.core.utils import RUDict, json_decode, json_encode, get_translation
+from gateone.core.utils import json_encode
+from gateone.core.configuration import RUDict
+from gateone.core.locale import get_translation
 from gateone.core.log import go_logger
 
 # 3rd party imports
+from tornado.escape import json_decode
 from tornado.options import options
 
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application

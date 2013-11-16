@@ -12,8 +12,6 @@ Gate One Utility Functions and Classes
 """
 
 # Meta
-__version__ = '1.2'
-__version_info__ = (1, 2)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
@@ -25,7 +23,6 @@ import random
 import re
 import io
 import errno
-import uuid
 import logging
 import mimetypes
 import fcntl
@@ -39,18 +36,11 @@ except ImportError:
 
 # Import 3rd party stuff
 from tornado import locale
-import tornado.template
-from tornado.options import options
 from tornado.escape import json_encode as _json_encode
-from tornado.escape import json_decode
-from tornado.escape import to_unicode, utf8
+from tornado.escape import to_unicode
 from tornado.ioloop import IOLoop, PeriodicCallback
 
-# Import our stuff
-from gateone import GATEONE_DIR
-
 # Globals
-#GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 MACOS = os.uname()[0] == 'Darwin'
 OPENBSD = os.uname()[0] == 'OpenBSD'
 CSS_END = re.compile('\.css.*?$')
@@ -91,27 +81,6 @@ REPLACEMENT_DICT = {
     31: u'^_',
     127: u'^?',
 }
-# These should match what's in the syslog module (hopefully not platform-dependent)
-FACILITIES = {
-    'auth': 32,
-    'cron': 72,
-    'daemon': 24,
-    'kern': 0,
-    'local0': 128,
-    'local1': 136,
-    'local2': 144,
-    'local3': 152,
-    'local4': 160,
-    'local5': 168,
-    'local6': 176,
-    'local7': 184,
-    'lpr': 48,
-    'mail': 16,
-    'news': 56,
-    'syslog': 40,
-    'user': 8,
-    'uucp': 64
-}
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 # Default to using the environment's locale with en_US fallback
 temp_locale = locale.get(os.environ.get('LANG', 'en_US').split('.')[0])
@@ -123,13 +92,6 @@ del temp_locale
 # error messages in the event that Gate One never completed loading.
 
 # Exceptions
-class UnknownFacility(Exception):
-    """
-    Raised if `string_to_syslog_facility` is given a string that doesn't match
-    a known syslog facility.
-    """
-    pass
-
 class MimeTypeFail(Exception):
     """
     Raised by `create_data_uri` if the mimetype of a file could not be guessed.
@@ -149,63 +111,6 @@ class ChownError(Exception):
     recursively chown a directory.
     """
     pass
-
-class SettingsError(Exception):
-    """
-    Raised when we encounter an error parsing .conf files in the settings dir.
-    """
-    pass
-
-class RUDict(dict):
-    """
-    A dict that will recursively update keys and values in a safe manner so that
-    sub-dicts will be merged without one clobbering the other.
-
-    .. note::
-
-        This class (mostly) taken from `here
-        <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
-    """
-    def __init__(self, *args, **kw):
-        super(RUDict,self).__init__(*args, **kw)
-
-    def update(self, E=None, **F):
-        if E is not None:
-            if 'keys' in dir(E) and callable(getattr(E, 'keys')):
-                for k in E:
-                    if k in self:  # Existing ...must recurse into both sides
-                        self.r_update(k, E)
-                    else: # Doesn't currently exist, just update
-                        self[k] = E[k]
-            else:
-                for (k, v) in E:
-                    self.r_update(k, {k:v})
-
-        for k in F:
-            self.r_update(k, {k:F[k]})
-
-    def r_update(self, key, other_dict):
-        if isinstance(self[key], dict) and isinstance(other_dict[key], dict):
-            od = RUDict(self[key])
-            nd = other_dict[key]
-            od.update(nd)
-            self[key] = od
-        else:
-            self[key] = other_dict[key]
-
-    def __repr__(self):
-        """
-        Returns the `RUDict` as indented json to better resemble how it looks in
-        a .conf file.
-        """
-        import json # Tornado's json_encode doesn't do indentation
-        return json.dumps(self, indent=4)
-
-    def __str__(self):
-        """
-        Just returns `self.__repr__()` with an extra newline at the end.
-        """
-        return self.__repr__() + "\n"
 
 class AutoExpireDict(dict):
     """
@@ -415,174 +320,6 @@ def debug_info(name, *args, **kwargs):
         out += '{0}={1}, '.format(k, repr(v))
     return out.rstrip().rstrip(',') + ")"
 
-# The following was taken from:
-# http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments
-# Thank you Markus Jarderot!
-def remove_comments(text):
-    """
-    Removes C-style comments from *text* and returns the result.
-    """
-    def replacer(match):
-        s = match.group(0)
-        if s.startswith('/'):
-            return ""
-        else:
-            return s
-    pattern = re.compile(
-        r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
-        re.DOTALL | re.MULTILINE
-    )
-    return re.sub(pattern, replacer, text)
-
-def get_settings(path, add_default=True):
-    """
-    Reads any and all *.conf files containing JSON (JS-style comments are OK)
-    inside *path* and returns them as an :class:`RUDict`.  Optionally, *path*
-    may be a specific file (as opposed to just a directory).
-
-    By default, all returned :class:`RUDict` objects will include a '*' dict
-    which indicates "all users".  This behavior can be skipped by setting the
-    *add_default* keyword argument to `False`.
-    """
-    settings = RUDict()
-    if add_default:
-        settings['*'] = {}
-    # Using an RUDict so that subsequent .conf files can safely override
-    # settings way down the chain without clobbering parent keys/dicts.
-    if os.path.isdir(path):
-        settings_files = [a for a in os.listdir(path) if a.endswith('.conf')]
-        settings_files.sort()
-    else:
-        if not os.path.exists(path):
-            raise IOError(_("%s does not exist" % path))
-        settings_files = [path]
-    for fname in settings_files:
-        # Use this file to update settings
-        if os.path.isdir(path):
-            filepath = os.path.join(path, fname)
-        else:
-            filepath = path
-        with io.open(filepath, encoding='utf-8') as f:
-            # Remove comments
-            proper_json = remove_comments(f.read())
-            # Remove blank/empty lines
-            proper_json = os.linesep.join([
-                s for s in proper_json.splitlines() if s.strip()])
-            try:
-                settings.update(json_decode(proper_json))
-            except ValueError as e:
-                # Something was wrong with the JSON (syntax error, usually)
-                logging.error(
-                    "Error decoding JSON in settings file: %s"
-                    % os.path.join(path, fname))
-                logging.error(e)
-                # Let's try to be as user-friendly as possible by pointing out
-                # *precisely* where the error occurred (if possible)...
-                try:
-                    line_no = int(e.message.split(': line ', 1)[1].split()[0])
-                    column = int(e.message.split(': line ', 1)[1].split()[2])
-                    for i, line in enumerate(proper_json.splitlines()):
-                        if i == line_no-1:
-                            print(
-                                line[:column] +
-                                _(" <-- Something went wrong right here (or "
-                                  "right above it)")
-                            )
-                            break
-                        else:
-                            print(line)
-                    raise SettingsError()
-                except (ValueError, IndexError):
-                    print(_(
-                        "Got an exception trying to display precisely where "
-                        "the problem was.  This usually happens when you've "
-                        "used single quotes (') instead of double quotes (\")."
-                    ))
-                    # Couldn't parse the exception message for line/column info
-                    pass # No big deal; the user will figure it out eventually
-    return settings
-
-def options_to_settings(options):
-    """
-    Converts the given Tornado-style *options* to new-style settings.  Returns
-    an :class:`RUDict` containing all the settings.
-    """
-    settings = RUDict({'*': {'gateone': {}, 'terminal': {}}})
-    # In the new settings format some options have moved to the terminal app.
-    # These settings are below and will be placed in the 'terminal' sub-dict.
-    terminal_options = [
-        'command', 'dtach', 'session_logging', 'session_logs_max_age',
-        'syslog_session_logging'
-    ]
-    non_options = [
-        # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config'
-    ]
-    for key, value in options._options.items():
-        value = value.value() # These are of type, tornado.options._Option
-        if key in terminal_options:
-            settings['*']['terminal'].update({key: value})
-        elif key in non_options:
-            continue
-        else:
-            if key == 'origins':
-                #if value == '*':
-                    #continue
-                # Convert to the new format (a list with no http://)
-                origins = value.split(';')
-                converted_origins = []
-                for origin in origins:
-                    if '://' in origin:
-                        # The new format doesn't bother with http:// or https://
-                        origin = origin.split('://')[1]
-                        if origin not in converted_origins:
-                            converted_origins.append(origin)
-                    elif origin not in converted_origins:
-                        converted_origins.append(origin)
-                settings['*']['gateone'].update({key: converted_origins})
-            elif key == 'api_keys':
-                if not value:
-                    continue
-                # API keys/secrets are now a dict instead of a string
-                settings['*']['gateone']['api_keys'] = {}
-                for pair in value.split(','):
-                    api_key, secret = pair.split(':', 1)
-                    if bytes == str: # Python 2
-                        api_key = api_key.decode('UTF-8')
-                        secret = secret.decode('UTF-8')
-                    settings['*']['gateone']['api_keys'].update(
-                        {api_key: secret})
-            else:
-                settings['*']['gateone'].update({key: value})
-    return settings
-
-def parse_commands(commands):
-    """
-    Given a list of *commands* (which can include arguments) such as::
-
-        ['ls', '--color="always"', '-lh', 'ps', '--context', '-ef']
-
-    Returns an `OrderedDict` like so::
-
-        OrderedDict([
-            ('ls', ['--color="always"', '-ltrh']),
-            ('ps', ['--context', '-ef'])
-        ])
-    """
-    try:
-        from collections import OrderedDict
-    except ImportError: # Python <2.7 didn't have OrderedDict in collections
-        from ordereddict import OrderedDict
-    out = OrderedDict()
-    command = OrderedDict()
-    for item in commands:
-        if item.startswith('-'):
-            out[command].append(item)
-        else:
-            command = item
-            out[command] = []
-    return out
-
 def write_pid(path):
     """Writes our PID to *path*."""
     try:
@@ -658,38 +395,6 @@ def json_encode(obj):
     This is just a wrapper that ensures that the returned string is unicode.
     """
     return to_unicode(_json_encode(obj))
-
-def get_translation(settings_dir=None):
-    """
-    Looks inside Gate One's settings to determine the configured locale and
-    returns a matching locale.get_translation function.  If no locale is set
-    (e.g. first time running Gate One) the local `$LANG` environment variable
-    will be used.
-
-    This function is meant to be used like so::
-
-        >>> from gateone.core.utils import get_translation
-        >>> _ = get_translation()
-    """
-    if not settings_dir:
-        # Check the tornado options object first
-        if hasattr(options, 'settings_dir'):
-            settings_dir = options.settings_dir
-        else: # Fall back to the default settings dir
-            settings_dir = os.path.join(GATEONE_DIR, 'settings')
-    # If none of the above worked we can always just use en_US:
-    locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
-    try:
-        settings = get_settings(settings_dir)
-        gateone_settings = settings['*'].get('gateone', None)
-        if gateone_settings: # All these checks are necessary for early startup
-            locale_str = settings['*']['gateone'].get('locale', locale_str)
-    except IOError: # server.conf doesn't exist (yet).
-        # Fall back to os.environ['LANG']
-        # Already set above
-        pass
-    user_locale = locale.get(locale_str)
-    return user_locale.translate
 
 def gen_self_signed_ssl(path=None):
     """
@@ -888,7 +593,8 @@ def generate_session_id():
         "NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O"
         >>>
     """
-    import base64
+    import base64, uuid
+    from tornado.escape import utf8
     session_id = base64.b64encode(
         utf8(uuid.uuid4().hex + uuid.uuid4().hex))[:45]
     if bytes != str: # Python 3
@@ -1161,9 +867,9 @@ def kill_session_processes(session):
 
 def get_applications(application_dir, enabled=None):
     """
-    Adds applications' Python files to `sys.path` and returns a list containing
-    the name of each application.  If given, only applications in the *enabled*
-    list will be returned.
+    Adds applications' Python files to `sys.path` (if necessary) and returns a
+    list containing the name of each application.  If given, only applications
+    in the *enabled* list will be returned.
     """
     out_list = []
     for directory in os.listdir(application_dir):
@@ -1181,11 +887,9 @@ def get_applications(application_dir, enabled=None):
             for app_file in application_files:
                 if app_file.endswith('.py'):
                     app_path = os.path.join(directory, app_file)
-                    print("app_path: %s" % app_path)
                     sys.path.insert(0, directory)
                     (basename, ext) = os.path.splitext(app_path)
                     basename = basename.split('/')[-1]
-                    print("basename: %s" % basename)
                     module_path = "%s.%s" % (module_path, basename)
                     out_list.append(module_path)
     # Sort alphabetically so the order in which they're applied can
@@ -1486,17 +1190,6 @@ def raw(text, replacement_dict=None):
         else:
             out += char
     return out
-
-def string_to_syslog_facility(facility):
-    """
-    Given a string (*facility*) such as, "daemon" returns the numeric
-    syslog.LOG_* equivalent.
-    """
-    if facility.lower() in FACILITIES:
-        return FACILITIES[facility.lower()]
-    else:
-        raise UnknownFacility(_(
-            "%s does not match a known syslog facility" % repr(facility)))
 
 def create_data_uri(filepath, mimetype=None):
     """
@@ -1897,25 +1590,6 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
                  ",".join(human_supl_groups))
     ))
 
-def settings_template(path, **kwargs):
-    """
-    Renders and returns the Tornado template at *path* using the given *kwargs*.
-
-    .. note:: Any blank lines in the rendered template will be removed.
-    """
-    from tornado.template import Template
-    with io.open(path, mode='r', encoding='utf-8') as f:
-        template_data = f.read()
-    t = Template(template_data)
-    # NOTE: Tornado returns templates as bytes, not unicode.  That's why we need
-    # the decode() below...
-    rendered = t.generate(**kwargs).decode('utf-8')
-    out = ""
-    for line in rendered.splitlines():
-        if line.strip():
-            out += line + "\n"
-    return out
-
 def strip_xss(html, whitelist=None, replacement=u"\u2421"):
     """
     This function returns a tuple containing:
@@ -2045,271 +1719,7 @@ def create_signature(*parts, **kwargs):
         hash.update(part)
     return hash.hexdigest()
 
-def combine_javascript(path, settings_dir=None):
-    """
-    Combines all application and plugin .js files into one big one; saved to the
-    given *path*.  If given, *settings_dir* will be used to determine which
-    applications and plugins should be included in the dump based on what is
-    enabled.
-    """
-    if not settings_dir:
-        settings_dir = os.path.join(GATEONE_DIR, 'settings')
-    all_settings = get_settings(settings_dir)
-    enabled_plugins = []
-    enabled_applications = []
-    if 'gateone' in all_settings['*']:
-        # The check above will fail in first-run situations
-        enabled_plugins = all_settings['*']['gateone'].get(
-            'enabled_plugins', [])
-        enabled_applications = all_settings['*']['gateone'].get(
-            'enabled_applications', [])
-    plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-    pluginslist = os.listdir(plugins_dir)
-    pluginslist.sort()
-    applications_dir = os.path.join(GATEONE_DIR, 'applications')
-    appslist = os.listdir(applications_dir)
-    appslist.sort()
-    with io.open(path, 'w') as f:
-        # Start by adding gateone.js
-        gateone_js = os.path.join(GATEONE_DIR, 'static', 'gateone.js')
-        with io.open(gateone_js) as go_js:
-            f.write(go_js.read() + '\n')
-        # Gate One plugins
-        for plugin in pluginslist:
-            if enabled_plugins and plugin not in enabled_plugins:
-                continue
-            static_dir = os.path.join(plugins_dir, plugin, 'static')
-            if os.path.isdir(static_dir):
-                filelist = os.listdir(static_dir)
-                filelist.sort()
-                for filename in filelist:
-                    filepath = os.path.join(static_dir, filename)
-                    if filename.endswith('.js'):
-                        with io.open(filepath) as js_file:
-                            f.write(js_file.read() + u'\n')
-        # Gate One applications
-        for application in appslist:
-            if enabled_applications:
-                # Only export JS of enabled apps
-                if application not in enabled_applications:
-                    continue
-            static_dir = os.path.join(GATEONE_DIR,
-                'applications', application, 'static')
-            plugins_dir = os.path.join(
-                applications_dir, application, 'plugins')
-            if os.path.isdir(static_dir):
-                filelist = os.listdir(static_dir)
-                filelist.sort()
-                for filename in filelist:
-                    filepath = os.path.join(static_dir, filename)
-                    if filename.endswith('.js'):
-                        with io.open(filepath) as js_file:
-                            f.write(js_file.read() + u'\n')
-            app_settings = all_settings['*'].get(application, None)
-            enabled_app_plugins = []
-            if app_settings:
-                enabled_app_plugins = app_settings.get(
-                    'enabled_plugins', [])
-            if os.path.isdir(plugins_dir):
-                pluginslist = os.listdir(plugins_dir)
-                pluginslist.sort()
-                # Gate One application plugins
-                for plugin in pluginslist:
-                    # Only export JS of enabled app plugins
-                    if enabled_app_plugins:
-                        if plugin not in enabled_app_plugins:
-                            continue
-                    static_dir = os.path.join(plugins_dir, plugin, 'static')
-                    if os.path.isdir(static_dir):
-                        filelist = os.listdir(static_dir)
-                        filelist.sort()
-                        for filename in filelist:
-                            filepath = os.path.join(static_dir, filename)
-                            if filename.endswith('.js'):
-                                with io.open(filepath) as js_file:
-                                    f.write(js_file.read() + u'\n')
-        f.flush()
-
-def combine_css(path, container, settings_dir=None, log=True):
-    """
-    Combines all application and plugin .css template files into one big one;
-    saved to the given *path*.  Templates will be rendered using the given
-    *container* as the replacement for templates use of '#{{container}}'.
-
-    If given, *settings_dir* will be used to determine which applications and
-    plugins should be included in the dump based on what is enabled.
-
-    If *log* is ``False`` messages indicating where the files
-    have been saved will not be logged (useful when rendering CSS for
-    programatic use).
-    """
-    if container.startswith('#'): # This is just in case (don't want ##gateone)
-        container = container.lstrip('#')
-    if not settings_dir:
-        settings_dir = os.path.join(GATEONE_DIR, 'settings')
-    all_settings = get_settings(settings_dir)
-    enabled_plugins = []
-    enabled_applications = []
-    embedded = False
-    url_prefix = '/'
-    if 'gateone' in all_settings['*']:
-        # The check above will fail in first-run situations
-        enabled_plugins = all_settings['*']['gateone'].get(
-            'enabled_plugins', [])
-        enabled_applications = all_settings['*']['gateone'].get(
-            'enabled_applications', [])
-        embedded = all_settings['*']['gateone'].get('embedded', False)
-        url_prefix = all_settings['*']['gateone'].get('url_prefix', False)
-    plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-    pluginslist = os.listdir(plugins_dir)
-    pluginslist.sort()
-    applications_dir = os.path.join(GATEONE_DIR, 'applications')
-    appslist = os.listdir(applications_dir)
-    appslist.sort()
-    global_themes_dir = os.path.join(GATEONE_DIR, 'templates', 'themes')
-    themes = os.listdir(global_themes_dir)
-    theme_writers = {}
-    for theme in themes:
-        combined_theme_path = "%s_theme_%s" % (
-            path.split('.css')[0], theme)
-        theme_writers[theme] = io.open(combined_theme_path, 'w')
-        themepath = os.path.join(global_themes_dir, theme)
-        with io.open(themepath) as css_file:
-            theme_writers[theme].write(css_file.read())
-    # NOTE: We skip gateone.css because that isn't used when embedding
-    with io.open(path, 'w') as f:
-        # Gate One plugins
-        # TODO: Add plugin theme files to this
-        for plugin in pluginslist:
-            if enabled_plugins and plugin not in enabled_plugins:
-                continue
-            css_dir = os.path.join(plugins_dir, plugin, 'templates')
-            if os.path.isdir(css_dir):
-                filelist = os.listdir(css_dir)
-                filelist.sort()
-                for filename in filelist:
-                    filepath = os.path.join(css_dir, filename)
-                    if filename.endswith('.css'):
-                        with io.open(filepath) as css_file:
-                            f.write(css_file.read() + u'\n')
-        # Gate One applications
-        for application in appslist:
-            if enabled_applications:
-                # Only export CSS of enabled apps
-                if application not in enabled_applications:
-                    continue
-            css_dir = os.path.join(GATEONE_DIR,
-                'applications', application, 'templates')
-            subdirs = []
-            plugins_dir = os.path.join(
-                applications_dir, application, 'plugins')
-            if os.path.isdir(css_dir):
-                filelist = os.listdir(css_dir)
-                filelist.sort()
-                for filename in filelist:
-                    filepath = os.path.join(css_dir, filename)
-                    if filename.endswith('.css'):
-                        with io.open(filepath) as css_file:
-                            f.write(css_file.read() + u'\n')
-                    elif os.path.isdir(filepath):
-                        subdirs.append(filepath)
-            while subdirs:
-                subdir = subdirs.pop()
-                filelist = os.listdir(subdir)
-                filelist.sort()
-                for filename in filelist:
-                    filepath = os.path.join(subdir, filename)
-                    if filename.endswith('.css'):
-                        with io.open(filepath) as css_file:
-                            combined = css_file.read() + u'\n'
-                            if os.path.split(subdir)[1] == 'themes':
-                                theme_writers[filename].write(combined)
-                            else:
-                                f.write(combined)
-                    elif os.path.isdir(filepath):
-                        subdirs.append(filepath)
-            app_settings = all_settings['*'].get(application, None)
-            enabled_app_plugins = []
-            if app_settings:
-                enabled_app_plugins = app_settings.get(
-                    'enabled_plugins', [])
-            if os.path.isdir(plugins_dir):
-                pluginslist = os.listdir(plugins_dir)
-                pluginslist.sort()
-                # Gate One application plugins
-                for plugin in pluginslist:
-                    # Only export JS of enabled app plugins
-                    if enabled_app_plugins:
-                        if plugin not in enabled_app_plugins:
-                            continue
-                    css_dir = os.path.join(
-                        plugins_dir, plugin, 'templates')
-                    if os.path.isdir(css_dir):
-                        filelist = os.listdir(css_dir)
-                        filelist.sort()
-                        for filename in filelist:
-                            filepath = os.path.join(css_dir, filename)
-                            if filename.endswith('.css'):
-                                with io.open(filepath) as css_file:
-                                    f.write(css_file.read() + u'\n')
-                            elif os.path.isdir(os.path.join(
-                                css_dir, filename)):
-                                subdirs.append(filepath)
-                    while subdirs:
-                        subdir = subdirs.pop()
-                        filelist = os.listdir(subdir)
-                        filelist.sort()
-                        for filename in filelist:
-                            filepath = os.path.join(subdir, filename)
-                            if filename.endswith('.css'):
-                                with io.open(filepath) as css_file:
-                                    with io.open(filepath) as css_file:
-                                        combined = css_file.read() + u'\n'
-                                        _dir = os.path.split(subdir)[1]
-                                        if _dir == 'themes':
-                                            theme_writers[filename].write(
-                                                combined)
-                                        else:
-                                            f.write(combined)
-                            elif os.path.isdir(filepath):
-                                subdirs.append(filepath)
-        f.flush()
-    for writer in theme_writers.values():
-        writer.flush()
-        writer.close()
-    # Now render the templates
-    asis = lambda x: x # Used to disable autoescape
-    loader = tornado.template.Loader(os.path.split(path)[0], autoescape="asis")
-    template = loader.load(path)
-    css_data = template.generate(
-        asis=asis,
-        container=container,
-        url_prefix=url_prefix,
-        embedded=embedded)
-    # Overwrite it with the rendered version
-    with io.open(path, 'wb') as f:
-        f.write(css_data)
-    if log:
-        logging.info(_(
-            "Non-theme CSS has been combined and saved to: %s" % path))
-    for theme in theme_writers.keys():
-        combined_theme_path = "%s_theme_%s" % (
-            path.split('.css')[0], theme)
-        template = loader.load(combined_theme_path)
-        css_data = template.generate(
-            asis=asis,
-            container=container,
-            url_prefix=url_prefix,
-            embedded=embedded)
-        with io.open(combined_theme_path, 'wb') as f:
-            f.write(css_data)
-        if log:
-            logging.info(_(
-                "The %s theme CSS has been combined and saved to: %s"
-                % (theme.split('.css')[0], combined_theme_path)))
-
 # Misc
-_ = get_translation()
 if MACOS or OPENBSD: # Apply BSD-specific stuff
     kill_dtached_proc = kill_dtached_proc_bsd
     killall = killall_bsd

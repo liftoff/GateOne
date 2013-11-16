@@ -39,7 +39,7 @@ from gateone.core.utils import bind
 from gateone.core.utils import get_plugins, load_modules
 # You can use this for providing localization but you could just use the stdlib
 # gettext stuff if you want:
-from gateone.core.utils import get_translation
+from gateone.core.locale import get_translation
 
 
 # 3rd party imports

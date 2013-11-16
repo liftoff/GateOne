@@ -26,7 +26,7 @@ from tornado.ioloop import IOLoop
 from tornado.ioloop import PeriodicCallback as PC
 
 # Localization support
-from gateone.core.utils import get_translation
+from gateone.core.locale import get_translation
 _ = get_translation()
 
 # A global to old memoized results (so multiple instances can share)
@@ -497,7 +497,8 @@ class MultiprocessRunner(AsyncRunner):
             cls.running_instances.remove(self)
         if not cls.running_instances:
             if self.running:
-                logging.info("Shutting down the MultiprocessRunner executor.")
+                logging.info(_(
+                    "Shutting down the MultiprocessRunner executor."))
                 self.executor.shutdown(wait=wait)
 
 class PeriodicCallback(object):
