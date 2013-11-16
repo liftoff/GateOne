@@ -655,9 +655,13 @@ def cmd_var_swap(cmd, **kwargs):
         output as `cmd_var_swap(cmd, SESSION=var)`.
     """
     for key, value in kwargs.items():
-        key = str(key) # Force to string in case of things like integers
-        value = str(value)
-        cmd = cmd.replace(r'%{key}%'.format(key=key.upper()), value)
+        if isinstance(key, bytes):
+            key = key.decode('utf-8')
+        if isinstance(value, bytes):
+            value = value.decode('utf-8')
+        key = unicode(key) # Force to string in case of things like integers
+        value = unicode(value)
+        cmd = cmd.replace(u'%{key}%'.format(key=key.upper()), value)
     return cmd
 
 def short_hash(to_shorten):

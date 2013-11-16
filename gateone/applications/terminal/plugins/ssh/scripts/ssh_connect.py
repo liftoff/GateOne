@@ -37,7 +37,7 @@ readline.parse_and_bind('esc: none')
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
-wrapper_script = """\
+wrapper_script = u"""\
 #!/bin/sh
 # This variable is for easy retrieval later
 SSH_SOCKET='{socket}'
@@ -261,7 +261,7 @@ def openssh_connect(
     except ValueError:
         print(_("The port must be an integer < 65535"))
         sys.exit(1)
-    import tempfile
+    import tempfile, io
     # NOTE: Figure out if we really want to use the env forwarding feature
     if not env: # Unless we enable SendEnv in ssh these will do nothing
         env = {
@@ -301,7 +301,7 @@ def openssh_connect(
             f.write('\n')
     args = [
         "-x", # No X11 forwarding, thanks :)
-        "-F'%s'" % ssh_config_path, # It's OK if it doesn't exist
+        u"-F'%s'" % ssh_config_path.decode('utf-8'), # It's OK if it doesn't exist
         # This is so people won't have to worry about user management when
         # running one-Gate One-per-server...
         "-oNoHostAuthenticationForLocalhost=yes",
@@ -436,11 +436,17 @@ def openssh_connect(
         # Make sure setsid gets set in our shell script
         args.insert(0, 'exec setsid')
     # Create our little shell script to wrap the SSH command
+    cmd = ""
+    for arg in args:
+        if isinstance(arg, bytes):
+            cmd += arg.decode('utf-8') + ' '
+        else:
+            cmd += arg + ' '
     script = wrapper_script.format(
         socket=socket,
-        cmd=" ".join(args),
+        cmd=cmd,
         temp=script_path)
-    with open(script_path, 'w') as f:
+    with io.open(script_path, 'w', encoding='utf-8') as f:
         f.write(script) # Save it to disk
     # NOTE: We wrap in a shell script so we can execute it and immediately quit.
     # By doing this instead of keeping ssh_connect.py running we can save a lot
@@ -506,9 +512,15 @@ def telnet_connect(user, host, port=23, env=None):
         script_path = "%s" % temp.name
         temp.close() # Will be written to below
     # Create our little shell script to wrap the SSH command
+    cmd = ""
+    for arg in args:
+        if isinstance(arg, bytes):
+            cmd += arg.decode('utf-8') + ' '
+        else:
+            cmd += arg + ' '
     script = wrapper_script.format(
         socket="NO SOCKET",
-        cmd=" ".join(args),
+        cmd=cmd,
         temp=script_path)
     with open(script_path, 'w') as f:
         f.write(script) # Save it to disk

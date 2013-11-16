@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131114194240" # Gets replaced by git (holds the date/time)
+__commit__ = "20131115203205" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2261,8 +2261,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.prefix = settings.get('prefix', self.prefix)
         # NOTE: NOT using self.auth_log() here on purpose:
         auth_log.info(
-            _("User {upn} authenticated successfully via origin {origin}"
-              " (location: {location}).").format(
+            _(u"User {upn} authenticated successfully via origin {origin}"
+              u" (location: {location}).").format(
                   upn=user['upn'], origin=self.origin, location=self.location))
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
@@ -2879,7 +2879,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             elif kind == 'theme':
                 out_dict['theme'] = True
                 message = {'go:load_theme': out_dict}
-            self.write_message(message)
+            try:
+                self.write_message(message)
+            except AttributeError:
+                pass # WebSocket closed before we got a chance to send this
         if self.settings['debug']:
             result = get_or_cache(cache_dir, path, minify=False)
             send_file(result)

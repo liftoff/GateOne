@@ -84,8 +84,8 @@ class JSONAdapter(logging.LoggerAdapter):
         if 'metadata' in kwargs:
             extra.update(kwargs.pop('metadata'))
         if extra:
-            json_data = json.dumps(extra, sort_keys=True)
-            line = '{json_data} {msg}'.format(json_data=json_data, msg=msg)
+            json_data = json.dumps(extra, sort_keys=True, ensure_ascii=False)
+            line = u'{json_data} {msg}'.format(json_data=json_data, msg=msg)
         else:
             line = msg
         return (line, kwargs)

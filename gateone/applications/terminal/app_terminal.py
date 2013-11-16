@@ -1239,7 +1239,7 @@ class TerminalApplication(GOApplication):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            self.term_log.debug(_("new_terminal cmd: %s" % cmd))
+            self.term_log.debug(_("new_terminal cmd: %s" % repr(cmd)))
             m = term_obj['multiplex'] = self.new_multiplex(
                 cmd, term, encoding=encoding)
             # Set some environment variables so the programs we execute can use

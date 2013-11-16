@@ -1337,6 +1337,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 import shlex
                 self.shell_command = shlex.split(self.shell_command)
             cmd = self.shell_command + [self.cmd + '; sleep .1']
+            # This loop prevents UnicodeEncodeError exceptions:
+            for k, v in env.items():
+                if isinstance(v, unicode):
+                    env[k] = v.encode('utf-8')
             os.dup2(stderr, stdout) # Copy stderr to stdout (equivalent to 2>&1)
             os.execvpe(cmd[0], cmd, env)
             os._exit(0)
