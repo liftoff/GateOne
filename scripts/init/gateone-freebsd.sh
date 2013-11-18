@@ -10,7 +10,6 @@ name=gateone
 rcvar=gateone_enable
 command=/usr/local/bin/gateone 
 command_interpreter=/usr/local/bin/python
-gateone_user=gateone
 start_cmd="/usr/sbin/daemon $command"
 load_rc_config $name
 run_rc_command "$1"
