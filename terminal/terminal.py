@@ -171,33 +171,9 @@ _ = str # So pyflakes doesn't complain
 import gettext
 gettext.install('terminal')
 
-# Import 3rd party stuff
-try:
-    # We need PIL to detect image types and get their dimensions.  Without the
-    # dimenions, the browser will render the terminal screen much slower than
-    # normal.  Without PIL images will be displayed simply as:
-    #   <i>Image file</i>
-    from PIL import Image
-except ImportError:
-    Image = None
-    logging.warning(_(
-        "Could not import the Python Imaging Library (PIL).  "
-        "Images will not be displayed in the terminal."))
-    logging.info(_(
-        "TIP: Pillow is a 'friendly fork' of PIL that has been updated to work "
-        "with Python 3 (also works in Python 2.X).  You can install it with "
-        "'pip install --upgrade Pillow'."))
-
-mutagen = None
-try:
-    import mutagen
-except ImportError:
-    logging.warning(_(
-        "Could not import the mutagen Python module.  "
-        "Displaying audio file metadata will be disabled."))
-    logging.info(_("TIP: Install mutagen:  sudo pip install mutagen"))
-
 # Globals
+_logged_pil_warning = False # Used so we don't spam the user with warnings
+_logged_mutagen_warning = False # Ditto
 CALLBACK_SCROLL_UP = 1    # Called after a scroll up event (new line)
 CALLBACK_CHANGED = 2      # Called after the screen is updated
 CALLBACK_CURSOR_POS = 3   # Called after the cursor position is updated
@@ -1119,21 +1095,39 @@ class ImageFile(FileType):
         .. note::  Unlike :class:`FileType`, *term_instance* is mandatory.
         """
         logging.debug('ImageFile.capture()')
-        # Image file formats don't usually like carriage returns:
+        Image = False
+        try:
+            from PIL import Image
+        except ImportError:
+            if _logged_pil_warning:
+                return
+            global _logged_pil_warning
+            _logged_pil_warning = True
+            logging.warning(_(
+                "Could not import the Python Imaging Library (PIL).  "
+                "Images will not be displayed in the terminal."))
+            logging.info(_(
+                "TIP: Pillow is a 'friendly fork' of PIL that has been updated "
+                "to work with Python 3 (also works in Python 2.X).  You can "
+                "install it with:  pip install --upgrade pillow"))
+            return # No PIL means no images.  Don't bother wasting memory.
+        if _logged_pil_warning:
+            _logged_pil_warning = False
+            logging.info(_(
+                "Good job installing PIL!  Terminal image suppport has been "
+                "re-enabled.  Aren't dynamic imports grand?"))
         #open('/tmp/lastimage.img', 'w').write(data) # Use for debug
+        # Image file formats don't usually like carriage returns:
         data = data.replace(b'\r\n', b'\n') # shell adds an extra /r
-        if Image: # PIL is loaded--try to guess how many lines the image takes
-            i = BytesIO(data)
-            try:
-                im = Image.open(i)
-            except (AttributeError, IOError) as e:
-                # i.e. PIL couldn't identify the file
-                message = _("PIL couldn't process the image (%s)" % e)
-                logging.error(message)
-                term_instance.send_message(message)
-                return # Don't do anything--bad image
-        else: # No PIL means no images.  Don't bother wasting memory.
-            return
+        i = BytesIO(data)
+        try:
+            im = Image.open(i)
+        except (AttributeError, IOError) as e:
+            # i.e. PIL couldn't identify the file
+            message = _("PIL couldn't process the image (%s)" % e)
+            logging.error(message)
+            term_instance.send_message(message)
+            return # Don't do anything--bad image
         # Save a copy of the data so the user can have access to the original
         if self.path:
             if os.path.exists(self.path):
@@ -1232,6 +1226,10 @@ class ImageFile(FileType):
         Returns :attr:`self.file_obj` as an <img> tag with the src set to a
         data::URI.
         """
+        try:
+            from PIL import Image
+        except ImportError:
+            return # Warnings will have already been printed by this point
         if not self.file_obj:
             return u""
         self.file_obj.seek(0)
@@ -1517,6 +1515,14 @@ class OGGFile(SoundFile):
             try:
                 import mutagen.oggvorbis
             except ImportError:
+                if not _logged_mutagen_warning:
+                    global _logged_mutagen_warning
+                    _logged_mutagen_warning = True
+                    logging.warning(_(
+                        "Could not import the mutagen Python module.  "
+                        "Displaying audio file metadata will be disabled."))
+                    logging.info(_(
+                        "TIP: Install mutagen:  sudo pip install mutagen"))
                 return
             oggfile = mutagen.oggvorbis.Open(self.file_obj.name)
             message = "<pre>%s</pre>" % oggfile.pprint()

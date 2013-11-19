@@ -18,7 +18,7 @@
 
 RETVAL=0
 
-GATEONE=`which gateone`
+GATEONE=gateone
 GATEONE_PID=/var/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 

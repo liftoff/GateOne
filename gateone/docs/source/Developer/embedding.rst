@@ -92,7 +92,7 @@ Generate an API Key/Secret
 
 .. note:: The secret is not output to the terminal to avoid it being captured in session logs.
 
-API keys and secrets are stored in your 20api_keys.conf like so::
+API keys and secrets are stored in your 30api_keys.conf like so::
 
     {
         "*": {
@@ -105,12 +105,12 @@ API keys and secrets are stored in your 20api_keys.conf like so::
         }
     }
 
-You'll need to have a look at your 20api_keys.conf to see what the 'secret' is:
+You'll need to have a look at your 30api_keys.conf to see what the 'secret' is:
 
 .. ansi-block::
     :string_escape:
 
-    \x1b[1;34m#\x1b[0m cat settings/20api_keys.conf
+    \x1b[1;34m#\x1b[0m cat settings/30api_keys.conf
     {
         "*": {
             "gateone": {
@@ -123,7 +123,7 @@ You'll need to have a look at your 20api_keys.conf to see what the 'secret' is:
 
 In the above example our API key would be, ``"NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM"`` and our API secret would be, ``"M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN"``.
 
-.. tip:: You can set the API Key and secret to whatever you like by editing your 20api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even `Unicode <http://en.wikipedia.org/wiki/Unicode>`_!.  The following is a perfectly valid API key and secret:
+.. tip:: You can set the API Key and secret to whatever you like by editing your 30api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even `Unicode <http://en.wikipedia.org/wiki/Unicode>`_!.  The following is a perfectly valid API key and secret:
 
     ``"ʕ•ᴥ•ʔ ／人 ◕ ‿‿ ◕ 人＼": "↑ ↑ ↓ ↓ ← → ← → Ⓑ Ⓐ ♥‿♥"``
 

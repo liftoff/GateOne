@@ -83,7 +83,7 @@ their own when gateone.py is stopped).</p>
 on the following 3rd party Python modules:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference external" href="http://www.tornadoweb.org/">Tornado</a> 3.0+ - A non-blocking web server framework that powers FriendFeed.</li>
+<li><a class="reference external" href="http://www.tornadoweb.org/">Tornado</a> 3.1+ - A non-blocking web server framework that powers FriendFeed.</li>
 </ul>
 </div></blockquote>
 <p>The following modules are optional and can provide Gate One with additional
@@ -477,37 +477,34 @@ data in the following locations (Note: Many of these are configurable):</p>
 <tr class="row-even"><td>plugins/</td>
 <td>(Global) Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</td>
 </tr>
-<tr class="row-odd"><td>remote_syslog.py</td>
-<td>A module that supports sending syslog messages over UDP to a remote syslog host.</td>
-</tr>
-<tr class="row-even"><td>settings/</td>
+<tr class="row-odd"><td>settings/</td>
 <td>All Gate One settings files live here (.conf files).</td>
 </tr>
-<tr class="row-odd"><td>sso.py</td>
+<tr class="row-even"><td>sso.py</td>
 <td>A Kerberos Single Sign-on module for Tornado (used by auth.py)</td>
 </tr>
-<tr class="row-even"><td>static/</td>
+<tr class="row-odd"><td>static/</td>
 <td>Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).</td>
 </tr>
-<tr class="row-odd"><td>templates/</td>
+<tr class="row-even"><td>templates/</td>
 <td>Tornado template files such as index.html.</td>
 </tr>
-<tr class="row-even"><td>tests/</td>
+<tr class="row-odd"><td>tests/</td>
 <td>Various scripts and tools to test Gate One's functionality.</td>
 </tr>
-<tr class="row-odd"><td>utils.py</td>
+<tr class="row-even"><td>utils.py</td>
 <td>Various supporting functions.</td>
 </tr>
-<tr class="row-even"><td>users/</td>
+<tr class="row-odd"><td>users/</td>
 <td>Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</td>
 </tr>
-<tr class="row-odd"><td>users/&lt;user&gt;/logs</td>
+<tr class="row-even"><td>users/&lt;user&gt;/logs</td>
 <td>This is where session logs get stored if session_logging is set.</td>
 </tr>
-<tr class="row-even"><td>/tmp/gateone</td>
+<tr class="row-odd"><td>/tmp/gateone</td>
 <td>Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</td>
 </tr>
-<tr class="row-odd"><td>/tmp/gateone_cache</td>
+<tr class="row-even"><td>/tmp/gateone_cache</td>
 <td>Used to store cached files such as minified JavaScript and CSS.</td>
 </tr>
 </tbody>
@@ -1230,7 +1227,7 @@ override the default value of 30 seconds.  Example:</p>
 <dd><p>Starts up the <tt class="xref py py-obj docutils literal"><span class="pre">CLEANER</span></tt> (assigned to that global)
 <tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> that regularly checks for and
 deletes expired user logs (e.g. terminal session logs or anything in the
-<tt class="xref py py-obj docutils literal"><span class="pre">GATEONE_DIR/users/&lt;user&gt;/logs</span></tt> dir) and old session directories via the
+<tt class="xref py py-obj docutils literal"><span class="pre">&lt;user_dir&gt;/&lt;user&gt;/logs</span></tt> dir) and old session directories via the
 <a class="reference internal" href="#gateone.core.server.cleanup_user_logs" title="gateone.core.server.cleanup_user_logs"><tt class="xref py py-func docutils literal"><span class="pre">cleanup_user_logs()</span></tt></a> and <a class="reference internal" href="#gateone.core.server.cleanup_old_sessions" title="gateone.core.server.cleanup_old_sessions"><tt class="xref py py-func docutils literal"><span class="pre">cleanup_old_sessions()</span></tt></a> functions.</p>
 <p>The interval in which it performs this check is controlled via the
 <tt class="xref py py-obj docutils literal"><span class="pre">cleanup_interval</span></tt> setting. This setting is not included in Gate One's
@@ -1532,32 +1529,6 @@ currently connected (and authenticated) to this Gate One server.</p>
 <dt id="gateone.core.server.ErrorHandler">
 <em class="property">class </em><tt class="descclassname">gateone.core.server.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ErrorHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ErrorHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates an error response with status_code for all requests.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.server.define_options">
-<tt class="descclassname">gateone.core.server.</tt><tt class="descname">define_options</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#define_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.define_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">tornado.options.define</span></tt> for all of Gate One's command-line options.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.server.generate_server_conf">
-<tt class="descclassname">gateone.core.server.</tt><tt class="descname">generate_server_conf</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#generate_server_conf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.generate_server_conf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a fresh settings/10server.conf file using the arguments provided
-on the command line to override defaults.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.server.convert_old_server_conf">
-<tt class="descclassname">gateone.core.server.</tt><tt class="descname">convert_old_server_conf</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#convert_old_server_conf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.convert_old_server_conf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts old-style server.conf files to the new settings/10server.conf
-format.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.server.apply_cli_overrides">
-<tt class="descclassname">gateone.core.server.</tt><tt class="descname">apply_cli_overrides</tt><big>(</big><em>go_settings</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#apply_cli_overrides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.apply_cli_overrides" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates <em>go_settings</em> in-place with values given on the command line.</p>
 </dd></dl>
 
 <dl class="function">

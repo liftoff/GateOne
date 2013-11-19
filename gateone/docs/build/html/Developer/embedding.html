@@ -155,7 +155,7 @@ auth = &quot;api&quot;
 <p class="first admonition-title">Note</p>
 <p class="last">The secret is not output to the terminal to avoid it being captured in session logs.</p>
 </div>
-<p>API keys and secrets are stored in your 20api_keys.conf like so:</p>
+<p>API keys and secrets are stored in your 30api_keys.conf like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
     <span class="s">&quot;*&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s">&quot;gateone&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -168,9 +168,9 @@ auth = &quot;api&quot;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>You'll need to have a look at your 20api_keys.conf to see what the 'secret' is:</p>
+<p>You'll need to have a look at your 30api_keys.conf to see what the 'secret' is:</p>
 <pre class="ansi-block literal-block">
-<span class="ansi-bold ansi-blue">#</span> cat settings/20api_keys.conf
+<span class="ansi-bold ansi-blue">#</span> cat settings/30api_keys.conf
 {
     &quot;*&quot;: {
         &quot;gateone&quot;: {
@@ -184,7 +184,7 @@ auth = &quot;api&quot;
 <p>In the above example our API key would be, <tt class="docutils literal"><span class="pre">&quot;NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM&quot;</span></tt> and our API secret would be, <tt class="docutils literal"><span class="pre">&quot;M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN&quot;</span></tt>.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p>You can set the API Key and secret to whatever you like by editing your 20api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even <a class="reference external" href="http://en.wikipedia.org/wiki/Unicode">Unicode</a>!.  The following is a perfectly valid API key and secret:</p>
+<p>You can set the API Key and secret to whatever you like by editing your 30api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even <a class="reference external" href="http://en.wikipedia.org/wiki/Unicode">Unicode</a>!.  The following is a perfectly valid API key and secret:</p>
 <p class="last"><tt class="docutils literal"><span class="pre">&quot;ʕ•ᴥ•ʔ</span> <span class="pre">／人 ◕</span> <span class="pre">‿‿</span> <span class="pre">◕ 人＼&quot;:</span> <span class="pre">&quot;↑</span> <span class="pre">↑</span> <span class="pre">↓</span> <span class="pre">↓</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">Ⓑ</span> <span class="pre">Ⓐ</span> <span class="pre">♥‿♥&quot;</span></tt></p>
 </div>
 </div>

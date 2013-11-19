@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131115203205" # Gets replaced by git (holds the date/time)
+__commit__ = "20131115220402" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -641,11 +641,11 @@ def cleanup_user_logs():
     disabled = timedelta(0) # If the user sets user_logs_max_age to "0"
     settings = get_settings(options.settings_dir)
     user_dir = settings['*']['gateone']['user_dir']
-    if 'user_dir' in options._options.keys(): # NOTE: options is global
+    if 'user_dir' in options: # NOTE: options is global
         user_dir = options.user_dir
     default = "30d"
     max_age_str = settings['*']['gateone'].get('user_logs_max_age', default)
-    if 'user_logs_max_age' in list(options._options.keys()):
+    if 'user_logs_max_age' in list(options):
         max_age_str = options.user_logs_max_age
     max_age = convert_to_timedelta(max_age_str)
     def descend(path):
@@ -1368,7 +1368,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.auth_log = go_logger('gateone.auth')
         self.client_log = go_logger('gateone.client')
         self._events = {}
-        self.locations = {}
+        self.locations = {} # Just a placeholder; gets set in authenticate()
+        self.location = None # Just a placeholder; gets set in authenticate()
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
@@ -2337,7 +2338,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Starts up the `CLEANER` (assigned to that global)
         `~tornado.ioloop.PeriodicCallback` that regularly checks for and
         deletes expired user logs (e.g. terminal session logs or anything in the
-        `GATEONE_DIR/users/<user>/logs` dir) and old session directories via the
+        `<user_dir>/<user>/logs` dir) and old session directories via the
         :func:`cleanup_user_logs` and :func:`cleanup_old_sessions` functions.
 
         The interval in which it performs this check is controlled via the
@@ -2732,7 +2733,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         js_file_path = os.path.join(plugin_static_path, f)
                         js_files.update({f: js_file_path})
         if filename in list(js_files.keys()):
-            with io.open(js_files[filename]) as f:
+            with io.open(js_files[filename], encoding='utf-8') as f:
                 out_dict['data'] = f.read()
         message = {'go:load_js': out_dict}
         self.write_message(message)
@@ -3983,18 +3984,18 @@ def main(installed=True):
                 sys.exit(1)
     if options.new_api_key:
         # Generate a new API key for an application to use and save it to
-        # settings/20api_keys.conf.
+        # settings/30api_keys.conf.
         from .configuration import RUDict
         api_key = generate_session_id()
         # Generate a new secret
         secret = generate_session_id()
-        api_keys_conf = os.path.join(GATEONE_DIR, 'settings', '20api_keys.conf')
+        api_keys_conf = os.path.join(options.settings_dir, '30api_keys.conf')
         new_keys = {api_key: secret}
         api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
         if os.path.exists(api_keys_conf):
             api_keys = get_settings(api_keys_conf)
         api_keys.update({"*": {"gateone": {"api_keys": new_keys}}})
-        with io.open(api_keys_conf, 'w') as conf:
+        with io.open(api_keys_conf, 'w', encoding='utf-8') as conf:
             msg = _(
                 u"// This file contains the key and secret pairs used by Gate "
                 u"One's API authentication method.\n")
@@ -4095,11 +4096,11 @@ def main(installed=True):
     else:
         proto = "https://"
     # Fill out our settings with command line args if any are missing
-    for option in list(options._options.keys()):
+    for option in list(options):
         if option in non_options:
             continue # These don't belong
         if option not in go_settings:
-            go_settings[option] = options._options[option].value()
+            go_settings[option] = options[option]
     tornado.log.enable_pretty_logging(options=options)
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),

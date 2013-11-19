@@ -1,11 +1,9 @@
 #!/bin/sh /etc/rc.common
 
-# NOTE: Double-check that $GATEONE below is correct for your installation
-
 START=50
 
 SERVICE_USE_PID=1
-GATEONE=/usr/local/bin/gateone
+GATEONE=gateone
 GATEONE_PID=/tmp/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 

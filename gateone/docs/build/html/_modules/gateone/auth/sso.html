@@ -66,9 +66,7 @@
 <span class="c">#</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -131,7 +129,7 @@
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">base64</span>
 
 <span class="c"># Import our own stuff</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
+<span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="c"># Enable localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
@@ -220,6 +218,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_str</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c"># Initialize Kerberos Context</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerInit</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_service&#39;</span><span class="p">])</span>
@@ -236,7 +235,8 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos Error: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
             <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos Init failed&quot;</span><span class="p">))</span>
         <span class="k">finally</span><span class="p">:</span>
-            <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerClean</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">:</span>
+                <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerClean</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;WWW-Authenticate&#39;</span><span class="p">,</span> <span class="s">&quot;Negotiate </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">gssstring</span><span class="p">)</span>
         <span class="n">callback</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
 </div>

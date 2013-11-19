@@ -72,13 +72,6 @@
 <div class="section" id="gate-one-utility-functions-and-classes">
 <span id="utils-py"></span><h2>Gate One Utility Functions and Classes<a class="headerlink" href="#gate-one-utility-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="exception">
-<dt id="gateone.core.utils.UnknownFacility">
-<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.UnknownFacility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised if <a class="reference internal" href="#gateone.core.utils.string_to_syslog_facility" title="gateone.core.utils.string_to_syslog_facility"><tt class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></tt></a> is given a string that doesn't match
-a known syslog facility.</p>
-</dd></dl>
-
-<dl class="exception">
 <dt id="gateone.core.utils.MimeTypeFail">
 <em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">MimeTypeFail</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#MimeTypeFail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.MimeTypeFail" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raised by <a class="reference internal" href="#gateone.core.utils.create_data_uri" title="gateone.core.utils.create_data_uri"><tt class="xref py py-obj docutils literal"><span class="pre">create_data_uri</span></tt></a> if the mimetype of a file could not be guessed.</p>
@@ -96,23 +89,6 @@ self-signed SSL certificate.</p>
 <em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">ChownError</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#ChownError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.ChownError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raised by <a class="reference internal" href="#gateone.core.utils.recursive_chown" title="gateone.core.utils.recursive_chown"><tt class="xref py py-obj docutils literal"><span class="pre">recursive_chown</span></tt></a> if an OSError is encountered while trying to
 recursively chown a directory.</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="gateone.core.utils.SettingsError">
-<em class="property">exception </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">SettingsError</tt><a class="reference internal" href="../_modules/gateone/core/utils.html#SettingsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.SettingsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised when we encounter an error parsing .conf files in the settings dir.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="gateone.core.utils.RUDict">
-<em class="property">class </em><tt class="descclassname">gateone.core.utils.</tt><tt class="descname">RUDict</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#RUDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.RUDict" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dict that will recursively update keys and values in a safe manner so that
-sub-dicts will be merged without one clobbering the other.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This class (mostly) taken from <a class="reference external" href="http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python">here</a></p>
-</div>
 </dd></dl>
 
 <dl class="class">
@@ -230,30 +206,6 @@ minutes.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gateone.core.utils.remove_comments">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">remove_comments</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#remove_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.remove_comments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes C-style comments from <em>text</em> and returns the result.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.get_settings">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em>, <em>add_default=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads any and all <em>.conf files containing JSON (JS-style comments are OK)
-inside *path</em> and returns them as an <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a>.  Optionally, <em>path</em>
-may be a specific file (as opposed to just a directory).</p>
-<p>By default, all returned <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> objects will include a '*' dict
-which indicates &quot;all users&quot;.  This behavior can be skipped by setting the
-<em>add_default</em> keyword argument to <tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.options_to_settings">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">options_to_settings</tt><big>(</big><em>options</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#options_to_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.options_to_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts the given Tornado-style <em>options</em> to new-style settings.  Returns
-an <a class="reference internal" href="#gateone.core.utils.RUDict" title="gateone.core.utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> containing all the settings.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="gateone.core.utils.write_pid">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#write_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.write_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes our PID to <em>path</em>.</p>
@@ -294,20 +246,6 @@ auto-killed and the following will be returned:</p>
 <dd><p>On some platforms (CentOS 6.2, specifically) <tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.get_translation">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_translation</tt><big>(</big><em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_translation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Looks inside Gate One's settings to determine the configured locale and
-returns a matching locale.get_translation function.  If no locale is set
-(e.g. first time running Gate One) the local <tt class="xref py py-obj docutils literal"><span class="pre">$LANG</span></tt> environment variable
-will be used.</p>
-<p>This function is meant to be used like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="function">
@@ -516,9 +454,9 @@ compatibility with <a class="reference internal" href="#gateone.core.utils.killa
 <dl class="function">
 <dt id="gateone.core.utils.get_applications">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_applications" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds applications' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a list containing
-the name of each application.  If given, only applications in the <em>enabled</em>
-list will be returned.</p>
+<dd><p>Adds applications' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> (if necessary) and returns a
+list containing the name of each application.  If given, only applications
+in the <em>enabled</em> list will be returned.</p>
 </dd></dl>
 
 <dl class="function">
@@ -773,13 +711,6 @@ False the global REPLACEMENT_DICT will be used.  Example:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gateone.core.utils.string_to_syslog_facility">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a string (<em>facility</em>) such as, &quot;daemon&quot; returns the numeric
-syslog.LOG_* equivalent.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="gateone.core.utils.create_data_uri">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em>, <em>mimetype=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a file at <em>filepath</em>, return that file as a data URI.</p>
@@ -929,16 +860,6 @@ gid=&lt;owner&gt;).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gateone.core.utils.settings_template">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">settings_template</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#settings_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.settings_template" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renders and returns the Tornado template at <em>path</em> using the given <em>kwargs</em>.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Any blank lines in the rendered template will be removed.</p>
-</div>
-</dd></dl>
-
-<dl class="function">
 <dt id="gateone.core.utils.strip_xss">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">strip_xss</tt><big>(</big><em>html</em>, <em>whitelist=None</em>, <em>replacement=u'\u2421'</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#strip_xss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.strip_xss" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function returns a tuple containing:</p>
@@ -1011,28 +932,6 @@ provided, <tt class="xref py py-obj docutils literal"><span class="pre">hashlib.
 <p class="last">The API 'secret' <strong>must</strong> be the first argument.  Also, the order
 <em>does</em> matter.</p>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.combine_javascript">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">combine_javascript</tt><big>(</big><em>path</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#combine_javascript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.combine_javascript" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combines all application and plugin .js files into one big one; saved to the
-given <em>path</em>.  If given, <em>settings_dir</em> will be used to determine which
-applications and plugins should be included in the dump based on what is
-enabled.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.combine_css">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em>, <em>log=True</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.combine_css" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combines all application and plugin .css template files into one big one;
-saved to the given <em>path</em>.  Templates will be rendered using the given
-<em>container</em> as the replacement for templates use of '#{{container}}'.</p>
-<p>If given, <em>settings_dir</em> will be used to determine which applications and
-plugins should be included in the dump based on what is enabled.</p>
-<p>If <em>log</em> is <tt class="docutils literal"><span class="pre">False</span></tt> messages indicating where the files
-have been saved will not be logged (useful when rendering CSS for
-programatic use).</p>
 </dd></dl>
 
 <dl class="function">

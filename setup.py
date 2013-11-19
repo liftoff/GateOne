@@ -2,17 +2,18 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from distutils.command.install import INSTALL_SCHEMES
-import sys, os, shutil
+from distutils.command.install import install, INSTALL_SCHEMES
+import sys, os, shutil, io
 
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
+    #print(repr(scheme))
 
 # Globals
 PYTHON3 = False
 POSIX = 'posix' in sys.builtin_module_names
 version = '1.2.0'
-requires = ["tornado (>=3.0)"]
+requires = ["tornado >=3.1"]
 extra = {}
 data_files = []
 major, minor = sys.version_info[:2] # Python version
@@ -21,11 +22,13 @@ if major == 2 and minor <=5:
     sys.exit(1)
 if major == 2:
     from distutils.command.build_py import build_py
+    from commands import getstatusoutput
     requires.append('futures') # Added in 3.2 (only needed in 2.6 and 2.7)
 if major == 2 and minor == 6:
     requires.append('ordereddict') # This was added in Python 2.7+
 if major == 3:
     PYTHON3 = True
+    from subprocess import getstatusoutput
     extra['use_2to3'] = True # Automatically convert to Python 3; love it!
     try:
         from distutils.command.build_py import build_py_2to3 as build_py
@@ -36,6 +39,24 @@ if major == 3:
             "distribution.\nPlease find out what package you need to get 2to3"
             "and install it.")
         sys.exit(1)
+
+def which(binary, path=None):
+    """
+    Returns the full path of *binary* (string) just like the 'which' command.
+    Optionally, a *path* (colon-delimited string) may be given to use instead of
+    `os.environ['PATH']`.
+    """
+    if path:
+        paths = path.split(':')
+    else:
+        paths = os.environ['PATH'].split(':')
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        files = os.listdir(path)
+        if binary in files:
+            return os.path.join(path, binary)
+    return None
 
 # Some paths we can reference
 setup_dir = os.path.dirname(os.path.abspath(__file__))
@@ -52,9 +73,12 @@ upstart_file = [] # Only used on Ubuntu (I think)
 debian_script = os.path.join(setup_dir, 'scripts/init/gateone-debian.sh')
 redhat_script = os.path.join(setup_dir, 'scripts/init/gateone-redhat.sh')
 gentoo_script = os.path.join(setup_dir, 'scripts/init/gateone-gentoo.sh')
+openwrt_script = os.path.join(setup_dir, 'scripts/init/gateone-openwrt.sh')
 upstart_script = os.path.join(setup_dir, 'scripts/init/gateone.conf')
+systemd_service = os.path.join(setup_dir, 'scripts/init/gateone.service')
 temp_script_path = os.path.join(setup_dir, 'build/gateone')
 upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
+systemd_temp_path = os.path.join(setup_dir, 'build/gateone.service')
 if os.path.exists('/etc/debian_version'):
     shutil.copy(debian_script, temp_script_path)
 elif os.path.exists('/etc/redhat-release'):
@@ -64,10 +88,23 @@ elif os.path.exists('/etc/gentoo-release'):
     conf_file = ['/etc/conf.d', [
         os.path.join(setup_dir, 'scripts/conf/gateone')
     ]]
+elif os.path.exists('/etc/openwrt_release'):
+    shutil.copy(openwrt_script, temp_script_path)
 # Handle the upstart script (Ubuntu only as far as I know)
 if os.path.isdir('/etc/init'):
     shutil.copy(upstart_script, upstart_temp_path)
     upstart_file = ['/etc/init', [upstart_temp_path]]
+# Handle systemd (can be used in conjunction with other init processes)
+systemd = which('systemd-notify')
+if systemd:
+    retcode, output = getstatusoutput('{0} --booted'.format(systemd))
+    if retcode == 0:
+        # System is using systemd
+        shutil.copy(systemd_service, systemd_temp_path)
+        # This pkg-config command tells us where to put systemd .service files:
+        retcode, systemd_system_unit_dir = getstatusoutput(
+            'pkg-config systemd --variable=systemdsystemunitdir')
+        upstart_file = [systemd_system_unit_dir, [systemd_temp_path]]
 
 if os.path.exists(temp_script_path):
     init_script = ['/etc/init.d', [temp_script_path]]
@@ -100,6 +137,9 @@ ignore_list = [
     '.jse'
 ]
 packages = ['termio', 'terminal', 'onoff']
+if '--skip_docs' in sys.argv:
+    ignore_list.append('docs')
+    sys.argv.remove('--skip_docs')
 
 for dirpath, dirnames, filenames in os.walk('gateone'):
     # Ignore PEP 3147 cache dirs and those whose names start with '.'
@@ -110,14 +150,7 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
     ]
     if '__init__.py' in filenames:
         package = '.'.join(fullsplit(dirpath))
-        #if package.count('.') < 3:
         packages.append(package)
-        #else:
-            #data_files.append([
-                #dirpath, [os.path.join(dirpath, f)
-                #for f in filenames
-                #if f not in ignore_list]
-            #])
     elif filenames:
         data_files.append([
             dirpath, [os.path.join(dirpath, f)
@@ -155,9 +188,41 @@ try:
 except ImportError:
     pass
 
+class FixInitPaths(install):
+    """
+    An override of the `setuptools.command.install.install` cmdclass to ensure
+    the paths to 'gateone' are correct in any init scripts.
+    """
+    def finalize_options(self):
+        """
+        Calls the regular ``finalize_options()`` method and adjusts the path to
+        the 'gateone' script inside init scripts, .conf, and .service files.
+        """
+        install.finalize_options(self)
+        gateone_path = os.path.join(self.install_scripts, 'gateone')
+        if os.path.exists(temp_script_path):
+            with io.open(temp_script_path, encoding='utf-8') as f:
+                temp = f.read()
+            temp = temp.replace('GATEONE=gateone', 'GATEONE=%s' % gateone_path)
+            with io.open(temp_script_path, 'w', encoding='utf-8') as f:
+                f.write(temp)
+        if os.path.exists(upstart_temp_path):
+            with io.open(upstart_temp_path, encoding='utf-8') as f:
+                temp = f.read()
+            temp = temp.replace('exec gateone', 'exec %s' % gateone_path)
+            with io.open(upstart_temp_path, 'w', encoding='utf-8') as f:
+                f.write(temp)
+        if os.path.exists(systemd_temp_path):
+            with io.open(systemd_temp_path, encoding='utf-8') as f:
+                temp = f.read()
+            temp = temp.replace(
+                'ExecStart=gateone', 'ExecStart=%s' % gateone_path)
+            with io.open(systemd_temp_path, 'w', encoding='utf-8') as f:
+                f.write(temp)
+
 setup(
     name = 'gateone',
-    cmdclass = {'build_py': build_py},
+    cmdclass = {'build_py': build_py, 'install': FixInitPaths},
     license = 'AGPLv3 or Proprietary',
     version = version,
     description = 'Web-based Terminal Emulator and SSH Client',
@@ -188,7 +253,7 @@ setup(
     url = "http:/liftoffsoftware.com/Products/GateOne",
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
-    requires = requires,
+    install_requires = requires,
     zip_safe = False, # TODO: Convert everything to using pkg_resources
     py_modules = ["gateone"],
     entry_points = {
@@ -201,6 +266,11 @@ setup(
     data_files = data_files,
     **extra
 )
+
+if not os.path.exists('/opt/gateone'):
+    # Don't bother printing out the migration info below if the user has never
+    # installed Gate One on this system before.
+    sys.exit(0)
 
 print("""
 \x1b[1mIMPORTANT:\x1b[0m Gate One has been relocated from /opt/gateone to your

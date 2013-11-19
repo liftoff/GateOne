@@ -65,8 +65,6 @@
 <span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
 <span class="s">.. _log.py:</span>
@@ -104,10 +102,40 @@
 
 <span class="kn">import</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
 <span class="kn">from</span> <span class="nn">tornado.log</span> <span class="kn">import</span> <span class="n">LogFormatter</span>
 
 <span class="n">LOGS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Holds a list of all our log paths so we can fix permissions</span>
+<span class="c"># These should match what&#39;s in the syslog module (hopefully not platform-dependent)</span>
+<span class="n">FACILITIES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;auth&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="s">&#39;cron&#39;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span>
+    <span class="s">&#39;daemon&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="s">&#39;kern&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s">&#39;local0&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="s">&#39;local1&#39;</span><span class="p">:</span> <span class="mi">136</span><span class="p">,</span>
+    <span class="s">&#39;local2&#39;</span><span class="p">:</span> <span class="mi">144</span><span class="p">,</span>
+    <span class="s">&#39;local3&#39;</span><span class="p">:</span> <span class="mi">152</span><span class="p">,</span>
+    <span class="s">&#39;local4&#39;</span><span class="p">:</span> <span class="mi">160</span><span class="p">,</span>
+    <span class="s">&#39;local5&#39;</span><span class="p">:</span> <span class="mi">168</span><span class="p">,</span>
+    <span class="s">&#39;local6&#39;</span><span class="p">:</span> <span class="mi">176</span><span class="p">,</span>
+    <span class="s">&#39;local7&#39;</span><span class="p">:</span> <span class="mi">184</span><span class="p">,</span>
+    <span class="s">&#39;lpr&#39;</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span>
+    <span class="s">&#39;mail&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="s">&#39;news&#39;</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span>
+    <span class="s">&#39;syslog&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s">&#39;uucp&#39;</span><span class="p">:</span> <span class="mi">64</span>
+<span class="p">}</span>
 
+<span class="c"># Exceptions</span>
+<div class="viewcode-block" id="UnknownFacility"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.UnknownFacility">[docs]</a><span class="k">class</span> <span class="nc">UnknownFacility</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if `string_to_syslog_facility` is given a string that doesn&#39;t match</span>
+<span class="sd">    a known syslog facility.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</div>
 <div class="viewcode-block" id="JSONAdapter"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.JSONAdapter">[docs]</a><span class="k">class</span> <span class="nc">JSONAdapter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">LoggerAdapter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A `logging.LoggerAdapter` that prepends keyword argument information to log</span>
@@ -118,11 +146,22 @@
         <span class="k">if</span> <span class="s">&#39;metadata&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">extra</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">extra</span><span class="p">:</span>
-            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="s">&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s">u&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">msg</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="string_to_syslog_facility"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.string_to_syslog_facility">[docs]</a><span class="k">def</span> <span class="nf">string_to_syslog_facility</span><span class="p">(</span><span class="n">facility</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a string (*facility*) such as, &quot;daemon&quot; returns the numeric</span>
+<span class="sd">    syslog.LOG_* equivalent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">facility</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">FACILITIES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FACILITIES</span><span class="p">[</span><span class="n">facility</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnknownFacility</span><span class="p">(</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> does not match a known syslog facility&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">facility</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="go_logger"><a class="viewcode-back" href="../../../Developer/log.html#gateone.core.log.go_logger">[docs]</a><span class="k">def</span> <span class="nf">go_logger</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -159,7 +198,6 @@
 <span class="sd">        &gt;&gt;&gt; auth_logger.info(&#39;test3&#39;, {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;})</span>
 <span class="sd">        [I 130828 15:00:56 app.py:10] {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;} test3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>
         <span class="c"># Logging is disabled but we still have to return the adapter so that</span>

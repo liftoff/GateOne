@@ -3,6 +3,7 @@
 #
 #       Copyright 2013 Liftoff Software Corporation
 #
+from __future__ import unicode_literals
 
 # TODO: Make it so that a username can have an @ sign in it.
 
@@ -37,7 +38,7 @@ readline.parse_and_bind('esc: none')
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
-wrapper_script = u"""\
+wrapper_script = """\
 #!/bin/sh
 # This variable is for easy retrieval later
 SSH_SOCKET='{socket}'
@@ -135,7 +136,7 @@ def valid_hostname(hostname, allow_underscore=False):
         False
         >>> valid_hostname('host_a', allow_underscore=True) # Now it'll validate
         True
-        >>> valid_hostname(u'ジェーピーニック.jp') # Example valid IDN
+        >>> valid_hostname('ジェーピーニック.jp') # Example valid IDN
         True
     """
     # Convert to Punycode if an IDN
@@ -285,10 +286,15 @@ def openssh_connect(
         go_user = os.environ['USER']
     if 'GO_USER_DIR' in os.environ:
         users_dir = os.path.join(os.environ['GO_USER_DIR'], go_user)
+        if isinstance(users_dir, bytes):
+            users_dir = users_dir.decode('utf-8')
         users_ssh_dir = os.path.join(users_dir, '.ssh')
     else: # Fall back to using the default OpenSSH location for ssh stuff
         if POSIX:
-            users_ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+            users_dir = os.environ['HOME']
+            if isinstance(users_dir, bytes):
+                users_dir = users_dir.decode('utf-8')
+            users_ssh_dir = os.path.join(users_dir, '.ssh')
         else:
             # Assume Windows.  TODO: Double-check this is the right default path
             users_ssh_dir = os.path.join(os.environ['USERPROFILE'], '.ssh')
@@ -301,7 +307,7 @@ def openssh_connect(
             f.write('\n')
     args = [
         "-x", # No X11 forwarding, thanks :)
-        u"-F'%s'" % ssh_config_path.decode('utf-8'), # It's OK if it doesn't exist
+        "-F'%s'" % ssh_config_path, # It's OK if it doesn't exist
         # This is so people won't have to worry about user management when
         # running one-Gate One-per-server...
         "-oNoHostAuthenticationForLocalhost=yes",

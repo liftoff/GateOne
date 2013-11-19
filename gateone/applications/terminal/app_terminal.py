@@ -31,7 +31,7 @@ from gateone.core.utils import which
 from gateone.core.utils import short_hash, load_modules, create_data_uri
 from gateone.core.locale import get_translation
 from gateone.core.log import go_logger, string_to_syslog_facility
-from .logviewer import main as logviewer_main
+from gateone.applications.terminal.logviewer import main as logviewer_main
 
 # 3rd party imports
 from tornado.escape import json_decode
@@ -875,6 +875,8 @@ class TerminalApplication(GOApplication):
         if 'terminal' not in self.ws.locations[self.ws.location]:
             self.ws.locations[self.ws.location]['terminal'] = {}
         # Quick reference for our terminals in the current location:
+        if not self.ws.location:
+            return # WebSocket disconnected or not-yet-authenticated
         self.loc_terms = self.ws.locations[self.ws.location]['terminal']
         for term in list(self.loc_terms.keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
@@ -1934,17 +1936,14 @@ class TerminalApplication(GOApplication):
         """
         bell_path = os.path.join(APPLICATION_PATH, 'static')
         bell_path = os.path.join(bell_path, 'bell.ogg')
-        fallback_path = os.path.join(
-            APPLICATION_PATH, 'static', 'fallback_bell.txt')
-        if os.path.exists(bell_path):
-            try:
-                bell_data_uri = create_data_uri(bell_path)
-            except MimeTypeFail:
-                fallback_bell = open(fallback_path).read()
-                bell_data_uri = fallback_bell
-        else: # There's always the fallback
-            fallback_bell = open(fallback_path).read()
-            bell_data_uri = fallback_bell
+        try:
+            bell_data_uri = create_data_uri(bell_path)
+        except (IOError, MimeTypeFail): # There's always the fallback
+            self.term_log.error(_("Could not load bell: %s") % bell_path)
+            fallback_path = os.path.join(
+                APPLICATION_PATH, 'static', 'fallback_bell.txt')
+            with io.open(fallback_path, encoding='utf-8') as f:
+                bell_data_uri = f.read()
         mimetype = bell_data_uri.split(';')[0].split(':')[1]
         message = {
             'terminal:load_bell': {
@@ -1961,7 +1960,7 @@ class TerminalApplication(GOApplication):
         """
         static_url = os.path.join(APPLICATION_PATH, "static")
         webworker_path = os.path.join(static_url, 'webworkers', 'term_ww.js')
-        with open(webworker_path) as f:
+        with io.open(webworker_path, encoding='utf-8') as f:
             go_process = f.read()
         message = {'terminal:load_webworker': go_process}
         self.write_message(json_encode(message))
@@ -2508,7 +2507,7 @@ def apply_cli_overrides(settings):
     """
     # Figure out which options are being overridden on the command line
     arguments = []
-    terminal_options = ['dtach', 'syslog_session_logging', 'session_logging']
+    terminal_options = ('dtach', 'syslog_session_logging', 'session_logging')
     for arg in list(sys.argv)[1:]:
         if not arg.startswith('-'):
             break
@@ -2517,16 +2516,16 @@ def apply_cli_overrides(settings):
     for argument in arguments:
         if argument not in terminal_options:
             continue
-        if argument in list(options._options.keys()):
-            settings[argument] = options._options[argument].value()
+        if argument in options:
+            settings[argument] = options[argument]
     for key, value in settings.items():
-        if key in options._options:
+        if key in options:
             if str == bytes: # Python 2
                 if isinstance(value, unicode):
                     # For whatever reason Tornado doesn't like unicode values
                     # for its own settings unless you're using Python 3...
                     value = str(value)
-            options._options[key].set(value)
+            setattr(options, key, value)
 
 def init(settings):
     """
@@ -2541,7 +2540,7 @@ def init(settings):
         # a new 50terminal.conf
         if 'terminal' not in settings['*']:
             settings['*']['terminal'] = {}
-        with open(options.config) as f:
+        with io.open(options.config, encoding='utf-8') as f:
             for line in f:
                 if line.startswith('#'):
                     continue
@@ -2596,7 +2595,7 @@ def init(settings):
             })
             new_term_settings = settings_template(
                 template_path, settings=settings['*']['terminal'])
-            with open(terminal_conf_path, 'w') as s:
+            with io.open(terminal_conf_path, 'w', encoding='utf-8') as s:
                 s.write(_(
                     "// This is Gate One's Terminal application settings "
                     "file.\n"))

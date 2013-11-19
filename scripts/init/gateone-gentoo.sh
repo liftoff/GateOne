@@ -3,7 +3,7 @@
 # Options are controlled via /etc/conf.d/gateone
 
 extra_commands="killterms reload"
-GATEONE=`which gateone`
+GATEONE=gateone
 
 depend() {
         need net

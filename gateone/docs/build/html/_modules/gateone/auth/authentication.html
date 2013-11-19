@@ -66,9 +66,7 @@
 <span class="c">#</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.2&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -141,8 +139,9 @@
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">convert_to_timedelta</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">convert_to_timedelta</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">total_seconds</span>
+<span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span>
 
 <span class="c"># 3rd party imports</span>
@@ -209,11 +208,19 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">additional_attributes</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
-            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o700</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
+                <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o700</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;You&#39;re trying to use non-ASCII user information on a system &quot;</span>
+                <span class="s">&quot;that has the locale set to ASCII (or similar).  Please change&quot;</span>
+                <span class="s">&quot;your system&#39;s locale to something that supports Unicode &quot;</span>
+                <span class="s">&quot;characters. &quot;</span><span class="p">))</span>
+            <span class="k">return</span>
         <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s">&#39;session&#39;</span><span class="p">)</span>
         <span class="n">session_file_exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">session_file_exists</span><span class="p">:</span>

@@ -13,7 +13,7 @@
 # Start/stops the Gate One daemon (gateone.py).
 #
 
-GATEONE=`which gateone`
+GATEONE=gateone
 GATEONE_PID=/var/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 
@@ -21,13 +21,14 @@ GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 unset TMPDIR
 
 # Prefer the Upstart script if using Upstart
-if [ -d /lib/init/upstart-job ]; then
+if [ -x /lib/init/upstart-job ]; then
     if [ -e /etc/init/gateone.conf ]; then
+        echo "Using upstart-job"
         exec /lib/init/upstart-job gateone "$@"
     fi
 fi
 
-# Make sure gateone.py is available and executable
+# Make sure gateone is available and executable
 test -x ${GATEONE} || exit 0
 
 . /lib/lsb/init-functions

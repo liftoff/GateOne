@@ -112,9 +112,8 @@
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
 
 <span class="c"># 3rd party stuff</span>
-<span class="c"># The following two lines let us import modules in the &quot;dependencies&quot; dir</span>
 <span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;dependencies&quot;</span><span class="p">))</span>
+<span class="c">#sys.path.append(os.path.join(PLUGIN_PATH, &quot;dependencies&quot;))</span>
 
 <span class="c"># Globals</span>
 <span class="n">boolean_fix</span> <span class="o">=</span> <span class="p">{</span>

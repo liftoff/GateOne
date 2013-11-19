@@ -207,7 +207,7 @@ def main():
           "settings/20authentication.conf (under the 'gateone' section):")
     print('\n    "auth": "api"\n')
     # Using the cookie_secret as the API key here:
-    print(u'You will also want to add the following to your 20api_keys.conf '
+    print(u'You will also want to add the following to your 30api_keys.conf '
            '(or just create a new file with this info inside it):')
     print('''
 {

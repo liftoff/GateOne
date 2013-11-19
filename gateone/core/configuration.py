@@ -698,7 +698,7 @@ def convert_old_server_conf():
         auth_conf_path = os.path.join(
             settings_path, '20authentication.conf')
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
-        api_keys_conf = os.path.join(settings_path, '20api_keys.conf')
+        api_keys_conf = os.path.join(settings_path, '30api_keys.conf')
         # NOTE: Using a separate file for authentication stuff for no other
         #       reason than it seems like a good idea.  Don't want one
         #       gigantic config file for everything (by default, anyway).
@@ -737,7 +737,7 @@ def convert_old_server_conf():
                         converted_origins.append(origin)
                 settings.update({key: converted_origins})
             elif key == 'api_keys':
-                # Move these to the new location/format (20api_keys.conf)
+                # Move these to the new location/format (30api_keys.conf)
                 for pair in value.split(','):
                     api_key, secret = pair.split(':')
                     if bytes == str:
@@ -802,23 +802,23 @@ def apply_cli_overrides(go_settings):
     for argument in arguments:
         if argument in non_options:
             continue
-        if argument in list(options._options.keys()):
-            go_settings[argument] = options._options[argument].value()
+        if argument in list(options):
+            go_settings[argument] = options[argument]
     # Update Tornado's options from our settings.
     # NOTE: For options given on the command line this step should be redundant.
     for key, value in go_settings.items():
         if key in non_options:
             continue
-        if key in options._options:
+        if key in list(options):
             if str == bytes: # Python 2
                 if isinstance(value, unicode):
                     # For whatever reason Tornado doesn't like unicode values
                     # for its own settings unless you're using Python 3...
                     value = str(value)
-            if key in ['origins', 'api_keys']:
+            if key in ('origins', 'api_keys'):
                 # These two settings are special and taken care of further down.
                 continue
-            options._options[key].set(value)
+            setattr(options, key, value)
 
 # The following was taken from:
 # http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments
@@ -923,8 +923,7 @@ def options_to_settings(options):
         # These are things that don't really belong in settings
         'new_api_key', 'help', 'kill', 'config'
     ]
-    for key, value in options._options.items():
-        value = value.value() # These are of type, tornado.options._Option
+    for key, value in options.items():
         if key in terminal_options:
             settings['*']['terminal'].update({key: value})
         elif key in non_options:

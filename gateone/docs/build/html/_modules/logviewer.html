@@ -85,7 +85,8 @@
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">raw</span><span class="p">,</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">raw</span>
+<span class="kn">from</span> <span class="nn">gateone.core.configuration</span> <span class="kn">import</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">combine_css</span>
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
@@ -619,8 +620,10 @@
             <span class="n">cr</span> <span class="o">=</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cr</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">cr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parse command line arguments and view the log in the specified format.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command line arguments and view the log in the specified format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">usage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">%prog [options] &lt;log file&gt;&#39;</span><span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">disable_interspersed_args</span><span class="p">()</span>
@@ -664,7 +667,7 @@
         <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span> <span class="s">&quot;Prints (to stdout) the metadata of the given .golog&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: You must specify a log file to view.&quot;</span><span class="p">)</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
@@ -673,6 +676,10 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_path</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s"> does not exist&quot;</span> <span class="o">%</span> <span class="n">log_path</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sys_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="k">if</span> <span class="nb">bytes</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 3</span>
+        <span class="n">sys_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span> <span class="c"># Make sure it&#39;s empty before writing to the buffer</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">json</span>
@@ -686,18 +693,22 @@
         <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">flat</span><span class="p">:</span>
             <span class="n">flatten_log</span><span class="p">(</span>
                 <span class="n">log_path</span><span class="p">,</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+                <span class="n">sys_stdout</span><span class="p">,</span>
                 <span class="n">preserve_renditions</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">pretty</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">html</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">render_html_playback</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
+            <span class="n">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">sys_stdout</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
         <span class="c"># Move the cursor to the bottom of the screen to ensure it isn&#39;t in the</span>
         <span class="c"># middle of the log playback output</span>
         <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">get_terminal_size</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[</span><span class="si">%s</span><span class="s">;0H</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">rows</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
           </div>

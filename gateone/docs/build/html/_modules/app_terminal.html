@@ -85,20 +85,22 @@
 <span class="kn">from</span> <span class="nn">gateone.core.server</span> <span class="kn">import</span> <span class="n">StaticHandler</span><span class="p">,</span> <span class="n">BaseHandler</span><span class="p">,</span> <span class="n">GOApplication</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">require</span><span class="p">,</span> <span class="n">authenticated</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span><span class="p">,</span> <span class="n">policies</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">get_settings</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span><span class="p">,</span> <span class="n">get_plugins</span>
+<span class="kn">from</span> <span class="nn">gateone.core.configuration</span> <span class="kn">import</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">RUDict</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">get_plugins</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">bind</span><span class="p">,</span> <span class="n">MimeTypeFail</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">which</span><span class="p">,</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_decode</span><span class="p">,</span> <span class="n">RUDict</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">which</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">short_hash</span><span class="p">,</span> <span class="n">load_modules</span><span class="p">,</span> <span class="n">create_data_uri</span>
-<span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span>
+<span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
+<span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span>
+<span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">logviewer_main</span>
+<span class="c">#from .logviewer import main as logviewer_main</span>
 
 <span class="c"># 3rd party imports</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
 <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span><span class="p">,</span> <span class="n">define</span>
 
 <span class="c"># Globals</span>
-<span class="c">#SESSIONS = {} # This will get replaced with gateone.py&#39;s SESSIONS dict</span>
-<span class="c"># NOTE: The overwriting of SESSIONS happens inside of gateone.py</span>
-<span class="c"># This is in case we have relative imports, templates, or whatever:</span>
 <span class="n">APPLICATION_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our application</span>
 <span class="n">REGISTERED_HANDLERS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># So we don&#39;t accidentally re-add handlers</span>
 <span class="n">web_handlers</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Assigned in init()</span>
@@ -113,23 +115,27 @@
     <span class="n">define</span><span class="p">(</span>
         <span class="s">&quot;session_logging&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">group</span><span class="o">=</span><span class="s">&#39;terminal&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;If enabled, logs of user sessions will be saved in &quot;</span>
                 <span class="s">&quot;&lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled&quot;</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">define</span><span class="p">(</span> <span class="c"># This is an easy way to support cetralized logging</span>
         <span class="s">&quot;syslog_session_logging&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">group</span><span class="o">=</span><span class="s">&#39;terminal&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;If enabled, logs of user sessions will be written to syslog.&quot;</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">define</span><span class="p">(</span>
         <span class="s">&quot;dtach&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">group</span><span class="o">=</span><span class="s">&#39;terminal&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Wrap terminals with dtach. Allows sessions to be resumed even &quot;</span>
                 <span class="s">&quot;if Gate One is stopped and started (which is a sweet feature).&quot;</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">define</span><span class="p">(</span>
         <span class="s">&quot;kill&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">group</span><span class="o">=</span><span class="s">&#39;terminal&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Kill any running Gate One terminal processes including dtach&#39;d &quot;</span>
                 <span class="s">&quot;processes.&quot;</span><span class="p">)</span>
     <span class="p">)</span>
@@ -462,16 +468,19 @@
             <span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">),</span> <span class="n">enabled_plugins</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;self.plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">)</span>
+        <span class="n">py_plugins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">module_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">module_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">py_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">js_plugins</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">js_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">js_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">js_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">js_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">css_plugins</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">css_path</span> <span class="ow">in</span> <span class="n">css_plugins</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">css_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
             <span class="n">css_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
+        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">py_plugins</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
         <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
         <span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
         <span class="c"># Setup some events</span>
@@ -506,6 +515,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_new_term_hooks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_env_hooks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">plugin_name</span><span class="p">,</span> <span class="n">hooks</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">plugin_name</span> <span class="o">=</span> <span class="n">plugin_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="s">&#39;WebSocket&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
                 <span class="c"># Apply the plugin&#39;s WebSocket actions</span>
                 <span class="k">for</span> <span class="n">ws_command</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">[</span><span class="s">&#39;WebSocket&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -563,7 +573,6 @@
 <span class="sd">        &#39;terminal:authenticate&#39; event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.authenticate()&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">SESSIONS</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_metadata</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;application&#39;</span><span class="p">:</span> <span class="s">&#39;terminal&#39;</span><span class="p">,</span>
             <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
@@ -1293,7 +1302,7 @@
                     <span class="n">resumed_dtach</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">else</span><span class="p">:</span> <span class="c"># No existing dtach session...  Make a new one</span>
                     <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;dtach -c </span><span class="si">%s</span><span class="s"> -E -z -r none </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dtach_path</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;new_terminal cmd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;new_terminal cmd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">cmd</span><span class="p">)))</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
                 <span class="n">cmd</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
             <span class="c"># Set some environment variables so the programs we execute can use</span>
@@ -1988,17 +1997,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bell_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
         <span class="n">bell_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bell_path</span><span class="p">,</span> <span class="s">&#39;bell.ogg&#39;</span><span class="p">)</span>
-        <span class="n">fallback_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fallback_bell.txt&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">bell_path</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">create_data_uri</span><span class="p">(</span><span class="n">bell_path</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">MimeTypeFail</span><span class="p">:</span>
-                <span class="n">fallback_bell</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fallback_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">fallback_bell</span>
-        <span class="k">else</span><span class="p">:</span> <span class="c"># There&#39;s always the fallback</span>
-            <span class="n">fallback_bell</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fallback_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-            <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">fallback_bell</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">create_data_uri</span><span class="p">(</span><span class="n">bell_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="n">MimeTypeFail</span><span class="p">):</span> <span class="c"># There&#39;s always the fallback</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not load bell: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">bell_path</span><span class="p">)</span>
+            <span class="n">fallback_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fallback_bell.txt&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fallback_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">mimetype</span> <span class="o">=</span> <span class="n">bell_data_uri</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;terminal:load_bell&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -2015,7 +2021,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">static_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
         <span class="n">webworker_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_url</span><span class="p">,</span> <span class="s">&#39;webworkers&#39;</span><span class="p">,</span> <span class="s">&#39;term_ww.js&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">webworker_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">webworker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">go_process</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:load_webworker&#39;</span><span class="p">:</span> <span class="n">go_process</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
@@ -2562,7 +2568,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Figure out which options are being overridden on the command line</span>
     <span class="n">arguments</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">terminal_options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">,</span> <span class="s">&#39;syslog_session_logging&#39;</span><span class="p">,</span> <span class="s">&#39;session_logging&#39;</span><span class="p">]</span>
+    <span class="n">terminal_options</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;dtach&#39;</span><span class="p">,</span> <span class="s">&#39;syslog_session_logging&#39;</span><span class="p">,</span> <span class="s">&#39;session_logging&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">):</span>
             <span class="k">break</span>
@@ -2571,16 +2577,16 @@
     <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">argument</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">terminal_options</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">argument</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="n">settings</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">argument</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">settings</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">argument</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">str</span> <span class="o">==</span> <span class="nb">bytes</span><span class="p">:</span> <span class="c"># Python 2</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
                     <span class="c"># For whatever reason Tornado doesn&#39;t like unicode values</span>
                     <span class="c"># for its own settings unless you&#39;re using Python 3...</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">options</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="init"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.init">[docs]</a><span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -2595,7 +2601,7 @@
         <span class="c"># a new 50terminal.conf</span>
         <span class="k">if</span> <span class="s">&#39;terminal&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">]:</span>
             <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
                     <span class="k">continue</span>
@@ -2620,7 +2626,7 @@
         <span class="n">settings_path</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span>
         <span class="n">terminal_conf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings_path</span><span class="p">,</span> <span class="s">&#39;50terminal.conf&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">terminal_conf_path</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">settings_template</span>
+            <span class="kn">from</span> <span class="nn">gateone.core.configuration</span> <span class="kn">import</span> <span class="n">settings_template</span>
             <span class="c"># TODO: Think about moving 50terminal.conf template into the</span>
             <span class="c"># terminal application&#39;s directory.</span>
             <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -2650,7 +2656,7 @@
             <span class="p">})</span>
             <span class="n">new_term_settings</span> <span class="o">=</span> <span class="n">settings_template</span><span class="p">(</span>
                 <span class="n">template_path</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">])</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">terminal_conf_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">terminal_conf_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;// This is Gate One&#39;s Terminal application settings &quot;</span>
                     <span class="s">&quot;file.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">))</span>
@@ -2729,6 +2735,11 @@
     <span class="n">TermStaticFiles</span><span class="p">,</span>
     <span class="p">{</span><span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)}</span>
 <span class="p">))</span>
+
+<span class="c"># Command line argument commands</span>
+<span class="n">commands</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;termlog&#39;</span><span class="p">:</span> <span class="n">logviewer_main</span>
+<span class="p">}</span>
 </pre></div>
 
           </div>

@@ -113,6 +113,13 @@ prefixing:</p>
 <p class="last">This module does not cover session logging within the Terminal application.
 That is a built-in feature of the <a class="reference internal" href="termio.html#module-termio" title="termio"><tt class="xref py py-obj docutils literal"><span class="pre">termio</span></tt></a> module.</p>
 </div>
+<dl class="exception">
+<dt id="gateone.core.log.UnknownFacility">
+<em class="property">exception </em><tt class="descclassname">gateone.core.log.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/gateone/core/log.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.UnknownFacility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised if <a class="reference internal" href="#gateone.core.log.string_to_syslog_facility" title="gateone.core.log.string_to_syslog_facility"><tt class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></tt></a> is given a string that doesn't match
+a known syslog facility.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="gateone.core.log.JSONAdapter">
 <em class="property">class </em><tt class="descclassname">gateone.core.log.</tt><tt class="descname">JSONAdapter</tt><big>(</big><em>logger</em>, <em>extra</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/log.html#JSONAdapter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.JSONAdapter" title="Permalink to this definition">¶</a></dt>
@@ -124,6 +131,13 @@ easy stacking of LoggerAdapters, if so desired.</p>
 <p>You can effectively pass keyword arguments as shown in the
 following example:</p>
 <p>adapter = LoggerAdapter(someLogger, dict(p1=v1, p2=&quot;v2&quot;))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.core.log.string_to_syslog_facility">
+<tt class="descclassname">gateone.core.log.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/log.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string (<em>facility</em>) such as, &quot;daemon&quot; returns the numeric
+syslog.LOG_* equivalent.</p>
 </dd></dl>
 
 <dl class="function">
