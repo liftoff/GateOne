@@ -56,7 +56,6 @@ gentoo_script = os.path.join(setup_dir, 'scripts/init/gateone-gentoo.sh')
 upstart_script = os.path.join(setup_dir, 'scripts/init/gateone.conf')
 temp_script_path = os.path.join(setup_dir, 'build/gateone')
 bsd_script_path = '/usr/local/etc/rc.d/gateone'
-bsd_rcd = '/etc/rc.conf'
 upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
 if os.path.exists('/etc/debian_version'):
     shutil.copy(debian_script, temp_script_path)
@@ -64,8 +63,6 @@ elif os.path.exists('/etc/redhat-release'):
     shutil.copy(redhat_script, temp_script_path)
 elif os.path.exists('/etc/freebsd-update.conf'):
      shutil.copy(freebsd_script, bsd_script_path)
-     with open(bsd_rcd, "a") as myfile:
-       myfile.write("gateone_enable=YES") 
 elif os.path.exists('/etc/gentoo-release'):
     shutil.copy(gentoo_script, temp_script_path)
     conf_file = ['/etc/conf.d', [
