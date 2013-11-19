@@ -78,7 +78,8 @@ openwrt_script = os.path.join(setup_dir, 'scripts/init/gateone-openwrt.sh')
 upstart_script = os.path.join(setup_dir, 'scripts/init/gateone.conf')
 systemd_service = os.path.join(setup_dir, 'scripts/init/gateone.service')
 temp_script_path = os.path.join(setup_dir, 'build/gateone')
-bsd_script_path = '/usr/local/etc/rc.d/gateone'
+bsd_temp = os.path.join(setup_dir, 'build/freebsd')
+bsd_temp_script = os.path.join(bsd_temp, 'gateone')
 upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
 systemd_temp_path = os.path.join(setup_dir, 'build/gateone.service')
 if os.path.exists('/etc/debian_version'):
@@ -86,7 +87,9 @@ if os.path.exists('/etc/debian_version'):
 elif os.path.exists('/etc/redhat-release'):
     shutil.copy(redhat_script, temp_script_path)
 elif os.path.exists('/etc/freebsd-update.conf'):
-     shutil.copy(freebsd_script, bsd_script_path)
+    if not os.path.isdir(bsd_temp):
+        os.mkdir(bsd_temp)
+    shutil.copy(freebsd_script, bsd_temp_script)
 elif os.path.exists('/etc/gentoo-release'):
     shutil.copy(gentoo_script, temp_script_path)
     conf_file = ['/etc/conf.d', [
@@ -98,6 +101,7 @@ elif os.path.exists('/etc/openwrt_release'):
 if os.path.isdir('/etc/init'):
     shutil.copy(upstart_script, upstart_temp_path)
     upstart_file = ['/etc/init', [upstart_temp_path]]
+
 # Handle systemd (can be used in conjunction with other init processes)
 systemd = which('systemd-notify')
 if systemd:
@@ -110,7 +114,10 @@ if systemd:
             'pkg-config systemd --variable=systemdsystemunitdir')
         upstart_file = [systemd_system_unit_dir, [systemd_temp_path]]
 
-if os.path.exists(temp_script_path):
+# Handle FreeBSD and regular init.d scripts
+if os.path.exists(bsd_temp_script):
+    init_script = ['/usr/local/etc/rc.d', [bsd_temp_script]]
+elif os.path.exists(temp_script_path):
     init_script = ['/etc/init.d', [temp_script_path]]
 
 # NOTE: This function was copied from Django's setup.py (thanks guys!)
@@ -222,6 +229,13 @@ class FixInitPaths(install):
             temp = temp.replace(
                 'ExecStart=gateone', 'ExecStart=%s' % gateone_path)
             with io.open(systemd_temp_path, 'w', encoding='utf-8') as f:
+                f.write(temp)
+        if os.path.exists(bsd_temp_script):
+            with io.open(bsd_temp_script, encoding='utf-8') as f:
+                temp = f.read()
+            temp = temp.replace(
+                'command=gateone', 'command=%s' % gateone_path)
+            with io.open(bsd_temp_script, 'w', encoding='utf-8') as f:
                 f.write(temp)
 
 setup(
