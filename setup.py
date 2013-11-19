@@ -72,17 +72,21 @@ conf_file = [] # Only used on Gentoo
 upstart_file = [] # Only used on Ubuntu (I think)
 debian_script = os.path.join(setup_dir, 'scripts/init/gateone-debian.sh')
 redhat_script = os.path.join(setup_dir, 'scripts/init/gateone-redhat.sh')
+freebsd_script = os.path.join(setup_dir, 'scripts/init/gateone-freebsd.sh')
 gentoo_script = os.path.join(setup_dir, 'scripts/init/gateone-gentoo.sh')
 openwrt_script = os.path.join(setup_dir, 'scripts/init/gateone-openwrt.sh')
 upstart_script = os.path.join(setup_dir, 'scripts/init/gateone.conf')
 systemd_service = os.path.join(setup_dir, 'scripts/init/gateone.service')
 temp_script_path = os.path.join(setup_dir, 'build/gateone')
+bsd_script_path = '/usr/local/etc/rc.d/gateone'
 upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
 systemd_temp_path = os.path.join(setup_dir, 'build/gateone.service')
 if os.path.exists('/etc/debian_version'):
     shutil.copy(debian_script, temp_script_path)
 elif os.path.exists('/etc/redhat-release'):
     shutil.copy(redhat_script, temp_script_path)
+elif os.path.exists('/etc/freebsd-update.conf'):
+     shutil.copy(freebsd_script, bsd_script_path)
 elif os.path.exists('/etc/gentoo-release'):
     shutil.copy(gentoo_script, temp_script_path)
     conf_file = ['/etc/conf.d', [
