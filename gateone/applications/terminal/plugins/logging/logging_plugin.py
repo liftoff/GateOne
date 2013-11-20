@@ -49,6 +49,7 @@ from multiprocessing import Process, Queue
 
 # Our stuff
 from gateone import GATEONE_DIR
+from gateone.auth.authorization import applicable_policies
 from gateone.applications.terminal.logviewer import flatten_log
 from gateone.applications.terminal.logviewer import render_log_frames
 from termio import get_or_update_metadata
@@ -597,6 +598,25 @@ def _save_log_playback(queue, settings):
     #message = {'save_file': out_dict}
     #self.write_message(message)
 
+def session_logging_check(self):
+    """
+    Attached to the `terminal:session_logging_check` WebSocket action; replies
+    with `terminal:logging_sessions_disabled` if terminal session logging is
+    disabled.
+
+    .. note::
+
+        The `terminal:logging_sessions_disabled` message just has the client
+        remove the "Log Viewer" button so they don't get confused with an
+        always-empty log viewer.
+    """
+    policy = applicable_policies(
+        'terminal', self.current_user, self.ws.prefs)
+    session_logging = policy.get('session_logging', True)
+    if not session_logging:
+        message = {'terminal:logging_sessions_disabled': True}
+        self.write_message(message)
+
 def send_logging_css_template(self):
     """
     Sends our logging.css template to the client using the 'load_style'
@@ -612,6 +632,7 @@ hooks = {
         'terminal:logging_get_log_flat': retrieve_log_flat,
         'terminal:logging_get_log_playback': retrieve_log_playback,
         'terminal:logging_get_log_file': save_log_playback,
+        'terminal:session_logging_check': session_logging_check,
     },
     'Events': {
         'terminal:authenticate': send_logging_css_template

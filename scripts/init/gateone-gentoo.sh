@@ -18,7 +18,7 @@ start() {
 
 stop() {
         ebegin "Stopping Gate One"
-        start-stop-daemon --stop --name gateone
+        start-stop-daemon --stop --name ${GATEONE}
         eend $?
 }
 
@@ -32,5 +32,5 @@ reload()
 killterms()
 {
         einfo "Killing all running Gate One terminals..."
-        ${GATEONE_DIR}/gateone.py --kill
+        ${GATEONE} --kill
 }

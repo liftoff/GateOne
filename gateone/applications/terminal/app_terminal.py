@@ -2,6 +2,7 @@
 #
 #       Copyright 2013 Liftoff Software Corporation
 #
+from __future__ import unicode_literals
 
 __doc__ = """\
 A Gate One Application (`GOApplication`) that provides a terminal emulator.
@@ -1275,7 +1276,7 @@ class TerminalApplication(GOApplication):
             if resumed_dtach:
                 # Send an extra Ctrl-L to refresh the screen and fix the sizing
                 # after it has been reattached.
-                m.write(u'\x0c')
+                m.write('\x0c')
         else:
             # Terminal already exists
             m = term_obj['multiplex']
@@ -1550,12 +1551,12 @@ class TerminalApplication(GOApplication):
         self.term_log.debug('reset_terminal(%s)' % term)
         term = int(term)
         # This re-creates all the tabstops:
-        tabs = u'\x1bH        ' * 22
+        tabs = '\x1bH        ' * 22
         reset_sequence = (
             '\r\x1b[3g        %sr\x1bc\x1b[!p\x1b[?3;4l\x1b[4l\x1b>\r' % tabs)
         multiplex = self.loc_terms[term]['multiplex']
         multiplex.term.write(reset_sequence)
-        multiplex.write(u'\x0c') # ctrl-l
+        multiplex.write('\x0c') # ctrl-l
         self.full_refresh(term)
         self.trigger("terminal:reset_terminal", term)
 
@@ -1852,7 +1853,7 @@ class TerminalApplication(GOApplication):
             if multiplex.isalive():
                 multiplex.write(chars)
                 # Handle (gracefully) the situation where a capture is stopped
-                if u'\x03' in chars:
+                if '\x03' in chars:
                     if not multiplex.term.capture:
                         return # Nothing to do
                     # Make sure the call to abort_capture() comes *after* the
@@ -2436,16 +2437,16 @@ class TerminalApplication(GOApplication):
         colors_256 = ""
         for i in xrange(256):
             i = str(i)
-            fg = u"#%s span.✈fx%s {color: #%s;}" % (
+            fg = "#%s span.✈fx%s {color: #%s;}" % (
                 self.ws.container, i, color_map[i])
-            bg = u"#%s span.✈bx%s {background-color: #%s;} " % (
+            bg = "#%s span.✈bx%s {background-color: #%s;} " % (
                 self.ws.container, i, color_map[i])
             fg_rev =(
-                u"#%s span.✈reverse.fx%s {background-color: #%s; color: "
-                u"inherit;}" % (self.ws.container, i, color_map[i]))
+                "#%s span.✈reverse.fx%s {background-color: #%s; color: "
+                "inherit;}" % (self.ws.container, i, color_map[i]))
             bg_rev =(
-                u"#%s span.✈reverse.bx%s {color: #%s; background-color: "
-                u"inherit;} " % (self.ws.container, i, color_map[i]))
+                "#%s span.✈reverse.bx%s {color: #%s; background-color: "
+                "inherit;} " % (self.ws.container, i, color_map[i]))
             colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
         with io.open(cached_256_colors, 'w', encoding="utf-8") as f:
             f.write(colors_256)
@@ -2532,9 +2533,9 @@ def init(settings):
     Checks to make sure 50terminal.conf is created if terminal-specific settings
     are not found in the settings directory.
     """
-    terminal_options = [ # These are now terminal-app-specific setttings
+    terminal_options = ( # These are now terminal-app-specific setttings
         'command', 'dtach', 'session_logging', 'syslog_session_logging'
-    ]
+    )
     if os.path.exists(options.config):
         # Get the old settings from the old config file and use them to generate
         # a new 50terminal.conf
@@ -2560,7 +2561,13 @@ def init(settings):
                     key = 'commands' # Convert to new name
                     value = {'SSH': value}
                 settings['*']['terminal'].update({key: value})
-    if 'terminal' not in settings['*']:
+    required_settings = ('commands', 'default_command', 'session_logging')
+    term_settings = settings['*'].get('terminal')
+    generate_terminal_config = False
+    for setting in required_settings:
+        if setting not in term_settings:
+            generate_terminal_config = True
+    if not term_settings or generate_terminal_config:
         # Create some defaults and save the config as 50terminal.conf
         settings_path = options.settings_dir
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')

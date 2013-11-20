@@ -56,6 +56,16 @@ go.Base.update(GateOne.TermLogging, {
         go.Net.addAction('terminal:logging_logs_complete', l.incomingLogsCompleteAction);
         go.Net.addAction('terminal:logging_log_flat', l.displayFlatLogAction);
         go.Net.addAction('terminal:logging_log_playback', l.displayPlaybackLogAction);
+        go.Net.addAction('terminal:logging_sessions_disabled', l.sessionLoggingDisabled);
+        // Have the server tell us if session logging is enabled.  If it isn't we'll get the 'terminal:logging_sessions_disabled' response.
+        go.ws.send(JSON.stringify({'terminal:session_logging_check': null}));
+    },
+    sessionLoggingDisabled: function() {
+        /**:GateOne.TermLogging.sessionLoggingDisabled()
+
+        Just removes the "Log Viewer" button from the Terminal info panel.  It gets sent if the server has ``"session_logging": false``.
+        */
+        u.removeElement('#'+prefix+'logging_viewlogs');
     },
     createPanel: function() {
         /**:GateOne.TermLogging.createPanel()

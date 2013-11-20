@@ -1427,16 +1427,16 @@ def minify(path_or_fileobj, kind):
         import slimit
     except ImportError:
         slimit = None
-        logging.warning(_(
-            "slimit module not found.  JavaScript will not be minified."))
-        logging.info(_("To install slimit:  sudo pip install slimit"))
+        #logging.warning(_(
+            #"slimit module not found.  JavaScript will not be minified."))
+        #logging.info(_("To install slimit:  sudo pip install slimit"))
     try:
         import cssmin
     except ImportError:
         cssmin = None
-        logging.warning(_(
-            "cssmin module not found.  CSS will not be minified."))
-        logging.info(_("To install cssmin:  sudo pip install cssmin"))
+        #logging.warning(_(
+            #"cssmin module not found.  CSS will not be minified."))
+        #logging.info(_("To install cssmin:  sudo pip install cssmin"))
     if isinstance(path_or_fileobj, basestring):
         filename = os.path.split(path_or_fileobj)[1]
         with io.open(path_or_fileobj, mode='r', encoding='utf-8') as f:

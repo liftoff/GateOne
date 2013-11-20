@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 #
-# Start/stops the Gate One daemon (gateone.py).
+# Start/stops the Gate One daemon.
 #
 
 GATEONE=gateone

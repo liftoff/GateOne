@@ -1,4 +1,4 @@
-# Options to pass to gateone.py.
+# Options to pass to gateone.
 # Put this file in /etc/conf.d/ as /etc/conf.d/gateone
 
 # Uncomment and adjust to your liking:

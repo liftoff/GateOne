@@ -1095,13 +1095,13 @@ class ImageFile(FileType):
         .. note::  Unlike :class:`FileType`, *term_instance* is mandatory.
         """
         logging.debug('ImageFile.capture()')
+        global _logged_pil_warning
         Image = False
         try:
             from PIL import Image
         except ImportError:
             if _logged_pil_warning:
                 return
-            global _logged_pil_warning
             _logged_pil_warning = True
             logging.warning(_(
                 "Could not import the Python Imaging Library (PIL).  "
@@ -1512,11 +1512,11 @@ class OGGFile(SoundFile):
         like ID3 tags, bitrate, channels, etc.
         """
         if not self.sent_message:
+            global _logged_mutagen_warning
             try:
                 import mutagen.oggvorbis
             except ImportError:
                 if not _logged_mutagen_warning:
-                    global _logged_mutagen_warning
                     _logged_mutagen_warning = True
                     logging.warning(_(
                         "Could not import the mutagen Python module.  "

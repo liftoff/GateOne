@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from distutils.command.install import install, INSTALL_SCHEMES
+from setuptools.command.install import install
+from distutils.command.install import INSTALL_SCHEMES
 import sys, os, shutil, io
 
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
-    #print(repr(scheme))
 
 # Globals
 PYTHON3 = False
@@ -67,6 +67,10 @@ if not os.path.exists(build_dir):
     os.mkdir(build_dir)
 
 # Detect appropriate init script and make sure it is put in the right place
+skip_init = False
+if '--skip_init_scripts' in sys.argv:
+    skip_init = True
+    sys.argv.remove('--skip_init_scripts')
 init_script = []
 conf_file = [] # Only used on Gentoo
 upstart_file = [] # Only used on Ubuntu (I think)
@@ -82,31 +86,30 @@ bsd_temp = os.path.join(setup_dir, 'build/freebsd')
 bsd_temp_script = os.path.join(bsd_temp, 'gateone')
 upstart_temp_path = os.path.join(setup_dir, 'build/gateone.conf')
 systemd_temp_path = os.path.join(setup_dir, 'build/gateone.service')
-if os.path.exists('/etc/debian_version'):
-    shutil.copy(debian_script, temp_script_path)
-elif os.path.exists('/etc/redhat-release'):
-    shutil.copy(redhat_script, temp_script_path)
-elif os.path.exists('/etc/freebsd-update.conf'):
-    if not os.path.isdir(bsd_temp):
-        os.mkdir(bsd_temp)
-    shutil.copy(freebsd_script, bsd_temp_script)
-elif os.path.exists('/etc/gentoo-release'):
-    shutil.copy(gentoo_script, temp_script_path)
-    conf_file = ['/etc/conf.d', [
-        os.path.join(setup_dir, 'scripts/conf/gateone')
-    ]]
-elif os.path.exists('/etc/openwrt_release'):
-    shutil.copy(openwrt_script, temp_script_path)
-# Handle the upstart script (Ubuntu only as far as I know)
-if os.path.isdir('/etc/init'):
-    shutil.copy(upstart_script, upstart_temp_path)
-    upstart_file = ['/etc/init', [upstart_temp_path]]
+if not skip_init:
+    if os.path.exists('/etc/debian_version'):
+        shutil.copy(debian_script, temp_script_path)
+    elif os.path.exists('/etc/redhat-release'):
+        shutil.copy(redhat_script, temp_script_path)
+    elif os.path.exists('/etc/freebsd-update.conf'):
+        if not os.path.isdir(bsd_temp):
+            os.mkdir(bsd_temp)
+        shutil.copy(freebsd_script, bsd_temp_script)
+    elif os.path.exists('/etc/gentoo-release'):
+        shutil.copy(gentoo_script, temp_script_path)
+        conf_file = ['/etc/conf.d', [
+            os.path.join(setup_dir, 'scripts/conf/gateone')
+        ]]
+    elif os.path.exists('/etc/openwrt_release'):
+        shutil.copy(openwrt_script, temp_script_path)
+    # Handle the upstart script (Ubuntu only as far as I know)
+    if os.path.isdir('/etc/init'):
+        shutil.copy(upstart_script, upstart_temp_path)
+        upstart_file = ['/etc/init', [upstart_temp_path]]
 
-# Handle systemd (can be used in conjunction with other init processes)
-systemd = which('systemd-notify')
-if systemd:
-    retcode, output = getstatusoutput('{0} --booted'.format(systemd))
-    if retcode == 0:
+    # Handle systemd (can be used in conjunction with other init processes)
+    systemd = which('systemd-notify')
+    if systemd:
         # System is using systemd
         shutil.copy(systemd_service, systemd_temp_path)
         # This pkg-config command tells us where to put systemd .service files:
@@ -114,11 +117,11 @@ if systemd:
             'pkg-config systemd --variable=systemdsystemunitdir')
         upstart_file = [systemd_system_unit_dir, [systemd_temp_path]]
 
-# Handle FreeBSD and regular init.d scripts
-if os.path.exists(bsd_temp_script):
-    init_script = ['/usr/local/etc/rc.d', [bsd_temp_script]]
-elif os.path.exists(temp_script_path):
-    init_script = ['/etc/init.d', [temp_script_path]]
+    # Handle FreeBSD and regular init.d scripts
+    if os.path.exists(bsd_temp_script):
+        init_script = ['/usr/local/etc/rc.d', [bsd_temp_script]]
+    elif os.path.exists(temp_script_path):
+        init_script = ['/etc/init.d', [temp_script_path]]
 
 # NOTE: This function was copied from Django's setup.py (thanks guys!)
 def fullsplit(path, result=None):
@@ -169,7 +172,7 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
             if f not in ignore_list]
         ])
 
-if os.getuid() == 0:
+if os.getuid() == 0 and not skip_init:
     if init_script:
         data_files.append(init_script)
     if conf_file:
@@ -210,6 +213,8 @@ class FixInitPaths(install):
         the 'gateone' script inside init scripts, .conf, and .service files.
         """
         install.finalize_options(self)
+        if skip_init:
+            return
         gateone_path = os.path.join(self.install_scripts, 'gateone')
         if os.path.exists(temp_script_path):
             with io.open(temp_script_path, encoding='utf-8') as f:
