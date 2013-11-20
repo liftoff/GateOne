@@ -617,7 +617,7 @@ class TerminalApplication(GOApplication):
     def on_close(self):
         # Remove all attached callbacks so we're not wasting memory/CPU on
         # disconnected clients
-        if not hasattr(self.ws, 'location'):
+        if not self.ws.session or not hasattr(self.ws, 'location'):
             return # Connection closed before authentication completed
         session_locs = SESSIONS[self.ws.session]['locations']
         if self.ws.location in session_locs and hasattr(self, 'loc_terms'):
@@ -2562,7 +2562,7 @@ def init(settings):
                     value = {'SSH': value}
                 settings['*']['terminal'].update({key: value})
     required_settings = ('commands', 'default_command', 'session_logging')
-    term_settings = settings['*'].get('terminal')
+    term_settings = settings['*'].get('terminal', {})
     generate_terminal_config = False
     for setting in required_settings:
         if setting not in term_settings:
