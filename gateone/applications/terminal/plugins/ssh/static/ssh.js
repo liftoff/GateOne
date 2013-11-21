@@ -55,18 +55,19 @@ go.Base.update(go.SSH, {
                 if (!str.match(/[\$\n\!\;&` |<>]/)) { // Check for bad characters
                     if (u.startsWith('ssh://', str) || u.startsWith('telnet://', str)) {
                         var connect = function(term) {
-                            // This ensures that we only send this string if it's a new terminal
-                            if (go.Terminal.terminals[term]['title'] == 'SSH Connect') {
-                                go.Terminal.sendString(str + '\n', term);
-                            }
+                            // Wrap in a short timeout to give the server/client time to establish a new terminal connection
+                            setTimeout(function() {
+                                // This ensures that we only send this string if it's a new terminal
+                                if (go.Terminal.terminals[term]['title'] == 'SSH Connect') {
+                                    go.Terminal.sendString(str + '\n', term);
+                                }
+                            }, 500);
                         }
                         if (sshOnce && sshOnce.toLowerCase() == 'true') {
                             u.removeQueryVariable('ssh'); // Clean up the URL
                             u.removeQueryVariable('ssh_once');
                             termNum = go.Terminal.newTerminal();
-                            setTimeout(function() {
-                                connect(termNum);
-                            }, 500);
+                            connect(termNum);
                         } else {
                             go.Events.on("terminal:new_terminal", connect);
                             termNum = go.Terminal.newTerminal();

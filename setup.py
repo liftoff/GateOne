@@ -106,7 +106,6 @@ if not skip_init:
     if os.path.isdir('/etc/init'):
         shutil.copy(upstart_script, upstart_temp_path)
         upstart_file = ['/etc/init', [upstart_temp_path]]
-
     # Handle systemd (can be used in conjunction with other init processes)
     systemd = which('systemd-notify')
     if systemd:
@@ -116,7 +115,6 @@ if not skip_init:
         retcode, systemd_system_unit_dir = getstatusoutput(
             'pkg-config systemd --variable=systemdsystemunitdir')
         upstart_file = [systemd_system_unit_dir, [systemd_temp_path]]
-
     # Handle FreeBSD and regular init.d scripts
     if os.path.exists(bsd_temp_script):
         init_script = ['/usr/local/etc/rc.d', [bsd_temp_script]]

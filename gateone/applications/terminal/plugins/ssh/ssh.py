@@ -1130,8 +1130,16 @@ def send_ssh_css_template(self):
 def initialize(self):
     """
     Called inside of :meth:`TerminalApplication.initialize` shortly after the
-    WebSocket is instantiated.
+    WebSocket is instantiated.  Attaches our two `terminal:authenticate` events
+    (to create the user's .ssh dir and send our CSS template) and ensures that
+    the ssh_connect.py script is executable.
     """
+    ssh_connect_path = os.path.join(PLUGIN_PATH, 'scripts', 'ssh_connect.py')
+    if os.path.exists(ssh_connect_path):
+        import stat
+        st = os.stat(ssh_connect_path)
+        if not bool(st.st_mode & stat.S_IXOTH):
+            os.chmod(ssh_connect_path, 0o755)
     self.ssh_log = go_logger("gateone.terminal.ssh", plugin='ssh')
     # NOTE:  Why not use the 'Events' hook for these?  You can't attach two
     # functions to the same event via that mechanism because it's a dict

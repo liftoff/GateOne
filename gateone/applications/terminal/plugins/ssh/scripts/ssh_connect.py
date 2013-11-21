@@ -452,8 +452,15 @@ def openssh_connect(
         socket=socket,
         cmd=cmd,
         temp=script_path)
-    with io.open(script_path, 'w', encoding='utf-8') as f:
-        f.write(script) # Save it to disk
+    # This whole if/else block is here to enable users running Python 2.7 to
+    # remove the 'from __future__ import unicode_literals' line to work around
+    # this bug: http://bugs.python.org/issue9161
+    if isinstance(script, bytes):
+        with io.open(script_path, 'wb') as f:
+            f.write(script) # Save it to disk
+    else:
+        with io.open(script_path, 'w', encoding='utf-8') as f:
+            f.write(script) # Save it to disk
     # NOTE: We wrap in a shell script so we can execute it and immediately quit.
     # By doing this instead of keeping ssh_connect.py running we can save a lot
     # of memory (depending on how many terminals are open).
@@ -564,10 +571,14 @@ def parse_url(url):
     """
     identities = set()
     debug = False
-    import urlparse, socket
-    parsed = urlparse.urlparse(url)
+    import socket
+    try:
+        from urlparse import urlparse, parse_qs
+    except ImportError: # Python 3
+        from urllib.parse import urlparse, parse_qs
+    parsed = urlparse(url)
     if parsed.query:
-        q_attrs = urlparse.parse_qs(parsed.query)
+        q_attrs = parse_qs(parsed.query)
         for ident in q_attrs.get('identities', []):
             identities.update(ident.split(','))
         debug = q_attrs.get('debug', False)
@@ -620,13 +631,27 @@ def main():
     )
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()
-    parser.add_option("-c", "--command",
-        dest="command",
-        default='ssh',
-        help=_("Path to the ssh command.  Default: 'ssh' (which usually means "
-              "/usr/bin/ssh)."),
-        metavar="'<filepath>'"
-    )
+    try:
+        parser.add_option("-c", "--command",
+            dest="command",
+            default='ssh',
+            help=_("Path to the ssh command.  Default: 'ssh' (which usually means "
+                "/usr/bin/ssh)."),
+            metavar="'<filepath>'"
+        )
+    except TypeError:
+        print(
+            "ERROR: You're using an older version of Python that has a bug "
+            "with the OptionParser module (see "
+            "http://bugs.python.org/issue9161).")
+        print(
+            "To resolve this problem you have two options:\n"
+            " * Edit this script (%s) and remove this line (at the top):\n"
+            "    from __future__ import unicode_literals\n"
+            " * Upgrade your version of Python to the latest."
+            % APPLICATION_PATH)
+        raw_input(_("[Press Enter to close this terminal]"))
+        sys.exit(1)
     parser.add_option("-a", "--args",
         dest="additional_args",
         default=None,

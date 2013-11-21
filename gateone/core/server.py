@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131118212918" # Gets replaced by git (holds the date/time)
+__commit__ = "20131120094856" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -842,7 +842,7 @@ def timeout_sessions():
 
         # Imagine this is inside an application's authenticate() method:
         sess = SESSIONS[self.ws.session]
-        # Pretend timeout_sesssion() is a function we wrote to kill stuff
+        # Pretend timeout_session() is a function we wrote to kill stuff
         if timeout_session not in sess["timeout_session"]:
             sess["timeout_session"].append(timeout_session)
 
@@ -1368,6 +1368,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.auth_log = go_logger('gateone.auth')
         self.client_log = go_logger('gateone.client')
         self._events = {}
+        self.session = None # Just a placeholder; gets set in authenticate()
         self.locations = {} # Just a placeholder; gets set in authenticate()
         self.location = None # Just a placeholder; gets set in authenticate()
         # This is used to keep track of used API authentication signatures so

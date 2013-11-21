@@ -2532,7 +2532,14 @@ def init(settings):
     """
     Checks to make sure 50terminal.conf is created if terminal-specific settings
     are not found in the settings directory.
+
+    Also checks to make sure that the logviewer.py script is executable.
     """
+    logviewer_path = os.path.join(APPLICATION_PATH, 'logviewer.py')
+    import stat
+    st = os.stat(logviewer_path)
+    if not bool(st.st_mode & stat.S_IXOTH):
+        os.chmod(logviewer_path, 0o755)
     terminal_options = ( # These are now terminal-app-specific setttings
         'command', 'dtach', 'session_logging', 'syslog_session_logging'
     )
