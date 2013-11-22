@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131121220213" # Gets replaced by git (holds the date/time)
+__commit__ = "20131122090455" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -4041,8 +4041,9 @@ def main(installed=True):
             conf.write(msg)
             conf.write(unicode(api_keys))
         logging.info(_(u"A new API key has been generated: %s" % api_key))
-        logging.info(_(u"This key can now be used to embed Gate One into other "
-                u"applications."))
+        logging.info(_(
+            u"This key can now be used to embed Gate One into other "
+            u"applications."))
         sys.exit(0)
     if options.combine_js:
         from .configuration import combine_javascript
@@ -4212,6 +4213,28 @@ def main(installed=True):
         pid = read_pid(go_settings['pid_file'])
         logger.info(_("Process running with pid " + pid))
         tornado.ioloop.IOLoop.instance().start()
+    except socket.error as e:
+        import errno, pwd
+        if not address: address = "0.0.0.0"
+        if e.errno == errno.EADDRINUSE: # Address/port already in use
+            logging.error(_(
+                "Could not listen on {address}:{port} (address:port is already "
+                "in use by another application).").format(
+                    address=address, port=options.port))
+        elif e.errno == errno.EACCES:
+            logging.error(_(
+                "User '{user}' does not have permission to create a process "
+                "listening on {address}:{port}.  Typically only root can use "
+                "ports < 1024.").format(
+                    user=pwd.getpwuid(uid)[0],
+                    address=address,
+                    port=options.port))
+        else:
+            logging.error(_(
+                "An error was encountered trying to listen on "
+                "{address}:{port}...").format(
+                    address=address, port=options.port))
+        logging.error(_("Exception was: {0}").format(e.args))
     except KeyboardInterrupt: # ctrl-c
         logger.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
     finally:

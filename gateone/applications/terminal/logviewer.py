@@ -105,6 +105,7 @@ Class Docstrings
 """
 
 # Globals
+APPLICATION_PATH = os.path.split(__file__)[0]
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)', re.MULTILINE)
 RE_TITLE_SEQ = re.compile(
@@ -443,8 +444,8 @@ def get_256_colors(container="gateone"):
     used as the ``{{container}}`` variable when rendering the template (
     defaults to "gateone").
     """
-    terminal_app_path = os.path.join(GATEONE_DIR, 'applications', 'terminal')
-    colors_json_path = os.path.join(terminal_app_path, '256colors.json')
+    colors_json_path = os.path.join(
+        APPLICATION_PATH, 'static', '256colors.json')
     # Using get_settings() as a cool hack to get the color data as a nice dict:
     color_map = get_settings(colors_json_path, add_default=False)
     # Setup our 256-color support CSS:

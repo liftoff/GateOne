@@ -331,7 +331,8 @@ def write_pid(path):
             pidfile.truncate(0)
             pidfile.write(unicode(pid))
     except:
-        raise
+        logging.error(_("Could not write PID file: %s") % path)
+        raise # This raises the original exception
     finally:
         try:
             pidfile.close()
