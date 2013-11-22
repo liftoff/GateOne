@@ -269,7 +269,8 @@ class TerminalApplication(GOApplication):
             except AttributeError as e:
                 if options.logging.lower() == 'debug':
                     self.term_log.error(
-                        _("Got exception trying to initialize the {0} plugin:"))
+                        _("Got exception trying to initialize the {0} plugin:"
+                         ).format(plugin))
                     self.term_log.error(e)
                     import traceback
                     traceback.print_exc(file=sys.stdout)
