@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131120203553" # Gets replaced by git (holds the date/time)
+__commit__ = "20131121213705" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3097,8 +3097,17 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         mtime = os.stat(js_path).st_mtime
         filename = os.path.split(js_path)[1]
         script = {'name': filename}
-        safe_path = js_path.replace('/', '_') # So we can name the file safely
-        rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
+        filepath_hash = hashlib.md5(
+            js_path.encode('utf-8')).hexdigest()[:10]
+        # Store the file info in the file_cache just in case we need to
+        # reference the original (non-rendered) path later:
+        self.file_cache[filepath_hash] = {
+            'filename': filename,
+            'kind': 'js',
+            'path': js_path,
+            'mtime': mtime,
+        }
+        rendered_filename = 'rendered_%s_%s' % (filepath_hash, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if os.path.exists(rendered_path):
             self.send_js(rendered_path, filename=filename, **kwargs)
@@ -3122,7 +3131,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for fname in os.listdir(cache_dir):
             if fname == rendered_filename:
                 continue
-            elif safe_path in fname:
+            elif filepath_hash in fname:
                 # Older version present.
                 # Remove it (and it's minified counterpart).
                 os.remove(os.path.join(cache_dir, fname))
@@ -3161,8 +3170,16 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         cache_dir = self.settings['cache_dir']
         mtime = os.stat(css_path).st_mtime
         filename = os.path.split(css_path)[1]
-        safe_path = css_path.replace('/', '_') # So we can name the file safely
-        rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
+        filepath_hash = hashlib.md5(css_path.encode('utf-8')).hexdigest()[:10]
+        # Store the file info in the file_cache just in case we need to
+        # reference the original (non-rendered) path later:
+        self.file_cache[filepath_hash] = {
+            'filename': filename,
+            'kind': 'css',
+            'path': css_path,
+            'mtime': mtime,
+        }
+        rendered_filename = 'rendered_%s_%s' % (filepath_hash, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if os.path.exists(rendered_path):
             self.send_css(rendered_path,
@@ -3187,7 +3204,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for fname in os.listdir(cache_dir):
             if fname == rendered_filename:
                 continue
-            elif safe_path in fname:
+            elif filepath_hash in fname:
                 # Older version present.
                 # Remove it (and it's minified counterpart).
                 os.remove(os.path.join(cache_dir, fname))
