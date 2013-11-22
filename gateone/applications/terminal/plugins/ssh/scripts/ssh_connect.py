@@ -567,19 +567,24 @@ def parse_url(url):
 
         ssh://user@host:22/?identities=id_rsa,id_ecdsa
 
-    .. note:: *password* and *identities* may be returned as None and [], respectively.
+    .. note::
+
+        *password* and *identities* may be returned as None and [],
+        respectively if not provided.
     """
     identities = set()
     debug = False
     import socket
     try:
-        from urlparse import urlparse, parse_qs
+        from urlparse import urlparse, parse_qs, uses_query
+        if 'ssh' not in uses_query: # Only necessary in Python 2.X
+            uses_query.append('ssh')
     except ImportError: # Python 3
         from urllib.parse import urlparse, parse_qs
     parsed = urlparse(url)
     if parsed.query:
         q_attrs = parse_qs(parsed.query)
-        for ident in q_attrs.get('identities', []):
+        for ident in q_attrs.get('identities', identities):
             identities.update(ident.split(','))
         debug = q_attrs.get('debug', False)
         if debug: # Passing anything turns on debug
@@ -622,7 +627,9 @@ def bad_chars(chars):
     return False
 
 def main():
-    """Parse command line arguments and execute ssh_connect()"""
+    """
+    Parse command line arguments and execute ssh_connect()
+    """
     usage = (
         #'Usage:\n'
             '\t%prog [options] <user> <host> [port]\n'

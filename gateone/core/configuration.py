@@ -177,19 +177,35 @@ def define_options(installed=True):
     # NOTE: --settings_dir deprecates --config
     settings_base = os.path.join(os.path.sep, 'etc', 'gateone')
     settings_default = os.path.join(settings_base, 'conf.d')
+    port_default = 443
     log_default = os.path.join(
         os.path.sep, "var", "log", 'gateone', 'gateone.log')
     user_dir_default = os.path.join(
         os.path.sep, "var", "lib", "gateone", "users")
     pid_default = os.path.join(os.path.sep, "var", "run", 'gateone.pid')
+    session_dir_default = os.path.join(tempfile.gettempdir(), 'gateone')
+    cache_dir_default = os.path.join(tempfile.gettempdir(), 'gateone_cache')
+    if os.getuid() != 0: # Not root?  Use $HOME/.gateone/ for everything
+        home = os.path.expanduser('~')
+        user_dir_default = os.path.join(home, '.gateone')
+        settings_default = os.path.join(user_dir_default, 'conf.d')
+        port_default = 10443
+        log_default = os.path.join(user_dir_default, 'logs', 'gateone.log')
+        pid_default = os.path.join(user_dir_default, 'gateone.pid')
+        session_dir_default = os.path.join(user_dir_default, 'sessions')
+        cache_dir_default = os.path.join(user_dir_default, 'cache')
     if not installed:
-        # Change various defaults to work inside of this directory
+        # Running inside the download directory?  Change various defaults to
+        # work inside of this directory
         here = os.path.dirname(os.path.abspath(__file__))
         settings_base = os.path.normpath(os.path.join(here, '..', '..'))
         settings_default = os.path.join(settings_base, 'conf.d')
+        port_default = 10443
         log_default = os.path.join(settings_base, 'logs', 'gateone.log')
         user_dir_default = os.path.join(settings_base, 'users')
-        pid_default = os.path.join(tempfile.gettempdir(), 'gateone.pid')
+        pid_default = os.path.join(settings_base, 'gateone.pid')
+        session_dir_default = os.path.join(settings_base, 'sessions')
+        cache_dir_default = os.path.join(settings_base, 'cache')
     options.log_file_prefix = log_default
     ssl_dir = os.path.join(settings_base, 'ssl')
     define("config",
@@ -207,7 +223,7 @@ def define_options(installed=True):
     )
     define(
         "cache_dir",
-        default=os.path.join(tempfile.gettempdir(), 'gateone_cache'),
+        default=cache_dir_default,
         group='gateone',
         help=_(
             "Path where Gate One should store temporary global files (e.g. "
@@ -242,7 +258,7 @@ def define_options(installed=True):
                " as a separator (e.g. '127.0.0.1;::1;10.1.1.100')."),
         type=basestring)
     define("port",
-           default=443,
+           default=port_default,
            group='gateone',
            help=_("Run on the given port."),
            type=int)
@@ -320,7 +336,7 @@ def define_options(installed=True):
     )
     define(
         "session_dir",
-        default=os.path.join(tempfile.gettempdir(), 'gateone'),
+        default=session_dir_default,
         group='gateone',
         help=_(
             "Path to the location where session information will be stored."),

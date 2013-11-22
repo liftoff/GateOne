@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131120094856" # Gets replaced by git (holds the date/time)
+__commit__ = "20131120203553" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3750,7 +3750,7 @@ def main(installed=True):
     for arg in sys.argv:
         if arg.startswith('--settings_dir'):
             settings_dir = arg.split('=', 1)[1]
-    if not os.path.isdir(settings_dir):
+    if not os.path.isdir(settings_dir) and '--help' not in sys.argv:
         # Try to create it
         try:
             mkdir_p(settings_dir)
@@ -3792,9 +3792,21 @@ def main(installed=True):
     # anywhere in their .py files and they should automatically be usable by the
     # user at this point in the startup process.
     app_modules = load_modules(APPLICATIONS)
+    # Check if the user is running a command as opposed to passing arguments
+    # so we can set the log_file_prefix to something innocuous so as to prevent
+    # IOError exceptions from Tornado's parse_command_line() below...
+    if [a for a in sys.argv[1:] if not a.startswith('-')]:
+        options.log_file_prefix = None
     # Having parse_command_line() after loading applications in case an
     # application has additional calls to define().
-    commands = tornado.options.parse_command_line()
+    try:
+        commands = tornado.options.parse_command_line()
+    except IOError:
+        print(_("Could not write to the log: %s") % options.log_file_prefix)
+        print(_(
+            "You probably want to provide a different destination via "
+            "--log_file_prefix=/path/to/gateone.log"))
+        sys.exit(2)
     # NOTE: Here's how settings/command line args works:
     #       * The 'options' object gets set from the arguments on the command
     #         line (parse_command_line() above).
@@ -3876,6 +3888,15 @@ def main(installed=True):
             #import traceback
             #traceback.print_exc(file=sys.stdout)
             pass
+    if commands: # Optional CLI functionality provided by plugins/applications
+        from .configuration import parse_commands
+        parsed_commands = parse_commands(commands)
+        for command, args in list(parsed_commands.items()):
+            if command not in cli_commands:
+                logger.warning(_("Unknown CLI command: '%s'") % (command))
+            else:
+                cli_commands[command](commands[1:])
+        sys.exit(0)
     logging.info(_("Imported applications: {0}".format(
         ', '.join([a.info['name'] for a in APPLICATIONS]))))
     # Change the uid/gid strings into integers
@@ -4016,15 +4037,6 @@ def main(installed=True):
             options.combine_css,
             options.combine_css_container,
             options.settings_dir)
-        sys.exit(0)
-    if commands: # Optional CLI functionality provided by plugins/applications
-        from .configuration import parse_commands
-        parsed_commands = parse_commands(commands)
-        for command, args in list(parsed_commands.items()):
-            if command not in cli_commands:
-                logger.warning(_("Unknown CLI command: '%s'") % (command))
-            else:
-                cli_commands[command](commands[1:])
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Version: %s (%s)" % (__version__, __commit__)))

@@ -38,12 +38,12 @@ prefixing::
     That is a built-in feature of the `termio` module.
 """
 
-import os.path, logging, json
+import os.path, sys, logging, json
 from .utils import mkdir_p
 from tornado.options import options
 from tornado.log import LogFormatter
 
-LOGS = [] # Holds a list of all our log paths so we can fix permissions
+LOGS = set() # Holds a list of all our log paths so we can fix permissions
 # These should match what's in the syslog module (hopefully not platform-dependent)
 FACILITIES = {
     'auth': 32,
@@ -137,13 +137,16 @@ def go_logger(name, **kwargs):
         [I 130828 15:00:56 app.py:10] {"user": "bob", "ip": "10.1.1.100"} test3
     """
     logger = logging.getLogger(name)
+    if '--help' in sys.argv:
+        # Skip log file creation if the user is just getting help on the CLI
+        return logger
     if not options.log_file_prefix or options.logging.upper() == 'NONE':
         # Logging is disabled but we still have to return the adapter so that
         # passing metadata to the logger won't throw exceptions
         return JSONAdapter(logger, kwargs)
     if name == None:
         # root logger; leave it alone
-        LOGS.append(options.log_file_prefix)
+        LOGS.add(options.log_file_prefix)
         return logger
     # Remove any existing handlers on the logger
     logger.handlers = []
@@ -158,7 +161,7 @@ def go_logger(name, **kwargs):
             basepath = os.path.split(options.log_file_prefix)[0]
         if not os.path.isdir(basepath):
             mkdir_p(basepath)
-        LOGS.append(path)
+        LOGS.add(path)
         channel = logging.handlers.RotatingFileHandler(
             filename=path,
             maxBytes=options.log_file_max_size,

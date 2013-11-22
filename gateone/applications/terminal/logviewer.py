@@ -260,7 +260,10 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
                     out += esc_buffer # Ooh, naked viewing of pretty things!
                 elif csi_type == 'C': # Move cursor right (we want to do this)
                     # Will be something like this: \x1b[208C
-                    spaces = int(match_obj.group(1))
+                    num_spaces = match_obj.group(1)
+                    if not num_spaces:
+                        num_spaces = 1
+                    spaces = int(num_spaces)
                     out += u' ' * spaces # Add an equivalent amount of spaces
                 esc_buffer = u'' # Make room for more!
                 continue
