@@ -124,7 +124,7 @@ def enumerate_logs(self, limit=None):
         return # Nothing left to do
     user = self.current_user['upn']
     users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
-    io_loop = tornado.ioloop.IOLoop.instance()
+    io_loop = tornado.ioloop.IOLoop.current()
     global PROCS
     if user not in PROCS:
         PROCS[user] = {}
@@ -231,7 +231,7 @@ def retrieve_log_flat(self, settings):
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['256_colors'] = get_256_colors(self)
-    io_loop = tornado.ioloop.IOLoop.instance()
+    io_loop = tornado.ioloop.IOLoop.current()
     global PROCS
     if user not in PROCS:
         PROCS[user] = {}
@@ -336,7 +336,7 @@ def retrieve_log_playback(self, settings):
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['256_colors'] = get_256_colors(self)
-    io_loop = tornado.ioloop.IOLoop.instance()
+    io_loop = tornado.ioloop.IOLoop.current()
     global PROCS
     if user not in PROCS:
         PROCS[user] = {}
@@ -472,7 +472,7 @@ def save_log_playback(self, settings):
     global PROC
     PROC = Process(target=_save_log_playback, args=(q, settings))
     PROC.daemon = True # We don't care if this gets terminated mid-process.
-    io_loop = tornado.ioloop.IOLoop.instance()
+    io_loop = tornado.ioloop.IOLoop.current()
     def send_message(fd, event):
         """
         Sends the log enumeration result to the client.  Necessary because

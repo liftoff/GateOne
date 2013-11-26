@@ -16,7 +16,7 @@ except ImportError:
     print('\tsudo pip install futures')
     import sys
     sys.exit(1)
-import pickle, signal, os, logging
+import pickle, signal, os, logging, gc
 from functools import wraps
 from datetime import timedelta
 from itertools import count
@@ -217,6 +217,7 @@ class AsyncRunner(object):
         if self.running:
             logging.debug(_("Shutting down %s" % repr(self)))
             self.executor.shutdown(wait=wait)
+        gc.collect()
 
     def restart_shutdown_timeout(self):
         """
@@ -500,6 +501,7 @@ class MultiprocessRunner(AsyncRunner):
                 logging.info(_(
                     "Shutting down the MultiprocessRunner executor."))
                 self.executor.shutdown(wait=wait)
+        gc.collect()
 
 class PeriodicCallback(object):
     """

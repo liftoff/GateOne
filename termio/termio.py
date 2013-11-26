@@ -1186,7 +1186,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.sent_sigint = False
         self.shell_command = ['/bin/sh', '-c']
         self.env = {}
-        self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
+        self.io_loop = ioloop.IOLoop.current() # Monitors child for activity
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
         #signal.signal(signal.SIGALRM, self._blocked_io_handler)
         self.reenable_timeout = None

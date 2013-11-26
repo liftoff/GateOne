@@ -879,7 +879,7 @@ def store_id_file(self, settings):
             if TIMER:
                 self.ssh_log.debug(_(
                     "Got public key, cancelling public key generation timer."))
-                io_loop = tornado.ioloop.IOLoop.instance()
+                io_loop = tornado.ioloop.IOLoop.current()
                 io_loop.remove_timeout(TIMER)
                 TIMER = None
             get_ids = partial(get_identities, self, None)
@@ -891,7 +891,7 @@ def store_id_file(self, settings):
             self.ssh_log.debug(_(
                 "Only received a private key.  Setting timeout to generate the "
                 "public key if not received within 3 seconds."))
-            io_loop = tornado.ioloop.IOLoop.instance()
+            io_loop = tornado.ioloop.IOLoop.current()
             deadline = timedelta(seconds=2)
             def generate_public_key(): # I love closures
                 openssh_generate_public_key(self,

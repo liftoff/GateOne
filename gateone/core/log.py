@@ -170,8 +170,3 @@ def go_logger(name, **kwargs):
         logger.addHandler(channel)
     logger = JSONAdapter(logger, kwargs)
     return logger
-
-go_log = go_logger('gateone')
-app_log = logging.getLogger("gateone.app") # Not used--just defines the parent
-auth_log = logging.getLogger("gateone.auth")
-msg_log = logging.getLogger("gateone.messaging")

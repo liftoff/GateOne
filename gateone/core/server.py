@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131122090455" # Gets replaced by git (holds the date/time)
+__commit__ = "20131122171033" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1125,9 +1125,8 @@ class DownloadHandler(BaseHandler):
         if status_code in [404, 500, 503, 403]:
             filename = os.path.join(self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
-                f = io.open(filename, 'r')
-                data = f.read()
-                f.close()
+                with io.open(filename, 'r') as f:
+                    data = f.read()
                 return data
         import httplib
         return "<html><title>%(code)d: %(message)s</title>" \
@@ -1362,6 +1361,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         }
         # Setup some instance-specific loggers that we can later update with
         # more metadata
+        self.io_loop = tornado.ioloop.IOLoop.current()
         self.logger = go_logger(None)
         self.sync_log = go_logger('gateone.sync')
         self.msg_log = go_logger('gateone.message')
@@ -2095,7 +2095,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             os.chmod(user_dir, 0o770)
         session_file = os.path.join(user_dir, 'session')
         if os.path.exists(session_file):
-            session_data = io.open(session_file).read()
+            with io.open(session_file) as f:
+                session_data = f.read()
             user['session'] = json_decode(session_data)['session']
         else:
             user['session'] = generate_session_id()
@@ -2432,7 +2433,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 (td.seconds + td.days * 24 * 3600) *
                 10**6) / 10**6) * 1000
             cls.watch_file(broadcast_file, cls.broadcast_file_update)
-            io_loop = tornado.ioloop.IOLoop.instance()
+            io_loop = tornado.ioloop.IOLoop.current()
             cls.file_watcher = tornado.ioloop.PeriodicCallback(
                 cls.file_checker, interval, io_loop=io_loop)
             cls.file_watcher.start()
@@ -2660,10 +2661,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         with io.open(new_theme_path, 'wb') as f:
             for path in theme_files:
                 f.write(io.open(path, 'rb').read())
-        new = open(new_theme_path, 'rb').read()
+        with open(new_theme_path, 'rb') as f:
+            new = f.read()
         old = ''
         if os.path.exists(cached_theme_path):
-            old = open(cached_theme_path, 'rb').read()
+            with open(cached_theme_path, 'rb') as f:
+                old = f.read()
         if new != old:
             # They're different.  Replace the old one...
             os.rename(new_theme_path, cached_theme_path)
@@ -3558,9 +3561,8 @@ class ErrorHandler(tornado.web.RequestHandler):
             filename = os.path.join(
                 self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
-                f = io.open(filename, 'rb')
-                data = f.read()
-                f.close()
+                with io.open(filename, 'rb') as f:
+                    data = f.read()
                 return data
         import httplib
         return "<html><title>%(code)d: %(message)s</title>" \
