@@ -876,6 +876,7 @@ class TerminalApplication(GOApplication):
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
         shell_command = policies.get('shell_command', None)
+	shell_command_is_shell = policies.get('shell_command_is_shell', True)
         user_dir = self.settings['user_dir']
         try:
             user = self.current_user['upn']
@@ -924,6 +925,7 @@ class TerminalApplication(GOApplication):
             additional_metadata=additional_log_metadata,
             encoding=encoding
         )
+	m.shell_command_is_shell = shell_command_is_shell
         if shell_command:
             m.shell_command = shell_command
         if self.plugin_new_multiplex_hooks:

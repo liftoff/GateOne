@@ -1185,6 +1185,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.terminating = False
         self.sent_sigint = False
         self.shell_command = ['/bin/sh', '-c']
+	self_shell_command_is_shell = True
         self.env = {}
         self.io_loop = ioloop.IOLoop.current() # Monitors child for activity
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
@@ -1336,7 +1337,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             if not isinstance(self.shell_command, list):
                 import shlex
                 self.shell_command = shlex.split(self.shell_command)
-            cmd = self.shell_command + [self.cmd + '; sleep .1']
+            if self.shell_command_is_shell:
+                cmd = self.shell_command + [self.cmd + '; sleep .1']
+            else:
+	        cmd = self.shell_command + [self.cmd ]
             # This loop prevents UnicodeEncodeError exceptions:
             for k, v in env.items():
                 if isinstance(v, unicode):
