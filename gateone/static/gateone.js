@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131125211930";
+GateOne.__commit__ = "20131217212548";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4558,7 +4558,7 @@ GateOne.Base.update(GateOne.Visual, {
             specialEvents = {'focused': true, 'opened': true, 'closed': true, 'moved': true, 'resized': true},
             dialogToForeground = function(e) {
                 // Move this dialog to the front of our array and fix all the z-index of all the dialogs
-                for (var i in v.dialogs) {
+                for (var i = 0; i < v.dialogs.length; i++) {
                     if (dialogContainer == v.dialogs[i]) {
                         v.dialogs.splice(i, 1); // Remove it
                         i--; // Fix the index since we just changed it

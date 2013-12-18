@@ -471,6 +471,13 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
                 go.ws.send(JSON.stringify({'terminal:enumerate_commands': null}));
                 go.Terminal.listSharedTerminals();
+                if (cmdQueryString) {
+                    E.on("terminal:term_reattach", function(termNums, terminals) {
+                        if (!termNums.length) {
+                            go.Terminal.newTerminal(); // Open up a new terminal right away if the terminal_cmd query string is provided
+                        }
+                    });
+                }
             }
             go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
             go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
@@ -3352,12 +3359,12 @@ go.Base.update(GateOne.Terminal, {
         }
         E.trigger("terminal:shared_terminals", message['terminals']);
     },
-    sharedTerminalsDialog() {
+    sharedTerminalsDialog: function() {
         /**:GateOne.Terminal.sharedTerminalsDialog()
 
         Opens up a dialog where the user can open terminals that have been shared with them.
         */
-        // TODO
+        var closeDialog;
     },
     shareInfo: function(term) {
         /**:GateOne.Terminal.shareInfo(term)

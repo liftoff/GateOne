@@ -1185,6 +1185,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.terminating = False
         self.sent_sigint = False
         self.shell_command = ['/bin/sh', '-c']
+        self.use_shell = True # Controls whether or not we wrap with the above
         self.env = {}
         self.io_loop = ioloop.IOLoop.current() # Monitors child for activity
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
@@ -1333,10 +1334,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             #      setting the title when the command first runs).
             #   2) Ensures we capture all output from the fd before it gets
             #      closed.
-            if not isinstance(self.shell_command, list):
-                import shlex
-                self.shell_command = shlex.split(self.shell_command)
-            cmd = self.shell_command + [self.cmd + '; sleep .1']
+            import shlex
+            cmd = shlex.split(self.cmd)
+            if self.use_shell:
+                if not isinstance(self.shell_command, list):
+                    self.shell_command = shlex.split(self.shell_command)
+                cmd = self.shell_command + [self.cmd + '; sleep .1']
             # This loop prevents UnicodeEncodeError exceptions:
             for k, v in env.items():
                 if isinstance(v, unicode):

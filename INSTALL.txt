@@ -43,3 +43,10 @@ To make Gate One start on boot:
     Debian:          update-rc.d gateone defaults
     Red Hat/CentOS:  chkconfig --add gateone
     Gentoo:          rc-update add gateone default
+
+Special note for Ubuntu systems:  If you *don't* want Gate One to start on boot
+just create /etc/init/gateone.override:
+
+    touch /etc/init/gateone.override
+
+(It's the "Ubuntu way")
