@@ -106,9 +106,24 @@ span.✈cursor { color: #000; background-color: #ccc; }
     color: black;
 }
 .✈share_dialog {
-    min-width: 20em;
+    min-width: 25em;
     max-height: 50%;
-    margin-right: 1em;
+    padding: 0.5em;
+}
+.✈sharing_table {
+    width: 100%;
+}
+.✈sharing_table td {
+    text-align: center;
+}
+.✈broadcast_url {
+    width: 100%;
+}
+.✈share_id {
+    display: block;
+}
+.✈share_password {
+    width: 100%;
 }
 .✈share_users {
     margin: 0 auto;
@@ -116,6 +131,30 @@ span.✈cursor { color: #000; background-color: #ccc; }
 }
 .✈upload_bell_form {
     padding: 0.5em;
+}
+.✈share_widget {
+    background-color: transparent;
+    margin: 0;
+}
+.✈share_widget_title {
+    text-decoration: underline;
+}
+.✈share_widget_settings {
+    font-style: italic;
+}
+.✈share_widget_text {
+    font-size: 90%;
+}
+.✈share_widget_button {
+    font-size: 75%;
+    padding: .1em;
+    float: right;
+}
+.✈share_widget_viewers {
+    text-decoration: underline;
+}
+.✈share_widget_viewers:hover {
+    cursor: pointer;
 }
 .✈termdialog {
     top: 0px;

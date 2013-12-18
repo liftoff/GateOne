@@ -39,6 +39,8 @@ def save_term_settings(term, location, session, settings):
 
     When complete the given *callback* will be called (if given).
     """
+    if not session:
+        return # Just a viewer of a broadcast terminal
     term = str(term) # JSON wants strings as keys
     term_settings = RUDict()
     term_settings[location] = {term: settings}
@@ -58,6 +60,8 @@ def restore_term_settings(location, session):
     Returns the terminal settings associated with the given *location* that are
     stored in the user's session directory.
     """
+    if not session:
+        return # Just a viewer of a broadcast terminal
     session_dir = options.session_dir
     session_dir = os.path.join(session_dir, session)
     settings_path = os.path.join(session_dir, 'term_settings.json')

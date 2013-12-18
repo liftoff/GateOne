@@ -151,9 +151,9 @@ go.Base.update(GateOne.Bookmarks, {
         // Setup a keyboard shortcut so bookmarks can be keyboard-navigable
         if (!go.prefs.embedded) {
             go.Input.registerGlobalShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
+            // Setup a callback that synchronizes the user's bookmarks everything is done loading
+            go.Events.on("go:js_loaded", b.userLoginSync);
         }
-        // Setup a callback that synchronizes the user's bookmarks everything is done loading
-        go.Events.on("go:js_loaded", b.userLoginSync);
     },
     panelToggleIn: function(panel) {
         /**:GateOne.Bookmarks.panelToggleIn(panel)

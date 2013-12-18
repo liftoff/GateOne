@@ -33,6 +33,8 @@ def policy_new_terminal(cls, policy):
     instance = cls.instance
     session = instance.ws.session
     auth_log = instance.ws.auth_log
+    if not session:
+        return False
     try:
         term = cls.f_args[0]['term']
     except (KeyError, IndexError):
@@ -86,6 +88,69 @@ def policy_new_terminal(cls, policy):
         if int(cls.f_args['rows']) > max_rows:
             cls.f_args['rows'] = max_rows # Reduce to max size
     return True
+
+def policy_has_write_permission(cls, policy, term):
+    """
+    Returns True if the user has write access to the given *term*.
+    """
+    instance = cls.instance
+    function_name = cls.function.__name__
+    auth_log = instance.ws.auth_log
+    user = instance.current_user
+    if not user:
+        return False # Broadcast viewers can't write to anything
+    term_obj = instance.loc_terms.get(term, None)
+    if not term_obj:
+        return True # Term doesn't exist anymore--just let it fall through
+    if 'share_id' in term_obj:
+        # This is a shared terminal.  Check if the user is in the 'write' list
+        shared = instance.ws.persist['terminal']['shared']
+        share_obj = shared[term_obj['share_id']]
+        if user['upn'] in share_obj['write']:
+            return True
+        elif share_obj['write'] in ['AUTHENTICATED', 'ANONYMOUS']:
+            return True
+        elif isinstance(share_obj['write'], list):
+            # Iterate and check each item
+            for allowed in share_obj['write']:
+                if allowed == user['upn']:
+                    return True
+                elif allowed in ['AUTHENTICATED', 'ANONYMOUS']:
+                    return True
+        auth_log.error(
+            _("{upn} denied executing {function_name} by policy (not owner "
+              "of terminal or does not have write access).").format(
+                  upn=user['upn'], function_name=function_name))
+        return False
+    return True
+
+def policy_write_check_dict(cls, policy):
+    """
+    Called by :func:`terminal_policies`, returns True if the user is
+    authorized to resize the terminal in question.  This version of the write
+    check expects that the *term* be provided in a dictionary that's provided
+    as the first argument to the decorated function.
+    """
+    try:
+        term = int(cls.f_args[0]['term'])
+    except (KeyError, IndexError):
+        # Function got bad args.  Deny
+        return False
+    return policy_has_write_permission(cls, policy, term)
+
+def policy_write_check_arg(cls, policy):
+    """
+    Called by :func:`terminal_policies`, returns True if the user is
+    authorized to resize the terminal in question.  This version of the write
+    check expects that the *term* be provided as the first argument passed to
+    the decorated function.
+    """
+    try:
+        term = int(cls.f_args[0])
+    except (KeyError, IndexError):
+        # Function got bad args.  Deny
+        return False
+    return policy_has_write_permission(cls, policy, term)
 
 def policy_share_terminal(cls, policy):
     """
@@ -178,6 +243,14 @@ def terminal_policies(cls):
     #f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
         'new_terminal': policy_new_terminal,
+        'resize': policy_write_check_dict,
+        'set_term_encoding': policy_write_check_dict,
+        'set_term_keyboard_mode': policy_write_check_dict,
+        'swap_terminals': policy_write_check_dict,
+        'move_terminal': policy_write_check_dict,
+        'kill_terminal': policy_write_check_arg,
+        'reset_terminal': policy_write_check_arg,
+        'manual_title': policy_write_check_dict,
         'share_terminal': policy_share_terminal,
         'char_handler': policy_char_handler
     }

@@ -158,7 +158,6 @@ class authenticated(object):
 
     def check(self):
         if not self.instance.current_user:
-            self.instance.close() # Close the WebSocket for this level of fail
             return False
         return True
 

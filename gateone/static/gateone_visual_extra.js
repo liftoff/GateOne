@@ -42,6 +42,8 @@ GateOne.Base.update(GateOne.Visual, {
              :onclose:  Assign a function to this option and it will be called when the widget is closed.
              :onconfig:  If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
              :where:  The node where we'll be attaching this widget or 'global' to add the widget to document.body.
+             :top:  The initial 'top' position of the widget.
+             :left:  The initial 'left' position of the widget.
         */
         options = options || {};
         var prefix = go.prefs.prefix,
@@ -233,6 +235,12 @@ GateOne.Base.update(GateOne.Visual, {
             widgetContent.appendChild(content);
         }
         widgetContainer.appendChild(widgetDiv);
+        if (options['top']) {
+            widgetContainer.style.top = options['top'];
+        }
+        if (options['left']) {
+            widgetContainer.style.left = options['left'];
+        }
         // Determine where we should put this widget
         if (options['where'] == 'global') {
             // global widgets are fixed to the page as a whole

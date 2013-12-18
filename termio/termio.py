@@ -1528,10 +1528,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         if not self.log:
             return # No log to finalize so we're done.
         self.log.close() # Write it out
-        logging.info(_(
-            "Finalizing the log for pid %s (this can take some time)."
-            % self.pid
-        ))
+        logging.info(_("Finalizing {path} (pid: {pid})").format(
+            path=self.log_path, pid=self.pid))
         PROC = Process(
             target=get_or_update_metadata,
             args=(self.log_path, self.user),

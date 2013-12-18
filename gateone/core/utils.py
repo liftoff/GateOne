@@ -617,7 +617,9 @@ def mkdir_p(path):
     except OSError as exc:
         if exc.errno == errno.EEXIST:
             pass
-        else: raise
+        else:
+            logging.error(_("Could not create directory: %s") % path)
+            raise # The original exception
 
 def cmd_var_swap(cmd, **kwargs):
     """
@@ -673,7 +675,7 @@ def short_hash(to_shorten):
     .. note::
 
         Collisions are possible but *highly* unlikely because of how this method
-        is used.
+        is typically used.
     """
     import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
@@ -682,6 +684,19 @@ def short_hash(to_shorten):
     if hashed.startswith('-'):
         hashed = hashed.replace('-', 'A', 1)
     return hashed
+
+def random_words(n=1):
+    """
+    Returns *n* random English words (as a tuple) from the `english_wordlist.txt`
+    file (bundled with Gate One).
+    """
+    from pkg_resources import resource_string
+    words = resource_string(
+        'gateone', 'static/english_wordlist.txt').split('\n')
+    out_words = []
+    for i in range(n):
+        out_words.append(words[random.randint(0, len(words))].lower())
+    return tuple(out_words)
 
 def get_process_tree(parent_pid):
     """

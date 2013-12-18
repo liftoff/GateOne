@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131122171033" # Gets replaced by git (holds the date/time)
+__commit__ = "20131125211930" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -528,7 +528,7 @@ if MISSING_DEPS:
 tornado.log.enable_pretty_logging()
 
 # Our own modules
-from gateone import SESSIONS
+from gateone import SESSIONS, PERSIST
 from gateone.auth.authentication import NullAuthHandler, KerberosAuthHandler
 from gateone.auth.authentication import GoogleAuthHandler, APIAuthHandler
 from gateone.auth.authentication import SSLAuthHandler, PAMAuthHandler
@@ -574,7 +574,6 @@ except NotImplementedError:
 IO_ASYNC = ThreadedRunner()
 
 # Globals
-#SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 # SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that
@@ -582,9 +581,6 @@ TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 SESSION_WATCHER = None
 CLEANER = None # Log and leftover session data cleaner PeriodicCallback
 FILE_CACHE = {}
-# PERSIST is a generic place for applications and plugins to store stuff in a
-# way that lasts between page loads.  USE RESPONSIBLY.
-PERSIST = {}
 APPLICATIONS = {}
 PLUGINS = {}
 PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance ApplicationWebSocket
@@ -1761,13 +1757,18 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         ]
         for js_file in additional_files:
             self.send_js(os.path.join(GATEONE_DIR, 'static', js_file))
-        for app in self.apps: # Call applications' open() functions (if any)
+        for app in self.apps:
             if hasattr(app, 'open'):
-                app.open()
+                app.open() # Call applications' open() functions (if any)
         # Ping the client every 5 seconds so we can keep track of latency and
         # ensure firewalls don't close the connection.
         def send_ping():
-            self.ping(str(int(time.time() * 1000)).encode('utf-8'))
+            try:
+                self.ping(str(int(time.time() * 1000)).encode('utf-8'))
+            except AttributeError:
+                # Connection closed
+                self.pinger.stop()
+                del self.pinger
         send_ping()
         interval = 5000 # milliseconds
         self.pinger = tornado.ioloop.PeriodicCallback(send_ping, interval)
@@ -1889,7 +1890,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:pong': timestamp}
         self.write_message(json_encode(message))
 
-    @require(authenticated(), policies('gateone'))
+    @require(policies('gateone'))
     def log_message(self, log_obj):
         """
         Attached to the `go:log` WebSocket action; logs the given *log_obj* via
@@ -1911,6 +1912,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             The "critical" and "fatal" log levels both use the
             `logging.Logger.critical` method.
         """
+        if not self.current_user:
+            return # Don't let unauthenticated users log messages.
+            # NOTE:  We're not using the authenticated() check here so we don't
+            # end up logging a zillion error messages when an unauthenticated
+            # user's client has debug logging enabled.
         if "message" not in log_obj:
             return # Nothing to do
         log_obj["level"] = log_obj.get("level", "info") # Default to "info"
@@ -2470,7 +2476,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:applications': applications}
         self.write_message(json_encode(message))
 
-    @require(authenticated(), policies('gateone'))
+    @require(policies('gateone'))
     def set_location(self, location):
         """
         Attached to the `go:set_location` WebSocket action.  Sets
@@ -3436,6 +3442,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if not allowed_fields:
             allowed_fields = ('upn', 'ip_address')
         for user in users:
+            if not user: # Broadcast client (view-only situation)
+                continue
             user_dict = {}
             for key, value in user.items():
                 if key in allowed_fields:
@@ -3462,11 +3470,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 user = instance.current_user
             except AttributeError:
                 continue
-            if session and user['session'] == session:
+            if session and user and user.get('session', None) == session:
                 instance.write_message(message)
             elif upn == "AUTHENTICATED":
                 instance.write_message(message)
-            elif upn == user['upn']:
+            elif user and upn == user.get('upn', None):
                 instance.write_message(message)
 
     @classmethod
@@ -3518,6 +3526,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         pprint(gc.garbage)
         print("SESSIONS:")
         pprint(SESSIONS)
+        print("PERSIST:")
+        pprint(PERSIST)
         try:
             from pympler import asizeof
             debug_logger.info(

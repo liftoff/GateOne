@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131122171033";
+GateOne.__commit__ = "20131125211930";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -334,19 +334,20 @@ GateOne.prefs = {
 This object holds all of Gate One's preferences.  Both those things that are meant to be user-controlled (e.g. `theme`) and those things that are globally configured (e.g. `url`).  Applications and plugins can store their own preferences here.
 */
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
-    embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
+    authenticate: true, // If false, do not attempt to authenticate the user.  Only set to false if doing something like "read only" or "broadcast only" stuff.
+    embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered.
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
-    goDiv: '#gateone', // Default element to place gateone inside
+    goDiv: '#gateone', // Default element to place gateone inside.
     keepaliveInterval: 15000, // How often we try to ping the Gate One server to check for a connection problem.
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
-    skipChecks: false, // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
-    style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
-    theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
-    pingTimeout: 5000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response)
-    url: null // URL of the GateOne server.  Will default to whatever is in window.location
+    skipChecks: false, // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures).
+    style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true.
+    theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc).
+    pingTimeout: 5000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response).
+    url: null // URL of the GateOne server.  Will default to whatever is in window.location.
 }
 GateOne.noSavePrefs = {
 /**:GateOne.noSavePrefs
@@ -511,8 +512,12 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Apply embedded mode settings
         if (go.prefs.embedded) {
-            go.prefs.showToolbar = false;
-            go.prefs.showTitle = false;
+            if (prefs.showToolbar === undefined) {
+                go.prefs.showToolbar = false;
+            }
+            if (prefs.showTitle === undefined) {
+                go.prefs.showTitle = false;
+            }
         }
         if (!go.prefs.url) {
             go.prefs.url = window.location.href;
@@ -530,9 +535,12 @@ var go = GateOne.Base.update(GateOne, {
             // API authentication doesn't need to use the /auth URL.
             logDebug("Using API authentiation object: " + go.prefs.auth);
             go.Net.connect(callback);
-        } else {
+        } else if (go.prefs.authenticate) {
             // Check if we're authenticated after all the scripts are done loading
             u.xhrGet(authCheck, parseResponse); // The point of this function is to let the server verify the cookie for us
+        } else {
+            // Fallback to connecting without authentication
+            go.Net.connect(callback);
         }
         // Cache our node for easy reference
         go.node = u.getNode(go.prefs.goDiv);
@@ -747,6 +755,7 @@ var go = GateOne.Base.update(GateOne, {
             // Just keep it hidden so plugins don't have to worry about whether or not it is present (to avoid exceptions)
             sideinfo.style['display'] = 'none';
         }
+        go.sideinfo = sideinfo;
         goDiv.appendChild(sideinfo);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
@@ -785,17 +794,19 @@ var go = GateOne.Base.update(GateOne, {
         // NOTE:  Application and plugin init() and postInit() functions will get called as part of the file sync process.
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         v.togglePanel(); // Scales them all away
-        E.on("go:connection_established", function() {
-            // This is really for reconnect events
-            // If there's no workspaces make the new workspace workspace
-            var workspaces = u.getNodes('.✈workspace');
-            if (!workspaces.length) {v.newWorkspaceWorkspace();}
-        });
-        E.on("go:js_loaded", function(apps) {
-            if (!u.getNodes('.✈workspace').length) {
-                v.newWorkspaceWorkspace();
-            }
-        });
+        if (!go.prefs.embedded) {
+            E.on("go:connection_established", function() {
+                // This is really for reconnect events
+                // If there's no workspaces make the new workspace workspace
+                var workspaces = u.getNodes('.✈workspace');
+                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+            });
+            E.on("go:js_loaded", function(apps) {
+                if (!u.getNodes('.✈workspace').length) {
+                    v.newWorkspaceWorkspace();
+                }
+            });
+        }
         go.initialized = true; // Don't use this to determine if everything is loaded yet.  Use the "go:js_loaded" event for that.
         E.trigger("go:initialized");
         setTimeout(function() {
@@ -2638,7 +2649,9 @@ GateOne.Base.update(GateOne.Net, {
                         settings['auth'] = go.prefs.auth;
                     }
                 }
-                go.ws.send(JSON.stringify({'go:authenticate': settings}));
+                if (go.prefs.authenticate) {
+                    go.ws.send(JSON.stringify({'go:authenticate': settings}));
+                }
                 // NOTE: The "go:connection_established" event is only useful to plugins/applications in *reconnect* situations.
                 // Why?  Because it gets fired before plugin/application JS gets downloaded on initial page load.
                 // So the only time a plugin/application can use it is when the connection to the server is re-established.
@@ -3356,23 +3369,28 @@ GateOne.Base.update(GateOne.Visual, {
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             rightAdjust = 0,
             style = getComputedStyle(goDiv, null),
+            sidebarWidth,
             paddingRight = (style['padding-right'] || style['paddingRight']);
-            if (style['padding-right']) {
-                var rightAdjust = parseInt(paddingRight.split('px')[0]);
+        if (style['padding-right']) {
+            var rightAdjust = parseInt(paddingRight.split('px')[0]);
+        }
+        v.goDimensions.w = parseInt(style.width.split('px')[0]);
+        v.goDimensions.h = parseInt(style.height.split('px')[0]);
+        if (!go.sideinfo.innerHTML.length) {
+            go.sideinfo.innerHTML = "Gate One";
+        }
+        sidebarWidth = go.toolbar.clientWidth || go.sideinfo.clientHeight;
+        if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
+            // Update the width of gridwrapper in case #gateone has padding
+            wrapperDiv.style.width = ((v.goDimensions.w+rightAdjust)*2) + 'px';
+            if (workspaces.length) {
+                workspaces.forEach(function(wsNode) {
+                    wsNode.style.height = v.goDimensions.h + 'px';
+                    wsNode.style.width = (v.goDimensions.w - sidebarWidth) + 'px';
+                });
             }
-            v.goDimensions.w = parseInt(style.width.split('px')[0]);
-            v.goDimensions.h = parseInt(style.height.split('px')[0]);
-            if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
-                // Update the width of gridwrapper in case #gateone has padding
-                wrapperDiv.style.width = ((v.goDimensions.w+rightAdjust)*2) + 'px';
-                if (workspaces.length) {
-                    workspaces.forEach(function(wsNode) {
-                        wsNode.style.height = v.goDimensions.h + 'px';
-                        wsNode.style.width = (v.goDimensions.w - go.toolbar.clientWidth) + 'px';
-                    });
-                }
-            }
-            go.Events.trigger("go:update_dimensions", v.goDimensions);
+        }
+        go.Events.trigger("go:update_dimensions", v.goDimensions);
     },
     transitionEvent: function() {
         /**:GateOne.Visual.transitionEvent()
@@ -3787,6 +3805,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             workspaceNum = 0,
             workspaceNode,
+            sidebarWidth,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
             existingWorkspace = u.getNode('#'+prefix+'workspace'+currentWorkspace),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
@@ -3804,9 +3823,13 @@ GateOne.Base.update(GateOne.Visual, {
         v.lastWorkspaceNumber = v.lastWorkspaceNumber + 1;
         workspaceNum = v.lastWorkspaceNumber;
         currentWorkspace = prefix+'workspace'+workspaceNum;
-        if (!go.prefs.embedded) {
+        if (!go.sideinfo.innerHTML.length) {
+            go.sideinfo.innerHTML = 'Gate One'; // So we can measure how tall the text is
+        }
+        sidebarWidth = go.toolbar.clientWidth || go.sideinfo.clientHeight; // clientHeight is used on the sideinfo because it is rotated 90 degrees
+        if (go.prefs.showTitle || go.prefs.showToolbar) {
             // Prepare the workspace div for the grid
-            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': (v.goDimensions.w - go.toolbar.clientWidth)+ 'px', 'height': v.goDimensions.h + 'px'}});
+            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': (v.goDimensions.w - sidebarWidth)+ 'px', 'height': v.goDimensions.h + 'px'}});
         } else {
             workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
         }
@@ -4925,8 +4948,10 @@ GateOne.Base.update(GateOne.Visual, {
                 widthMargins = parseInt(dialogContainerStyle.getPropertyValue('margin-left').split('px')[0]) + parseInt(dialogContainerStyle.getPropertyValue('margin-right').split('px')[0]),
                 calculatedWidth = (width + widthMargins),
                 calculatedHeight = (height + heightMargins);
+            if (calculatedHeight > 100) {
+                dialogContainer.style.height = calculatedHeight + 'px';
+            }
             dialogContainer.style.width = calculatedWidth + 'px';
-            dialogContainer.style.height = calculatedHeight + 'px';
             setTimeout(function() {
                 v.enableTransitions(dialogContainer);
             }, 10);
@@ -5064,6 +5089,7 @@ GateOne.Storage.databases = {};
 GateOne.Storage._models = {}; // Stores the model of a given DB in the form of {'<db name>', {'<object store name>': {<object store options (if any)}, ...}}
 // Example model: {'JavaScript': {keyPath: 'path'}, 'CSS': {keyPath: 'path'}}
 // In the above model you could assign whatever attributes to your objects that you want but a 'path' attribute *must* be included.
+GateOne.Storage.failCount = {};
 GateOne.Storage.dbObject = function(DB) {
     /**:GateOne.Storage.dbObject
 
@@ -5080,6 +5106,21 @@ GateOne.Storage.dbObject = function(DB) {
         Retrieves the object matching the given *key* in the given object store (*storeName*) and calls *callback* with the result.
         */
         if (indexedDB) {
+            if (!go.Storage.databases[DB]) {
+                // Database hasn't finished initializing yet.  Wait just a moment and retry...
+                if (!go.Storage.failCount[DB]) {
+                    go.Storage.failCount[DB] = 0;
+                }
+                if (go.Storage.failCount[DB] > 500) { // 5 seconds
+                    logError(gettext("Failed to load database: ") + DB);
+                    return;
+                }
+                setTimeout(function() {
+                    go.Storage.get(storeName, key, callback);
+                }, 10);
+                go.Storage.failCount[DB] += 1;
+                return;
+            }
             var db = GateOne.Storage.databases[self.DB],
                 trans = db.transaction(storeName, 'readonly'),
                 store = trans.objectStore(storeName),
@@ -5099,6 +5140,21 @@ GateOne.Storage.dbObject = function(DB) {
         Adds *value* to the given object store (*storeName*).  If given, calls *callback* with *value* as the only argument.
         */
         if (indexedDB) {
+            if (!go.Storage.databases[DB]) {
+                // Database hasn't finished initializing yet.  Wait just a moment and retry...
+                if (!go.Storage.failCount[DB]) {
+                    go.Storage.failCount[DB] = 0;
+                }
+                if (go.Storage.failCount[DB] > 500) { // 5 seconds
+                    logError(gettext("Failed to load database: ") + DB);
+                    return;
+                }
+                setTimeout(function() {
+                    go.Storage.put(storeName, value, callback);
+                }, 10);
+                go.Storage.failCount[DB] += 1;
+                return;
+            }
             var db = GateOne.Storage.databases[self.DB],
                 trans = db.transaction([storeName], 'readwrite'),
                 store = trans.objectStore(storeName),
@@ -5110,13 +5166,15 @@ GateOne.Storage.dbObject = function(DB) {
             };
             request.onerror = GateOne.Storage.onerror;
         } else {
-            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]),
-                result = [];
-            for (var key in db[storeName].data) {
-                result.push(db[storeName].data[key]);
+            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB])
+                store = db[storeName],
+                newData = {};
+            for (var key in value) {
+                newData[key] = value[key];
             }
+            store.data = newData;
             if (callback) {
-                callback(result);
+                callback(value);
             }
         }
     }
@@ -5712,7 +5770,7 @@ GateOne.Base.update(GateOne.User, {
         var newWSWS = u.getNode('.✈new_workspace_workspace');
         // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
-        if (newWSWS) {
+        if (!GateOne.prefs.embedded && newWSWS) {
             // Reload the New Workspace Workspace with this new list of apps
             v.newWorkspaceWorkspace();
         }
