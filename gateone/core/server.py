@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131217212548" # Gets replaced by git (holds the date/time)
+__commit__ = "20131218170334" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -471,6 +471,7 @@ Class Docstrings
 # Standard library modules
 import os
 import sys
+import re
 import io
 import logging
 import time
@@ -539,7 +540,7 @@ from .utils import gen_self_signed_ssl, get_plugins, load_modules
 from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from .utils import json_encode, recursive_chown, ChownError, get_or_cache
 from .utils import write_pid, read_pid, remove_pid, drop_privileges
-from .utils import check_write_permissions, get_applications
+from .utils import check_write_permissions, get_applications, valid_hostname
 from .utils import total_seconds, MEMO
 from .configuration import apply_cli_overrides, define_options, SettingsError
 from .configuration import get_settings
@@ -1643,6 +1644,38 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         self.write_message(message, binary=True)
 
+    def valid_origin(self, origin):
+        """
+        Checks if the given *origin* matches what's been set in Gate One's
+        "origins" setting (usually in 10server.conf).  The *origin* will first
+        be checked for an exact match in the "origins" setting but if that fails
+        each valid origin will be evaluated as a regular expression (if it's not
+        a valid hostname) and the given *origin* will be checked against that.
+
+        Returns ``True`` if *origin* is valid.
+
+        .. note::
+
+            If '*' is in the "origins" setting (anywhere) all origins will be
+            allowed.
+        """
+        valid = False
+        valid_origins = self.prefs['*']['gateone'].get('origins', [])
+        if '*' in valid_origins:
+            valid = True
+        elif origin in valid_origins:
+            valid = True
+        if not valid:
+            # Treat the list of valid origins as regular expressions
+            for check_origin in valid_origins:
+                if valid_hostname(check_origin):
+                    continue # Valid hostnames aren't regular expressions
+                match = re.match(check_origin, origin)
+                if match:
+                    valid = True
+                    break
+        return valid
+
     def open(self):
         """
         Called when a new WebSocket is opened.  Will deny access to any
@@ -1665,7 +1698,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if hasattr(self, 'set_nodelay'):
             # New feature of Tornado 3.1 that can reduce latency:
             self.set_nodelay(True)
-        valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
             origin = self.request.headers['Origin']
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
@@ -1675,20 +1707,18 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.origin = origin
         client_address = self.request.remote_ip
         logging.debug("open() origin: %s" % origin)
-        if '*' not in valid_origins: # NOTE: valid_origins is a list
-            if origin not in valid_origins:
-                self.origin_denied = True
-                denied_msg = _(
-                    '{"ip_address": "%s"} Access denied for origin: %s'
-                    ) % (client_address, origin)
-                auth_log.error(denied_msg)
-                self.write_message(denied_msg)
-                self.write_message(_(
-                    "If you feel this is incorrect you just have to add '%s' to"
-                    " the 'origin' option in your settings.  See the docs "
-                    "for details.") % origin)
-                self.close()
-                return
+        if not self.valid_origin(origin):
+            self.origin_denied = True
+            denied_msg = _('Access denied for origin: %s') % origin
+            auth_log.error(denied_msg)
+            self.write_message(denied_msg)
+            self.write_message(_(
+                "If you feel this is incorrect you just have to add '%s' to"
+                " the 'origins' option in your Gate One settings (e.g. "
+                "inside your 10server.conf).  See the docs for details.")
+                % origin)
+            self.close()
+            return
         self.origin_denied = False
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in

@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131217212548";
+GateOne.__commit__ = "20131218170334";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2574,6 +2574,12 @@ GateOne.Base.update(GateOne.Net, {
         If :js:attr:`GateOne.Net.connectionProblem` is ``true`` :js:meth:`GateOne.Net.connectionError` will be called.
         */
         logDebug(gettext("WebSocket Closed"));
+        if (go.connectedTimeout) {
+            go.Net.connectionProblem = true;
+            // This prevents initialize() from being called if we were disconnected right away (e.g. due to blocked origin)
+            clearTimeout(go.connectedTimeout);
+            go.connectedTimeout = null;
+        }
         if (go.Net.connectionProblem) {
             go.Net.connectionError();
         }
@@ -2625,7 +2631,11 @@ GateOne.Base.update(GateOne.Net, {
         v.disableOverlay(); // Just in case we're re-connecting
         // When we fail an origin check we'll get an error within a split second of onOpen() being called so we need to check for that and stop loading stuff if we're not truly connected.
         if (!go.Net.connectionProblem) {
-            setTimeout(function() {
+            if (go.connectedTimeout) {
+                clearTimeout(go.connectedTimeout);
+                go.connectedTimeout = null;
+            }
+            go.connectedTimeout = setTimeout(function() {
                 // Load our CSS right away so the dimensions/placement of things is correct.
                 u.loadTheme(go.prefs.theme);
                 // Clear the error message if it's still there
@@ -3714,12 +3724,12 @@ GateOne.Base.update(GateOne.Visual, {
         removeTimeout = removeTimeout || 5000;
         if (!noticeContainer) {
             // Use a fallback (Gate One probably hasn't loaded yet; error situation)
-            var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'z-index': 999999}}); // Have to use 'style' since CSS may not have been loaded
+            var msgContainer = u.createElement('div', {'id': 'noticecontainer' + unique, 'style': {'font-size': '1.5em', 'background-color': '#000', 'margin': '.5em', 'color': '#fff', 'display': 'block', 'z-index': 999999}}); // Have to use 'style' since CSS may not have been loaded
             msgContainer.innerHTML = message;
             document.body.appendChild(msgContainer);
             setTimeout(function() {
                 u.removeElement(msgContainer);
-            }, 10000);
+            }, removeTimeout);
             return;
         }
         messageSpan.innerHTML = message;
