@@ -132,11 +132,8 @@ class SharedTermHandler(BaseHandler):
     terminal.
     """
     def get(self, share_id):
-        print("request: %s" % self.request)
-        print("share_id: %s" % share_id)
         hostname = os.uname()[1]
         prefs = self.get_argument("prefs", None)
-        #share_id = self.get_argument("share_id")
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
@@ -238,6 +235,7 @@ class TerminalApplication(GOApplication):
             'terminal:enumerate_colors': self.enumerate_colors,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
+            'terminal:detach_shared_terminal': self.detach_shared_terminal,
             #'terminal:set_sharing_permissions': self.set_sharing_permissions,
             'terminal:debug_terminal': self.debug_terminal
         })
@@ -745,6 +743,9 @@ class TerminalApplication(GOApplication):
                         'metadata': self.loc_terms[term]['metadata'],
                         'title': self.loc_terms[term]['title']
                     }})
+                share_id = self.loc_terms[term].get('share_id', None)
+                if share_id:
+                    terminals[term].update({'share_id': share_id})
         if not self.ws.session:
             return # Just a broadcast terminal viewer
         # Check for any dtach'd terminals we might have missed
@@ -1155,7 +1156,7 @@ class TerminalApplication(GOApplication):
                         rows, cols,
                         ctrl_l=False,
                         em_dimensions=self.em_dimensions)
-                message = {'terminal:term_exists': term}
+                message = {'terminal:term_exists': {'term': term}}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
                 m.prev_output[self.ws.client_id] = [None] * rows
@@ -1971,6 +1972,7 @@ class TerminalApplication(GOApplication):
         write = settings.get('write', []) # Who can write (implies read access)
         if not isinstance(write, (list, tuple)):
             write = [write]
+        password = settings.get('password', None)
         # "broadcast" mode allows anonymous access without a password
         broadcast_url_template = "{base_url}terminal/shared/{share_id}"
         broadcast = settings.get('broadcast', False)
@@ -1981,6 +1983,7 @@ class TerminalApplication(GOApplication):
                 # Update existing permissions
                 shared_terms[share_id]['read'] = read
                 shared_terms[share_id]['write'] = write
+                shared_terms[share_id]['password'] = password
                 if broadcast == True: # Generate a new broadcast URL
                     broadcast = broadcast_url_template.format(
                         base_url=self.ws.base_url,
@@ -2059,6 +2062,8 @@ class TerminalApplication(GOApplication):
                 continue
             if upn and user.get('upn', None) != upn:
                 continue
+            if share_obj['user'] == user:
+                continue # Don't need to "remove" the owner
             for app in instance.apps:
                 if isinstance(app, TerminalApplication):
                     # This is that user's instance of the Terminal app
@@ -2259,12 +2264,13 @@ class TerminalApplication(GOApplication):
                 password = share_dict.get('password', False)
                 if password == None:
                     password = False # Looks better at the client this way
-                elif password: # This would be a string
+                elif password and not owner: # This would be a string
                     password = True # Don't want to reveal it to the client!
                 broadcast = share_dict.get('broadcast', False)
                 out_dict[share_id] = {
                     'owner': share_dict['user']['upn'],
                     'term': share_dict['term'], # Only useful for the owner
+                    'title': share_dict['term_obj']['title'],
                     'read': share_dict['read'],
                     'write': share_dict['write'],
                     'viewers': share_dict['viewers'],
@@ -2356,7 +2362,11 @@ class TerminalApplication(GOApplication):
                 'refresh_timeout': None
             }
         if multiplex.isalive():
-            message = {'terminal:term_exists': term}
+            message = {
+                'terminal:term_exists': {
+                    'term': term, 'share_id': settings['share_id']
+                }
+            }
             self.write_message(json_encode(message))
             # This resets the screen diff
             multiplex.prev_output[self.ws.client_id] = [
@@ -2379,8 +2389,10 @@ class TerminalApplication(GOApplication):
             metadata = {} # In case it's null/None
         email = metadata.get('email', None)
         upn = metadata.get('upn', email)
+        broadcast_viewer = True
         if self.current_user:
             upn = self.current_user['upn']
+            broadcast_viewer = False
         # Add this user to the list of viewers
         current_viewer = self.current_user
         if not current_viewer: # Anonymous broadcast viewer
@@ -2408,16 +2420,17 @@ class TerminalApplication(GOApplication):
                 upn=upn,
                 owner=share_obj['user']['upn']),
             metadata=current_viewer)
-        # Notify the owner of the terminal that this user is now viewing
+        out_dict = self._shared_terminals_dict(user=share_obj['user'])
+        message = {'terminal:shared_terminals': {'terminals': out_dict}}
+        self.write_message(json_encode(message))
+        # Notify the owner of the terminal that this user is now viewing:
         notice = _("%s (%s) is now viewing terminal %s" % (
             current_viewer['upn'],
             current_viewer['ip_address'],
             share_obj['term']))
-        out_dict = self._shared_terminals_dict(user=share_obj['user'])
-        message = {'terminal:shared_terminals': {'terminals': out_dict}}
-        self.write_message(json_encode(message))
         if upn == 'ANONYMOUS':
             self.ws.send_message(notice, session=share_obj['user']['session'])
+            # Also send them an updated shared_terminals list:
             cls._deliver(message, session=share_obj['user']['session'])
         else:
             self.ws.send_message(notice, upn=share_obj['user']['upn'])
@@ -2425,17 +2438,46 @@ class TerminalApplication(GOApplication):
         def remove_callbacks():
             try:
                 self.remove_terminal_callbacks(multiplex, self.callback_id)
-                share_obj['viewers'].remove(viewer_dict)
-                del self.loc_terms[term]
-                out_dict = self._shared_terminals_dict(user=share_obj['user'])
-                message = {'terminal:shared_terminals': {'terminals': out_dict}}
-                cls._deliver(message, upn=share_obj['user']['upn'])
-                if self.ws.session:
-                    self.clear_term_settings(term)
             except KeyError:
                 pass # Already removed callbacks--no biggie
-        self.on('terminal:on_close', remove_callbacks)
+        if broadcast_viewer:
+            detach = partial(self.detach_shared_terminal, {'term': term})
+            self.on('terminal:on_close', detach)
+        else: # This lets regular users resume
+            self.on('terminal:on_close', remove_callbacks)
         self.trigger("terminal:attach_shared_terminal", term)
+
+    @require(policies('terminal'))
+    def detach_shared_terminal(self, settings):
+        """
+        Stops watching the terminal specified via *settings['term']*.
+        """
+        term = settings.get('term', None)
+        if not term:
+            return # bad settings
+        term = int(term)
+        if term not in self.loc_terms:
+            return # Already detached
+        term_obj = self.loc_terms[term]
+        multiplex = term_obj['multiplex']
+        shared_terms = self.ws.persist['terminal'].get('shared', {})
+        share_obj = []
+        for share_id, share_dict in shared_terms.items():
+            if term_obj == share_dict['term_obj']:
+                share_obj = share_dict
+                break # This is the share dict we want
+        # Remove ourselves from the list of viewers for this terminal
+        for viewer in list(share_obj['viewers']):
+            if viewer['client_id'] == self.ws.client_id:
+                share_obj['viewers'].remove(viewer)
+        try:
+            self.remove_terminal_callbacks(multiplex, self.callback_id)
+            del self.loc_terms[term]
+            self.notify_permissions()
+            if self.ws.session:
+                self.clear_term_settings(term)
+        except KeyError:
+            pass # Already removed callbacks--no biggie
 
     def render_256_colors(self):
         """

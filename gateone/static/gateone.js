@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20131220170900";
+GateOne.__commit__ = "20131220202533";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2079,8 +2079,11 @@ GateOne.Base.update(GateOne.Logging, {
             * If ``null`` (as opposed to undefined), level info will not be included in the log message.
 
         If *destination* is given (must be a function) it will be used to log messages like so: ``destination(message, levelStr)``.  The usual conversion of *msg* to *message* will apply.
+
+        Any additional arguments after *destination* will be passed directly to that function.
         */
         var l = GateOne.Logging,
+            args = Array.prototype.slice.call(arguments, 3), // All args after the first three (preset ones)
             now = new Date(),
             message = "",
             levelStr = null;
@@ -2109,10 +2112,10 @@ GateOne.Base.update(GateOne.Logging, {
         if (message) {
             if (!destination) {
                 for (var dest in l.destinations) {
-                    l.destinations[dest](message, levelStr);
+                    l.destinations[dest](message, levelStr, args);
                 }
             } else {
-                destination(message, levelStr);
+                destination(message, levelStr, args);
             }
         }
     },
@@ -2123,36 +2126,45 @@ GateOne.Base.update(GateOne.Logging, {
 
         .. note:: The original version of this function is from: `MochiKit.Logging.Logger.prototype.logToConsole`.
         */
+        var args = Array.prototype.slice.call(arguments, 2)[0]; // All args after the first two (if any)
+        if (args[0] === undefined) {
+            args = [];
+        }
         if (typeof(window) != "undefined" && window.console && window.console.log) {
             // Safari and FireBug 0.4
             // Percent replacement is a workaround for cute Safari crashing bug
             msg = msg.replace(/%/g, '\uFF05');
+            if (args.length) {
+                args.unshift(msg);
+            } else {
+                args = [msg];
+            }
             if (!level) {
-                window.console.log(msg);
+                window.console.log.apply(window.console, args);
                 return;
             } else if (level == 'ERROR' || level == 'FATAL') {
                 if (typeof(window.console.error) == "function") {
-                    window.console.error(msg);
+                    window.console.error.apply(window.console, args);
                     return;
                 }
             } else if (level == 'WARN') {
                 if (typeof(window.console.warn) == "function") {
-                    window.console.warn(msg);
+                    window.console.warn.apply(window.console, args);
                     return;
                 }
             } else if (level == 'DEBUG') {
                 if (typeof(window.console.debug) == "function") {
-                    window.console.debug(msg);
+                    window.console.debug.apply(window.console, args);
                     return;
                 }
             } else if (level == 'INFO') {
                 if (typeof(window.console.info) == "function") {
-                    window.console.info(msg);
+                    window.console.info.apply(window.console, args);
                     return;
                 }
             }
             // Fallback to default
-            window.console.warn(msg);
+            window.console.log.apply(window.console, args);
         } else if (typeof(opera) != "undefined" && opera.postError) {
             // Opera
             opera.postError(msg);
@@ -2180,11 +2192,11 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     // Shortcuts for each log level
-    logFatal: function(msg) { GateOne.Logging.log(msg, 'FATAL') },
-    logError: function(msg) { GateOne.Logging.log(msg, 'ERROR') },
-    logWarning: function(msg) { GateOne.Logging.log(msg, 'WARNING') },
-    logInfo: function(msg) { GateOne.Logging.log(msg, 'INFO') },
-    logDebug: function(msg) { GateOne.Logging.log(msg, 'DEBUG') },
+    logFatal: function(msg) { GateOne.Logging.log(msg, 'FATAL', null, Array.prototype.slice.call(arguments, 1)[0]); },
+    logError: function(msg) { GateOne.Logging.log(msg, 'ERROR', null, Array.prototype.slice.call(arguments, 1)[0]); },
+    logWarning: function(msg) { GateOne.Logging.log(msg, 'WARNING', null, Array.prototype.slice.call(arguments, 1)[0]); },
+    logInfo: function(msg) { GateOne.Logging.log(msg, 'INFO', null, Array.prototype.slice.call(arguments, 1)[0]); },
+    logDebug: function(msg) { GateOne.Logging.log(msg, 'DEBUG', null, Array.prototype.slice.call(arguments, 1)[0]); },
     deprecated: function(whatever, moreInfo) { GateOne.Logging.log(whatever + " is deprecated.  " + moreInfo, 'WARNING') },
     addDestination: function(name, dest) {
         /**:GateOne.Logging.addDestination(name, dest)
@@ -4940,7 +4952,7 @@ GateOne.Base.update(GateOne.Visual, {
         // These top and left values position the dialog in the absolute center of whatever element it was placed in:
         if (style) {
             if (!style.top) {
-                top = (where.offsetHeight - dialogContainer.offsetHeight) / 2;
+                top = (where.offsetHeight - dialogContainer.offsetHeight) / 4;
                 dialogContainer.style.top = top + 'px';
             }
             if (!style.left) {

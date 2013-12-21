@@ -164,6 +164,9 @@ span.✈f0.✈b0 { color: #444; background-color: transparent; } /* Black on Bla
 .✈share_widget_viewers:hover {
     cursor: pointer;
 }
+.✈shared_terminals_dialog {
+    min-width: 45em;
+}
 .✈termdialog {
     top: 0px;
     bottom: 0px;

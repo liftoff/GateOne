@@ -139,6 +139,12 @@ window.onload = function() {
             attachSharedTerminal();
             closeDialog();
         }
+        E.on("terminal:reconnect_terminal", function(message) {
+            var term = message['term'];
+            go.Terminal.newTerminal(term);
+            go.Terminal.switchTerminal(term);
+            go.Terminal.lastTermNumber = term;
+        });
         go.init({
             'embedded': true,
             'showTitle': true,

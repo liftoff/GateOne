@@ -156,6 +156,9 @@ span.✈cursor { color: #000; background-color: #ccc; }
 .✈share_widget_viewers:hover {
     cursor: pointer;
 }
+.✈shared_terminals_dialog {
+    min-width: 45em;
+}
 .✈termdialog {
     top: 0px;
     bottom: 0px;

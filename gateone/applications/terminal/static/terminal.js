@@ -495,6 +495,10 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.popupTerm(term, options);
             }, 1150);
         });
+        E.on("terminal:term_closed", function(term) {
+            // Check if the closed terminal belonged to someone else (shared) and tell the server to detach it if necessary
+            console.log("term_closed: " + term);
+        });
         // Open/Create our terminal database
         S.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
         // Cleanup any old-style scrollback buffers that might be hanging around
@@ -814,7 +818,7 @@ go.Base.update(GateOne.Terminal, {
     killTerminal: function(term) {
         /**:GateOne.Terminal.killTerminal(term)
 
-        Tells the server got close the given *term*.
+        Tells the server got close the given *term* and kill the underlying process.
         */
         go.ws.send(JSON.stringify({'terminal:kill_terminal': term}));
     },
@@ -1896,10 +1900,10 @@ go.Base.update(GateOne.Terminal, {
         Closes the given terminal (*term*) and tells the server to end its running process.
         */
         logDebug("closeTerminal(" + term + ", " + noCleanup + ", " + message + ", " + sendKill + ")");
-        var lastTerm, terms,
-            termNode,
+        var lastTerm, terms, termNode, shareID,
+            termObj = go.Terminal.terminals[term],
             terminalDB = S.dbObject('terminal');
-        if (!go.Terminal.terminals[term]) {
+        if (!termObj) {
             return; // Nothing to do
         }
         termNode = go.Terminal.terminals[term]['terminal'];
@@ -1911,7 +1915,18 @@ go.Base.update(GateOne.Terminal, {
         }
         // Tell the server to kill the terminal
         if (sendKill === undefined || sendKill) {
-            go.Terminal.killTerminal(term);
+            if (termObj['shareID']) {
+                // Check if we're the owner and if so, kill it.  Otherwise detach it.
+                shareID = termObj['shareID'];
+                if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID]['owner'] == go.User.username) {
+                     // We're the owner of this shared terminal; kill it
+                    go.Terminal.killTerminal(term);
+                } else {
+                    go.Terminal.detachSharedTerminal(term);
+                }
+            } else {
+                go.Terminal.killTerminal(term);
+            }
         }
         if (!noCleanup) {
             // Delete the associated scrollback buffer (save the world from storage pollution)
@@ -2585,21 +2600,28 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.closeTerminal(termObj.id.split('term')[1], false, "", false);
         });
     },
-    reconnectTerminalAction: function(term) {
-        /**:GateOne.Terminal.reconnectTerminalAction(term)
+    reconnectTerminalAction: function(message) {
+        /**:GateOne.Terminal.reconnectTerminalAction(message)
 
         Called when the server reports that the terminal number supplied via the `terminal:new_terminal` WebSocket action already exists.
 
         This method also gets called when a terminal is moved from one 'location' to another.
         */
         // NOTE: Might be useful to override if you're embedding Gate One into something else
-        logDebug('reconnectTerminalAction(' + term + ')');
+        logDebug('reconnectTerminalAction(): ', message);
+        var term = message['term'],
+            shareID = message['share_id'];
         // This gets called when a terminal is moved from one 'location' to another.  When that happens we need to open it up like it's new...
-        if (!go.Terminal.terminals[term]) {
-            go.Terminal.newTerminal(term);
-            go.Terminal.lastTermNumber = term;
-            // Assume the user wants to switch to this terminal immediately
-            go.Terminal.switchTerminal(term);
+        if (!go.prefs.embedded) {
+            if (!go.Terminal.terminals[term]) {
+                go.Terminal.newTerminal(term);
+                // Assume the user wants to switch to this terminal immediately
+                go.Terminal.switchTerminal(term);
+            }
+        }
+        E.trigger("terminal:reconnect_terminal", message);
+        if (shareID && go.Terminal.terminals[term] && !go.Terminal.terminals[term]['shareID']) {
+            go.Terminal.terminals[term]['shareID'] = shareID;
         }
     },
     moveTerminalAction: function(obj) {
@@ -2610,7 +2632,7 @@ go.Base.update(GateOne.Terminal, {
         var term = obj['term'],
             location = obj['location'],
             message = "Terminal " + term + " has been relocated to location, '" + location + "'";
-        GateOne.Terminal.closeTerminal(term, false, message, false); // Close the terminal with our special message and don't kill its process
+        go.Terminal.closeTerminal(term, false, message, false); // Close the terminal with our special message and don't kill its process
     },
     reattachTerminalsAction: function(terminals) {
         /**:GateOne.Terminal.reattachTerminalsAction(terminals)
@@ -2657,6 +2679,7 @@ go.Base.update(GateOne.Terminal, {
                 if (termNumbers.length) {
                     // Reattach the running terminals
                     termNumbers.forEach(function(termNum) {
+                        var shareID = terminals[termNum]['share_id'];
                         if (!go.Terminal.terminals[termNum]) {
                             metadata = terminals[termNum]['metadata'] || {};
                             if (metadata['resumeEvent']) {
@@ -2665,6 +2688,9 @@ go.Base.update(GateOne.Terminal, {
                                 go.Terminal.newTerminal(termNum, {'metadata': metadata});
                             }
                             go.Terminal.lastTermNumber = termNum;
+                        }
+                        if (terminals[termNum]['share_id'] && !go.Terminal.terminals[termNum]['shareID']) {
+                            go.Terminal.terminals[termNum]['shareID'] = shareID;
                         }
                     });
                 }
@@ -3029,8 +3055,8 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: If a user is granted write permission to a terminal they will automatically be granted read permission.
         */
-//         console.log('sharePermissions permissions: ', permissions);
-        var settings = {'term': term, 'read': permissions['read'], 'write': permissions['write']};
+        logDebug('GateOne.Terminal.sharePermissions(): ', permissions);
+        var settings = {'term': term, 'read': permissions['read'], 'write': permissions['write'], 'password': permissions['password']};
         if (permissions['broadcast'] !== undefined) {
             settings['broadcast'] = permissions['broadcast'];
         }
@@ -3062,11 +3088,11 @@ go.Base.update(GateOne.Terminal, {
             apply = u.createElement('button', {'id': 'apply', 'type': 'submit', 'value': 'Apply', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             newShareID = u.createElement('button', {'id': 'new_share_id', 'type': 'submit', 'value': 'New Sharing ID', 'title': gettext("Generate a new share ID (the last part of the broadcast URL)"), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            shareObj = go.Terminal.sharedTermObj(term),
             addUsers = function(userList) {
                 // Add the "Authenticated Users" and "Anonymous" rows first
                 var shareID = go.Terminal.shareID(term),
                     broadcastURL = go.Terminal.shareBroadcastURL(term),
-                    shareObj = go.Terminal.sharedTermObj(term),
                     anonUsers = {'upn': anonDesc},
                     authenticatedUsers = {'upn': authenticatedDesc},
                     tableSettings = {
@@ -3081,6 +3107,7 @@ go.Base.update(GateOne.Terminal, {
                     },
                     tableData = [],
                     table; // Assigned below
+                shareObj = go.Terminal.sharedTermObj(term); // Refresh it (just in case)
                 if (shareID) {
                     shareIDInput.value = shareID;
                 }
@@ -3144,10 +3171,10 @@ go.Base.update(GateOne.Terminal, {
                 done.onclick = closeDialog;
             },
             saveFunc = function() {
-                var permissions = {"read": [], "write": [], "broadcast": false},
+                var permissions = {"read": [], "write": [], "broadcast": false, "password": password.value},
                     shareID = go.Terminal.shareID(term),
-                    shareObj = go.Terminal.sharedTermObj(term),
                     rows = u.toArray(u.getNodes('.✈share_dialog tbody tr'));
+                shareObj = go.Terminal.sharedTermObj(term); // Refresh it (just in case)
                 rows.forEach(function(row) {
                     var user = row.querySelector('.✈user_upn').getAttribute('data-upn'),
                         read = row.querySelector('input[name="read"').checked,
@@ -3164,10 +3191,13 @@ go.Base.update(GateOne.Terminal, {
                         permissions["write"].push(user);
                     }
                 });
+                if (!permissions['password'].length) {
+                    permissions['password'] = null;
+                }
                 if (!permissions['broadcast'] && !permissions['read'].length && !permissions['write'].length) {
+                    shareObj['closeFunc'](); // Closes the widget
                     v.displayMessage(gettext("Terminal " + term + " is no longer shared."));
                     shareIDInput.value = '';
-                    shareObj['closeFunc'](); // Closes the widget
                 }
                 if (!permissions['broadcast']) {
                     broadcastURLInput.value = "";
@@ -3230,6 +3260,9 @@ go.Base.update(GateOne.Terminal, {
         broadcastURLLabel.htmlFor = prefix+"broadcast_url";
         passwordLabel.innerHTML = "Password:";
         passwordLabel.htmlFor = prefix+"share_password";
+        if (shareObj && shareObj['password']) {
+            password.value = shareObj['password'];
+        }
         apply.innerHTML = "Apply";
         done.innerHTML = "Done";
         newShareID.innerHTML = "Generate New Share ID";
@@ -3282,6 +3315,18 @@ go.Base.update(GateOne.Terminal, {
         go.ws.send(JSON.stringify({
             "terminal:attach_shared_terminal": settings
         }));
+        E.trigger("terminal:attach_shared_terminal", shareID, password, metadata);
+    },
+    detachSharedTerminal: function(term) {
+        /**:GateOne.Terminal.detachSharedTerminal(term)
+
+        Tells the server that we no longer wish to view the terminal associated with the given *term* (local terminal number).
+        */
+        var settings = { "term": term };
+        go.ws.send(JSON.stringify({
+            "terminal:detach_shared_terminal": settings
+        }));
+        E.trigger("terminal:detach_shared_terminal", term);
     },
     listSharedTerminals: function() {
         /**:GateOne.Terminal.listSharedTerminals()
@@ -3295,12 +3340,12 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the `terminal:shared_terminals` WebSocket action; stores the list of terminals that have been shared with the user in `GateOne.Terminal.sharedTerminals` and triggers the `terminal:shared_terminals` event.
         */
-//         console.log('sharedTerminalsAction: ', message);
+        logDebug('GateOne.Terminal.sharedTerminalsAction(): ', message);
         var broadcastURLInput = u.getNode('.✈broadcast_url'),
             shareIDInput = u.getNode('.✈share_id'),
             shareWidgets = u.toArray(u.getNodes('.✈share_widget')),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
-            term, shareID, shareObj, widgetExists, closeFunc, dialogTerm, toolbarSharing, existing;
+            term, shareID, shareObj, widgetExists, closeFunc, dialogTerm, toolbarSharing, existing, nonOwnerShared;
         for (shareID in message['terminals']) {
             if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID]['closeFunc']) {
                 // Preserve the existing widget closeFunc (if any)
@@ -3313,7 +3358,9 @@ go.Base.update(GateOne.Terminal, {
             dialogTerm = broadcastURLInput.getAttribute('data-term');
             // The share dialog is open; update the broadcast URL
             for (shareID in message['terminals']) {
+                term = message['terminals'][shareID]['term'];
                 if (message['terminals'][shareID]['owner'] == go.User.username) { // One of ours
+                    go.Terminal.terminals[term]['shareID'] = shareID; // This is important (so other functions can know the terminal is shared)
                     if (message['terminals'][shareID]['term'] == dialogTerm) {
                         shareIDInput.value = shareID;
                         if (message['terminals'][shareID]['broadcast']) {
@@ -3344,17 +3391,21 @@ go.Base.update(GateOne.Terminal, {
                         }, 2000);
                     }
                 }
+            } else {
+                nonOwnerShared = true;
             }
         }
-        if (go.prefs.showToolbar) {
-            toolbarSharing = u.createElement('div', {'id': 'icon_term_sharing', 'class': '✈toolbar_icon', 'title': "Shared Terminals"});
-            existing = u.getNode('#'+prefix+'icon_term_sharing');
-            if (!existing) {
-                toolbarSharing.innerHTML = go.Icons['application'];
-                toolbarSharing.onclick = function(e) {
-                    console.log("Open the list of shared terminals.");
+        if (nonOwnerShared) {
+            // There's at least one shared terminal that we can view where we're not the owner; display the shared terminals icon.
+            if (go.prefs.showToolbar) {
+                toolbarSharing = u.createElement('div', {'id': 'icon_term_sharing', 'class': '✈toolbar_icon', 'title': "Shared Terminals"});
+                existing = u.getNode('#'+prefix+'icon_term_sharing');
+                if (!existing) {
+                    v.displayMessage(gettext("Shared terminals are available (click the magnifying glass icon)."));
+                    toolbarSharing.innerHTML = go.Icons['application'];
+                    toolbarSharing.onclick = go.Terminal.sharedTerminalsDialog;
+                    go.toolbar.insertBefore(toolbarSharing, toolbarPrefs);
                 }
-                go.toolbar.insertBefore(toolbarSharing, toolbarPrefs);
             }
         }
         E.trigger("terminal:shared_terminals", message['terminals']);
@@ -3364,7 +3415,81 @@ go.Base.update(GateOne.Terminal, {
 
         Opens up a dialog where the user can open terminals that have been shared with them.
         */
-        var closeDialog;
+        var closeDialog, // Filled out below
+            tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
+            td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
+            container = u.createElement('div', {'class': '✈shared_terminals_dialog'}),
+            tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight/3) + 'px'}}),
+            users = u.createElement('table', {'class': '✈shared_terminals'}),
+            tbody = u.createElement('tbody'),
+            sharedTerms = go.Terminal.sharedTerminals,
+            buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
+            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            tableSettings = {
+                'id': "share_viewers_table",
+                'header': [
+                    gettext("Owner"),
+                    gettext("Title"),
+                    gettext("Write Access"),
+                    gettext("Password"),
+                    gettext("View")
+                ],
+                'table_attrs': {'class': '✈sharing_table'}
+            },
+            tableData = [],
+            table, owner, ownerSpan, writeCheck, title, passwordInput, shareID;
+        for (shareID in sharedTerms) {
+            var view = u.createElement('button', {'id': 'view', 'type': 'submit', 'value': 'view', 'class': '✈button ✈black ✈view_shared_term', 'style': {'margin-top': '0.5em'}}),
+            owner = sharedTerms[shareID]['owner'];
+            ownerSpan = u.createElement('span', {'class': '✈share_owner'});
+            title = sharedTerms[shareID]['title'] || 'No Title';
+            passwordInput = u.createElement('input', {'type': 'password', 'name': 'password'});
+            writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
+            passwordInput.setAttribute('data-shareid', shareID);
+            view.setAttribute('data-shareid', shareID);
+            view.innerHTML = gettext("View");
+            ownerSpan.innerHTML = owner;
+            writeCheck.disabled = true;
+            if (owner == go.User.username) {
+                if (owner != 'ANONYMOUS') {
+                    continue; // Skip ourselves
+                }
+            } else if (sharedTerms[shareID]['write'].indexOf(go.User.username) != -1) {
+                writeCheck.checked = true;
+            }
+            if (sharedTerms[shareID]['password_protected']) {
+                passwordInput.placeholder = "Required";
+            } else {
+                passwordInput.disabled = true;
+            }
+            ownerSpan.setAttribute('data-owner', owner);
+            view.onclick = function(e) {
+                var shareID = this.getAttribute('data-shareid'),
+                    password = this.parentNode.parentNode.querySelector('input[name="password"]');
+                e.preventDefault();
+                if (sharedTerms[shareID]['password_protected']) {
+                    // Make sure it's set before we allow submission
+                    if (!password.value.length) {
+                        v.displayMessage(gettext("Error: You must enter a password to view this shared terminal"));
+                        return;
+                    }
+                }
+                E.off("terminal:new_terminal", null, shareID); // Remove any existing closeDialog() functions for this event (in case password was wrong or something like that)
+                E.once("terminal:new_terminal", function(termNum) {
+                    closeDialog();
+                }, shareID);
+                go.Terminal.attachSharedTerminal(shareID, password.value);
+            }
+            tableData.unshift([ownerSpan, title, writeCheck, passwordInput, view]);
+        }
+        table = v.table(tableSettings, tableData);
+        tableContainer.appendChild(table);
+        closeDialog = v.dialog(gettext("Shared Terminals"), container);
+        done.onclick = closeDialog;
+        done.innerHTML = "Done";
+        container.appendChild(tableContainer);
+        buttonContainer.appendChild(done);
+        container.appendChild(buttonContainer);
     },
     shareInfo: function(term) {
         /**:GateOne.Terminal.shareInfo(term)
