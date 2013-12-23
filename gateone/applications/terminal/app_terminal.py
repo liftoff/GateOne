@@ -2096,13 +2096,13 @@ class TerminalApplication(GOApplication):
             Normally this only gets called from
             `~TerminalApplication.permissions` after something changed.
         """
+        self.term_log.debug("notify_permissions()")
         cls = ApplicationWebSocket
         users = cls._list_connected_users()
         shared_terms = self.ws.persist['terminal']['shared']
         def send_message(user):
             out_dict = self._shared_terminals_dict(user=user)
             message = {'terminal:shared_terminals': {'terminals': out_dict}}
-            self.write_message(json_encode(message))
             if user['upn'] == 'ANONYMOUS':
                 cls._deliver(message, session=user['session'])
             else:
@@ -2113,6 +2113,9 @@ class TerminalApplication(GOApplication):
                 continue
             for share_id, share_dict in shared_terms.items():
                 try:
+                    if share_dict['user'] == user: # Owner
+                        send_message(user)
+                        break
                     if 'AUTHENTICATED' in share_dict['read']:
                         send_message(user)
                         break
@@ -2452,6 +2455,7 @@ class TerminalApplication(GOApplication):
         """
         Stops watching the terminal specified via *settings['term']*.
         """
+        self.term_log.debug("detach_shared_terminal(%s)" % settings)
         term = settings.get('term', None)
         if not term:
             return # bad settings
@@ -2473,11 +2477,12 @@ class TerminalApplication(GOApplication):
         try:
             self.remove_terminal_callbacks(multiplex, self.callback_id)
             del self.loc_terms[term]
-            self.notify_permissions()
             if self.ws.session:
                 self.clear_term_settings(term)
         except KeyError:
             pass # Already removed callbacks--no biggie
+        finally:
+            self.notify_permissions()
 
     def render_256_colors(self):
         """
