@@ -328,7 +328,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             go.Terminal.unHighlight();
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-            if (!document.activeElement.classList.contains('✈IME')) {
+            if (document.activeElement.classList && !document.activeElement.classList.contains('✈IME')) {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
         }
@@ -452,7 +452,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 logDebug("disableCapture() cancelled due to the GateOne.Terminal.switchedWorkspace being set.");
                 return; // User is just switching to a different app
             }
-            if (document.activeElement.classList.contains('✈IME')) {
+            if (document.activeElement.classList && document.activeElement.classList.contains('✈IME')) {
                 logDebug("disableCapture() cancelled due to the IME being the activeElement.");
                 return; // User is just switching to a different app
             }

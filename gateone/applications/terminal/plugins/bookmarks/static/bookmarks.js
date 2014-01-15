@@ -1822,7 +1822,9 @@ go.Base.update(GateOne.Bookmarks, {
             notesLabel = u.createElement('label'),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'});
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'}),
+            bookmarks = JSON.parse(localStorage[prefix+'bookmarks']),
+            index, bmName, bmTags, bmNotes;
         bmSubmit.innerHTML = gettext("Save");
         bmCancel.innerHTML = gettext("Cancel");
         urlLabel.innerHTML = "URL";
@@ -1835,18 +1837,13 @@ go.Base.update(GateOne.Bookmarks, {
         notesLabel.htmlFor = prefix+'bm_new_notes';
         if (typeof(URL) == "string") {
             // Editing an existing bookmark
-            var bookmarks = JSON.parse(localStorage[prefix+'bookmarks']),
-                count = 0,
-                index = null;
             bookmarks.forEach(function(bookmark) {
                 if (bookmark.url == URL) {
-                    index = count;
+                    bmName = bookmark.name;
+                    bmTags = bookmark.tags;
+                    bmNotes = bookmark.notes;
                 }
-                count += 1;
             });
-            var bmName = bookmarks[index].name,
-                bmTags = bookmarks[index].tags,
-                bmNotes = bookmarks[index].notes;
             formTitle = "Edit Bookmark";
             urlInput.value = URL;
             nameInput.value = bmName;
