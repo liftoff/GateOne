@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20131222202951" # Gets replaced by git (holds the date/time)
+__commit__ = "20140115085012" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -501,7 +501,7 @@ try:
     import tornado.auth
     import tornado.template
     import tornado.netutil
-    from tornado.websocket import WebSocketHandler
+    from tornado.websocket import WebSocketHandler, WebSocketClosedError
     from tornado.escape import json_decode
     from tornado.options import options
     from tornado import locale
@@ -1795,7 +1795,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         def send_ping():
             try:
                 self.ping(str(int(time.time() * 1000)).encode('utf-8'))
-            except AttributeError:
+            except (WebSocketClosedError, AttributeError):
                 # Connection closed
                 self.pinger.stop()
                 del self.pinger
@@ -2922,7 +2922,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 message = {'go:load_theme': out_dict}
             try:
                 self.write_message(message)
-            except AttributeError:
+            except (WebSocketClosedError, AttributeError):
                 pass # WebSocket closed before we got a chance to send this
         if self.settings['debug']:
             result = get_or_cache(cache_dir, path, minify=False)
@@ -3498,7 +3498,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for instance in cls.instances:
             try: # Only send to users that have authenticated
                 user = instance.current_user
-            except AttributeError:
+            except (WebSocketClosedError, AttributeError):
                 continue
             if session and user and user.get('session', None) == session:
                 instance.write_message(message)

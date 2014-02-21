@@ -172,9 +172,7 @@ class TerminalApplication(GOApplication):
         'name': "Terminal",
         'description': (
             "Open terminals running any number of configured applications."),
-        'dependencies': [
-            'terminal.js', 'terminal_input.js'
-        ]
+        'dependencies': ['terminal.js', 'terminal_input.js']
     }
     name = "Terminal" # A user-friendly name that will be displayed to the user
     def __init__(self, ws):
