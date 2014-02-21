@@ -1873,10 +1873,23 @@ go.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             // Grab the form values
             var url = u.getNode('#'+prefix+'bm_newurl').value,
+                paresed = b.parseUri(url),
                 name = u.getNode('#'+prefix+'bm_new_name').value,
                 tags = u.getNode('#'+prefix+'bm_newurl_tags').value,
                 notes = u.getNode('#'+prefix+'bm_new_notes').value,
                 now = new Date();
+            if (!url.length) {
+                v.displayMessage("Error: URL is missing");
+                return false;
+            }
+            if (!parsed.protocol) {
+                v.displayMessage("Error: URL does not contain a valid protocol (e.g. ssh:// or http://)");
+                return false;
+            }
+            if (!name.length) {
+                v.displayMessage("Error: You must give this bookmark a name.");
+                return false;
+            }
             // Fix any missing trailing slashes in the URL
             if (url.slice(0,4) == "http" && url.indexOf('/', 7) == -1) {
                 url = url + "/";
