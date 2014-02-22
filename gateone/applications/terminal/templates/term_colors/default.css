@@ -201,7 +201,7 @@ span.✈leftdoubleline {
     transition: transform 1s ease-in-out;
     transform: scale(.9);
 }
-span.✈bold { font-weight: bold; }
+span.✈bold { font-weight: bold; vertical-align: bottom; }
 span.✈dim { opacity: 0.7; }
 span.✈hidden { color: transparent !important;}
 span.✈underline { text-decoration: underline; }
