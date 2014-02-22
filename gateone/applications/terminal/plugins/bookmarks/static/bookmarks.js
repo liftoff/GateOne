@@ -1,4 +1,3 @@
-
 var gridIcon = function() {
     // A dependency-checking function.  Returns true if the grid icon is present.
     return (GateOne.Utils.getNode('.✈icon_grid'));
@@ -1873,7 +1872,7 @@ go.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             // Grab the form values
             var url = u.getNode('#'+prefix+'bm_newurl').value,
-                paresed = b.parseUri(url),
+                parsed = b.parseUri(url),
                 name = u.getNode('#'+prefix+'bm_new_name').value,
                 tags = u.getNode('#'+prefix+'bm_newurl_tags').value,
                 notes = u.getNode('#'+prefix+'bm_new_notes').value,
