@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140115085012";
+GateOne.__commit__ = "20140220212230";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3170,6 +3170,11 @@ GateOne.Base.update(GateOne.Visual, {
                         appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon(settings);
                     } else {
                         appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
+                    }
+                    // Add a viewBox property to the SVG if missing.  This makes the icon appear centered and the right size (most of the time).
+                    var svgElem = appIcon.querySelector('svg');
+                    if (!svgElem.getAttribute('viewBox')) {
+                        svgElem.setAttribute('viewBox', '0 0 ' + svgElem.getAttribute('width') + ' ' + svgElem.getAttribute('height'));
                     }
                     appSquare.tabIndex = 0;
                     appSquare.addEventListener('click', u.partial(callFunc, settings, parentApp), false);

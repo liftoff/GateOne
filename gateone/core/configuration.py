@@ -19,7 +19,7 @@ from .log import FACILITIES
 from gateone.core.log import go_logger
 from tornado import locale
 from tornado.escape import json_decode
-from tornado.options import define, options
+from tornado.options import define, options, Error
 
 # Locale stuff (can't use .locale since .locale uses this module)
 # Default to using the environment's locale with en_US fallback
@@ -208,6 +208,11 @@ def define_options(installed=True):
         cache_dir_default = os.path.join(settings_base, 'cache')
     options.log_file_prefix = log_default
     ssl_dir = os.path.join(settings_base, 'ssl')
+    define("version",
+        type=bool,
+        group='gateone',
+        help=_("Display version information."),
+    )
     define("config",
         default=config_default,
         group='gateone',
@@ -815,6 +820,7 @@ def apply_cli_overrides(go_settings):
             break
         else:
             arguments.append(arg.lstrip('-').split('=', 1)[0])
+    go_settings['cli_overrides'] = arguments
     for argument in arguments:
         if argument in non_options:
             continue
@@ -826,15 +832,17 @@ def apply_cli_overrides(go_settings):
         if key in non_options:
             continue
         if key in list(options):
-            if str == bytes: # Python 2
-                if isinstance(value, unicode):
-                    # For whatever reason Tornado doesn't like unicode values
-                    # for its own settings unless you're using Python 3...
-                    value = str(value)
             if key in ('origins', 'api_keys'):
-                # These two settings are special and taken care of further down.
+                # These two settings are special and taken care of elsewhere
                 continue
-            setattr(options, key, value)
+            try:
+                setattr(options, key, value)
+            except Error:
+                if isinstance(value, str):
+                    if str == bytes: # Python 2
+                        setattr(options, key, unicode(value))
+                else:
+                    setattr(options, key, str(value))
 
 # The following was taken from:
 # http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments

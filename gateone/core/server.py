@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140115085012" # Gets replaced by git (holds the date/time)
+__commit__ = "20140220212230" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1660,7 +1660,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             allowed.
         """
         valid = False
-        valid_origins = self.prefs['*']['gateone'].get('origins', [])
+        if 'origins' in self.settings['cli_overrides']:
+            # If given on the command line, always use those origins
+            valid_origins = self.settings['origins']
+        else:
+            # Why have this separate?  So you can change origins on-the-fly by
+            # modifying 10server.conf (or whatever other conf you put it in).
+            valid_origins = self.prefs['*']['gateone'].get('origins', [])
         if '*' in valid_origins:
             valid = True
         elif origin in valid_origins:
@@ -3891,6 +3897,23 @@ def main(installed=True):
             break
         else:
             arguments.append(arg.lstrip('-').split('=', 1)[0])
+    # TODO: Get this outputting installed plugins and versions as well
+    if options.version:
+        print("\x1b[1mGate One\x1b[0m")
+        print("\tVersion: %s (%s)" % (__version__, __commit__))
+        print("\x1b[1mInstalled Applications:\x1b[0m")
+        for app in app_modules:
+            if hasattr(app, 'apps'):
+                for _app in app.apps:
+                    if hasattr(_app, 'info'):
+                        name = _app.info.get('name', None)
+                        ver = _app.info.get('version', 'Unknown')
+                        if hasattr(ver, '__call__'):
+                            # It's a function; grab its output (cool feature)
+                            ver = ver()
+                        if name:
+                            print("\t%s Version: %s" % (name, ver))
+        sys.exit(0)
     # Turn any API keys provided on the command line into a dict
     api_keys = {}
     if 'api_keys' in arguments:
@@ -4110,7 +4133,7 @@ def main(installed=True):
     # Convert the origins into a list if overridden via the command line
     if 'origins' in arguments:
         if ';' in options.origins:
-            origins = options.origins.value().lower().split(';')
+            origins = options.origins.lower().split(';')
             real_origins = []
             for origin in origins:
                 if '://' in origin:

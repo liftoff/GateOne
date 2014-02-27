@@ -170,6 +170,7 @@ class TerminalApplication(GOApplication):
     """
     info = {
         'name': "Terminal",
+        'version': __version__,
         'description': (
             "Open terminals running any number of configured applications."),
         'dependencies': ['terminal.js', 'terminal_input.js']

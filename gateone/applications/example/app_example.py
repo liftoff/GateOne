@@ -187,6 +187,7 @@ class ExampleApplication(GOApplication):
     """
     info = {
         'name': "Example", # A user-friendly name for your app
+        'version': __version__,
     # A description of what your app does:
         'description': "An example of how to write a Gate One Application.",
         'hidden': HIDDEN
