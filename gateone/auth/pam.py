@@ -12,7 +12,7 @@ __doc__ = """
 PAM Authentication Module for Gate One
 ======================================
 
-This authentication module is built on top of :ref:`ctypes_pam.py` which is
+This authentication module is built on top of :ref:`ctypes-pam` which is
 included with Gate One.
 
 It was originally written by Alan Schmitz (but has changed quite a bit).

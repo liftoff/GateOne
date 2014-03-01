@@ -949,7 +949,6 @@ class TerminalApplication(GOApplication):
             debug=debug,
             syslog=syslog_logging,
             syslog_facility=facility,
-            syslog_host=self.settings['syslog_host'],
             additional_metadata=additional_log_metadata,
             encoding=encoding
         )

@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140220212230";
+GateOne.__commit__ = "20140226213756";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2630,7 +2630,13 @@ GateOne.Base.update(GateOne.Net, {
             prefix = go.prefs.prefix,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             workspaces = u.toArray(u.getNodes('.✈workspace')),
-            settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix, 'location': go.location};
+            settings = {
+                'auth': go.prefs.auth,
+                'container': go.prefs.goDiv.split('#')[1],
+                'prefix': prefix,
+                'location': go.location,
+                'url': document.URL
+            };
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
         // Close any open workspaces/apps (they'll be immediately re-created with the latest & greatest data from the server)
@@ -3451,7 +3457,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         This function is Gate One's bread and butter:  It applies the given CSS3 *transform* to *obj*.  *obj* can be one of the following:
 
-        * A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-like string (e.g. "#some_element_id").
+        * A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ -like string (e.g. "#some_element_id").
         * A DOM node.
         * An `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ or an Array-like object containing DOM nodes such as `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_ or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (it will apply the transform to all of them).
 
@@ -3550,7 +3556,6 @@ GateOne.Base.update(GateOne.Visual, {
             >>> GateOne.Visual.getTransform('#go_term1_pre');
             "translateY(-3px)"
         */
-        // Returns the transform string applied to the style of the given *elem*
         var node = GateOne.Utils.getNode(elem);
         if (node.style['transform']) {
             return node.style['transform'];
@@ -3967,7 +3972,7 @@ GateOne.Base.update(GateOne.Visual, {
     slideToWorkspace: function(workspace) {
         /**:GateOne.Visual.slideToWorkspace(workspace)
 
-        Slides the view to the given *workspace*.  If *GateOne.Visual.noReset* is true, don't reset the grid before switching.
+        Slides the view to the given *workspace*.  If `GateOne.Visual.noReset` is true, don't reset the grid before switching.
         */
         logDebug('slideToWorkspace(' + workspace + ')');
         var u = go.Utils,
@@ -4038,7 +4043,7 @@ GateOne.Base.update(GateOne.Visual, {
 
             >>> GateOne.Visual.stopIndicator('left');
 
-        The given *direction* may be one of:  **left**, **right**, **up**, **down**
+        The given *direction* may be one of:  **left**, **right**, **up**, **down**.
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
@@ -4497,9 +4502,14 @@ GateOne.Base.update(GateOne.Visual, {
         GateOne.Visual.squares.push(workspace);
     },
     createGrid: function(id, workspaceNames) {
-        // Creates a container for all the workspaces and optionally pre-creates workspaces using *workspaceNames*.
-        // *id* will be the ID of the resulting grid (e.g. "gridwrapper")
-        // *workspaceNames* is expected to be a list of DOM IDs.
+        /**:GateOne.Visual.createGrid(id, workspaceNames)
+
+        Creates a container for all the workspaces and optionally pre-creates workspaces using *workspaceNames*.
+
+        *id* will be the ID of the resulting grid (e.g. "gridwrapper").
+
+        *workspaceNames* is expected to be a list of DOM IDs.
+        */
         var u = GateOne.Utils,
             v = GateOne.Visual,
             grid = null;
@@ -4553,7 +4563,7 @@ GateOne.Base.update(GateOne.Visual, {
             :maximizable: If set to ``false`` the dialog will not have a maximize icon.
             :minimizable: If set to ``false`` the dialog will not have a minimize icon.
             :above: If set to ``true`` the dialog will be kept above others.
-            :data: (object) If given, any contained properties will be set as 'data-*' attributes on the dialogContainer.
+            :data: (object) If given, any contained properties will be set as 'data-\*' attributes on the dialogContainer.
             :where: If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (`GateOne.node`) and will be movable anywhere on the page.
             :noEsc: If ``true`` the dialog will not watch for the ESC key to close itself.
             :noTransitions: If ``true`` CSS3 transitions will not be enabled for this dialog.

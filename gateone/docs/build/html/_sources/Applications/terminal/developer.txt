@@ -9,6 +9,7 @@ Python Code
     :maxdepth: 2
 
     app_terminal.rst
+    configuration.rst
     woff_info.rst
 
 JavaScript Code

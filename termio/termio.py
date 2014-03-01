@@ -378,7 +378,6 @@ class BaseMultiplex(object):
     :log_path: *string* - The absolute path to the log file where the output from *cmd* will be saved.
     :term_id: *string* - The terminal identifier to associated with this instance (only used in the logs to identify terminals).
     :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
-    :syslog_host: *string* - An optional syslog host to send session log information to (this is independent of the *syslog* option above--it does not require a syslog daemon be present on the host running Gate One).
     :syslog_facility: *integer* - The syslog facility to use when logging messages.  All possible facilities can be found in `utils.FACILITIES` (if you need a reference other than the syslog module).
     :additional_metadata: *dict* - Anything in this dict will be included in the metadata frame of the log file.  Can only be key:value strings.
     :encoding: *string* - The encoding to use when writing or reading output.
@@ -394,7 +393,6 @@ class BaseMultiplex(object):
             user=None, # Only used by log output (to differentiate who's who)
             term_id=None, # Also only for syslog output for the same reason
             syslog=False,
-            syslog_host=None,
             syslog_facility=None,
             additional_metadata=None, # Will be stored in the log (if any)
             encoding='utf-8',
@@ -433,20 +431,15 @@ class BaseMultiplex(object):
         # Configure syslog logging
         self.user = user
         self.term_id = term_id
-        self.syslog_host = syslog_host
         self.syslog_buffer = ''
         self.additional_metadata = additional_metadata
-        if self.syslog and not self.syslog_host:
+        if self.syslog:
             try:
                 import syslog
             except ImportError:
                 logging.error(_(
                     "The syslog module is required to log terminal sessions to "
-                    "syslog if no syslog_host is set.  The syslog module is not"
-                    " required if you want to send syslog messages to a remote "
-                    "syslog server but for this to work you must set the "
-                    "syslog_host variable either via the command-line switch or"
-                    " in your server.conf."))
+                    "syslog."))
                 sys.exit(1)
             if not syslog_facility:
                 syslog_facility = syslog.LOG_DAEMON

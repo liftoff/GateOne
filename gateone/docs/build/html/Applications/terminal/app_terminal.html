@@ -38,7 +38,7 @@
     <link rel="shortcut icon" href="../../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
     <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
-    <link rel="next" title="woff_info.py - Python WOFF Font Inspector" href="woff_info.html" />
+    <link rel="next" title="Terminal Configuration" href="configuration.html" />
     <link rel="prev" title="Terminal Developer Documentation" href="developer.html" /> 
   </head>
   <body>
@@ -52,7 +52,7 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
+          <a href="configuration.html" title="Terminal Configuration"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="developer.html" title="Terminal Developer Documentation"
@@ -94,48 +94,6 @@ also be killed.</p>
 session will also be killed.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="app_terminal.policy_new_terminal">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">policy_new_terminal</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#policy_new_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.policy_new_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by <a class="reference internal" href="#app_terminal.terminal_policies" title="app_terminal.terminal_policies"><tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt></a>, returns True if the user is
-authorized to execute <tt class="xref py py-func docutils literal"><span class="pre">new_terminal()</span></tt> and applies any configured
-restrictions (e.g. max_dimensions).  Specifically, checks to make sure the
-user is not in violation of their applicable policies (e.g. max_terms).</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="app_terminal.policy_share_terminal">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">policy_share_terminal</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#policy_share_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.policy_share_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by <a class="reference internal" href="#app_terminal.terminal_policies" title="app_terminal.terminal_policies"><tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt></a>, returns True if the user is
-authorized to execute <tt class="xref py py-func docutils literal"><span class="pre">share_terminal()</span></tt>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="app_terminal.policy_char_handler">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">policy_char_handler</tt><big>(</big><em>cls</em>, <em>policy</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#policy_char_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.policy_char_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by <a class="reference internal" href="#app_terminal.terminal_policies" title="app_terminal.terminal_policies"><tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt></a>, returns True if the user is
-authorized to write to the current (or specified) terminal.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="app_terminal.terminal_policies">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">terminal_policies</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#terminal_policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.terminal_policies" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function gets registered under 'terminal' in the
-<tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket.security</span></tt> dict and is called by the
-<tt class="xref py py-func docutils literal"><span class="pre">require()</span></tt> decorator by way of the <tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt> sub-function. It
-returns True or False depending on what is defined in the settings dir and
-what function is being called.</p>
-<p>This function will keep track of and place limmits on the following:</p>
-<blockquote>
-<div><ul class="simple">
-<li>The number of open terminals.</li>
-<li>How big each terminal may be.</li>
-<li>Who may view or write to a shared terminal.</li>
-</ul>
-</div></blockquote>
-<p>If no 'terminal' policies are defined this function will always return True.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="app_terminal.SharedTermHandler">
 <em class="property">class </em><tt class="descclassname">app_terminal.</tt><tt class="descname">SharedTermHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#SharedTermHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.SharedTermHandler" title="Permalink to this definition">¶</a></dt>
@@ -174,12 +132,25 @@ the WebSocket is opened.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="app_terminal.TerminalApplication.send_client_files">
+<tt class="descname">send_client_files</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_client_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_client_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the client our standard CSS and JS.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="app_terminal.TerminalApplication.authenticate">
 <tt class="descname">authenticate</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.authenticate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets called immediately after the user is authenticated
 successfully at the end of <tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.authenticate()</span></tt>.
 Sends all plugin JavaScript files to the client and triggers the
 'terminal:authenticate' event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.on_close">
+<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all attached callbacks and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:on_close</span></tt>
+event.</p>
 </dd></dl>
 
 <dl class="method">
@@ -246,7 +217,7 @@ the given <em>multiplex</em> instance and <em>callback_id</em>.</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.new_multiplex">
-<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em>, <em>logging=True</em>, <em>encoding='utf-8'</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.new_multiplex" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em>, <em>logging=True</em>, <em>encoding=u'utf-8'</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.new_multiplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a new instance of <tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt> with the proper
 global and client-specific settings.</p>
 <blockquote>
@@ -296,10 +267,67 @@ the event that a terminal is reattached or when sharing a terminal).</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="app_terminal.TerminalApplication.set_terminal">
+<tt class="descname">set_terminal</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">self.current_term</span> <span class="pre">=</span> <span class="pre">*term*</span></tt> so we can determine where to send
+keystrokes.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="app_terminal.TerminalApplication.reset_client_terminal">
 <tt class="descname">reset_client_terminal</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.reset_client_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.reset_client_terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the client to reset the terminal (clear the screen and remove
 scrollback).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.set_title">
+<tt class="descname">set_title</tt><big>(</big><em>term</em>, <em>force=False</em>, <em>save=True</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the client telling it to set the window title of
+<em>term</em> to whatever comes out of:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c"># Whew! Say that three times fast!</span>
+</pre></div>
+</div>
+<p>Example message:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&quot;user@host&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>If <em>force</em> resolves to True the title will be sent to the cleint even if
+it matches the previously-set title.</p>
+<p>if <em>save</em> is <tt class="docutils literal"><span class="pre">True</span></tt> (the default) the title will be saved via the
+<a class="reference internal" href="#app_terminal.TerminalApplication.save_term_settings" title="app_terminal.TerminalApplication.save_term_settings"><tt class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.save_term_settings</span></tt></a> function so that it may be
+restored later (in the event of a server restart--if you've got dtach
+support enabled).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.bell">
+<tt class="descname">bell</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.bell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the client indicating that a bell was encountered in
+the given terminal (<em>term</em>).  Example message:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.mode_handler">
+<tt class="descname">mode_handler</tt><big>(</big><em>term</em>, <em>setting</em>, <em>boolean</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.mode_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.mode_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles mode settings that require an action on the client by pasing it
+a message like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&#39;terminal:set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
+        <span class="s">&#39;bool&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -318,6 +346,52 @@ terminal emulator returns from the CALLBACK_DSR callback.</p>
 <dt id="app_terminal.TerminalApplication._send_refresh">
 <tt class="descname">_send_refresh</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._send_refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a screen update to the client.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.refresh_screen">
+<tt class="descname">refresh_screen</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.refresh_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the state of the given terminal's screen and scrollback buffer to
+the client using <a class="reference internal" href="#app_terminal.TerminalApplication._send_refresh" title="app_terminal.TerminalApplication._send_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">_send_refresh()</span></tt></a>.  Also ensures that screen updates
+don't get sent too fast to the client by instituting a rate limiter that
+also forces a refresh every 150ms.  This keeps things smooth on the
+client side and also reduces the bandwidth used by the application (CPU
+too).</p>
+<p>If <em>full</em>, send the whole screen (not just the difference).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.full_refresh">
+<tt class="descname">full_refresh</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.full_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.full_refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">self.refresh_screen(*term*,</span> <span class="pre">full=True)</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.opt_esc_handler">
+<tt class="descname">opt_esc_handler</tt><big>(</big><em>term</em>, <em>multiplex</em>, <em>chars</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls whatever function is attached to the
+'terminal:opt_esc_handler:&lt;name&gt;' event; passing it the <em>text</em> (second
+item in the tuple) that is returned by
+<tt class="xref py py-func docutils literal"><span class="pre">utils.process_opt_esc_sequence()</span></tt>.  Such functions are usually
+attached via the 'Escape' plugin hook but may also be registered via
+the usual event method, :meth`self.on`:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&#39;terminal:opt_esc_handler:somename&#39;</span><span class="p">,</span> <span class="n">some_function</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example would result in <tt class="xref py py-func docutils literal"><span class="pre">some_function()</span></tt> being called
+whenever a matching optional escape sequence handler is encountered.
+For example:</p>
+<pre class="ansi-block literal-block">
+$ echo -e &quot;]_;somename|Text passed to some_function()&quot;
+</pre>
+<p>Which would result in <tt class="xref py py-func docutils literal"><span class="pre">some_function()</span></tt> being called like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">some_function</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="s">&quot;Text passed to some_function()&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">multiplex</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the above example, <em>term</em> will be the terminal number that emitted
+the event and <em>multiplex</em> will be the <tt class="xref py py-obj docutils literal"><span class="pre">termio.Multiplex</span></tt> instance that
+controls the terminal.</p>
 </dd></dl>
 
 <dl class="method">
@@ -349,6 +423,36 @@ Gate One into other apps).</p>
 </tbody>
 </table>
 </div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.remove_viewer">
+<tt class="descname">remove_viewer</tt><big>(</big><em>term</em>, <em>upn=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.remove_viewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.remove_viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects all callbacks attached to the given <em>term</em> for the given
+<em>upn</em> and notifies that user that the terminal is no longer shared (so
+it can be shown to be disconnected at the client).</p>
+<p>If <em>upn</em> is <tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt> all users (broadcast viewers included) will have the
+given <em>term</em> disconnected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication.notify_permissions">
+<tt class="descname">notify_permissions</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.notify_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.notify_permissions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends clients the list of shared terminals if they have been granted
+access to any shared terminal.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Normally this only gets called from
+<tt class="xref py py-obj docutils literal"><span class="pre">permissions</span></tt> after something changed.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="app_terminal.TerminalApplication._shared_terminals_dict">
+<tt class="descname">_shared_terminals_dict</tt><big>(</big><em>user=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._shared_terminals_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._shared_terminals_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict containing information about all shared terminals that
+the given <em>user</em> has access to.  If no <em>user</em> is given
+<tt class="xref py py-obj docutils literal"><span class="pre">self.current_user</span></tt> will be used.</p>
 </dd></dl>
 
 <dl class="method">
@@ -390,6 +494,7 @@ on the command line.</p>
 <tt class="descclassname">app_terminal.</tt><tt class="descname">init</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks to make sure 50terminal.conf is created if terminal-specific settings
 are not found in the settings directory.</p>
+<p>Also checks to make sure that the logviewer.py script is executable.</p>
 </dd></dl>
 
 </div>
@@ -407,8 +512,8 @@ are not found in the settings directory.</p>
   <p class="topless"><a href="developer.html"
                         title="previous chapter">Terminal Developer Documentation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="woff_info.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">woff_info.py</span></tt> - Python WOFF Font Inspector</a></p>
+  <p class="topless"><a href="configuration.html"
+                        title="next chapter">Terminal Configuration</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/Applications/terminal/app_terminal.txt"
@@ -441,7 +546,7 @@ are not found in the settings directory.</p>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
+          <a href="configuration.html" title="Terminal Configuration"
              >next</a> |</li>
         <li class="right" >
           <a href="developer.html" title="Terminal Developer Documentation"

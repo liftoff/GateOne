@@ -1282,6 +1282,7 @@
 </ul>
 </div></blockquote>
 <p>If <em>destination</em> is given (must be a function) it will be used to log messages like so: <tt class="docutils literal"><span class="pre">destination(message,</span> <span class="pre">levelStr)</span></tt>.  The usual conversion of <em>msg</em> to <em>message</em> will apply.</p>
+<p>Any additional arguments after <em>destination</em> will be passed directly to that function.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1924,7 +1925,7 @@
 </table>
 <p>This function is Gate One's bread and butter:  It applies the given CSS3 <em>transform</em> to <em>obj</em>.  <em>obj</em> can be one of the following:</p>
 <ul class="simple">
-<li>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-like string (e.g. &quot;#some_element_id&quot;).</li>
+<li>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> -like string (e.g. &quot;#some_element_id&quot;).</li>
 <li>A DOM node.</li>
 <li>An <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> or an Array-like object containing DOM nodes such as <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a> or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (it will apply the transform to all of them).</li>
 </ul>
@@ -2109,7 +2110,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dl class="staticmethod">
 <dt id="GateOne.Visual.slideToWorkspace">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">slideToWorkspace</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.slideToWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Slides the view to the given <em>workspace</em>.  If <em>GateOne.Visual.noReset</em> is true, don't reset the grid before switching.</p>
+<dd><p>Slides the view to the given <em>workspace</em>.  If <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Visual.noReset</span></tt> is true, don't reset the grid before switching.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2119,7 +2120,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">stopIndicator</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The given <em>direction</em> may be one of:  <strong>left</strong>, <strong>right</strong>, <strong>up</strong>, <strong>down</strong></p>
+<p>The given <em>direction</em> may be one of:  <strong>left</strong>, <strong>right</strong>, <strong>up</strong>, <strong>down</strong>.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2201,6 +2202,14 @@ Why is this mechanism the opposite of everything else where you call the functio
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="GateOne.Visual.createGrid">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">createGrid</tt><big>(</big><em>id</em>, <em>workspaceNames</em><big>)</big><a class="headerlink" href="#GateOne.Visual.createGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a container for all the workspaces and optionally pre-creates workspaces using <em>workspaceNames</em>.</p>
+<p><em>id</em> will be the ID of the resulting grid (e.g. &quot;gridwrapper&quot;).</p>
+<p><em>workspaceNames</em> is expected to be a list of DOM IDs.</p>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="GateOne.Visual.serverMessageAction">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">serverMessageAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Visual.serverMessageAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:notice</span></tt> WebSocket action; displays a given <em>message</em> from the Gate One server as a transient pop-up using <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a>.</p>
@@ -2251,7 +2260,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 </tr>
 <tr class="field-odd field"><th class="field-name">above:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will be kept above others.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">data:</th><td class="field-body">(object) If given, any contained properties will be set as 'data-<a href="#id42"><span class="problematic" id="id43">*</span></a>' attributes on the dialogContainer.</td>
+<tr class="field-even field"><th class="field-name">data:</th><td class="field-body">(object) If given, any contained properties will be set as 'data-*' attributes on the dialogContainer.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">where:</th><td class="field-body">If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt>) and will be movable anywhere on the page.</td>
 </tr>

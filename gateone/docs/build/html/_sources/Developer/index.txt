@@ -11,15 +11,14 @@ Gate One consists of gateone.py and several supporting Python modules and script
 
     authentication.rst
     authorization.rst
-    pam.rst
     ctypes_pam.rst
+    pam.rst
     sso.rst
+    log.rst
     logviewer.rst
-    remote_syslog.rst
+    server.rst
     terminal.rst
     termio.rst
-    log.rst
-    server.rst
     utils.rst
 
 JavaScript Code

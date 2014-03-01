@@ -158,7 +158,7 @@
 <dl class="function">
 <dt id="GateOne.Terminal.killTerminal">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">killTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.killTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells the server got close the given <em>term</em>.</p>
+<dd><p>Tells the server got close the given <em>term</em> and kill the underlying process.</p>
 </dd></dl>
 
 <dl class="function">
@@ -513,7 +513,7 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.reconnectTerminalAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reconnectTerminalAction</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.reconnectTerminalAction" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reconnectTerminalAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.reconnectTerminalAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the server reports that the terminal number supplied via the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:new_terminal</span></tt> WebSocket action already exists.</p>
 <p>This method also gets called when a terminal is moved from one 'location' to another.</p>
 </dd></dl>
@@ -697,52 +697,6 @@ the appropriate message to the Gate One server.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Terminal.share">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">share</tt><big>(</big><em>term</em><span class="optional">[</span>, <em>permissions</em><span class="optional">[</span>, <em>password</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.share" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>term</strong> (<em>number</em>) -- The terminal to share.</li>
-<li><strong>permissions</strong> -- An object containing &quot;read&quot; and/or &quot;write&quot; keys/values which must contain strings or arrays of strings that enumerate who may read/write to this terminal.  Defaults to <tt class="docutils literal"><span class="pre">&quot;read&quot;:</span> <span class="pre">&quot;AUTHENTICATED&quot;</span></tt> and <tt class="docutils literal"><span class="pre">&quot;write&quot;:</span> <span class="pre">null</span></tt> if not provided.  May also contain a &quot;broadcast&quot; key (see below)</li>
-<li><strong>password</strong> (<em>string</em>) -- An optional password that will be required in order to read/write to the shared terminal.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Shares the given <em>term</em> with the users specified by <em>permissions</em>.  If <em>permissions</em> is not given the terminal will be shared (read-only) with all authenticated users.  That is, all authenticated users will be able to view it if they choose to do so.</p>
-<p>To share a terminal with the world (broadcast) set <em>permissions[&quot;read&quot;]</em> to &quot;ANONYMOUS&quot;.  This is the default if the server is not using authentication.</p>
-<p>If a <em>password</em> is given only users that know it will be able to connect to the shared terminal--even if they've explicitly been granted read/write permission.  This allows one to share a terminal with an invdividual that does not have an account on the Gate One server (if sharing with &quot;ANONYMOUS&quot;).</p>
-<p>Controlling permissions:</p>
-<blockquote>
-<div><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">read:</th><td class="field-body">A string or array containing a list of users to whom this terminal will be shared.  Can be &quot;AUTHENTICATED&quot;, &quot;ANONYMOUS&quot;, or an array of users.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">write:</th><td class="field-body">A string or array containing a list of users which will be granted write access to this terminal.  Can be &quot;AUTHENTICATED&quot;, &quot;ANONYMOUS&quot;, or an array of users.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">broadcast:</th><td class="field-body">A boolean that controls whether or not anonymous users will be allowed to connect and view the terminal.</td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If <tt class="docutils literal"><span class="pre">permissions[&quot;broadcast&quot;]</span></tt> is <tt class="docutils literal"><span class="pre">true</span></tt> unauthenticated clients will be allowed to connect and view a shared terminal even if server requires authentication.</p>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="GateOne.Terminal.unshare">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">unshare</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.unshare" title="Permalink to this definition">¶</a></dt>
-<dd><p>Stops sharing the given <em>term</em>.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="GateOne.Terminal.sharePermissions">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharePermissions</tt><big>(</big><em>term</em>, <em>permissions</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharePermissions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the sharing <em>permissions</em> of the given <em>term</em>.  The <em>permissions</em> must be an object that contains one or both of the following:</p>
@@ -779,9 +733,23 @@ the appropriate message to the Gate One server.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Terminal.setShareID">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setShareID</tt><big>(</big><em>term</em><span class="optional">[</span>, <em>shareID</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.setShareID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the share ID of the given <em>term</em>.  If a <em>shareID</em> is not provided one will be generated automatically (by the server).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Terminal.attachSharedTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">attachSharedTerminal</tt><big>(</big><em>shareID</em><span class="optional">[</span>, <em>password</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.attachSharedTerminal" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">attachSharedTerminal</tt><big>(</big><em>shareID</em><span class="optional">[</span>, <em>password</em><span class="optional">[</span>, <em>metadata</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.attachSharedTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens the terminal associated with the given <em>shareID</em>.</p>
+<p>If a <em>password</em> is given it will be used to attach to the shared terminal.</p>
+<p>If <em>metadata</em> is given it will be passed to the server to be used for extra logging and providing additional details about who is connecting to shared terminals.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.detachSharedTerminal">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">detachSharedTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.detachSharedTerminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server that we no longer wish to view the terminal associated with the given <em>term</em> (local terminal number).</p>
 </dd></dl>
 
 <dl class="function">
@@ -794,6 +762,42 @@ the appropriate message to the Gate One server.</p>
 <dt id="GateOne.Terminal.sharedTerminalsAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTerminalsAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> WebSocket action; stores the list of terminals that have been shared with the user in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></tt> and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> event.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.sharedTerminalsDialog">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTerminalsDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens up a dialog where the user can open terminals that have been shared with them.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.shareInfo">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareInfo</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a dialog that lists the current viewers (along with their permissions) of a given <em>term</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.shareWidget">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareWidget</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a terminal sharing widget to the given <em>term</em> (number) that provides sharing controls and information (e.g. number of viewers).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.sharedTermObj">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTermObj</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTermObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object matching the given <em>term</em> from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.shareID">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareID</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the share ID for the given <em>term</em> (if any).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.shareBroadcastURL">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareBroadcastURL</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareBroadcastURL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the broadcast URL for the given <em>term</em> (if any).</p>
 </dd></dl>
 
 </div>

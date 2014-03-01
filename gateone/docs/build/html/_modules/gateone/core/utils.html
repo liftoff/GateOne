@@ -393,7 +393,8 @@
             <span class="n">pidfile</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">pidfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="k">raise</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not write PID file: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="c"># This raises the original exception</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pidfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -678,7 +679,9 @@
     <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
             <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not create directory: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="c"># The original exception</span>
 </div>
 <div class="viewcode-block" id="cmd_var_swap"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.cmd_var_swap">[docs]</a><span class="k">def</span> <span class="nf">cmd_var_swap</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -734,7 +737,7 @@
 <span class="sd">    .. note::</span>
 
 <span class="sd">        Collisions are possible but *highly* unlikely because of how this method</span>
-<span class="sd">        is used.</span>
+<span class="sd">        is typically used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">base64</span>
     <span class="n">hashed</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">to_shorten</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
@@ -743,6 +746,19 @@
     <span class="k">if</span> <span class="n">hashed</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">):</span>
         <span class="n">hashed</span> <span class="o">=</span> <span class="n">hashed</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">hashed</span>
+</div>
+<div class="viewcode-block" id="random_words"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.random_words">[docs]</a><span class="k">def</span> <span class="nf">random_words</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns *n* random English words (as a tuple) from the `english_wordlist.txt`</span>
+<span class="sd">    file (bundled with Gate One).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_string</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">resource_string</span><span class="p">(</span>
+        <span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;static/english_wordlist.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">out_words</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">out_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out_words</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="get_process_tree"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.get_process_tree">[docs]</a><span class="k">def</span> <span class="nf">get_process_tree</span><span class="p">(</span><span class="n">parent_pid</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1489,16 +1505,16 @@
         <span class="kn">import</span> <span class="nn">slimit</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">slimit</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;slimit module not found.  JavaScript will not be minified.&quot;</span><span class="p">))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;To install slimit:  sudo pip install slimit&quot;</span><span class="p">))</span>
+        <span class="c">#logging.warning(_(</span>
+            <span class="c">#&quot;slimit module not found.  JavaScript will not be minified.&quot;))</span>
+        <span class="c">#logging.info(_(&quot;To install slimit:  sudo pip install slimit&quot;))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">cssmin</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">cssmin</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;cssmin module not found.  CSS will not be minified.&quot;</span><span class="p">))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;To install cssmin:  sudo pip install cssmin&quot;</span><span class="p">))</span>
+        <span class="c">#logging.warning(_(</span>
+            <span class="c">#&quot;cssmin module not found.  CSS will not be minified.&quot;))</span>
+        <span class="c">#logging.info(_(&quot;To install cssmin:  sudo pip install cssmin&quot;))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

@@ -666,7 +666,9 @@ WebSocket action.  The rendered template will be saved in Gate One's
 <dt id="ssh.initialize">
 <tt class="descclassname">ssh.</tt><tt class="descname">initialize</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../../_modules/ssh.html#initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called inside of <tt class="xref py py-meth docutils literal"><span class="pre">TerminalApplication.initialize()</span></tt> shortly after the
-WebSocket is instantiated.</p>
+WebSocket is instantiated.  Attaches our two <tt class="xref py py-obj docutils literal"><span class="pre">terminal:authenticate</span></tt> events
+(to create the user's .ssh dir and send our CSS template) and ensures that
+the ssh_connect.py script is executable.</p>
 </dd></dl>
 
 </div>

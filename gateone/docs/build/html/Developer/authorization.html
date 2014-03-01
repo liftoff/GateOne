@@ -38,7 +38,7 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="pam.py - A PAM Authentication Module" href="pam.html" />
+    <link rel="next" title="ctypes_pam.py - PAM Authentication Module" href="ctypes_pam.html" />
     <link rel="prev" title="authentication.py - Authentication Classes" href="authentication.html" /> 
   </head>
   <body>
@@ -52,7 +52,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pam.html" title="pam.py - A PAM Authentication Module"
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="authentication.html" title="authentication.py - Authentication Classes"
@@ -133,7 +133,7 @@ name and policy-checking function inside of
 </div>
 <p>Whenever a function decorated with <tt class="docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
 called the registered policy-checking function (e.g.
-<a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.terminal_policies" title="app_terminal.terminal_policies"><tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt></a>) will be called, passing the current
+<tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current
 instance of <a class="reference internal" href="#gateone.auth.authorization.policies" title="gateone.auth.authorization.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
 <p>It is then up to the policy-checking function to make a determination as to
 whether or not the user is allowed to execute the decorated function and
@@ -174,8 +174,8 @@ do this with the <tt class="xref py py-meth docutils literal"><span class="pre">
   <p class="topless"><a href="authentication.html"
                         title="previous chapter"><tt class="docutils literal"><span class="pre">authentication.py</span></tt> - Authentication Classes</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="pam.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">pam.py</span></tt> - A PAM Authentication Module</a></p>
+  <p class="topless"><a href="ctypes_pam.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">ctypes_pam.py</span></tt> - PAM Authentication Module</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/authorization.txt"
@@ -208,7 +208,7 @@ do this with the <tt class="xref py py-meth docutils literal"><span class="pre">
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="pam.html" title="pam.py - A PAM Authentication Module"
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
              >next</a> |</li>
         <li class="right" >
           <a href="authentication.html" title="authentication.py - Authentication Classes"

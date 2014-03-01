@@ -168,6 +168,12 @@
 <dd><p>Tells the server to open <em>logFile</em> rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="GateOne.TermLogging.sessionLoggingDisabled">
+<tt class="descclassname">GateOne.TermLogging.</tt><tt class="descname">sessionLoggingDisabled</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.TermLogging.sessionLoggingDisabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just removes the &quot;Log Viewer&quot; button from the Terminal info panel.  It gets sent if the server has <tt class="docutils literal"><span class="pre">&quot;session_logging&quot;:</span> <span class="pre">false</span></tt>.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="GateOne.TermLogging.sortFunctions">
 <tt class="descclassname">GateOne.TermLogging.</tt><tt class="descname">sortFunctions</tt><a class="headerlink" href="#GateOne.TermLogging.sortFunctions" title="Permalink to this definition">¶</a></dt>
@@ -373,6 +379,20 @@ opening it in a new window.</p>
 </div>
 <p>It is expected that the client will create a new window with the result of
 this method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.session_logging_check">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">session_logging_check</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../../_modules/logging_plugin.html#session_logging_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.session_logging_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:session_logging_check</span></tt> WebSocket action; replies
+with <tt class="xref py py-obj docutils literal"><span class="pre">terminal:logging_sessions_disabled</span></tt> if terminal session logging is
+disabled.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="xref py py-obj docutils literal"><span class="pre">terminal:logging_sessions_disabled</span></tt> message just has the client
+remove the &quot;Log Viewer&quot; button so they don't get confused with an
+always-empty log viewer.</p>
+</div>
 </dd></dl>
 
 <dl class="function">

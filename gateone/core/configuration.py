@@ -222,8 +222,7 @@ def define_options(installed=True):
     define("settings_dir",
         default=settings_default,
         group='gateone',
-        help=_(
-            "Path to the settings directory.  Default: %s" % settings_default),
+        help=_("Path to the settings directory."),
         type=basestring
     )
     define(
@@ -353,17 +352,7 @@ def define_options(installed=True):
         group='gateone',
         help=_("Syslog facility to use when logging to syslog (if "
                "syslog_session_logging is enabled).  Must be one of: %s."
-               "  Default: daemon" % ", ".join(facilities)),
-        type=basestring
-    )
-    define(
-        "syslog_host",
-        default=None,
-        group='gateone',
-        help=_("Remote host to send syslog messages to if syslog_logging is "
-               "enabled.  Default: None (log to the local syslog daemon "
-               "directly).  NOTE:  This setting is required on platforms that "
-               "don't include Python's syslog module."),
+               % ", ".join(facilities)),
         type=basestring
     )
     define(
@@ -372,8 +361,8 @@ def define_options(installed=True):
         group='gateone',
         help=_("Amount of time that a session is allowed to idle before it is "
         "killed.  Accepts <num>X where X could be one of s, m, h, or d for "
-        "seconds, minutes, hours, and days.  Default is '5d' (5 days).   Set to"
-        " '0' to disable the ability to resume sessions."),
+        "seconds, minutes, hours, and days.  Set to '0' to disable the ability "
+        "to resume sessions."),
         type=basestring
     )
     define(
@@ -399,8 +388,7 @@ def define_options(installed=True):
         default="30s", # 30 seconds
         group='gateone',
         help=_(
-            "How long before an API authentication object becomes invalid.  "
-            "Default is '30s' (30 seconds)."),
+            "How long before an API authentication object becomes invalid.  "),
         type=basestring
     )
     define(
@@ -490,9 +478,8 @@ def define_options(installed=True):
                "contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will"
                " use to connect to your Gate One server as well as the "
                "hostnames/FQDNs of any sites that will be embedding Gate One. "
-               "Here's the default on your system: '%s'. "
                "Alternatively, '*' may be  specified to allow access from "
-               "anywhere." % default_origins),
+               "anywhere."),
         type=basestring
     )
     define(

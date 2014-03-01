@@ -167,6 +167,7 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Globals</span>
+<span class="n">APPLICATION_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
 <span class="n">RE_OPT_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1b\]_\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
 <span class="n">RE_TITLE_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
@@ -322,7 +323,10 @@
                     <span class="n">out</span> <span class="o">+=</span> <span class="n">esc_buffer</span> <span class="c"># Ooh, naked viewing of pretty things!</span>
                 <span class="k">elif</span> <span class="n">csi_type</span> <span class="o">==</span> <span class="s">&#39;C&#39;</span><span class="p">:</span> <span class="c"># Move cursor right (we want to do this)</span>
                     <span class="c"># Will be something like this: \x1b[208C</span>
-                    <span class="n">spaces</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">num_spaces</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">num_spaces</span><span class="p">:</span>
+                        <span class="n">num_spaces</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">spaces</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_spaces</span><span class="p">)</span>
                     <span class="n">out</span> <span class="o">+=</span> <span class="s">u&#39; &#39;</span> <span class="o">*</span> <span class="n">spaces</span> <span class="c"># Add an equivalent amount of spaces</span>
                 <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Make room for more!</span>
                 <span class="k">continue</span>
@@ -502,8 +506,8 @@
 <span class="sd">    used as the ``{{container}}`` variable when rendering the template (</span>
 <span class="sd">    defaults to &quot;gateone&quot;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">terminal_app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;applications&#39;</span><span class="p">,</span> <span class="s">&#39;terminal&#39;</span><span class="p">)</span>
-    <span class="n">colors_json_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">terminal_app_path</span><span class="p">,</span> <span class="s">&#39;256colors.json&#39;</span><span class="p">)</span>
+    <span class="n">colors_json_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;256colors.json&#39;</span><span class="p">)</span>
     <span class="c"># Using get_settings() as a cool hack to get the color data as a nice dict:</span>
     <span class="n">color_map</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">colors_json_path</span><span class="p">,</span> <span class="n">add_default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="c"># Setup our 256-color support CSS:</span>

@@ -72,7 +72,7 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3&quot;</span> <span class="c"># ...or proprietary (see LICENSE.txt)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
-<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20131115220402&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
+<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20140226213756&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
@@ -253,185 +253,23 @@
 
 <span class="s">.. ansi-block::</span>
 
-<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./gateone.py --help</span>
-<span class="s">    Usage: ./gateone.py [OPTIONS]</span>
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m gateone --help</span>
+<span class="s">    Usage: /usr/local/bin/gateone [OPTIONS]</span>
 
 <span class="s">    Options:</span>
 
-<span class="s">    --address                       Run on the given address.  Default is all</span>
-<span class="s">                                    addresses (IPv6 included).  Multiple address</span>
-<span class="s">                                    can be s</span>
-<span class="s">                                    pecified using a semicolon as a</span>
-<span class="s">                                    separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
-<span class="s">    --api_keys                      The &#39;key:secret,...&#39; API key pairs you wish</span>
-<span class="s">                                    to use (only applies if using API</span>
-<span class="s">                                    authentication)</span>
-<span class="s">    --api_timestamp_window          How long before an API authentication object</span>
-<span class="s">                                    becomes invalid.  Default is &#39;30s&#39; (30</span>
-<span class="s">                                    seconds). (default 30s)</span>
-<span class="s">    --auth                          Authentication method to use.  Valid options</span>
-<span class="s">                                    are: none, api, google, ssl, kerberos, pam</span>
-<span class="s">                                    (default none)</span>
-<span class="s">    --ca_certs                      Path to a file containing any number of</span>
-<span class="s">                                    concatenated CA certificates in PEM format.</span>
-<span class="s">                                    They will be used to authenticate clients if</span>
-<span class="s">                                    the &#39;ssl_auth&#39; option is set to &#39;optional&#39;</span>
-<span class="s">                                    or &#39;required&#39;.</span>
-<span class="s">    --cache_dir                     Path where Gate One should store temporary</span>
-<span class="s">                                    global files (e.g. rendered templates, CSS,</span>
-<span class="s">                                    JS, etc). (default /tmp/gateone_cache)</span>
-<span class="s">    --certificate                   Path to the SSL certificate.  Will be auto-</span>
-<span class="s">                                    generated if none is provided. (default</span>
-<span class="s">                                    certificate.pem)</span>
-<span class="s">    --combine_css                   Combines all of Gate One&#39;s CSS Template</span>
-<span class="s">                                    files into one big file and saves it at the</span>
-<span class="s">                                    given path (e.g. ./gateone.py</span>
-<span class="s">                                    --combine_css=/tmp/gateone.css).</span>
-<span class="s">    --combine_css_container         Use this setting in conjunction with</span>
-<span class="s">                                    --combine_css if the &lt;div&gt; where Gate One</span>
-<span class="s">                                    lives is named something other than #gateone</span>
-<span class="s">                                    (default #gateone)</span>
-<span class="s">    --combine_js                    Combines all of Gate One&#39;s JavaScript files</span>
-<span class="s">                                    into one big file and saves it at the given</span>
-<span class="s">                                    path (e.g. ./gateone.py</span>
-<span class="s">                                    --combine_js=/tmp/gateone.js)</span>
-<span class="s">    --command                       DEPRECATED: Use the &#39;commands&#39; option in the</span>
-<span class="s">                                    terminal settings.</span>
-<span class="s">    --config                        DEPRECATED.  Use --settings_dir. (default</span>
-<span class="s">                                    /opt/gateone/server.conf)</span>
-<span class="s">    --cookie_secret                 Use the given 45-character string for cookie</span>
-<span class="s">                                    encryption.</span>
-<span class="s">    --debug                         Enable debugging features such as auto-</span>
-<span class="s">                                    restarting when files are modified. (default</span>
-<span class="s">                                    False)</span>
-<span class="s">    --disable_ssl                   If enabled, Gate One will run without SSL</span>
-<span class="s">                                    (generally not a good idea). (default False)</span>
-<span class="s">    --dtach                         Wrap terminals with dtach. Allows sessions</span>
-<span class="s">                                    to be resumed even if Gate One is stopped</span>
-<span class="s">                                    and started (which is a sweet feature).</span>
-<span class="s">                                    (default True)</span>
-<span class="s">    --embedded                      When embedding Gate One, this option is</span>
-<span class="s">                                    available to templates. (default False)</span>
-<span class="s">    --enable_unix_socket            Enable Unix socket support. (default False)</span>
-<span class="s">    --gid                           Drop privileges and run Gate One as this</span>
-<span class="s">                                    group/gid. (default 0)</span>
-<span class="s">    --help                          show this help information</span>
-<span class="s">    --https_redirect                If enabled, a separate listener will be</span>
-<span class="s">                                    started on port 80 that redirects users to</span>
-<span class="s">                                    the configured port using HTTPS. (default</span>
-<span class="s">                                    False)</span>
-<span class="s">    --js_init                       A JavaScript object (string) that will be</span>
-<span class="s">                                    used when running GateOne.init() inside</span>
-<span class="s">                                    index.html.  Example: --js_init=&quot;{scheme:</span>
-<span class="s">                                    &#39;white&#39;}&quot; would result in</span>
-<span class="s">                                    GateOne.init({scheme: &#39;white&#39;})</span>
-<span class="s">    --keyfile                       Path to the SSL keyfile.  Will be auto-</span>
-<span class="s">                                    generated if none is provided. (default</span>
-<span class="s">                                    keyfile.pem)</span>
-<span class="s">    --kill                          Kill any running Gate One terminal processes</span>
-<span class="s">                                    including dtach&#39;d processes. (default False)</span>
-<span class="s">    --locale                        The locale (e.g. pt_PT) Gate One should use</span>
-<span class="s">                                    for translations.  If not provided, will</span>
-<span class="s">                                    default to $LANG (which is &#39;en_US&#39; in your</span>
-<span class="s">                                    current shell), or en_US if not set.</span>
-<span class="s">                                    (default en_US)</span>
-<span class="s">    --new_api_key                   Generate a new API key that an external</span>
-<span class="s">                                    application can use to embed Gate One.</span>
-<span class="s">                                    (default False)</span>
-<span class="s">    --origins                       A semicolon-separated list of origins you</span>
-<span class="s">                                    wish to allow access to your Gate One server</span>
-<span class="s">                                    over the WebSocket.  This value must contain</span>
-<span class="s">                                    the hostnames and FQDNs (e.g. foo;foo.bar;)</span>
-<span class="s">                                    users will use to connect to your Gate One</span>
-<span class="s">                                    server as well as the hostnames/FQDNs of any</span>
-<span class="s">                                    sites that will be embedding Gate One.</span>
-<span class="s">                                    Here&#39;s the default on your system: &#39;localhos</span>
-<span class="s">                                    t;127.0.0.1;enterprise.lan;enterprise;localh</span>
-<span class="s">                                    ost;enterprise.lan;enterprise;enterprise.exa</span>
-<span class="s">                                    mple.com;127.0.0.1;10.1.1.100&#39;.</span>
-<span class="s">                                    Alternatively, &#39;*&#39; may be  specified to</span>
-<span class="s">                                    allow access from anywhere. (default localho</span>
-<span class="s">                                    st;127.0.0.1;enterprise.lan;enterprise;local</span>
-<span class="s">                                    host;enterprise.lan;enterprise;enterprise.ex</span>
-<span class="s">                                    ample.com;127.0.0.1;10.1.1.100)</span>
-<span class="s">    --pam_realm                     Basic auth REALM to display when</span>
-<span class="s">                                    authenticating clients.  Default: hostname.</span>
-<span class="s">                                    Only relevant if PAM authentication is</span>
-<span class="s">                                    enabled. (default enterprise)</span>
-<span class="s">    --pam_service                   PAM service to use.  Defaults to &#39;login&#39;.</span>
-<span class="s">                                    Only relevant if PAM authentication is</span>
-<span class="s">                                    enabled. (default login)</span>
-<span class="s">    --pid_file                      Define the path to the pid file.  Default:</span>
-<span class="s">                                    /tmp/gateone.pid (default /tmp/gateone.pid)</span>
-<span class="s">    --port                          Run on the given port. (default 443)</span>
-<span class="s">    --session_dir                   Path to the location where session</span>
-<span class="s">                                    information will be stored. (default</span>
-<span class="s">                                    /tmp/gateone)</span>
-<span class="s">    --session_logging               If enabled, logs of user sessions will be</span>
-<span class="s">                                    saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default:</span>
-<span class="s">                                    Enabled (default True)</span>
-<span class="s">    --session_timeout               Amount of time that a session is allowed to</span>
-<span class="s">                                    idle before it is killed.  Accepts &lt;num&gt;X</span>
-<span class="s">                                    where X could be one of s, m, h, or d for</span>
-<span class="s">                                    seconds, minutes, hours, and days.  Default</span>
-<span class="s">                                    is &#39;5d&#39; (5 days).  Set to &#39;0&#39; to disable</span>
-<span class="s">                                    the ability to resume sessions. (default 5d)</span>
-<span class="s">    --settings_dir                  Path to the settings directory.  Default:</span>
-<span class="s">                                    /opt/gateone/settings (default</span>
-<span class="s">                                    /opt/gateone/settings)</span>
-<span class="s">    --ssl_auth                      Enable the use of client SSL (X.509)</span>
-<span class="s">                                    certificates as a secondary authentication</span>
-<span class="s">                                    factor (the configured &#39;auth&#39; type will come</span>
-<span class="s">                                    after SSL auth).  May be one of &#39;none&#39;,</span>
-<span class="s">                                    &#39;optional&#39;, or &#39;required&#39;.  NOTE: Only works</span>
-<span class="s">                                    if the &#39;ca_certs&#39; option is configured.</span>
-<span class="s">                                    (default none)</span>
-<span class="s">    --sso_realm                     Kerberos REALM (aka DOMAIN) to use when</span>
-<span class="s">                                    authenticating clients. Only relevant if</span>
-<span class="s">                                    Kerberos authentication is enabled.</span>
-<span class="s">    --sso_service                   Kerberos service (aka application) to use.</span>
-<span class="s">                                    Defaults to HTTP. Only relevant if Kerberos</span>
-<span class="s">                                    authentication is enabled. (default HTTP)</span>
-<span class="s">    --syslog_facility               Syslog facility to use when logging to</span>
-<span class="s">                                    syslog (if syslog_session_logging is</span>
-<span class="s">                                    enabled).  Must be one of: auth, cron,</span>
-<span class="s">                                    daemon, kern, local0, local1, local2,</span>
-<span class="s">                                    local3, local4, local5, local6, local7, lpr,</span>
-<span class="s">                                    mail, news, syslog, user, uucp.  Default:</span>
-<span class="s">                                    daemon (default daemon)</span>
-<span class="s">    --syslog_host                   Remote host to send syslog messages to if</span>
-<span class="s">                                    syslog_logging is enabled.  Default: None</span>
-<span class="s">                                    (log to the local syslog daemon directly).</span>
-<span class="s">                                    NOTE:  This setting is required on platforms</span>
-<span class="s">                                    that don&#39;t include Python&#39;s syslog module.</span>
-<span class="s">    --syslog_session_logging        If enabled, logs of user sessions will be</span>
-<span class="s">                                    written to syslog. (default False)</span>
-<span class="s">    --uid                           Drop privileges and run Gate One as this</span>
-<span class="s">                                    user/uid. (default 0)</span>
-<span class="s">    --unix_socket_path              Path to the Unix socket (if</span>
-<span class="s">                                    --enable_unix_socket=True). (default</span>
-<span class="s">                                    /tmp/gateone.sock)</span>
-<span class="s">    --url_prefix                    An optional prefix to place before all Gate</span>
-<span class="s">                                    One URLs. e.g. &#39;/gateone/&#39;.  Use this if</span>
-<span class="s">                                    Gate One will be running behind a reverse</span>
-<span class="s">                                    proxy where you want it to be located at</span>
-<span class="s">                                    some sub-URL path. (default /)</span>
-<span class="s">    --user_dir                      Path to the location where user files will</span>
-<span class="s">                                    be stored. (default /opt/gateone/users)</span>
-<span class="s">    --user_logs_max_age             Maximum amount of length of time to keep any</span>
-<span class="s">                                    given user log before it is removed.</span>
-<span class="s">                                    (default 30d)</span>
+<span class="s">    --help                           show this help information</span>
 
 <span class="s">    /usr/local/lib/python2.7/dist-packages/tornado/log.py options:</span>
 
-<span class="s">    --log_file_max_size             max size of log files before rollover</span>
+<span class="s">    --log_file_max_size              max size of log files before rollover</span>
 <span class="s">                                    (default 100000000)</span>
-<span class="s">    --log_file_num_backups          number of log files to keep (default 10)</span>
-<span class="s">    --log_file_prefix=PATH          Path prefix for log files. Note that if you</span>
+<span class="s">    --log_file_num_backups           number of log files to keep (default 10)</span>
+<span class="s">    --log_file_prefix=PATH           Path prefix for log files. Note that if you</span>
 <span class="s">                                    are running multiple tornado processes,</span>
 <span class="s">                                    log_file_prefix must be different for each</span>
 <span class="s">                                    of them (e.g. include the port number)</span>
-<span class="s">    --log_to_stderr                 Send log output to stderr (colorized if</span>
+<span class="s">    --log_to_stderr                  Send log output to stderr (colorized if</span>
 <span class="s">                                    possible). By default use stderr if</span>
 <span class="s">                                    --log_file_prefix is not set and no other</span>
 <span class="s">                                    logging is configured.</span>
@@ -439,6 +277,171 @@
 <span class="s">                                    Set the Python log level. If &#39;none&#39;, tornado</span>
 <span class="s">                                    won&#39;t touch the logging configuration.</span>
 <span class="s">                                    (default info)</span>
+
+<span class="s">    gateone options:</span>
+
+<span class="s">    --address                        Run on the given address.  Default is all</span>
+<span class="s">                                    addresses (IPv6 included).  Multiple address</span>
+<span class="s">                                    can be specified using a semicolon as a</span>
+<span class="s">                                    separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
+<span class="s">    --api_keys                       The &#39;key:secret,...&#39; API key pairs you wish</span>
+<span class="s">                                    to use (only applies if using API</span>
+<span class="s">                                    authentication)</span>
+<span class="s">    --api_timestamp_window           How long before an API authentication object</span>
+<span class="s">                                    becomes invalid.   (default 30s)</span>
+<span class="s">    --auth                           Authentication method to use.  Valid options</span>
+<span class="s">                                    are: none, api, google, ssl, kerberos, pam</span>
+<span class="s">                                    (default none)</span>
+<span class="s">    --ca_certs                       Path to a file containing any number of</span>
+<span class="s">                                    concatenated CA certificates in PEM format.</span>
+<span class="s">                                    They will be used to authenticate clients if</span>
+<span class="s">                                    the &#39;ssl_auth&#39; option is set to &#39;optional&#39;</span>
+<span class="s">                                    or &#39;required&#39;.</span>
+<span class="s">    --cache_dir                      Path where Gate One should store temporary</span>
+<span class="s">                                    global files (e.g. rendered templates, CSS,</span>
+<span class="s">                                    JS, etc). (default /tmp/gateone_cache)</span>
+<span class="s">    --certificate                    Path to the SSL certificate.  Will be auto-</span>
+<span class="s">                                    generated if none is provided. (default</span>
+<span class="s">                                    /etc/gateone/ssl/certificate.pem)</span>
+<span class="s">    --combine_css                    Combines all of Gate One&#39;s CSS Template</span>
+<span class="s">                                    files into one big file and saves it at the</span>
+<span class="s">                                    given path (e.g. gateone</span>
+<span class="s">                                    --combine_css=/tmp/gateone.css).</span>
+<span class="s">    --combine_css_container          Use this setting in conjunction with</span>
+<span class="s">                                    --combine_css if the &lt;div&gt; where Gate One</span>
+<span class="s">                                    lives is named something other than #gateone</span>
+<span class="s">                                    (default gateone)</span>
+<span class="s">    --combine_js                     Combines all of Gate One&#39;s JavaScript files</span>
+<span class="s">                                    into one big file and saves it at the given</span>
+<span class="s">                                    path (e.g. gateone</span>
+<span class="s">                                    --combine_js=/tmp/gateone.js)</span>
+<span class="s">    --command                        DEPRECATED: Use the &#39;commands&#39; option in the</span>
+<span class="s">                                    terminal settings.</span>
+<span class="s">    --config                         DEPRECATED.  Use --settings_dir. (default</span>
+<span class="s">                                    /opt/gateone/server.conf)</span>
+<span class="s">    --cookie_secret                  Use the given 45-character string for cookie</span>
+<span class="s">                                    encryption.</span>
+<span class="s">    --debug                          Enable debugging features such as auto-</span>
+<span class="s">                                    restarting when files are modified. (default</span>
+<span class="s">                                    False)</span>
+<span class="s">    --disable_ssl                    If enabled, Gate One will run without SSL</span>
+<span class="s">                                    (generally not a good idea). (default False)</span>
+<span class="s">    --embedded                       When embedding Gate One, this option is</span>
+<span class="s">                                    available to templates. (default False)</span>
+<span class="s">    --enable_unix_socket             Enable Unix socket support. (default False)</span>
+<span class="s">    --gid                            Drop privileges and run Gate One as this</span>
+<span class="s">                                    group/gid. (default 0)</span>
+<span class="s">    --https_redirect                 If enabled, a separate listener will be</span>
+<span class="s">                                    started on port 80 that redirects users to</span>
+<span class="s">                                    the configured port using HTTPS. (default</span>
+<span class="s">                                    False)</span>
+<span class="s">    --js_init                        A JavaScript object (string) that will be</span>
+<span class="s">                                    used when running GateOne.init() inside</span>
+<span class="s">                                    index.html.  Example: --js_init=&quot;{scheme:</span>
+<span class="s">                                    &#39;white&#39;}&quot; would result in</span>
+<span class="s">                                    GateOne.init({scheme: &#39;white&#39;})</span>
+<span class="s">    --keyfile                        Path to the SSL keyfile.  Will be auto-</span>
+<span class="s">                                    generated if none is provided. (default</span>
+<span class="s">                                    /etc/gateone/ssl/keyfile.pem)</span>
+<span class="s">    --locale                         The locale (e.g. pt_PT) Gate One should use</span>
+<span class="s">                                    for translations.  If not provided, will</span>
+<span class="s">                                    default to $LANG (which is &#39;en_US&#39; in your</span>
+<span class="s">                                    current shell), or en_US if not set.</span>
+<span class="s">                                    (default en_US)</span>
+<span class="s">    --new_api_key                    Generate a new API key that an external</span>
+<span class="s">                                    application can use to embed Gate One.</span>
+<span class="s">                                    (default False)</span>
+<span class="s">    --origins                        A semicolon-separated list of origins you</span>
+<span class="s">                                    wish to allow access to your Gate One server</span>
+<span class="s">                                    over the WebSocket.  This value must contain</span>
+<span class="s">                                    the hostnames and FQDNs (e.g. foo;foo.bar;)</span>
+<span class="s">                                    users will use to connect to your Gate One</span>
+<span class="s">                                    server as well as the hostnames/FQDNs of any</span>
+<span class="s">                                    sites that will be embedding Gate One.</span>
+<span class="s">                                    Alternatively, &#39;*&#39; may be  specified to</span>
+<span class="s">                                    allow access from anywhere. (default localho</span>
+<span class="s">                                    st;127.0.0.1;enterprise.lan;enterprise;local</span>
+<span class="s">                                    host;enterprise.lan;enterprise;enterprise.ex</span>
+<span class="s">                                    ample.com;127.0.0.1;10.1.1.100)</span>
+<span class="s">    --pam_realm                      Basic auth REALM to display when</span>
+<span class="s">                                    authenticating clients.  Default: hostname.</span>
+<span class="s">                                    Only relevant if PAM authentication is</span>
+<span class="s">                                    enabled. (default enterprise)</span>
+<span class="s">    --pam_service                    PAM service to use.  Defaults to &#39;login&#39;.</span>
+<span class="s">                                    Only relevant if PAM authentication is</span>
+<span class="s">                                    enabled. (default login)</span>
+<span class="s">    --pid_file                       Define the path to the pid file.  Default:</span>
+<span class="s">                                    /var/run/gateone.pid (default</span>
+<span class="s">                                    /var/run/gateone.pid)</span>
+<span class="s">    --port                           Run on the given port. (default 443)</span>
+<span class="s">    --session_dir                    Path to the location where session</span>
+<span class="s">                                    information will be stored. (default</span>
+<span class="s">                                    /tmp/gateone)</span>
+<span class="s">    --session_timeout                Amount of time that a session is allowed to</span>
+<span class="s">                                    idle before it is killed.  Accepts &lt;num&gt;X</span>
+<span class="s">                                    where X could be one of s, m, h, or d for</span>
+<span class="s">                                    seconds, minutes, hours, and days.  Set to</span>
+<span class="s">                                    &#39;0&#39; to disable the ability to resume</span>
+<span class="s">                                    sessions. (default 5d)</span>
+<span class="s">    --settings_dir                   Path to the settings directory. (default</span>
+<span class="s">                                    /etc/gateone/conf.d)</span>
+<span class="s">    --ssl_auth                       Enable the use of client SSL (X.509)</span>
+<span class="s">                                    certificates as a secondary authentication</span>
+<span class="s">                                    factor (the configured &#39;auth&#39; type will come</span>
+<span class="s">                                    after SSL auth).  May be one of &#39;none&#39;,</span>
+<span class="s">                                    &#39;optional&#39;, or &#39;required&#39;.  NOTE: Only works</span>
+<span class="s">                                    if the &#39;ca_certs&#39; option is configured.</span>
+<span class="s">                                    (default none)</span>
+<span class="s">    --sso_realm                      Kerberos REALM (aka DOMAIN) to use when</span>
+<span class="s">                                    authenticating clients. Only relevant if</span>
+<span class="s">                                    Kerberos authentication is enabled.</span>
+<span class="s">    --sso_service                    Kerberos service (aka application) to use.</span>
+<span class="s">                                    Defaults to HTTP. Only relevant if Kerberos</span>
+<span class="s">                                    authentication is enabled. (default HTTP)</span>
+<span class="s">    --syslog_facility                Syslog facility to use when logging to</span>
+<span class="s">                                    syslog (if syslog_session_logging is</span>
+<span class="s">                                    enabled).  Must be one of: auth, cron,</span>
+<span class="s">                                    daemon, kern, local0, local1, local2,</span>
+<span class="s">                                    local3, local4, local5, local6, local7, lpr,</span>
+<span class="s">                                    mail, news, syslog, user, uucp. (default</span>
+<span class="s">                                    daemon)</span>
+<span class="s">    --uid                            Drop privileges and run Gate One as this</span>
+<span class="s">                                    user/uid. (default 0)</span>
+<span class="s">    --unix_socket_path               Path to the Unix socket (if</span>
+<span class="s">                                    --enable_unix_socket=True). (default</span>
+<span class="s">                                    /tmp/gateone.sock)</span>
+<span class="s">    --url_prefix                     An optional prefix to place before all Gate</span>
+<span class="s">                                    One URLs. e.g. &#39;/gateone/&#39;.  Use this if</span>
+<span class="s">                                    Gate One will be running behind a reverse</span>
+<span class="s">                                    proxy where you want it to be located at</span>
+<span class="s">                                    some sub-URL path. (default /)</span>
+<span class="s">    --user_dir                       Path to the location where user files will</span>
+<span class="s">                                    be stored. (default /var/lib/gateone/users)</span>
+<span class="s">    --user_logs_max_age              Maximum amount of length of time to keep any</span>
+<span class="s">                                    given user log before it is removed.</span>
+<span class="s">                                    (default 30d)</span>
+<span class="s">    --version                        Display version information.</span>
+
+<span class="s">    terminal options:</span>
+
+<span class="s">    --dtach                          Wrap terminals with dtach. Allows sessions</span>
+<span class="s">                                    to be resumed even if Gate One is stopped</span>
+<span class="s">                                    and started (which is a sweet feature).</span>
+<span class="s">                                    (default True)</span>
+<span class="s">    --kill                           Kill any running Gate One terminal processes</span>
+<span class="s">                                    including dtach&#39;d processes. (default False)</span>
+<span class="s">    --session_logging                If enabled, logs of user sessions will be</span>
+<span class="s">                                    saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default:</span>
+<span class="s">                                    Enabled (default True)</span>
+<span class="s">    --syslog_session_logging         If enabled, logs of user sessions will be</span>
+<span class="s">                                    written to syslog. (default False)</span>
+
+<span class="s">    x11 options:</span>
+
+<span class="s">    --xorg_conf                      If provided, will use the specified</span>
+<span class="s">                                    xorg.conf file when spawning instances of</span>
+<span class="s">                                    Xorg.  Default: /etc/gateone/x11/xorg.conf.</span>
+<span class="s">                                    (default /etc/gateone/x11/xorg.conf)</span>
 
 <span class="s">.. note::</span>
 
@@ -482,7 +485,7 @@
 
 <span class="s">.. ansi-block::</span>
 
-<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./gateone.py</span>
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m gateone</span>
 
 <span class="s">.. note::</span>
 
@@ -533,6 +536,7 @@
 <span class="c"># Standard library modules</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -543,6 +547,10 @@
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">urlparse</span> <span class="kn">import</span> <span class="n">urlparse</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c"># Python 3.X</span>
+    <span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">parse</span> <span class="k">as</span> <span class="n">urlparse</span>
 
 <span class="c"># This is used as a way to ensure users get a friendly message about missing</span>
 <span class="c"># dependencies:</span>
@@ -562,7 +570,7 @@
     <span class="kn">import</span> <span class="nn">tornado.auth</span>
     <span class="kn">import</span> <span class="nn">tornado.template</span>
     <span class="kn">import</span> <span class="nn">tornado.netutil</span>
-    <span class="kn">from</span> <span class="nn">tornado.websocket</span> <span class="kn">import</span> <span class="n">WebSocketHandler</span>
+    <span class="kn">from</span> <span class="nn">tornado.websocket</span> <span class="kn">import</span> <span class="n">WebSocketHandler</span><span class="p">,</span> <span class="n">WebSocketClosedError</span>
     <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
     <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
     <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">locale</span>
@@ -590,7 +598,7 @@
 <span class="n">tornado</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">enable_pretty_logging</span><span class="p">()</span>
 
 <span class="c"># Our own modules</span>
-<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">SESSIONS</span>
+<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">SESSIONS</span><span class="p">,</span> <span class="n">PERSIST</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">NullAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthHandler</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">GoogleAuthHandler</span><span class="p">,</span> <span class="n">APIAuthHandler</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">SSLAuthHandler</span><span class="p">,</span> <span class="n">PAMAuthHandler</span>
@@ -601,7 +609,7 @@
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">merge_handlers</span><span class="p">,</span> <span class="n">none_fix</span><span class="p">,</span> <span class="n">convert_to_timedelta</span><span class="p">,</span> <span class="n">short_hash</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">recursive_chown</span><span class="p">,</span> <span class="n">ChownError</span><span class="p">,</span> <span class="n">get_or_cache</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">write_pid</span><span class="p">,</span> <span class="n">read_pid</span><span class="p">,</span> <span class="n">remove_pid</span><span class="p">,</span> <span class="n">drop_privileges</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_write_permissions</span><span class="p">,</span> <span class="n">get_applications</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_write_permissions</span><span class="p">,</span> <span class="n">get_applications</span><span class="p">,</span> <span class="n">valid_hostname</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">total_seconds</span><span class="p">,</span> <span class="n">MEMO</span>
 <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">apply_cli_overrides</span><span class="p">,</span> <span class="n">define_options</span><span class="p">,</span> <span class="n">SettingsError</span>
 <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">get_settings</span>
@@ -636,7 +644,6 @@
 <span class="n">IO_ASYNC</span> <span class="o">=</span> <span class="n">ThreadedRunner</span><span class="p">()</span>
 
 <span class="c"># Globals</span>
-<span class="c">#SESSIONS = {} # We store the crux of most session info here</span>
 <span class="n">CMD</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Will be overwritten by options.command</span>
 <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c"># Gets overridden by options.session_timeout</span>
 <span class="c"># SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that</span>
@@ -644,9 +651,6 @@
 <span class="n">SESSION_WATCHER</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="n">CLEANER</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Log and leftover session data cleaner PeriodicCallback</span>
 <span class="n">FILE_CACHE</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="c"># PERSIST is a generic place for applications and plugins to store stuff in a</span>
-<span class="c"># way that lasts between page loads.  USE RESPONSIBLY.</span>
-<span class="n">PERSIST</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">APPLICATIONS</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">PLUGINS</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">PLUGIN_WS_CMDS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Gives plugins the ability to extend/enhance ApplicationWebSocket</span>
@@ -904,7 +908,7 @@
 
 <span class="sd">        # Imagine this is inside an application&#39;s authenticate() method:</span>
 <span class="sd">        sess = SESSIONS[self.ws.session]</span>
-<span class="sd">        # Pretend timeout_sesssion() is a function we wrote to kill stuff</span>
+<span class="sd">        # Pretend timeout_session() is a function we wrote to kill stuff</span>
 <span class="sd">        if timeout_session not in sess[&quot;timeout_session&quot;]:</span>
 <span class="sd">            sess[&quot;timeout_session&quot;].append(timeout_session)</span>
 
@@ -1187,9 +1191,8 @@
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">404</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">403</span><span class="p">]:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static_url&#39;</span><span class="p">],</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">.html&#39;</span> <span class="o">%</span> <span class="n">status_code</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">data</span>
         <span class="kn">import</span> <span class="nn">httplib</span>
         <span class="k">return</span> <span class="s">&quot;&lt;html&gt;&lt;title&gt;</span><span class="si">%(code)d</span><span class="s">: </span><span class="si">%(message)s</span><span class="s">&lt;/title&gt;&quot;</span> \
@@ -1424,13 +1427,16 @@
         <span class="p">}</span>
         <span class="c"># Setup some instance-specific loggers that we can later update with</span>
         <span class="c"># more metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sync_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.sync&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
         <span class="c"># This is used to keep track of used API authentication signatures so</span>
         <span class="c"># we can prevent replay attacks.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_signatures</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1707,12 +1713,59 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
+<div class="viewcode-block" id="ApplicationWebSocket.valid_origin"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server.ApplicationWebSocket.valid_origin">[docs]</a>    <span class="k">def</span> <span class="nf">valid_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if the given *origin* matches what&#39;s been set in Gate One&#39;s</span>
+<span class="sd">        &quot;origins&quot; setting (usually in 10server.conf).  The *origin* will first</span>
+<span class="sd">        be checked for an exact match in the &quot;origins&quot; setting but if that fails</span>
+<span class="sd">        each valid origin will be evaluated as a regular expression (if it&#39;s not</span>
+<span class="sd">        a valid hostname) and the given *origin* will be checked against that.</span>
+
+<span class="sd">        Returns ``True`` if *origin* is valid.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            If &#39;*&#39; is in the &quot;origins&quot; setting (anywhere) all origins will be</span>
+<span class="sd">            allowed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;origins&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cli_overrides&#39;</span><span class="p">]:</span>
+            <span class="c"># If given on the command line, always use those origins</span>
+            <span class="n">valid_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;origins&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Why have this separate?  So you can change origins on-the-fly by</span>
+            <span class="c"># modifying 10server.conf (or whatever other conf you put it in).</span>
+            <span class="n">valid_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;origins&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="s">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">valid_origins</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">origin</span> <span class="ow">in</span> <span class="n">valid_origins</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="c"># Treat the list of valid origins as regular expressions</span>
+            <span class="k">for</span> <span class="n">check_origin</span> <span class="ow">in</span> <span class="n">valid_origins</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">valid_hostname</span><span class="p">(</span><span class="n">check_origin</span><span class="p">):</span>
+                    <span class="k">continue</span> <span class="c"># Valid hostnames aren&#39;t regular expressions</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">check_origin</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                    <span class="n">valid</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">break</span>
+        <span class="k">return</span> <span class="n">valid</span>
+</div>
 <div class="viewcode-block" id="ApplicationWebSocket.open"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server.ApplicationWebSocket.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when a new WebSocket is opened.  Will deny access to any</span>
 <span class="sd">        origin that is not defined in `self.settings[&#39;origin&#39;]`.  Also sends</span>
 <span class="sd">        any relevant localization data (JavaScript) to the client and calls the</span>
 <span class="sd">        :meth:`open` method of any and all enabled Applications.</span>
+
+<span class="sd">        This method kicks off the process that sends keepalive pings/checks to</span>
+<span class="sd">        the client (A `~tornado.ioloop.PeriodicCallback` set as `self.pinger`).</span>
+
+<span class="sd">        This method also sets the following instance attributes:</span>
+
+<span class="sd">            * `self.client_id`: Unique identifier for this instance.</span>
+<span class="sd">            * `self.base_url`: The base URL (e.g. https://foo.com/gateone/) used to access Gate One.</span>
+<span class="sd">            * `self.origin`: A shortcut to reference the client&#39;s origin.</span>
 
 <span class="sd">        Triggers the `go:open` event.</span>
 
@@ -1729,7 +1782,6 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;set_nodelay&#39;</span><span class="p">):</span>
             <span class="c"># New feature of Tornado 3.1 that can reduce latency:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_nodelay</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">valid_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;origins&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s">&#39;Origin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
             <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]</span>
         <span class="k">elif</span> <span class="s">&#39;Sec-Websocket-Origin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span> <span class="c"># Old version</span>
@@ -1739,20 +1791,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">origin</span> <span class="o">=</span> <span class="n">origin</span>
         <span class="n">client_address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;open() origin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">origin</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s">&#39;*&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_origins</span><span class="p">:</span> <span class="c"># NOTE: valid_origins is a list</span>
-            <span class="k">if</span> <span class="n">origin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_origins</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">origin_denied</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="n">denied_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
-                    <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} Access denied for origin: </span><span class="si">%s</span><span class="s">&#39;</span>
-                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">client_address</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
-                <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">denied_msg</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">denied_msg</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                    <span class="s">&quot;If you feel this is incorrect you just have to add &#39;</span><span class="si">%s</span><span class="s">&#39; to&quot;</span>
-                    <span class="s">&quot; the &#39;origin&#39; option in your settings.  See the docs &quot;</span>
-                    <span class="s">&quot;for details.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">origin</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_origin</span><span class="p">(</span><span class="n">origin</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">origin_denied</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">denied_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Access denied for origin: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">origin</span>
+            <span class="n">auth_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">denied_msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">denied_msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;If you feel this is incorrect you just have to add &#39;</span><span class="si">%s</span><span class="s">&#39; to&quot;</span>
+                <span class="s">&quot; the &#39;origins&#39; option in your Gate One settings (e.g. &quot;</span>
+                <span class="s">&quot;inside your 10server.conf).  See the docs for details.&quot;</span><span class="p">)</span>
+                <span class="o">%</span> <span class="n">origin</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">origin_denied</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c"># client_id is unique to the browser/client whereas session_id is unique</span>
         <span class="c"># to the user.  It isn&#39;t used much right now but it will be useful in</span>
@@ -1821,13 +1871,18 @@
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">js_file</span> <span class="ow">in</span> <span class="n">additional_files</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="n">js_file</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span> <span class="c"># Call applications&#39; open() functions (if any)</span>
+        <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s">&#39;open&#39;</span><span class="p">):</span>
-                <span class="n">app</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="c"># Call applications&#39; open() functions (if any)</span>
         <span class="c"># Ping the client every 5 seconds so we can keep track of latency and</span>
         <span class="c"># ensure firewalls don&#39;t close the connection.</span>
         <span class="k">def</span> <span class="nf">send_ping</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">WebSocketClosedError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+                <span class="c"># Connection closed</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pinger</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinger</span>
         <span class="n">send_ping</span><span class="p">()</span>
         <span class="n">interval</span> <span class="o">=</span> <span class="mi">5000</span> <span class="c"># milliseconds</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pinger</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span><span class="n">send_ping</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
@@ -1949,7 +2004,7 @@
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
-    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
+    <span class="nd">@require</span><span class="p">(</span><span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attached to the `go:log` WebSocket action; logs the given *log_obj* via</span>
@@ -1971,6 +2026,11 @@
 <span class="sd">            The &quot;critical&quot; and &quot;fatal&quot; log levels both use the</span>
 <span class="sd">            `logging.Logger.critical` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Don&#39;t let unauthenticated users log messages.</span>
+            <span class="c"># NOTE:  We&#39;re not using the authenticated() check here so we don&#39;t</span>
+            <span class="c"># end up logging a zillion error messages when an unauthenticated</span>
+            <span class="c"># user&#39;s client has debug logging enabled.</span>
         <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">log_obj</span><span class="p">:</span>
             <span class="k">return</span> <span class="c"># Nothing to do</span>
         <span class="n">log_obj</span><span class="p">[</span><span class="s">&quot;level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;level&quot;</span><span class="p">,</span> <span class="s">&quot;info&quot;</span><span class="p">)</span> <span class="c"># Default to &quot;info&quot;</span>
@@ -2016,7 +2076,7 @@
 
 <span class="sd">            :api_key:</span>
 <span class="sd">                The first half of what gets generated when you run</span>
-<span class="sd">                ``./gateone.py --new_api_key`` (the other half is the secret).</span>
+<span class="sd">                ``gateone --new_api_key`` (the other half is the secret).</span>
 <span class="sd">            :upn:</span>
 <span class="sd">                The userPrincipalName (aka username) of the user being</span>
 <span class="sd">                authenticated.</span>
@@ -2155,7 +2215,8 @@
             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o770</span><span class="p">)</span>
         <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s">&#39;session&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">):</span>
-            <span class="n">session_data</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">session_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
             <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">session_data</span><span class="p">)[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_session_id</span><span class="p">()</span>
@@ -2172,6 +2233,11 @@
 <span class="sd">        use *settings[&#39;auth&#39;]*.  Additionally, it will accept</span>
 <span class="sd">        *settings[&#39;container&#39;]* and *settings[&#39;prefix&#39;]* to apply those to the</span>
 <span class="sd">        equivalent properties (`self.container` and `self.prefix`).</span>
+
+<span class="sd">        If *settings[&#39;url&#39;]* is provided it will be used to update</span>
+<span class="sd">        `self.base_url` (so that we can correct for situations where Gate One</span>
+<span class="sd">        is running behind a reverse proxy with a different protocol/URL than</span>
+<span class="sd">        what the user used to connect).</span>
 
 <span class="sd">        .. note::</span>
 
@@ -2321,7 +2387,21 @@
         <span class="c"># Apply the container/prefix settings (if present)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
-        <span class="c"># NOTE: NOT using self.auth_log() here on purpose:</span>
+        <span class="c"># Update self.base_url if a url was given</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">orig_base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">protocol</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
+                <span class="n">port</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+                <span class="n">url_prefix</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">orig_base_url</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Proxy in use: Client URL differs from server.&quot;</span><span class="p">))</span>
+        <span class="c"># NOTE: NOT using self.auth_log() here on purpose (this log message</span>
+        <span class="c"># should stay consistent for easier auditing):</span>
         <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="n">_</span><span class="p">(</span><span class="s">u&quot;User {upn} authenticated successfully via origin {origin}&quot;</span>
               <span class="s">u&quot; (location: {location}).&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -2492,7 +2572,7 @@
                 <span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">+</span> <span class="n">td</span><span class="o">.</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">*</span>
                 <span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">watch_file</span><span class="p">(</span><span class="n">broadcast_file</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">broadcast_file_update</span><span class="p">)</span>
-            <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+            <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">file_watcher</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span>
                 <span class="n">cls</span><span class="o">.</span><span class="n">file_checker</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="n">io_loop</span><span class="p">)</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">file_watcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
@@ -2529,7 +2609,7 @@
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:applications&#39;</span><span class="p">:</span> <span class="n">applications</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
-    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
+    <span class="nd">@require</span><span class="p">(</span><span class="n">policies</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">set_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attached to the `go:set_location` WebSocket action.  Sets</span>
@@ -2720,10 +2800,12 @@
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">new_theme_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">theme_files</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">new_theme_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">new_theme_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">old</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cached_theme_path</span><span class="p">):</span>
-            <span class="n">old</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">cached_theme_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cached_theme_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">old</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
             <span class="c"># They&#39;re different.  Replace the old one...</span>
             <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">new_theme_path</span><span class="p">,</span> <span class="n">cached_theme_path</span><span class="p">)</span>
@@ -2943,7 +3025,7 @@
                 <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:load_theme&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">WebSocketClosedError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
                 <span class="k">pass</span> <span class="c"># WebSocket closed before we got a chance to send this</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">get_or_cache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">minify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -3118,7 +3200,7 @@
 <span class="sd">        exports whatever global variables are provided via *exports* then</span>
 <span class="sd">        minifies, caches, and sends the result to the client.</span>
 
-<span class="sd">        The provided **kwargs will be passed to the</span>
+<span class="sd">        The provided *kwargs* will be passed to the</span>
 <span class="sd">        `ApplicationWebSocket.send_js` method.</span>
 
 <span class="sd">        The *exports* dict needs to be in the following format::</span>
@@ -3157,8 +3239,17 @@
         <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">js_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">js_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">script</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">}</span>
-        <span class="n">safe_path</span> <span class="o">=</span> <span class="n">js_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="c"># So we can name the file safely</span>
-        <span class="n">rendered_filename</span> <span class="o">=</span> <span class="s">&#39;rendered_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">safe_path</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
+        <span class="n">filepath_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>
+            <span class="n">js_path</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+        <span class="c"># Store the file info in the file_cache just in case we need to</span>
+        <span class="c"># reference the original (non-rendered) path later:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filepath_hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="s">&#39;js&#39;</span><span class="p">,</span>
+            <span class="s">&#39;path&#39;</span><span class="p">:</span> <span class="n">js_path</span><span class="p">,</span>
+            <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">rendered_filename</span> <span class="o">=</span> <span class="s">&#39;rendered_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filepath_hash</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
         <span class="n">rendered_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">rendered_filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -3182,7 +3273,7 @@
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="n">rendered_filename</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="k">elif</span> <span class="n">safe_path</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">filepath_hash</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
                 <span class="c"># Older version present.</span>
                 <span class="c"># Remove it (and it&#39;s minified counterpart).</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
@@ -3221,8 +3312,16 @@
         <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache_dir&#39;</span><span class="p">]</span>
         <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">css_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">safe_path</span> <span class="o">=</span> <span class="n">css_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="c"># So we can name the file safely</span>
-        <span class="n">rendered_filename</span> <span class="o">=</span> <span class="s">&#39;rendered_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">safe_path</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
+        <span class="n">filepath_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">css_path</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+        <span class="c"># Store the file info in the file_cache just in case we need to</span>
+        <span class="c"># reference the original (non-rendered) path later:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filepath_hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s">&#39;kind&#39;</span><span class="p">:</span> <span class="s">&#39;css&#39;</span><span class="p">,</span>
+            <span class="s">&#39;path&#39;</span><span class="p">:</span> <span class="n">css_path</span><span class="p">,</span>
+            <span class="s">&#39;mtime&#39;</span><span class="p">:</span> <span class="n">mtime</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">rendered_filename</span> <span class="o">=</span> <span class="s">&#39;rendered_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filepath_hash</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
         <span class="n">rendered_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">rendered_filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="n">rendered_path</span><span class="p">,</span>
@@ -3247,7 +3346,7 @@
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="n">rendered_filename</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="k">elif</span> <span class="n">safe_path</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">filepath_hash</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
                 <span class="c"># Older version present.</span>
                 <span class="c"># Remove it (and it&#39;s minified counterpart).</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
@@ -3476,6 +3575,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">allowed_fields</span><span class="p">:</span>
             <span class="n">allowed_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;upn&#39;</span><span class="p">,</span> <span class="s">&#39;ip_address&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span> <span class="c"># Broadcast client (view-only situation)</span>
+                <span class="k">continue</span>
             <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">allowed_fields</span><span class="p">:</span>
@@ -3500,13 +3601,13 @@
         <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">instances</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span> <span class="c"># Only send to users that have authenticated</span>
                 <span class="n">user</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">current_user</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">WebSocketClosedError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">session</span> <span class="ow">and</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">session</span> <span class="ow">and</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;session&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">session</span><span class="p">:</span>
                 <span class="n">instance</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">upn</span> <span class="o">==</span> <span class="s">&quot;AUTHENTICATED&quot;</span><span class="p">:</span>
                 <span class="n">instance</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">upn</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]:</span>
+            <span class="k">elif</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">upn</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;upn&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
                 <span class="n">instance</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
     <span class="nd">@classmethod</span>
@@ -3558,6 +3659,8 @@
         <span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;SESSIONS:&quot;</span><span class="p">)</span>
         <span class="n">pprint</span><span class="p">(</span><span class="n">SESSIONS</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;PERSIST:&quot;</span><span class="p">)</span>
+        <span class="n">pprint</span><span class="p">(</span><span class="n">PERSIST</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">pympler</span> <span class="kn">import</span> <span class="n">asizeof</span>
             <span class="n">debug_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -3601,9 +3704,8 @@
             <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static_url&#39;</span><span class="p">],</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">.html&#39;</span> <span class="o">%</span> <span class="n">status_code</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">data</span>
         <span class="kn">import</span> <span class="nn">httplib</span>
         <span class="k">return</span> <span class="s">&quot;&lt;html&gt;&lt;title&gt;</span><span class="si">%(code)d</span><span class="s">: </span><span class="si">%(message)s</span><span class="s">&lt;/title&gt;&quot;</span> \
@@ -3810,7 +3912,7 @@
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;--settings_dir&#39;</span><span class="p">):</span>
             <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;--help&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
         <span class="c"># Try to create it</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">mkdir_p</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">)</span>
@@ -3852,9 +3954,21 @@
     <span class="c"># anywhere in their .py files and they should automatically be usable by the</span>
     <span class="c"># user at this point in the startup process.</span>
     <span class="n">app_modules</span> <span class="o">=</span> <span class="n">load_modules</span><span class="p">(</span><span class="n">APPLICATIONS</span><span class="p">)</span>
+    <span class="c"># Check if the user is running a command as opposed to passing arguments</span>
+    <span class="c"># so we can set the log_file_prefix to something innocuous so as to prevent</span>
+    <span class="c"># IOError exceptions from Tornado&#39;s parse_command_line() below...</span>
+    <span class="k">if</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)]:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="c"># Having parse_command_line() after loading applications in case an</span>
     <span class="c"># application has additional calls to define().</span>
-    <span class="n">commands</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not write to the log: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;You probably want to provide a different destination via &quot;</span>
+            <span class="s">&quot;--log_file_prefix=/path/to/gateone.log&quot;</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
     <span class="c"># NOTE: Here&#39;s how settings/command line args works:</span>
     <span class="c">#       * The &#39;options&#39; object gets set from the arguments on the command</span>
     <span class="c">#         line (parse_command_line() above).</span>
@@ -3880,6 +3994,23 @@
             <span class="k">break</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c"># TODO: Get this outputting installed plugins and versions as well</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1mGate One:</span><span class="se">\x1b</span><span class="s">[0m&quot;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">Version: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__version__</span><span class="p">,</span> <span class="n">__commit__</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1mInstalled Applications:</span><span class="se">\x1b</span><span class="s">[0m&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_modules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s">&#39;apps&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">_app</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">apps</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">_app</span><span class="p">,</span> <span class="s">&#39;info&#39;</span><span class="p">):</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="n">_app</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                        <span class="n">ver</span> <span class="o">=</span> <span class="n">_app</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="s">&#39;Unknown&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ver</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+                            <span class="c"># It&#39;s a function; grab its output (cool feature)</span>
+                            <span class="n">ver</span> <span class="o">=</span> <span class="n">ver</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s"> Version: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ver</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="c"># Turn any API keys provided on the command line into a dict</span>
     <span class="n">api_keys</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="s">&#39;api_keys&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
@@ -3936,6 +4067,15 @@
             <span class="c">#import traceback</span>
             <span class="c">#traceback.print_exc(file=sys.stdout)</span>
             <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">commands</span><span class="p">:</span> <span class="c"># Optional CLI functionality provided by plugins/applications</span>
+        <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">parse_commands</span>
+        <span class="n">parsed_commands</span> <span class="o">=</span> <span class="n">parse_commands</span><span class="p">(</span><span class="n">commands</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">command</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">parsed_commands</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">command</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cli_commands</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Unknown CLI command: &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">command</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cli_commands</span><span class="p">[</span><span class="n">command</span><span class="p">](</span><span class="n">commands</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Imported applications: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">APPLICATIONS</span><span class="p">]))))</span>
     <span class="c"># Change the uid/gid strings into integers</span>
@@ -4063,8 +4203,9 @@
             <span class="n">conf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="n">conf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="n">api_keys</span><span class="p">))</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">u&quot;A new API key has been generated: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">api_key</span><span class="p">))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">u&quot;This key can now be used to embed Gate One into other &quot;</span>
-                <span class="s">u&quot;applications.&quot;</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">u&quot;This key can now be used to embed Gate One into other &quot;</span>
+            <span class="s">u&quot;applications.&quot;</span><span class="p">))</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">combine_js</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">combine_javascript</span>
@@ -4076,15 +4217,6 @@
             <span class="n">options</span><span class="o">.</span><span class="n">combine_css</span><span class="p">,</span>
             <span class="n">options</span><span class="o">.</span><span class="n">combine_css_container</span><span class="p">,</span>
             <span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">commands</span><span class="p">:</span> <span class="c"># Optional CLI functionality provided by plugins/applications</span>
-        <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">parse_commands</span>
-        <span class="n">parsed_commands</span> <span class="o">=</span> <span class="n">parse_commands</span><span class="p">(</span><span class="n">commands</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">command</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">parsed_commands</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="n">command</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cli_commands</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Unknown CLI command: &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">command</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">cli_commands</span><span class="p">[</span><span class="n">command</span><span class="p">](</span><span class="n">commands</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="c"># Display the version in case someone sends in a log for for support</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Version: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__version__</span><span class="p">,</span> <span class="n">__commit__</span><span class="p">)))</span>
@@ -4098,7 +4230,7 @@
     <span class="c"># Convert the origins into a list if overridden via the command line</span>
     <span class="k">if</span> <span class="s">&#39;origins&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
         <span class="k">if</span> <span class="s">&#39;;&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">origins</span><span class="p">:</span>
-            <span class="n">origins</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">origins</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">origins</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">origins</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
             <span class="n">real_origins</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">origin</span> <span class="ow">in</span> <span class="n">origins</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s">&#39;://&#39;</span> <span class="ow">in</span> <span class="n">origin</span><span class="p">:</span>
@@ -4243,6 +4375,28 @@
         <span class="n">pid</span> <span class="o">=</span> <span class="n">read_pid</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;pid_file&#39;</span><span class="p">])</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Process running with pid &quot;</span> <span class="o">+</span> <span class="n">pid</span><span class="p">))</span>
         <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">errno</span><span class="o">,</span> <span class="nn">pwd</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">address</span><span class="p">:</span> <span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EADDRINUSE</span><span class="p">:</span> <span class="c"># Address/port already in use</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;Could not listen on {address}:{port} (address:port is already &quot;</span>
+                <span class="s">&quot;in use by another application).&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EACCES</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;User &#39;{user}&#39; does not have permission to create a process &quot;</span>
+                <span class="s">&quot;listening on {address}:{port}.  Typically only root can use &quot;</span>
+                <span class="s">&quot;ports &lt; 1024.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">user</span><span class="o">=</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">uid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+                    <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;An error was encountered trying to listen on &quot;</span>
+                <span class="s">&quot;{address}:{port}...&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Exception was: {0}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span> <span class="c"># ctrl-c</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Caught KeyboardInterrupt.  Killing sessions...&quot;</span><span class="p">))</span>
     <span class="k">finally</span><span class="p">:</span>

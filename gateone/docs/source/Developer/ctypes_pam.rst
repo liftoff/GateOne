@@ -1,3 +1,5 @@
+.. _ctypes-pam:
+
 :mod:`ctypes_pam.py` - PAM Authentication Module
 ================================================
 

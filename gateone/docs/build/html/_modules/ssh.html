@@ -941,7 +941,7 @@
             <span class="k">if</span> <span class="n">TIMER</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;Got public key, cancelling public key generation timer.&quot;</span><span class="p">))</span>
-                <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+                <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
                 <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_timeout</span><span class="p">(</span><span class="n">TIMER</span><span class="p">)</span>
                 <span class="n">TIMER</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">get_ids</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_identities</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -953,7 +953,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ssh_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;Only received a private key.  Setting timeout to generate the &quot;</span>
                 <span class="s">&quot;public key if not received within 3 seconds.&quot;</span><span class="p">))</span>
-            <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+            <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
             <span class="n">deadline</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">generate_public_key</span><span class="p">():</span> <span class="c"># I love closures</span>
                 <span class="n">openssh_generate_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -1192,8 +1192,16 @@
 <div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../Applications/terminal/plugin_ssh.html#ssh.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called inside of :meth:`TerminalApplication.initialize` shortly after the</span>
-<span class="sd">    WebSocket is instantiated.</span>
+<span class="sd">    WebSocket is instantiated.  Attaches our two `terminal:authenticate` events</span>
+<span class="sd">    (to create the user&#39;s .ssh dir and send our CSS template) and ensures that</span>
+<span class="sd">    the ssh_connect.py script is executable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ssh_connect_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;scripts&#39;</span><span class="p">,</span> <span class="s">&#39;ssh_connect.py&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">stat</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXOTH</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o755</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ssh_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal.ssh&quot;</span><span class="p">,</span> <span class="n">plugin</span><span class="o">=</span><span class="s">&#39;ssh&#39;</span><span class="p">)</span>
     <span class="c"># NOTE:  Why not use the &#39;Events&#39; hook for these?  You can&#39;t attach two</span>
     <span class="c"># functions to the same event via that mechanism because it&#39;s a dict</span>

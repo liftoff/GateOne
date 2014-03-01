@@ -100,12 +100,12 @@
 <span class="s">    That is a built-in feature of the `termio` module.</span>
 <span class="s">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span>
 <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
 <span class="kn">from</span> <span class="nn">tornado.log</span> <span class="kn">import</span> <span class="n">LogFormatter</span>
 
-<span class="n">LOGS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Holds a list of all our log paths so we can fix permissions</span>
+<span class="n">LOGS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="c"># Holds a list of all our log paths so we can fix permissions</span>
 <span class="c"># These should match what&#39;s in the syslog module (hopefully not platform-dependent)</span>
 <span class="n">FACILITIES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;auth&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
@@ -199,13 +199,16 @@
 <span class="sd">        [I 130828 15:00:56 app.py:10] {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;} test3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;--help&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="c"># Skip log file creation if the user is just getting help on the CLI</span>
+        <span class="k">return</span> <span class="n">logger</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>
         <span class="c"># Logging is disabled but we still have to return the adapter so that</span>
         <span class="c"># passing metadata to the logger won&#39;t throw exceptions</span>
         <span class="k">return</span> <span class="n">JSONAdapter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># root logger; leave it alone</span>
-        <span class="n">LOGS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)</span>
+        <span class="n">LOGS</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logger</span>
     <span class="c"># Remove any existing handlers on the logger</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
@@ -220,7 +223,7 @@
             <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">basepath</span><span class="p">):</span>
             <span class="n">mkdir_p</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span>
-        <span class="n">LOGS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">LOGS</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">channel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span>
             <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
             <span class="n">maxBytes</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_max_size</span><span class="p">,</span>
@@ -228,12 +231,7 @@
         <span class="n">channel</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LogFormatter</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">JSONAdapter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logger</span>
-</div>
-<span class="n">go_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">)</span>
-<span class="n">app_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.app&quot;</span><span class="p">)</span> <span class="c"># Not used--just defines the parent</span>
-<span class="n">auth_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.auth&quot;</span><span class="p">)</span>
-<span class="n">msg_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.messaging&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">logger</span></div>
 </pre></div>
 
           </div>

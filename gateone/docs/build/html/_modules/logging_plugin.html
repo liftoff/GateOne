@@ -111,6 +111,7 @@
 
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
+<span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span>
 <span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span>
 <span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">render_log_frames</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
@@ -185,7 +186,7 @@
         <span class="k">return</span> <span class="c"># Nothing left to do</span>
     <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
-    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -292,7 +293,7 @@
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -397,7 +398,7 @@
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -533,7 +534,7 @@
     <span class="k">global</span> <span class="n">PROC</span>
     <span class="n">PROC</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_save_log_playback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>
     <span class="n">PROC</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># We don&#39;t care if this gets terminated mid-process.</span>
-    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends the log enumeration result to the client.  Necessary because</span>
@@ -659,6 +660,25 @@
     <span class="c">#message = {&#39;save_file&#39;: out_dict}</span>
     <span class="c">#self.write_message(message)</span>
 </div>
+<div class="viewcode-block" id="session_logging_check"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.session_logging_check">[docs]</a><span class="k">def</span> <span class="nf">session_logging_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attached to the `terminal:session_logging_check` WebSocket action; replies</span>
+<span class="sd">    with `terminal:logging_sessions_disabled` if terminal session logging is</span>
+<span class="sd">    disabled.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The `terminal:logging_sessions_disabled` message just has the client</span>
+<span class="sd">        remove the &quot;Log Viewer&quot; button so they don&#39;t get confused with an</span>
+<span class="sd">        always-empty log viewer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">applicable_policies</span><span class="p">(</span>
+        <span class="s">&#39;terminal&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
+    <span class="n">session_logging</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;session_logging&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session_logging</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_sessions_disabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</div>
 <div class="viewcode-block" id="send_logging_css_template"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.send_logging_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_logging_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends our logging.css template to the client using the &#39;load_style&#39;</span>
@@ -674,6 +694,7 @@
         <span class="s">&#39;terminal:logging_get_log_flat&#39;</span><span class="p">:</span> <span class="n">retrieve_log_flat</span><span class="p">,</span>
         <span class="s">&#39;terminal:logging_get_log_playback&#39;</span><span class="p">:</span> <span class="n">retrieve_log_playback</span><span class="p">,</span>
         <span class="s">&#39;terminal:logging_get_log_file&#39;</span><span class="p">:</span> <span class="n">save_log_playback</span><span class="p">,</span>
+        <span class="s">&#39;terminal:session_logging_check&#39;</span><span class="p">:</span> <span class="n">session_logging_check</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_logging_css_template</span>
