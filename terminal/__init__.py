@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#       Copyright 2011 Liftoff Software Corporation
+#       Copyright 2014 Liftoff Software Corporation
 #
 # For license information see LICENSE.txt
 

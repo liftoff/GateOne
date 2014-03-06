@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140226213756" # Gets replaced by git (holds the date/time)
+__commit__ = "20140228213203" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -514,13 +514,13 @@ try:
     from tornado import version as tornado_version
     from tornado import version_info as tornado_version_info
 except (ImportError, NameError):
-    MISSING_DEPS.append('tornado >= 3.1')
+    MISSING_DEPS.append('tornado >= 3.2')
 
-if 'tornado >= 3.1' not in MISSING_DEPS:
+if 'tornado >= 3.2' not in MISSING_DEPS:
     if tornado_version_info[0] < 3:
-        MISSING_DEPS.append('tornado >= 3.1')
-    if tornado_version_info[0] < 3 and tornado_version_info[1] < 1:
-        MISSING_DEPS.append('tornado >= 3.1')
+        MISSING_DEPS.append('tornado >= 3.2')
+    if tornado_version_info[0] < 3 and tornado_version_info[1] < 2:
+        MISSING_DEPS.append('tornado >= 3.2')
 
 if MISSING_DEPS:
     print("\x1b[31;1mERROR:\x1b[0m: This host is missing dependencies:")

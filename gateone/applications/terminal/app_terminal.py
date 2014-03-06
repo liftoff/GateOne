@@ -248,7 +248,7 @@ class TerminalApplication(GOApplication):
             os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
         py_plugins = []
         for module_path in self.plugins['py']:
-            name = module_path.split('.')[0]
+            name = module_path.split('.')[-1]
             py_plugins.append(name)
         js_plugins = []
         for js_path in self.plugins['js']:

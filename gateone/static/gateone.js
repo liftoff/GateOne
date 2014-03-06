@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140226213756";
+GateOne.__commit__ = "20140228213203";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -139,7 +139,7 @@ GateOne.Base.module = function(parent, name, version, deps) {
     GateOne.loadedModules.push(module.__name__);
     return module;
 };
-GateOne.Base.dependencyTimeout = 5000; // 5 seconds
+GateOne.Base.dependencyTimeout = 15000; // 15 seconds
 GateOne.Base.dependencyRetries = {};
 GateOne.Base.superSandbox = function(name, dependencies, func) {
     /**:GateOne.Base.superSandbox(name, dependencies, func)

@@ -2051,6 +2051,15 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.setActive(term);
         go.Terminal.setTitle(term, displayText);
         if (term == selectedTerm) {
+            // This call to alignTerminal is here because sometimes the terminal won't be aligned after loading the page (the call to alignTerminal can happen at the wrong time).
+            // If the alignment isn't necessary this call shouldn't disrupt anything (should be instantaneous).
+            if (go.Terminal.alignTimer) {
+                clearTimeout(go.Terminal.alignTimer);
+                go.Terminal.alignTimer = null;
+            }
+            go.Terminal.alignTimer = setTimeout(function() {
+                go.Terminal.alignTerminal(term);
+            }, 1050); // Just enough to debounce
             return true; // Nothing to do
         }
         logDebug('switchTerminal('+term+')');
