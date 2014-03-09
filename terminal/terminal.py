@@ -1756,7 +1756,8 @@ class Terminal(object):
     RE_SIGINT = re.compile(b'.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
-    linkpath='/tmp', icondir=None, encoding='utf-8', async=None, debug=False):
+    linkpath='/tmp', icondir=None, encoding='utf-8', async=None, debug=False,
+    enabled_filetypes="all"):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -1806,6 +1807,12 @@ class Terminal(object):
         and the icon it is looking for happens to be available at *icondir*.
 
         If *debug* is True, the root logger will have its level set to DEBUG.
+
+        If *enabled_filetypes* are given (iterable of strings or `FileType`
+        classes) the provided file types will be enabled for this terminal.
+        If not given it will default to enabling 'all' file types.  To disable
+        support for all file types simply pass ``None``, ``False``, or an empty
+        list.
         """
         if rows < 2 or cols < 2:
             raise InvalidParameters(_(
@@ -1836,6 +1843,24 @@ class Terminal(object):
         self.icondir = icondir
         self.encoding = encoding
         self.async = async
+        if enabled_filetypes == "all":
+            enabled_filetypes = [
+                PDFFile,
+                PNGFile,
+                JPEGFile,
+                WAVFile,
+                OGGFile,
+            ]
+        elif enabled_filetypes:
+            for i, filetype in enumerate(list(enabled_filetypes)):
+                if isinstance(filetype, basestring):
+                    # Attempt to convert into a proper class with Python voodoo
+                    _class = globals().get(filetype)
+                    if _class:
+                        enabled_filetypes[i] = _class # Update in-place
+        else:
+            enabled_filetypes = []
+        self.enabled_filetypes = enabled_filetypes
         # This controls how often we send a message to the client when capturing
         # a special file type.  The default is to update the user of progress
         # once every 1.5 seconds.
@@ -2056,11 +2081,8 @@ class Terminal(object):
         #   'beginning': <filetype class>
         self.magic_map = {}
         # Supported magic (defaults)
-        self.add_magic(PDFFile)
-        self.add_magic(PNGFile)
-        self.add_magic(JPEGFile)
-        self.add_magic(WAVFile)
-        self.add_magic(OGGFile)
+        for filetype in self.enabled_filetypes:
+            self.add_magic(filetype)
         # NOTE:  The order matters!  Some file formats are containers that can
         # hold other file formats.  For example, PDFs can contain JPEGs.  So if
         # we match JPEGs before PDFs we might make a match when we really wanted
