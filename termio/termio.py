@@ -375,6 +375,7 @@ class BaseMultiplex(object):
 
     :cmd: *string* - The command to execute when calling :meth:`spawn`.
     :terminal_emulator: *terminal.Terminal or similar* - The terminal emulator to write to when capturing the incoming output stream from *cmd*.
+    :terminal_emulator_kwargs: A dictionary of keyword arguments to be passed to the *terminal_emulator* when it is instantiated.
     :log_path: *string* - The absolute path to the log file where the output from *cmd* will be saved.
     :term_id: *string* - The terminal identifier to associated with this instance (only used in the logs to identify terminals).
     :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
@@ -389,6 +390,7 @@ class BaseMultiplex(object):
     def __init__(self,
             cmd,
             terminal_emulator=None, # Defaults to Gate One's terminal.Terminal
+            terminal_emulator_kwargs=None,
             log_path=None,
             user=None, # Only used by log output (to differentiate who's who)
             term_id=None, # Also only for syslog output for the same reason
@@ -409,6 +411,9 @@ class BaseMultiplex(object):
             self.terminal_emulator = Terminal
         else:
             self.terminal_emulator = terminal_emulator
+        self.terminal_emulator_kwargs = terminal_emulator_kwargs
+        if not terminal_emulator_kwargs:
+            self.terminal_emulator_kwargs = {}
         self.log_path = log_path # Logs of the terminal output wind up here
         self.log = None # Just a placeholder until it is opened
         self.syslog = syslog # See "if self.syslog:" below
@@ -1353,14 +1358,16 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                     rows=rows,
                     cols=cols,
                     em_dimensions=em_dimensions,
-                    encoding=self.encoding
+                    encoding=self.encoding,
+                    **self.terminal_emulator_kwargs
                 )
             except TypeError:
                 # Terminal emulator doesn't support em_dimensions.  That's OK
                 self.term = self.terminal_emulator(
                     rows=rows,
                     cols=cols,
-                    encoding=self.encoding
+                    encoding=self.encoding,
+                    **self.terminal_emulator_kwargs
                 )
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(

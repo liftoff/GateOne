@@ -905,6 +905,7 @@ class TerminalApplication(GOApplication):
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
         shell_command = policies.get('shell_command', None)
+        enabled_filetypes = policies.get('enabled_filetypes', 'all')
         use_shell = policies.get('use_shell', True)
         user_dir = self.settings['user_dir']
         try:
@@ -942,8 +943,13 @@ class TerminalApplication(GOApplication):
             for func in self.plugin_log_metadata_hooks:
                 metadata = func(self)
                 additional_log_metadata.update(metadata)
+        terminal_emulator_kwargs = {}
+        if enabled_filetypes != 'all':
+            # Only need to bother if it is something other than the default
+            terminal_emulator_kwargs = {'enabled_filetypes': enabled_filetypes}
         m = termio.Multiplex(
             cmd,
+            terminal_emulator_kwargs=terminal_emulator_kwargs,
             log_path=log_path,
             user=user,
             term_id=term_id,
@@ -2680,7 +2686,8 @@ def init(settings):
                 'default_command': 'SSH',
                 'environment_vars': {
                     'TERM': 'xterm-256color'
-                }
+                },
+                'enabled_filetypes': 'all'
             })
             new_term_settings = settings_template(
                 template_path, settings=settings['*']['terminal'])
