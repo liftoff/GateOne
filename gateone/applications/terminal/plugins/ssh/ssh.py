@@ -1139,7 +1139,18 @@ def initialize(self):
         import stat
         st = os.stat(ssh_connect_path)
         if not bool(st.st_mode & stat.S_IXOTH):
-            os.chmod(ssh_connect_path, 0o755)
+            try:
+                os.chmod(ssh_connect_path, 0o755)
+            except OSError:
+                ssh_log.error(_(
+                    "Could not set %s as executable.  You will need to 'chmod "
+                    "a+x' that script manually.") % ssh_connect_path)
+                user_msg = _(
+                    "Error loading SSH plugin:  The ssh_connect.py script is "
+                    "not executable.  See the logs for more details.")
+                send_msg = partial(self.ws.send_message, user_msg)
+                events = ["terminal:authenticate", "terminal:new_terminal"]
+                self.on(events, send_msg)
     self.ssh_log = go_logger("gateone.terminal.ssh", plugin='ssh')
     # NOTE:  Why not use the 'Events' hook for these?  You can't attach two
     # functions to the same event via that mechanism because it's a dict

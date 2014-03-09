@@ -80,7 +80,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140228213203";
+GateOne.__commit__ = "20140305205614";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2894,6 +2894,15 @@ GateOne.Visual.goDimensions = {};
 /**:GateOne.Visual.goDimensions
 
     Stores the dimensions of the :js:attr:`GateOne.prefs.goDiv` element in the form of ``{w: '800', h: '600'}`` where 'w' and 'h' represent the width and height in pixels.  It is used by several functions in order to calculate how far to slide terminals, how many rows and columns will fit, etc.
+
+    Registers the following WebSocket actions:
+
+        ===================  ==============================================
+        Action               Function
+        ===================  ==============================================
+        `go:notice`          :js:meth:`GateOne.Visual.serverMessageAction`
+        `go:user_message`    :js:meth:`GateOne.Visual.userMessageAction`
+        ===================  ==============================================
 */
 GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}}; // DEPRECATED
 GateOne.Visual.lastMessage = '';
@@ -2907,15 +2916,6 @@ GateOne.Base.update(GateOne.Visual, {
         /**:GateOne.Visual.init()
 
         Adds the 'grid' icon to the toolbar for users to click on to bring up/down the grid view.
-
-        Registers the following WebSocket actions:
-
-            ===================  ==============================================
-            Action               Function
-            ===================  ==============================================
-            `go:notice`          :js:meth:`GateOne.Visual.serverMessageAction`
-            `go:user_message`    :js:meth:`GateOne.Visual.userMessageAction`
-            ===================  ==============================================
 
         Registers the following Gate One events:
 
@@ -2948,8 +2948,6 @@ GateOne.Base.update(GateOne.Visual, {
         toolbarIconGrid.onclick = gridToggle;
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         go.toolbar.appendChild(toolbarIconGrid);
-        go.Net.addAction('go:notice', v.serverMessageAction);
-        go.Net.addAction('go:user_message', v.userMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:switch_workspace', v.locationsCheck);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
@@ -3548,7 +3546,9 @@ GateOne.Base.update(GateOne.Visual, {
     },
     getTransform: function(elem) {
         /**:GateOne.Visual.getTransform(elem)
-
+// These two are here just in case the server needs to send us a message before everything has completed loading:
+    'go:notice': go.Visual.serverMessageAction,
+    'go:user_message': go.Visual.userMessageAction
         :param number elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string ID or a DOM node.
 
         Returns the transform string applied to the style of the given *elem*
@@ -4540,6 +4540,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. note:: This will likely change to include/use additional metadata in the future (such as: from, to, etc)
         */
+        console.log('userMessageAction: ' + message);
         GateOne.Visual.displayMessage(message);
     },
     // TODO: Get this returning an object with various functions and attributes instead of just the function that closes the dialog
@@ -5115,6 +5116,11 @@ GateOne.Base.update(GateOne.Visual, {
 
 // Set our transitionend name right away
 go.Visual.transitionEndName = go.Visual.transitionEvent();
+
+// These two are here just in case the server needs to send us a message before everything has completed loading:
+go.Net.actions['go:notice'] = go.Visual.serverMessageAction;
+go.Net.actions['go:user_message'] = go.Visual.userMessageAction;
+// There's no need for these to load late so why load late?
 
 // GateOne.Storage (for storing/synchronizing stuff at the client)
 GateOne.Base.module(GateOne, "Storage", "1.0", ['Base']);

@@ -776,6 +776,7 @@ class TerminalApplication(GOApplication):
                                 'metadata': metadata,
                                 'title': title
                             }})
+        self.trigger('terminal:terminals', terminals)
         message = {'terminal:terminals': terminals}
         self.write_message(json_encode(message))
 
