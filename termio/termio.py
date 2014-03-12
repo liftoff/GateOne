@@ -377,6 +377,7 @@ class BaseMultiplex(object):
     :terminal_emulator: *terminal.Terminal or similar* - The terminal emulator to write to when capturing the incoming output stream from *cmd*.
     :terminal_emulator_kwargs: A dictionary of keyword arguments to be passed to the *terminal_emulator* when it is instantiated.
     :log_path: *string* - The absolute path to the log file where the output from *cmd* will be saved.
+    :user: *string* - If given this gets added to the log file as metadata (to differentiate who's who).
     :term_id: *string* - The terminal identifier to associated with this instance (only used in the logs to identify terminals).
     :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
     :syslog_facility: *integer* - The syslog facility to use when logging messages.  All possible facilities can be found in `utils.FACILITIES` (if you need a reference other than the syslog module).

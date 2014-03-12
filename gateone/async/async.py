@@ -424,7 +424,7 @@ class ThreadedRunner(AsyncRunner):
         if not self.executor:
             return False
         ibrunning = True
-        if self.executor._shutdown_thread:
+        if self.executor._shutdown:
             ibrunning = False
         return ibrunning
 

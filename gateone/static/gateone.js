@@ -34,7 +34,8 @@ var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozB
     urlObj = (window.URL || window.webkitURL);
 
 // Set the indexedDB variable as a global (within this sandbox) attached to the proper indexedDB implementation
-var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+// var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+var indexedDB = null;
 if ('webkitIndexedDB' in window) {
     window.IDBTransaction = window.webkitIDBTransaction;
     window.IDBKeyRange = window.webkitIDBKeyRange;
@@ -80,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140308223018";
+GateOne.__commit__ = "20140310121910";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -544,8 +545,10 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Cache our node for easy reference
         go.node = u.getNode(go.prefs.goDiv);
-    // Empty out anything that might be already-existing in goDiv
+        // Empty out anything that might be already-existing in goDiv
         go.node.innerHTML = '';
+        // Open our cache database
+        go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel, go.Storage.dbVersion);
     },
     initialize: function() {
         /**:GateOne.initialize()
@@ -4540,7 +4543,6 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. note:: This will likely change to include/use additional metadata in the future (such as: from, to, etc)
         */
-        console.log('userMessageAction: ' + message);
         GateOne.Visual.displayMessage(message);
     },
     // TODO: Get this returning an object with various functions and attributes instead of just the function that closes the dialog
@@ -5173,7 +5175,7 @@ GateOne.Storage.dbObject = function(DB) {
             }
         } else {
             var store = JSON.parse(localStorage[go.prefs.prefix+self.DB])[storeName],
-                result = store.data[key];
+                result = store.data[key]; // If not found result will be undefined (which is OK)
             callback(result);
         }
     }
@@ -5209,13 +5211,14 @@ GateOne.Storage.dbObject = function(DB) {
             };
             request.onerror = GateOne.Storage.onerror;
         } else {
-            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB])
+            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]),
                 store = db[storeName],
                 newData = {};
             for (var key in value) {
                 newData[key] = value[key];
             }
-            store.data = newData;
+            store.data[newData.filename] = newData;
+            localStorage[go.prefs.prefix+self.DB] = JSON.stringify(db);
             if (callback) {
                 callback(value);
             }
@@ -5284,9 +5287,8 @@ GateOne.Base.update(GateOne.Storage, {
     init: function() {
         /**:GateOne.Storage.init()
 
-        Registers the `go:file_sync` and `go:cache_expired` WebSocket actions and opens our 'fileCache' DB.
+        Doesn't do anything (most init stuff for this module needs to happen before everything else loads).
         */
-
     },
     cacheReady: function() {
         /**:GateOne.Storage.cacheReady()
@@ -5465,7 +5467,7 @@ GateOne.Base.update(GateOne.Storage, {
         var cleanupFiles = function(kind, objects) {
             logDebug('cleanupFiles()');
             var filenames = [];
-            objects.forEach(function(jsObj) {
+            u.toArray(objects).forEach(function(jsObj) {
                 filenames.push(jsObj['hash']); // The filenames are actually the hashes of their names
             });
             if (filenames.length) {
@@ -5590,10 +5592,10 @@ GateOne.Base.update(GateOne.Storage, {
                 S.databases[DB] = e.target.result;
                 // We can only create/delete Object stores inside of a setVersion transaction;
                 var needsUpdate;
-                if(version && version != S.databases[DB].version) {
+                if (version && version != S.databases[DB].version) {
                     needsUpdate = true;
                 }
-                if(needsUpdate) {
+                if (needsUpdate) {
                     logInfo(upgradeMsg);
                     // This is the old way of doing upgrades.  It should only ever be called in (much) older browsers...
                     if (typeof S.databases[DB].setVersion === "function") {
@@ -5630,6 +5632,7 @@ GateOne.Base.update(GateOne.Storage, {
                 }
                 localStorage[go.prefs.prefix+DB] = JSON.stringify(o);
             }
+            S.databases[DB] = true; // Just so we know it's available
             if (callback) { callback(S.dbObject(DB)); }
         }
     },
@@ -5667,7 +5670,6 @@ GateOne.Base.update(GateOne.Storage, {
 });
 
 // Load some early-stage required WebSocket actions
-go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel, go.Storage.dbVersion);
 go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
 go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
 go.Net.addAction('go:load_style', go.Utils.loadStyleAction);

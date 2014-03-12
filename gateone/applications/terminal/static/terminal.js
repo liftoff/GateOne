@@ -1745,8 +1745,6 @@ go.Base.update(GateOne.Terminal, {
             if (obj) {
                 go.Terminal.terminals[term]['scrollback'] = obj['scrollback'];
             }
-            // Call this whether there's an old scrollback or not because it ensures the terminal stays bottom-aligned wherever it is placed:
-            go.Terminal.enableScrollback(term);
         });
         terminal = u.createElement('div', {'id': currentTerm, 'class': '✈terminal'});
         if (!go.prefs.embedded) {
@@ -1883,6 +1881,8 @@ go.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
+        // Call this whether there's an old scrollback or not because it ensures the terminal stays bottom-aligned wherever it is placed:
+        go.Terminal.enableScrollback(term);
         // Fire our new_terminal event if everything was successful
         if (go.Terminal.terminals[term]) {
             E.trigger("terminal:new_terminal", term, trulyNew);
@@ -2429,12 +2429,15 @@ go.Base.update(GateOne.Terminal, {
             return;
         }
         var enableSB = function(termNum) {
+            if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
+                return; // We're done here
+            }
             var termPre = go.Terminal.terminals[termNum]['node'],
                 termScreen = go.Terminal.terminals[termNum]['screenNode'],
                 termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
+                parentHeight;
+            if (termPre) {
                 parentHeight = termPre.parentNode.clientHeight;
-            if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
-                return; // We're done here
             }
             // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
 //             if (parentHeight) {
@@ -2461,8 +2464,10 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.terminals[termNum]['scrollbackVisible'] = true;
         };
         if (term && term in GateOne.Terminal.terminals) {
-            // If there's already an existing scrollback buffer...
-            enableSB(term); // Have it create/add the scrollback buffer
+            // If there's a terminal node ready-to-go for scrollback...
+            if (go.Terminal.terminals[term]['node']) {
+                enableSB(term); // Have it create/add the scrollback buffer
+            }
         } else {
             var terms = u.toArray(u.getNodes('.✈terminal'));
             terms.forEach(function(termObj) {
@@ -2669,7 +2674,7 @@ go.Base.update(GateOne.Terminal, {
         for (var term in terminals) {
             termNumbers.push(parseInt(term));
         }
-        // Clean up localStorage
+        // Clean up the terminal DB
         terminalDB.dump('scrollback', function(objs) {
             for (var i=0; i<objs.length; i++) {
                 var termNum = objs[i]['term'];

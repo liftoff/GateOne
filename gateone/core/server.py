@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140308223018" # Gets replaced by git (holds the date/time)
+__commit__ = "20140310121910" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1745,7 +1745,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
-        self.base_url = "{protocol}://{host}{url_prefix}".format(
+        self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
             protocol=self.request.protocol,
             host=self.request.host,
             port=self.settings['port'],
@@ -2329,7 +2329,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if url:
             orig_base_url = self.base_url
             parsed = urlparse(url)
-            self.base_url = "{protocol}://{host}{url_prefix}".format(
+            self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
                 protocol=parsed.scheme,
                 host=parsed.hostname,
                 port=parsed.port,
