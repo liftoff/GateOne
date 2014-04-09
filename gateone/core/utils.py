@@ -972,7 +972,10 @@ def get_plugins(plugin_dir, enabled=None, basepath=None):
             continue
         plugin = directory
         module_path_list = os.path.normpath(plugin_dir).split(os.path.sep)
-        go_index = module_path_list.index('gateone')
+        # Find the *last* directory named 'gateone'
+        for i, _dir in enumerate(module_path_list):
+            if _dir == 'gateone': # If we ever change the name... Fix this
+                go_index = i
         module_base = '.'.join(module_path_list[go_index:])
         module_path = '%s.%s' % (module_base, plugin)
         http_static_path = '%s/static' % plugin
@@ -1021,6 +1024,7 @@ def load_modules(modules):
 
     .. note::  Assumes they're all in `sys.path`.
     """
+    logging.debug("load_modules(%s)" % modules)
     out_list = []
     for module in modules:
         imported = __import__(module, None, None, [''])

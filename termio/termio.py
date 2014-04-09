@@ -1743,9 +1743,16 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                     self.ctrl_c_pressed = True
                 # Reattach the fd so the user can continue immediately
                 self._reenable_output()
-        except (IOError, OSError) as e:
+        except OSError as e:
+            logging.error(_(
+                "Encountered error writing to terminal program: %s") % e)
             if self.isalive():
                 self.terminate()
+        except IOError as e:
+            # We can safely ignore most of these...  They tend to crop up when
+            # writing big chunks of data to dtach'd terminals.
+            if not 'raw write()' in e.message:
+                logging.error("write() exception: %s" % e)
         except Exception as e:
             logging.error("write() exception: %s" % e)
 

@@ -18,8 +18,9 @@ except ImportError:
     sys.exit(1)
 import pickle, signal, os, logging
 from functools import wraps
-from datetime import timedelta
+from datetime import datetime, timedelta
 from itertools import count
+from collections import Iterable
 from functools import partial
 from gateone.core.utils import AutoExpireDict, convert_to_timedelta
 from tornado.ioloop import IOLoop
@@ -207,7 +208,7 @@ class AsyncRunner(object):
         """
         raise NotImplementedError
 
-    def shutdown(self, wait=True):
+    def shutdown(self, wait=False):
         """
         Calls :meth:`self.executor.shutdown(wait)` and removes and waiting
         timeouts.
@@ -264,7 +265,8 @@ class AsyncRunner(object):
         future = self.executor.submit(safe_call, function, *args, **kwargs)
         if callback:
             done_callback(future, lambda f: callback(f.result()))
-        done_callback(future, lambda f: _cache_result(f, string))
+        if memoize:
+            done_callback(future, lambda f: _cache_result(f, string))
         return future
 
     @restart_executor
@@ -478,7 +480,7 @@ class MultiprocessRunner(AsyncRunner):
             ibrunning = False
         return ibrunning
 
-    def shutdown(self, wait=True):
+    def shutdown(self, wait=False):
         """
         An override of `AsyncRunner.shutdown` that is aware of the number of
         running instances so we don't shut down the executor while another
@@ -530,8 +532,8 @@ class PeriodicCallback(object):
             def callback_wrapper():
                 "Runs the callback and restarts the Timer so it will run again"
                 self.callback()
+                self._pc = Timer(callback_time / 1000, callback_wrapper)
                 if self._running:
-                    self._pc = Timer(callback_time / 1000, callback_wrapper)
                     self._pc.start()
             self._pc = Timer(callback_time / 1000, callback_wrapper)
         self._running = False
@@ -548,3 +550,361 @@ class PeriodicCallback(object):
             self._pc.stop()
         else: # Timer()
             self._pc.cancel()
+
+class MatchAll(set):
+    """Universal set - match everything"""
+    def __contains__(self, item):
+        return True
+
+class Every(object):
+    """
+    A data structure that returns ``True`` in ``__contains__()`` checks if it's
+    time for the schedule to run based on when it was created and it's interval
+    attribute(s).  It is meant to be used with the `Scheduler` as an easy way
+    to keep the code very simple.  Only `Schedule` or `Scheduler` instances
+    would ever use it.  You use it like so::
+
+        >>> every = Every(minutes=5)
+
+    You can specify an `Every` object to begin at a specific time by providing a
+    `datetime.datetime` object as the 'start' like so::
+
+        >>> every = Every(minutes=5, start=datetime.datetime(2014, 3, 25, 12, 0, 0))
+
+    This would result in the ``every`` object matching a ``__contains__`` check
+    every five minutes starting on the 25th of March, 2014 at noon.
+
+    How to use::
+
+        >>> every = Every(minutes=5)
+        >>> 1 in every
+        False
+        >>> # Wait five minutes
+        >>> 1 in every # Doesn't matter what you check
+        True
+        >>> # ...and at that point the last_run time would reset
+    """
+    intervals = {
+        'years': 31536000,
+        'months': 2592000, # 30 days
+        'days': 86400,
+        'hours': 3600,
+        'minutes': 60,
+        'seconds': 1
+    }
+    def __init__(self, **kwargs):
+        self.last_run = datetime.now()
+        self.interval = None # Will be in seconds
+        self.years = None
+        self.months = None
+        self.days = None
+        self.hours = None
+        self.minutes = None
+        self.seconds = None
+        # Set the given keyword arguments as attributes of this object
+        for key, value in kwargs.items():
+            if key in self.intervals:
+                # Store the interval type for reference later (could be useful):
+                setattr(self, key, value)
+                # Set the actual interval in seconds:
+                self.interval = self.intervals[key] * value
+            elif key == 'start':
+                if not isinstance(value, datetime):
+                    raise TypeError(
+                        "The 'start' keyword argument only accepts "
+                        "datetime.datetime objects")
+                self.last_run = value
+            else:
+                raise TypeError("Invalid keyword: %s" % key)
+
+    def check(self):
+        """
+        Returns ``True`` if ``self.interval`` has passed.
+        """
+        return self.__contains__(1) # Could pass anything
+
+    def __contains__(self, item):
+        elapsed = datetime.now() - self.last_run
+        if elapsed.total_seconds() > self.interval:
+            self.last_run = datetime.now()
+            return True
+        return False
+
+class Schedule(object):
+    """
+    A data structure to represent a scheduled task.
+    """
+    valid_attrs = [
+        'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weekdays']
+    def __init__(self, funcs, identifier, repeat=0, **kwargs):
+        self.last_ran = None
+        self.identifier = identifier
+        self.repeat = repeat
+        if not isinstance(funcs, list):
+            funcs = [funcs] # Make it a list
+        self.funcs = funcs
+        if not kwargs:
+            # Empty schedules are OK...  They will either run every time a check
+            # is made or every n years, days, hours, etc when using every()
+            for attr in self.valid_attrs:
+                if not getattr(self, attr):
+                    setattr(self, attr, MatchAll())
+            return
+        # Set the given keyword arguments as attributes of this object
+        for key, value in kwargs.items():
+            if key in self.valid_attrs:
+                # Convert to set
+                if isinstance(value, (int, long)):
+                    value = set([value])  # Single item
+                if isinstance(value, Iterable):
+                    value = set([a for a in value])
+                if key == 'weekdays':
+                    if 0 in value:
+                        # Sunday is the 7th day per datetime.now().isoweekday()
+                        value.remove(0)
+                        value.add(7)
+                setattr(self, key, value)
+            else:
+                raise TypeError("Invalid keyword: %s" % key)
+        # Use the MatchAll catch-all for any unspecified time attributes
+        for attr in self.valid_attrs:
+            if not getattr(self, attr):
+                setattr(self, attr, MatchAll())
+
+    def add_task(self, funcs):
+        """
+        Adds the given *funcs* to this schedule.
+        """
+        if not isinstance(funcs, list):
+            funcs = [funcs] # Make it a list
+        self.funcs.append(funcs)
+
+    def every(self, **kwargs):
+        """
+        Sets the schedule of this `Schedule` object to run every *n* years,
+        months, days, hours, minutes, or seconds depending on the given
+        *kwargs*.  Example usage::
+
+            scheduler.schedule(some_func, 'some_func').every(minutes=5)
+            # NOTE: The above works because scheduler.schedule returns the
+            # created Schedule instance.
+
+        This kind of scheduling will be based on when the `Schedule` object is
+        created rather than fixed times.
+        """
+        for key, value in kwargs.items():
+            if key in self.valid_attrs:
+                setattr(self, key, Every(**{key: value}))
+            else:
+                raise TypeError("Invalid keyword: %s" % key)
+        return self
+
+    def __call__(self):
+        """
+        Calls all the functions inside of ``self.funcs``.
+
+        .. note:: This makes `Schedule` objects callable; e.g. 'sched()'
+        """
+        for func in self.funcs:
+            func()
+        self.last_ran = datetime.now()
+
+    def __getattr__(self, key):
+        """
+        An override to make sure we return `None` for unset time-specific
+        attributes (in case they weren't provided when the `Schedule` object
+        was created).
+        """
+        if key in self.valid_attrs:
+            try:
+                return super(Schedule, self).__getattr__(key)
+            except AttributeError:
+                return None
+        return super(Schedule, self).__getattr__(key)
+
+class Scheduler(object):
+    """
+    A class that can be used to schedule tasks to run at specific days/times
+    (like cron).  It creates a `PeriodicCallback` using the (optional)
+    *interval* and calls each scheduled function if it's time has come.
+
+    If no *runner* is provided, tasks executed by the scheduler will be run via
+    an internal instance of `ThreadedRunner` which will default to using 10
+    workers.
+    """
+    def __init__(self, interval='1s', io_loop=None, runner=None):
+        if isinstance(interval, basestring):
+            interval = convert_to_timedelta(interval)
+            interval = interval.total_seconds() * 1000
+        if not runner:
+            runner = ThreadedRunner()
+        self.runner = runner
+        self._running = False
+        self.interval = interval
+        self.io_loop = io_loop or IOLoop.current()
+        self._pc = PeriodicCallback(
+            self._schedule_check, self.interval, io_loop)
+        self._id_counter = count(start=1) # For generating unique IDs
+        self._schedules = {}
+
+    def schedule(self, funcs, identifier=None, **kwargs):
+        """
+        Schedules the given *funcs* to run at the times specified by the keyword
+        arguments.  Returns a `Schedule` object that controls when things will
+        be called.
+
+        .. note::
+
+            The *funcs* argument may be provided as an iterable or as a single
+            function.
+
+        Time-specific keyword arguments can be one or all of these:
+
+            * years
+            * months
+            * days
+            * weekdays
+            * hours
+            * minutes
+            * seconds
+
+        They can be specified as either a single integer or an iterable of
+        integers.
+
+        .. note::
+
+            The *weekdays* keyword argument uses ISO standard weekday integers
+            where 1 is Monday and 7 is Sunday.  A 0 may also be used to
+            represent Sunday (which is not an ISO standard).
+
+        Alternatively, the following (boolean) keyword arguments may be used to
+        simplify scheduling tasks:
+
+            * monthly
+            * weekly
+            * daily
+            * hourly
+
+        Tasks scheduled this way will be run on the hour that the specified time
+        passes.  In other words, hourly would run at X:00, daily runs at 0:00,
+        and monthly will run on the first day of the month at 0:00.  Weekly
+        scheduled tasks will run every Sunday at midnight.
+
+        .. note::
+
+            If an *identifier* is not specified a unique ID will be generated.
+
+        Example usage::
+
+            >>> scheduler = Scheduler()
+            >>> def myfunc(): print("Ran myfunc() at %s" % datetime.now())
+            >>> # Run twice an hour at X:00:00 and X:30:00
+            >>> sched_obj = scheduler.schedule(myfunc, minutes=set([0,30]))
+            >>> # Run every day at midnight:
+            >>> sched_obj = scheduler.schedule(myfunc, daily=True)
+
+        For periodic calls (every N days, minutes, etc) you can use the
+        :meth:`Schedule.every` method::
+
+            >>> # Run every five minutes
+            >>> sched_obj = scheduler.schedule(myfunc).every(minutes=5)
+
+        .. note::
+
+            When using ``every()`` you don't need to provide any keyword
+            arguments to the ``schedule()`` method.
+        """
+        if not identifier:
+            identifier = self._id_counter.next()
+        # Convert the convenience keyword arguments to their datetime equivalent
+        if 'monthly' in kwargs:
+            kwargs.pop('monthly') # Remove it
+            kwargs['days'] = 0    # Run on the first day of the month
+            kwargs['hours'] = 0   # ...at midnight
+            kwargs['minutes'] = 0 # ...on the hour
+            kwargs['seconds'] = 0  # at this specific second
+        if 'daily' in kwargs:
+            kwargs.pop('daily')
+            kwargs['hours'] = 0   # Run at midnight
+            kwargs['minutes'] = 0 # ...on the hour
+            kwargs['seconds'] = 0  # at this specific second
+        if 'hourly' in kwargs:
+            kwargs.pop('hourly')
+            kwargs['minutes'] = 0  # Run every hour on the hour
+            kwargs['seconds'] = 0  # at this specific second
+        if 'weekly' in kwargs:
+            kwargs.pop('weekly')
+            kwargs['weekdays'] = 7 # Run every Sunday
+            kwargs['hours'] = 0    # ...at midnight
+            kwargs['minutes'] = 0  # ...on the hour
+        sched = Schedule(funcs, identifier, **kwargs)
+        self._schedules.update({identifier: sched})
+        return sched
+
+    def reschedule(self, identifier, **kwargs):
+        """
+        Reschedules the function associaated with the given *identifier* to run
+        at the time specified by the keyword arguments.  If no keyword arguments
+        are provided the scheduled function will be removed (unscheduled).
+        """
+        funcs = self._schedules[identifier].funcs
+        del self._schedules[identifier]
+        self.schedule(funcs, identifier, **kwargs)
+
+    def unschedule(self, identifier):
+        """
+        Removes the function associated with the given *identifier* from
+        ``self._schedules``.  Example usage::
+
+            sched_obj = scheduler.schedule(myfunc, 'some_id', daily=True)
+            # Now unschedule it:
+            scheduler.unschedule('some_id')
+
+        Alternatively you can use the auto-generated identifier assigned to the
+        `Schedule` object::
+
+            scheduler.unschedule(sched_obj.identifier)
+        """
+        del self._schedules[identifier]
+
+    def remove(self, identifier):
+        """
+        An alias to `Scheduler.unschedule`.
+        """
+        self.unschedule(identifier)
+
+    def add_task(self, funcs, identifier):
+        """
+        Adds the given *funcs* to the scheduled task associated with the given
+        *identifier*.  *funcs* may be a single function or a list of functions.
+        """
+        self._schedules[identifier].add_task(funcs)
+
+    def start(self):
+        """Starts the scheduler."""
+        logging.debug("Starting Scheduler")
+        if not self._running:
+            self._running = True
+            self._pc.start() # Timer() and PeriodicCallback() both use start()
+
+    def stop(self):
+        """Stops the scheduler."""
+        logging.debug("Stopping Scheduler")
+        if self._running:
+            self._running = False
+            self._pc.stop()
+
+    def _schedule_check(self):
+        """
+        Iterates over ``self._schedules`` and executes any scheduled tasks who's
+        time has come.
+        """
+        now = datetime.now()
+        for schedule in self._schedules.values():
+            if ((now.second       in schedule.seconds) and
+                (now.minute       in schedule.minutes) and
+                (now.hour         in schedule.hours)   and
+                (now.day          in schedule.days)    and
+                (now.month        in schedule.months)  and
+                (now.isoweekday() in schedule.weekdays)):
+                self.runner.call(schedule) # Call the scheduled task(s)

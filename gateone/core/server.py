@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140310121910" # Gets replaced by git (holds the date/time)
+__commit__ = "20140311204643" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2329,10 +2329,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if url:
             orig_base_url = self.base_url
             parsed = urlparse(url)
+            port = parsed.port
+            if not port:
+                port = 443
+                if parsed.scheme == 'http':
+                    port = 80
             self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
                 protocol=parsed.scheme,
                 host=parsed.hostname,
-                port=parsed.port,
+                port=port,
                 url_prefix=parsed.path)
             if orig_base_url != self.base_url:
                 self.logger.info(_(
@@ -3763,6 +3768,7 @@ class GateOneApp(tornado.web.Application):
                 handlers.extend(fixed_hooks)
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket commands
+                print("hooks['WebSocket']: %s" % hooks['WebSocket'])
                 PLUGIN_WS_CMDS.update(hooks['WebSocket'])
             if 'Escape' in hooks:
                 # Apply the plugin's Escape handler

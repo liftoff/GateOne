@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140310121910";
+GateOne.__commit__ = "20140311204643";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3874,6 +3874,7 @@ GateOne.Base.update(GateOne.Visual, {
         gridwrapper.appendChild(workspaceNode);
         workspaceNode.focus();
         go.Events.trigger('go:new_workspace', workspaceNum);
+        setTimeout(go.Visual.updateDimensions, 2000);
         return workspaceNode;
     },
     closeWorkspace: function(workspace, /*opt*/message) {
