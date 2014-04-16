@@ -73,7 +73,11 @@ Docstrings
 """
 
 # Import stdlib stuff
-import os, logging
+import os, re, logging
+try:
+    from urllib import quote
+except ImportError: # Python 3
+    from urllib.parse import quote
 
 # Import our own stuff
 from gateone.core.utils import mkdir_p, generate_session_id
@@ -86,6 +90,7 @@ from gateone.core.log import go_logger
 import tornado.web
 import tornado.auth
 import tornado.escape
+import tornado.httpclient
 
 # Localization support
 _ = get_translation()
@@ -528,3 +533,130 @@ try:
                 self.redirect(self.settings['url_prefix'])
 except ImportError:
     pass # No PAM auth available.
+
+class CASAuthHandler(BaseAuthHandler):
+    """
+    CAS authentication handler.
+    """
+    cas_user_regex = re.compile(r'<cas:user>(.*)</cas:user>')
+    def initialize(self):
+        """
+        Print out helpful error messages if the requisite settings aren't
+        configured.
+
+        NOTE: It won't hurt anything to override this method in your
+        RequestHandler.
+        """
+        self.require_setting("cas_server", _("CAS Server URL"))
+        # The cas_version is optional
+
+    @tornado.web.asynchronous
+    def get(self):
+        """
+        Sets the 'user' cookie with an appropriate *upn* and *session* and any
+        other values that might be attached to the user object given to us by
+        Google.
+        """
+        self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
+            protocol=self.request.protocol,
+            host=self.request.host,
+            port=self.settings['port'],
+            url_prefix=self.settings['url_prefix'])
+        check = self.get_argument("check", None)
+        if check:
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            user = self.get_current_user()
+            if user:
+                logging.debug('CASAuthHandler: user is authenticated')
+                self.write('authenticated')
+            else:
+                logging.debug('CASAuthHandler: user is NOT authenticated')
+                self.write('unauthenticated')
+            self.finish()
+            return
+        logout_url = "%s/logout" % self.settings.get('cas_server')
+        logout = self.get_argument("logout", None)
+        if logout:
+            user = self.get_current_user()['upn']
+            self.clear_cookie('gateone_user')
+            self.user_logout(user, logout_url)
+            return
+        server_ticket = self.get_argument('ticket', None)
+        if server_ticket:
+            return self.get_authenticated_user(server_ticket)
+        return self.authenticate_redirect()
+
+    def authenticate_redirect(self, callback=None):
+        """
+        Redirects to the authentication URL for this CAS service.
+
+        After authentication, the service will redirect back to the given
+        callback URI with additional parameters.
+
+        We request the given attributes for the authenticated user by
+        default (name, email, language, and username). If you don't need
+        all those attributes for your app, you can request fewer with
+        the ax_attrs keyword argument.
+        """
+        cas_server = self.settings.get('cas_server')
+        if not cas_server.endswith('/'):
+            cas_server += '/'
+        service_url = "%sauth" % self.base_url
+        redirect_url = '%slogin?service=%s' % (cas_server, quote(service_url))
+        logging.debug("Redirecting to CAS URL: %s" % redirect_url)
+        self.redirect(redirect_url)
+        if callback:
+            callback()
+
+    def get_authenticated_user(self, server_ticket):
+        """
+        Requests the user's information from the CAS server using the given
+        *server_ticket* and calls ``self._on_auth`` with the resulting user
+        dict.
+        """
+        cas_version = self.settings.get('cas_version', 2)
+        cas_server = self.settings.get('cas_server')
+        ca_certs = self.settings.get('cas_ca_certs', None)
+        if not cas_server.endswith('/'):
+            cas_server += '/'
+        service_url = "%sauth" % self.base_url
+        #validate the ST
+        validate_suffix = 'proxyValidate'
+        if cas_version == 1:
+            validate_suffix = 'validate'
+        validate_url = (
+            cas_server +
+            validate_suffix +
+            '?service=' +
+            quote(service_url) +
+            '&ticket=' +
+            quote(server_ticket)
+        )
+        logging.debug("Fetching CAS URL: %s" % validate_url)
+        validate_cert = False
+        if ca_certs:
+            validate_cert = True
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        http_client.fetch(
+            validate_url, validate_cert=validate_cert, callback=self._on_auth)
+
+    def _on_auth(self, response):
+        """
+        Just a continuation of the get() method (the final step where it
+        actually sets the cookie).
+        """
+        userid = None
+        match = self.cas_user_regex.search(response.body)
+        if match:
+            userid = match.groups()[0]
+        if not userid:
+            raise tornado.web.HTTPError(500, _("CAS authentication failed"))
+        # NOTE: Do we ever get anything more than the userid from a CAS server?
+        # Needs more research and probably proper XML parsing...
+        user = {'upn': userid}
+        self.user_login(user)
+        next_url = self.get_argument("next", None)
+        if next_url:
+            self.redirect(next_url)
+        else:
+            self.redirect(self.settings['url_prefix'])

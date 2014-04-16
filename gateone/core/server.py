@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140311204643" # Gets replaced by git (holds the date/time)
+__commit__ = "20140408212253" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -538,7 +538,8 @@ tornado.log.enable_pretty_logging()
 from gateone import SESSIONS, PERSIST
 from gateone.auth.authentication import NullAuthHandler, KerberosAuthHandler
 from gateone.auth.authentication import GoogleAuthHandler, APIAuthHandler
-from gateone.auth.authentication import SSLAuthHandler, PAMAuthHandler
+from gateone.auth.authentication import CASAuthHandler, PAMAuthHandler
+from gateone.auth.authentication import SSLAuthHandler
 from gateone.auth.authorization import require, authenticated, policies
 from gateone.auth.authorization import applicable_policies
 from .utils import generate_session_id, mkdir_p, touch
@@ -3694,6 +3695,8 @@ class GateOneApp(tornado.web.Application):
                 AuthHandler = PAMAuthHandler
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
+            elif settings['auth'] == 'cas':
+                AuthHandler = CASAuthHandler
             elif settings['auth'] == 'ssl':
                 AuthHandler = SSLAuthHandler
             elif settings['auth'] == 'api':
