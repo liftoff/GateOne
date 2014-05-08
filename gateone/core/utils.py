@@ -544,7 +544,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
     cert.get_issuer().CN = 'Untrusted Authority'
     cert.get_issuer().O = 'Self-Signed'
     cert.set_pubkey(pkey)
-    cert.sign(pkey, 'md5')
+    cert.sign(pkey, 'sha512')
     with io.open(certfile_path, mode='wb') as f:
         f.write(OpenSSL.crypto.dump_certificate(
             OpenSSL.crypto.FILETYPE_PEM, cert))

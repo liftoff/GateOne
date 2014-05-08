@@ -28,6 +28,12 @@ _ = temp_locale.translate
 del temp_locale
 
 logger = go_logger(None)
+comments_re = re.compile(
+    r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
+    re.DOTALL | re.MULTILINE
+)
+trailing_commas_re = re.compile(
+    r'(,)\s*}(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)')
 
 class SettingsError(Exception):
     """
@@ -831,24 +837,21 @@ def apply_cli_overrides(go_settings):
                 else:
                     setattr(options, key, str(value))
 
-# The following was taken from:
-# http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments
-# Thank you Markus Jarderot!
-def remove_comments(text):
+def remove_comments(json_like):
     """
-    Removes C-style comments from *text* and returns the result.
+    Removes C-style comments from *json_like* and returns the result.
     """
     def replacer(match):
         s = match.group(0)
-        if s.startswith('/'):
-            return ""
-        else:
-            return s
-    pattern = re.compile(
-        r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
-        re.DOTALL | re.MULTILINE
-    )
-    return re.sub(pattern, replacer, text)
+        if s[0] == '/': return ""
+        return s
+    return comments_re.sub(replacer, json_like)
+
+def remove_trailing_commas(json_like):
+    """
+    Removes trailing commas from *json_like* and returns the result.
+    """
+    return trailing_commas_re.sub("}", json_like)
 
 def get_settings(path, add_default=True):
     """
@@ -880,7 +883,8 @@ def get_settings(path, add_default=True):
             filepath = path
         with io.open(filepath, encoding='utf-8') as f:
             # Remove comments
-            proper_json = remove_comments(f.read())
+            almost_json = remove_comments(f.read())
+            proper_json = remove_trailing_commas(almost_json)
             # Remove blank/empty lines
             proper_json = os.linesep.join([
                 s for s in proper_json.splitlines() if s.strip()])
@@ -895,8 +899,8 @@ def get_settings(path, add_default=True):
                 # Let's try to be as user-friendly as possible by pointing out
                 # *precisely* where the error occurred (if possible)...
                 try:
-                    line_no = int(e.message.split(': line ', 1)[1].split()[0])
-                    column = int(e.message.split(': line ', 1)[1].split()[2])
+                    line_no = int(str(e).split(': line ', 1)[1].split()[0])
+                    column = int(str(e).split(': line ', 1)[1].split()[2])
                     for i, line in enumerate(proper_json.splitlines()):
                         if i == line_no-1:
                             print(

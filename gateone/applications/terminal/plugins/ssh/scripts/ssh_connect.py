@@ -312,7 +312,7 @@ def openssh_connect(
         # running one-Gate One-per-server...
         "-oNoHostAuthenticationForLocalhost=yes",
         # This ensure's that the executing user's identity won't be used:
-        "-oIdentityFile='/dev/null'",
+        "-oIdentitiesOnly=yes",
         # This ensures the other end can tell we're a Gate One terminal and
         # possibly use the session ID with plugins (could be interesting).
         "-oSendEnv='GO_TERM GO_LOCATION GO_SESSION'",
