@@ -1351,7 +1351,7 @@ def valid_hostname(hostname, allow_underscore=False):
     allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     if allow_underscore:
         allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
-    hostnameString = str( hostname, ecoding='idna' )
+    hostnameString = str( hostname, encoding='idna' )
     return all(allowed.match(x) for x in hostnameString.split('.'))
 
 def recursive_chown(path, uid, gid):
