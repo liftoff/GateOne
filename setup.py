@@ -288,6 +288,43 @@ setup(
     **extra
 )
 
+# For whatever reason 2to3 doesn't fix the shebang in the ssh_connect.py
+# script on systems with both python2 and python3.  Double-check that and fix it
+# if needed:
+if PYTHON3:
+    # We only need to fix the shebang if the 'python' executable is Python 2.X
+    retcode, output = getstatusoutput('python --version')
+    if output.split()[1].startswith('2'):
+        for path in sys.path:
+            try:
+                files = os.listdir(path)
+            except NotADirectoryError:
+                continue
+            for f in files:
+                if 'gateone' in f: # Found an installation
+                    ssh_connect = os.path.join(
+                        path, f, 'gateone', 'applications', 'terminal',
+                        'plugins', 'ssh', 'scripts', 'ssh_connect.py')
+                    if setup_dir in ssh_connect:
+                        continue # Don't mess with the downloaded code
+                    if not os.path.exists(ssh_connect):
+                        # Alternate location on some systems:
+                        ssh_connect = os.path.join(
+                            path, f, 'applications', 'terminal', 'plugins',
+                            'ssh', 'scripts', 'ssh_connect.py')
+                    if os.path.exists(ssh_connect):
+                        new_ssh_connect = b''
+                        for i, line in enumerate(open(ssh_connect, 'rb')):
+                            if i == 0 and not line.strip().endswith(b'python3'):
+                                print(
+                                    "Changing shebang to use 'python3' in %s" %
+                                    ssh_connect)
+                                new_ssh_connect += b'#!/usr/bin/env python3\n'
+                            else:
+                                new_ssh_connect += line
+                        with open(ssh_connect, 'wb') as new_ssh_c:
+                            new_ssh_c.write(new_ssh_connect)
+
 if not os.path.exists('/opt/gateone'):
     # Don't bother printing out the migration info below if the user has never
     # installed Gate One on this system before.
