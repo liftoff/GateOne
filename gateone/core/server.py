@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140508085225" # Gets replaced by git (holds the date/time)
+__commit__ = "20140516085214" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1667,7 +1667,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             allowed.
         """
         valid = False
-        if 'origins' in self.settings['cli_overrides']:
+        if 'origins' in self.settings.get('cli_overrides', ''):
             # If given on the command line, always use those origins
             valid_origins = self.settings['origins']
         else:
@@ -1884,7 +1884,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         logging.debug("on_close()")
         ApplicationWebSocket.instances.discard(self)
         user = self.current_user
-        client_address = self.request.connection.address[0]
+        client_address = self.request.remote_ip
         if user and user['session'] in SESSIONS:
             if self.client_id in SESSIONS[user['session']]['client_ids']:
                 SESSIONS[user['session']]['client_ids'].remove(self.client_id)
@@ -4240,7 +4240,6 @@ def main(installed=True):
             continue # These don't belong
         if option not in go_settings:
             go_settings[option] = options[option]
-    tornado.log.enable_pretty_logging(options=options)
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)

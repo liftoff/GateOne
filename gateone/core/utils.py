@@ -1340,17 +1340,18 @@ def valid_hostname(hostname, allow_underscore=False):
         True
     """
     # Convert to Punycode if an IDN
-    try:
-        hostname = hostname.encode('idna')
-    except UnicodeError: # Can't convert to Punycode: Bad hostname
-        return False
+    if isinstance(hostname, str):
+        try:
+            hostname = hostname.encode('idna')
+        except UnicodeError: # Can't convert to Punycode: Bad hostname
+            return False
     if len(hostname) > 255:
         return False
-    if hostname[-1:] == ".": # Strip the tailing dot if present
+    if hostname[-1:] == b".": # Strip the tailing dot if present
         hostname = hostname[:-1]
-    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    allowed = re.compile(b"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     if allow_underscore:
-        allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+        allowed = re.compile(b"(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split(b"."))
 
 def recursive_chown(path, uid, gid):

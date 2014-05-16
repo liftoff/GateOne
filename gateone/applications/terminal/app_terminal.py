@@ -452,8 +452,8 @@ class TerminalApplication(GOApplication):
                 with io.open(icon_path, encoding='utf-8') as f:
                     sub_app['icon'] = f.read().format(cmd=sub_app['name'])
             sub_apps.append(sub_app)
-        self.info['sub_applications'] = sub_apps
-        self.info['sub_applications'].sort()
+        self.info['sub_applications'] = sorted(
+            sub_apps, key=lambda k: k['name'])
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most
         # cases (only when the connection lost and re-connected without a page
