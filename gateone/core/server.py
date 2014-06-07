@@ -4198,7 +4198,13 @@ def main(installed=True):
         if not os.path.exists(go_settings['keyfile']):
             ssl_base = os.path.split(go_settings['keyfile'])[0]
             if not os.path.exists(ssl_base):
-                mkdir_p(ssl_base)
+                try:
+                    mkdir_p(ssl_base)
+                except OSError as e:
+                    logging.error(_(
+                        "Gate One could not create {ssl_base} ({e}). "
+                        "Are you using the correct --settings_dir?"))
+                    sys.exit(1)
             logging.info(_("No SSL private key found.  One will be generated."))
             gen_self_signed_ssl(path=ssl_base)
         if not os.path.exists(go_settings['certificate']):

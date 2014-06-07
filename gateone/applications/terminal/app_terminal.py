@@ -1032,9 +1032,12 @@ class TerminalApplication(GOApplication):
                    "settings (usually 50terminal.conf in %s)"
                    % settings_dir))
                 return
+        cmd_dtach_enabled = True
         # Get the full command
         try:
             full_command = policy['commands'][command]
+            # This lets you disable dtach on a per-command basis:
+            cmd_dtach_enabled = policy['commands'][command].get('dtach', True)
         except KeyError:
             # The given command isn't an option
             self.term_log.error(_(
@@ -1103,7 +1106,7 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(user_session_dir):
                 mkdir_p(user_session_dir)
                 os.chmod(user_session_dir, 0o770)
-            if options.dtach and which('dtach'):
+            if options.dtach and which('dtach') and cmd_dtach_enabled:
                 # Wrap in dtach (love this tool!)
                 dtach_path = "{session_dir}/dtach_{location}_{term}".format(
                     session_dir=user_session_dir,

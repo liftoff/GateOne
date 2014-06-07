@@ -113,7 +113,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Gate One'
-copyright = u'2013, Liftoff Software Corporation'
+copyright = u'2014, Liftoff Software Corporation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

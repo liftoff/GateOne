@@ -38,10 +38,10 @@ var document = window.document, // Have to do this because we're sandboxed
         '11': 'DEC'
     };
 
-// TODO: Add the ability to have Search bookmarks for query types that use POST instead of GET
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
 // TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
+// TODO: Refactor the code to use GateOne.Storage instead of localStorage.
 
 // GateOne.Bookmarks (bookmark management functions)
 go.Base.module(GateOne, "Bookmarks", "1.2", ['Base']);
@@ -91,6 +91,8 @@ go.Base.update(GateOne.Bookmarks, {
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar_icon ✈icon_bookmarks', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar'),
+            bookmarks = [], // Loaded and tested before we set GateOne.Bookmarks.bookmarks
+            badBookmarks = [],
             toggleBookmarks = function() {
                 v.togglePanel('#'+prefix+'panel_bookmarks');
             };
@@ -122,7 +124,23 @@ go.Base.update(GateOne.Bookmarks, {
             b.bookmarks = [];
         } else {
             // Load them into GateOne.Bookmarks.bookmarks
-            b.bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
+            bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
+            // Validate the bookmarks and try to fix broken ones
+            bookmarks.forEach(function(bookmark) {
+                if (!bookmark.name.length) {
+                    // Missing name; try to fix it using the URL's host
+                    var parsedURL = b.parseUri(bookmark.url);
+                    bookmark.name = parsedURL.host;
+                } else if (!bookmark.url.length) {
+                    badBookmarks.push(bookmark);
+                }
+            });
+            b.bookmarks = bookmarks;
+            if (badBookmarks) {
+                logDebug("Bad bookmarks were encountered while loading: ", badBookmarks);
+                // Re-save the good bookmarks so we don't have this problem again
+                b.storeBookmarks(b.bookmarks);
+            }
         }
         // Initialize the USN if it isn't already set
         if (!localStorage[prefix+'USN']) {
@@ -227,7 +245,7 @@ go.Base.update(GateOne.Bookmarks, {
 
         If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
 
-        If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object.
+        If *skipTags* is true, bookmark tags will be ignored when saving *bookmarks*.
         */
         var go = GateOne,
             prefix = go.prefs.prefix,
@@ -530,7 +548,7 @@ go.Base.update(GateOne.Bookmarks, {
                 bm.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(bm);
-                },500);
+                }, 500);
             });
         }
         if (!delay) {
