@@ -698,7 +698,7 @@ attach
 attached
 attaching
 attachment
-attachés
+attachÃ©s
 attack
 attacked
 attacking
@@ -1268,7 +1268,7 @@ cabled
 cables
 cabling
 caffeine
-café
+cafÃ©
 cage
 cake
 cakes
@@ -1610,7 +1610,7 @@ clears
 clever
 cleverer
 cleverest
-cliché
+clichÃ©
 click
 client
 clients

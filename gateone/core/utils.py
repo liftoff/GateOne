@@ -687,15 +687,18 @@ def short_hash(to_shorten):
 
 def random_words(n=1):
     """
-    Returns *n* random English words (as a tuple) from the `english_wordlist.txt`
-    file (bundled with Gate One).
+    Returns *n* random English words (as a tuple of strings) from the
+    `english_wordlist.txt` file (bundled with Gate One).
+
+    .. note:: In Python 2 the words will be Unicode strings.
     """
     from pkg_resources import resource_string
     words = resource_string(
-        'gateone', 'static/english_wordlist.txt').split('\n')
+        'gateone', 'static/english_wordlist.txt').split(b'\n')
     out_words = []
     for i in range(n):
-        out_words.append(words[random.randint(0, len(words))].lower())
+        word = words[random.randint(0, len(words))].lower()
+        out_words.append(word.decode('utf-8'))
     return tuple(out_words)
 
 def get_process_tree(parent_pid):
