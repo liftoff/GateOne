@@ -1036,8 +1036,6 @@ class TerminalApplication(GOApplication):
         # Get the full command
         try:
             full_command = policy['commands'][command]
-            # This lets you disable dtach on a per-command basis:
-            cmd_dtach_enabled = policy['commands'][command].get('dtach', True)
         except KeyError:
             # The given command isn't an option
             self.term_log.error(_(
@@ -1048,6 +1046,8 @@ class TerminalApplication(GOApplication):
             return
         if isinstance(full_command, dict): # Extended command definition
             full_command = full_command['command']
+            # This lets you disable dtach on a per-command basis:
+            cmd_dtach_enabled = full_command.get('dtach', True)
         # Make a nice, useful logging line with extra metadata
         log_metadata = {
             "rows": settings["rows"],

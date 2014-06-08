@@ -1,5 +1,5 @@
 
-GateOne.Base.superSandbox("GateOne.Terminal.Input", ["GateOne.Terminal", "GateOne.User"], function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal.Input", ["GateOne.Terminal", "GateOne.User", "GateOne.Input"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts

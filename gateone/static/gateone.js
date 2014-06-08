@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140607142055";
+GateOne.__commit__ = "20140608101441";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -172,7 +172,7 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
 
         });
 
-    :name: Name of the wrapped function.  It will be used to call any `init()` or `postInit()` functions.  If you just want dependencies checked you can just pass a unique string.
+    :name: Name of the wrapped function.  It will be used to call any `init()` or `postInit()` functions.  If you just want dependencies checked you can just pass any unique string.
     :dependencies: An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.
     :func: A function containing the JavaScript code to execute as soon as the dependencies are available.
     */
