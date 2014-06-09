@@ -1045,9 +1045,9 @@ class TerminalApplication(GOApplication):
             self.term_ended(term)
             return
         if isinstance(full_command, dict): # Extended command definition
-            full_command = full_command['command']
             # This lets you disable dtach on a per-command basis:
             cmd_dtach_enabled = full_command.get('dtach', True)
+            full_command = full_command['command']
         # Make a nice, useful logging line with extra metadata
         log_metadata = {
             "rows": settings["rows"],
