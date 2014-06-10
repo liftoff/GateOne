@@ -236,7 +236,8 @@ class AsyncRunner(object):
         """
         global MEMO
         MEMO = {} # Enables garbage collection of the AutoExpireDict
-        self.shutdown()
+        if self.running:
+            self.shutdown()
 
     @restart_executor
     def call(self, function, *args, **kwargs):
