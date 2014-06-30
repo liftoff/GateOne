@@ -586,7 +586,10 @@ class TerminalApplication(GOApplication):
                     "locals": "",
                     "url": (
                         "{server_url}terminal/static/fonts/{font}".format(
-                            server_url=self.ws.base_url,
+                            server_url=(self.ws.request.protocol
+                                        + '://'
+                                        + self.ws.request.host
+                                        + self.ws.settings['url_prefix']),
                             font=font)
                     )
                 }
