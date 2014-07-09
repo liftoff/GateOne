@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140609191913" # Gets replaced by git (holds the date/time)
+__commit__ = "20140609214034" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3695,6 +3695,27 @@ class GateOneApp(tornado.web.Application):
                 AuthHandler = PAMAuthHandler
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
+                if 'google_oauth' not in tornado_settings:
+                    logging.error(_(
+                        'In order to use Google authentication you must create '
+                        'a Google project for your installation and add:\n\t'
+                        '{"google_oauth": {"key": "<YOUR CLIENT ID>", "secret":'
+                        ' "<YOUR CLIENT SECRET>"}} to your '
+                        '20authentication.conf (under the "gateone" section).'))
+                    logging.info(_(
+                        'To create a Google auth client ID and secret go to: '
+                        'https://console.developers.google.com/ and click on '
+                        '"APIs and Auth".  Then click "Create New Client ID".'
+                        ' Set the "JavaScript Origins" value to your Gate One '
+                        'server\'s address and the "Redirect URIs" to https://'
+                        '<your Gate One server FQDN>/auth'))
+                    logging.info(_(
+                        'For example, if your "JavaScript Origins" is: '
+                        'https://gateone.example.com/'))
+                    logging.info(_(
+                        'Your "Redirect URIs" would be: '
+                        'https://gateone.example.com/auth'))
+                    sys.exit(1)
             elif settings['auth'] == 'cas':
                 AuthHandler = CASAuthHandler
             elif settings['auth'] == 'ssl':

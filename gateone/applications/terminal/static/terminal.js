@@ -1443,7 +1443,8 @@ go.Base.update(GateOne.Terminal, {
                 'termUpdateObj': termUpdateObj,
                 'prefs': go.prefs,
                 'textTransforms': textTransforms,
-                'checkBackspace': checkBackspace
+                'checkBackspace': checkBackspace,
+                'term': term
             };
             // This event allows plugins to take actions based on the incoming message and to transform it before it is sent to the Web Worker for processing:
             E.trigger("terminal:incoming_term_update", message);
@@ -3632,6 +3633,26 @@ go.Base.update(GateOne.Terminal, {
                 return shareObj['broadcast'];
             }
         }
+    },
+    lastLines: function(/*opt*/n, /*opt*/term) {
+        /**:GateOne.Terminal.lastLines([n[, term]])
+
+        Returns the last *n* non-blank (trimmed) line in the terminal.  Useful for pattern matching.
+
+        If *term* is not given the ``localStorage[prefix+'selectedTerminal']`` will be used.
+        */
+        term = term || localStorage[prefix+'selectedTerminal'];
+        var lastLine,
+            nonblankLines,
+            screen = go.Terminal.terminals[term].screen;
+        // Walk the screen to find the last non-blank line
+        for (var i=0; i <= screen.length-1; i++) {
+            if (screen[i].length && screen[i].trim().length) {
+                lastLine = i;
+            }
+        }
+        nonblankLines = screen.slice((lastLine - n)+1, lastLine+1)
+        return nonblankLines;
     }
 });
 

@@ -193,7 +193,7 @@ def example_opt_esc_handler(self, message, term=None, multiplex=None):
      "You just executed the Example plugin's optional escape sequence handler!"}
     self.write_message(message)
 
-def example_command_hook(self, command):
+def example_command_hook(self, command, term=None):
     """
     This demonstrates how to modify Gate One's configured 'command' before it is
     executed.  It will replace any occurrance of %EXAMPLE% with 'foo'.  So if

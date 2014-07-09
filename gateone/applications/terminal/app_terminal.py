@@ -926,7 +926,7 @@ class TerminalApplication(GOApplication):
                 if not os.path.exists(log_dir):
                     mkdir_p(log_dir)
                 log_suffix = "-{0}.golog".format(
-                    self.current_user['ip_address'])
+                    self.current_user.get('ip_address', "0.0.0.0"))
                 log_name = datetime.now().strftime(
                     '%Y%m%d%H%M%S%f') + log_suffix
                 log_path = os.path.join(log_dir, log_name)
@@ -934,14 +934,14 @@ class TerminalApplication(GOApplication):
         # This allows plugins to transform the command however they like
         if self.plugin_command_hooks:
             for func in self.plugin_command_hooks:
-                cmd = func(self, cmd)
+                cmd = func(self, cmd, term=term_id)
         additional_log_metadata = {
-            'ip_address': self.current_user.get('ip_address', "")
+            'ip_address': self.current_user.get('ip_address', "0.0.0.0")
         }
         # This allows plugins to add their own metadata to .golog files:
         if self.plugin_log_metadata_hooks:
             for func in self.plugin_log_metadata_hooks:
-                metadata = func(self)
+                metadata = func(self, term=term_id)
                 additional_log_metadata.update(metadata)
         terminal_emulator_kwargs = {}
         if enabled_filetypes != 'all':
