@@ -437,7 +437,7 @@
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">storeBookmarks</tt><big>(</big><em>bookmarks</em><span class="optional">[</span>, <em>recreatePanel</em><span class="optional">[</span>, <em>skipTags</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.storeBookmarks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes an array of <em>bookmarks</em> and stores them in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt>.</p>
 <p>If <em>recreatePanel</em> is true, the panel will be re-drawn after bookmarks are stored.</p>
-<p>If <em>skipTags</em> is true, bookmark tags will be ignored when saving the bookmark object.</p>
+<p>If <em>skipTags</em> is true, bookmark tags will be ignored when saving <em>bookmarks</em>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -652,7 +652,8 @@ to grabbing the favicon.</p>
 <dt id="bookmarks.FaviconHandler.get_favicon_url">
 <tt class="descname">get_favicon_url</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#FaviconHandler.get_favicon_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.get_favicon_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses <em>html</em> looking for a favicon URL.  Returns a tuple of:</p>
-<div class="highlight-python"><pre>(&lt;url&gt;, &lt;mimetype&gt;)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(&lt;url&gt;, &lt;mimetype&gt;)
+</pre></div>
 </div>
 <p>If no favicon can be found, returns:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -802,8 +803,8 @@ WebSocket action.  The rendered template will be saved in Gate One's
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -72,7 +72,7 @@
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3&quot;</span> <span class="c"># ...or proprietary (see LICENSE.txt)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
-<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20140226213756&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
+<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20140709170344&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
@@ -247,6 +247,47 @@
 
 <span class="s">    The following values in 10server.conf are case sensitive: `true`, `false`</span>
 <span class="s">    and `null` (and should not be placed in quotes).</span>
+
+<span class="s">Gate One&#39;s configuration files also provide access control mechanisms.  These</span>
+<span class="s">are controlled by setting the *scope* of the configuration block.  In this</span>
+<span class="s">example all users that match the given IP address will be denied access to</span>
+<span class="s">Gate One::</span>
+
+<span class="s">    {</span>
+<span class="s">        &quot;user.ip_address=(127.0.0.1|10.1.1.100)&quot;: { // Replaces &quot;*&quot;</span>
+<span class="s">            &quot;gateone&quot;: { // These settings apply to all of Gate One</span>
+<span class="s">                &quot;blacklist&quot;: true,</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">You can define scopes however you like using user&#39;s attributes.  For example::</span>
+
+<span class="s">    {</span>
+<span class="s">        &quot;user.email=.*@company.com&quot;: {</span>
+<span class="s">            &quot;terminal&quot;: {</span>
+<span class="s">                &quot;commands&quot;: {&quot;extra&quot;: &quot;/some/extra/command.sh&quot;}</span>
+<span class="s">            }</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">The above example would make it so that all users with an email address ending</span>
+<span class="s">in &#39;@company.com&#39; will get access to the &quot;extra&quot; command when using the</span>
+<span class="s">&quot;terminal&quot; application.</span>
+
+<span class="s">.. note::</span>
+
+<span class="s">    Different authentication types provide different user attributes.  For</span>
+<span class="s">    example, if you have &quot;auth&quot; set to &quot;google&quot; authenticated users will have a</span>
+<span class="s">    &#39;gender&#39; attribute.  So for example--if you wanted to be evil--you could</span>
+<span class="s">    provide different settings for men and women (e.g. &quot;user.gender=male&quot;).</span>
+
+<span class="s">.. tip::</span>
+
+<span class="s">    When using API authentication you can pass whatever extra user attributes</span>
+<span class="s">    you want via the &#39;auth&#39; object.  These attributes will be automatically</span>
+<span class="s">    assigned to the user and can be used with the policy mechanism to control</span>
+<span class="s">    access and settings.</span>
 
 <span class="s">Running gateone.py with the `--help` switch will print the usage information as</span>
 <span class="s">well as descriptions of what each configurable option does:</span>
@@ -440,8 +481,7 @@
 
 <span class="s">    --xorg_conf                      If provided, will use the specified</span>
 <span class="s">                                    xorg.conf file when spawning instances of</span>
-<span class="s">                                    Xorg.  Default: /etc/gateone/x11/xorg.conf.</span>
-<span class="s">                                    (default /etc/gateone/x11/xorg.conf)</span>
+<span class="s">                                    Xorg. (default /etc/gateone/x11/xorg.conf)</span>
 
 <span class="s">.. note::</span>
 
@@ -577,13 +617,13 @@
     <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">version</span> <span class="k">as</span> <span class="n">tornado_version</span>
     <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">version_info</span> <span class="k">as</span> <span class="n">tornado_version_info</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">):</span>
-    <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.1&#39;</span><span class="p">)</span>
+    <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.2&#39;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="s">&#39;tornado &gt;= 3.1&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MISSING_DEPS</span><span class="p">:</span>
+<span class="k">if</span> <span class="s">&#39;tornado &gt;= 3.2&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MISSING_DEPS</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.1&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.1&#39;</span><span class="p">)</span>
+        <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.2&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">MISSING_DEPS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tornado &gt;= 3.2&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">MISSING_DEPS</span><span class="p">:</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m: This host is missing dependencies:&quot;</span><span class="p">)</span>
@@ -601,7 +641,8 @@
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">SESSIONS</span><span class="p">,</span> <span class="n">PERSIST</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">NullAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthHandler</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">GoogleAuthHandler</span><span class="p">,</span> <span class="n">APIAuthHandler</span>
-<span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">SSLAuthHandler</span><span class="p">,</span> <span class="n">PAMAuthHandler</span>
+<span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">CASAuthHandler</span><span class="p">,</span> <span class="n">PAMAuthHandler</span>
+<span class="kn">from</span> <span class="nn">gateone.auth.authentication</span> <span class="kn">import</span> <span class="n">SSLAuthHandler</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">require</span><span class="p">,</span> <span class="n">authenticated</span><span class="p">,</span> <span class="n">policies</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">touch</span>
@@ -1729,7 +1770,7 @@
 <span class="sd">            allowed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">valid</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">if</span> <span class="s">&#39;origins&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cli_overrides&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s">&#39;origins&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cli_overrides&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">):</span>
             <span class="c"># If given on the command line, always use those origins</span>
             <span class="n">valid_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;origins&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1808,7 +1849,7 @@
         <span class="c"># to the user.  It isn&#39;t used much right now but it will be useful in</span>
         <span class="c"># the future once more stuff is running over WebSockets.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">generate_session_id</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
             <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
             <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
@@ -1816,6 +1857,18 @@
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
         <span class="c"># NOTE: self.current_user will call self.get_current_user() and set</span>
         <span class="c"># self._current_user the first time it is used.</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="n">applicable_policies</span><span class="p">(</span><span class="s">&quot;gateone&quot;</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
+        <span class="n">blacklisted</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;blacklist&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">blacklisted</span><span class="p">:</span>
+            <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&#39;{&quot;ip_address&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;} Access Denied (blacklisted).&#39;</span><span class="p">))</span>
+            <span class="n">blacklist_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your IP address (</span><span class="si">%s</span><span class="s">) has been blacklisted&quot;</span><span class="p">)</span>
+                <span class="o">%</span> <span class="n">client_address</span><span class="p">)</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:blacklisted&#39;</span><span class="p">:</span> <span class="n">blacklist_msg</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
+            <span class="k">return</span>
         <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="n">client_address</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
             <span class="c"># Update our loggers to include the user metadata</span>
@@ -1844,7 +1897,7 @@
             <span class="c"># expire/go bad, tell it to re-auth by calling the appropriate</span>
             <span class="c"># action on the other side.</span>
             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
         <span class="c"># NOTE: By getting the prefs with each call to open() we make</span>
         <span class="c">#       it possible to make changes inside the settings dir without</span>
@@ -1946,7 +1999,7 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;on_close()&quot;</span><span class="p">)</span>
         <span class="n">ApplicationWebSocket</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
-        <span class="n">client_address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">client_address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
         <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]][</span><span class="s">&#39;client_ids&#39;</span><span class="p">]:</span>
                 <span class="n">SESSIONS</span><span class="p">[</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]][</span><span class="s">&#39;client_ids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">)</span>
@@ -2258,6 +2311,27 @@
         <span class="c"># Make sure the client is authenticated if authentication is enabled</span>
         <span class="n">reauth</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span> <span class="c"># Just a shortcut to keep lines short</span>
+        <span class="c"># Apply the container/prefix settings (if present)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="c"># Update self.base_url if a url was given</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">orig_base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">port</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">port</span><span class="p">:</span>
+                <span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+                <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s">&#39;http&#39;</span><span class="p">:</span>
+                    <span class="n">port</span> <span class="o">=</span> <span class="mi">80</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">protocol</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
+                <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
+                <span class="n">url_prefix</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">orig_base_url</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Proxy in use: Client URL differs from server.&quot;</span><span class="p">))</span>
         <span class="n">auth_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auth&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auth_method</span> <span class="ow">and</span> <span class="n">auth_method</span> <span class="o">!=</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
             <span class="c"># Regular, non-API authentication</span>
@@ -2384,22 +2458,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.message&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
-        <span class="c"># Apply the container/prefix settings (if present)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
-        <span class="c"># Update self.base_url if a url was given</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
-            <span class="n">orig_base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
-            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">protocol</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span>
-                <span class="n">host</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
-                <span class="n">port</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
-                <span class="n">url_prefix</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">orig_base_url</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                    <span class="s">&quot;Proxy in use: Client URL differs from server.&quot;</span><span class="p">))</span>
         <span class="c"># NOTE: NOT using self.auth_log() here on purpose (this log message</span>
         <span class="c"># should stay consistent for easier auditing):</span>
         <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -3752,6 +3810,29 @@
                 <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">PAMAuthHandler</span>
             <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;google&#39;</span><span class="p">:</span>
                 <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">GoogleAuthHandler</span>
+                <span class="k">if</span> <span class="s">&#39;google_oauth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tornado_settings</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&#39;In order to use Google authentication you must create &#39;</span>
+                        <span class="s">&#39;a Google project for your installation and add:</span><span class="se">\n\t</span><span class="s">&#39;</span>
+                        <span class="s">&#39;{&quot;google_oauth&quot;: {&quot;key&quot;: &quot;&lt;YOUR CLIENT ID&gt;&quot;, &quot;secret&quot;:&#39;</span>
+                        <span class="s">&#39; &quot;&lt;YOUR CLIENT SECRET&gt;&quot;}} to your &#39;</span>
+                        <span class="s">&#39;20authentication.conf (under the &quot;gateone&quot; section).&#39;</span><span class="p">))</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&#39;To create a Google auth client ID and secret go to: &#39;</span>
+                        <span class="s">&#39;https://console.developers.google.com/ and click on &#39;</span>
+                        <span class="s">&#39;&quot;APIs and Auth&quot;.  Then click &quot;Create New Client ID&quot;.&#39;</span>
+                        <span class="s">&#39; Set the &quot;JavaScript Origins&quot; value to your Gate One &#39;</span>
+                        <span class="s">&#39;server</span><span class="se">\&#39;</span><span class="s">s address and the &quot;Redirect URIs&quot; to https://&#39;</span>
+                        <span class="s">&#39;&lt;your Gate One server FQDN&gt;/auth&#39;</span><span class="p">))</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&#39;For example, if your &quot;JavaScript Origins&quot; is: &#39;</span>
+                        <span class="s">&#39;https://gateone.example.com/&#39;</span><span class="p">))</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&#39;Your &quot;Redirect URIs&quot; would be: &#39;</span>
+                        <span class="s">&#39;https://gateone.example.com/auth&#39;</span><span class="p">))</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cas&#39;</span><span class="p">:</span>
+                <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">CASAuthHandler</span>
             <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ssl&#39;</span><span class="p">:</span>
                 <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">SSLAuthHandler</span>
             <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;api&#39;</span><span class="p">:</span>
@@ -3826,6 +3907,7 @@
                 <span class="n">handlers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">fixed_hooks</span><span class="p">)</span>
             <span class="k">if</span> <span class="s">&#39;WebSocket&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
                 <span class="c"># Apply the plugin&#39;s WebSocket commands</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;hooks[&#39;WebSocket&#39;]: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">hooks</span><span class="p">[</span><span class="s">&#39;WebSocket&#39;</span><span class="p">])</span>
                 <span class="n">PLUGIN_WS_CMDS</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s">&#39;WebSocket&#39;</span><span class="p">])</span>
             <span class="k">if</span> <span class="s">&#39;Escape&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
                 <span class="c"># Apply the plugin&#39;s Escape handler</span>
@@ -4252,7 +4334,13 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;keyfile&#39;</span><span class="p">]):</span>
             <span class="n">ssl_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;keyfile&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ssl_base</span><span class="p">):</span>
-                <span class="n">mkdir_p</span><span class="p">(</span><span class="n">ssl_base</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mkdir_p</span><span class="p">(</span><span class="n">ssl_base</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;Gate One could not create {ssl_base} ({e}). &quot;</span>
+                        <span class="s">&quot;Are you using the correct --settings_dir?&quot;</span><span class="p">))</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No SSL private key found.  One will be generated.&quot;</span><span class="p">))</span>
             <span class="n">gen_self_signed_ssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">ssl_base</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;certificate&#39;</span><span class="p">]):</span>
@@ -4294,7 +4382,6 @@
             <span class="k">continue</span> <span class="c"># These don&#39;t belong</span>
         <span class="k">if</span> <span class="n">option</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">go_settings</span><span class="p">:</span>
             <span class="n">go_settings</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
-    <span class="n">tornado</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">enable_pretty_logging</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
     <span class="n">https_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
         <span class="n">GateOneApp</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">go_settings</span><span class="p">,</span> <span class="n">web_handlers</span><span class="o">=</span><span class="n">web_handlers</span><span class="p">),</span>
         <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">)</span>
@@ -4452,8 +4539,8 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

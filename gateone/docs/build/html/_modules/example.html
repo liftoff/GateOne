@@ -255,7 +255,7 @@
      <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This demonstrates how to modify Gate One&#39;s configured &#39;command&#39; before it is</span>
 <span class="sd">    executed.  It will replace any occurrance of %EXAMPLE% with &#39;foo&#39;.  So if</span>
@@ -323,8 +323,8 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

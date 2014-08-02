@@ -485,7 +485,8 @@ proceed with the update.</p>
 <dd><p>Attached to the (server-side) <tt class="xref py py-obj docutils literal"><span class="pre">terminal:ssh_get_connect_string</span></tt> WebSocket
 action; writes the connection string associated with <em>term</em> to the WebSocket
 like so:</p>
-<div class="highlight-python"><pre>{'terminal:sshjs_reconnect': {*term*: &lt;connection string&gt;}}</pre>
+<div class="highlight-python"><div class="highlight"><pre>{&#39;terminal:sshjs_reconnect&#39;: {*term*: &lt;connection string&gt;}}
+</pre></div>
 </div>
 <p>In ssh.js we attach a WebSocket action to 'terminal:sshjs_reconnect'
 that assigns the connection string sent by this function to
@@ -638,7 +639,8 @@ SSH connections by writing them to <tt class="xref py py-obj docutils literal"><
 use it to tell ssh.js what the SSH connection string is so it can use that
 information to duplicate sessions (if the user so desires).  For reference,
 the specific string which will call this function from a terminal app is:</p>
-<div class="highlight-python"><pre>\x1b]_;ssh|&lt;whatever&gt;\x07</pre>
+<div class="highlight-python"><div class="highlight"><pre>\x1b]_;ssh|&lt;whatever&gt;\x07
+</pre></div>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -748,8 +750,8 @@ the ssh_connect.py script is executable.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

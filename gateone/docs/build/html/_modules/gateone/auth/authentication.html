@@ -135,7 +135,11 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Import stdlib stuff</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">quote</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c"># Python 3</span>
+    <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
@@ -148,6 +152,8 @@
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.auth</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
+<span class="kn">import</span> <span class="nn">tornado.httpclient</span>
+<span class="kn">import</span> <span class="nn">tornado.gen</span>
 
 <span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
@@ -339,22 +345,37 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;APIAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
 </div></div>
-<div class="viewcode-block" id="GoogleAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">GoogleAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">GoogleMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="GoogleAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">GoogleAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">GoogleOAuth2Mixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Google authentication handler using Tornado&#39;s built-in GoogleMixin (fairly</span>
-<span class="sd">    boilerplate).</span>
+<span class="sd">    Google authentication handler using Tornado&#39;s built-in GoogleOAuth2Mixin</span>
+<span class="sd">    (fairly boilerplate).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@tornado.web.asynchronous</span>
+    <span class="nd">@tornado.gen.coroutine</span>
 <div class="viewcode-block" id="GoogleAuthHandler.get"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session* and any</span>
 <span class="sd">        other values that might be attached to the user object given to us by</span>
 <span class="sd">        Google.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+            <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s">&#39;https://&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;:443/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+                <span class="c"># Get rid of the 443 (it&#39;s assumed since https)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:443&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;http://&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;:80/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+                <span class="c"># Get rid of the 443 (it&#39;s assumed since https)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:80&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">redirect_uri</span> <span class="o">=</span> <span class="s">&quot;{base_url}auth&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
         <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;GoogleAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
@@ -371,26 +392,50 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">logout_url</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;openid.mode&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">(</span>
-            <span class="n">ax_attrs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;email&quot;</span><span class="p">,</span> <span class="s">&quot;language&quot;</span><span class="p">,</span> <span class="s">&quot;username&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;code&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span>
+                <span class="n">redirect_uri</span><span class="o">=</span><span class="n">redirect_uri</span><span class="p">,</span>
+                <span class="n">code</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;code&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_cookies</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&#39;Google auth failed&#39;</span><span class="p">)</span>
+            <span class="n">access_token</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;access_token&#39;</span><span class="p">])</span>
+            <span class="n">http_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_auth_http_client</span><span class="p">()</span>
+            <span class="n">response</span> <span class="o">=</span>  <span class="k">yield</span> <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span>
+                <span class="s">&#39;https://www.googleapis.com/oauth2/v1/userinfo?access_token=&#39;</span>
+                <span class="o">+</span><span class="n">access_token</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_cookies</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&#39;Google auth failed&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">authorize_redirect</span><span class="p">(</span>
+                <span class="n">redirect_uri</span><span class="o">=</span><span class="n">redirect_uri</span><span class="p">,</span>
+                <span class="n">client_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;google_oauth&#39;</span><span class="p">][</span><span class="s">&#39;key&#39;</span><span class="p">],</span>
+                <span class="n">scope</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">],</span>
+                <span class="n">response_type</span><span class="o">=</span><span class="s">&#39;code&#39;</span><span class="p">,</span>
+                <span class="n">extra_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;approval_prompt&#39;</span><span class="p">:</span> <span class="s">&#39;auto&#39;</span><span class="p">})</span>
 </div>
 <div class="viewcode-block" id="GoogleAuthHandler._on_auth"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Just a continuation of the get() method (the final step where it</span>
 <span class="sd">        actually sets the cookie).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;GoogleAuthHandler.on_auth(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Google auth failed&quot;</span><span class="p">))</span>
         <span class="c"># NOTE: Google auth &#39;user&#39; will be a dict like so:</span>
-        <span class="c"># user = {</span>
-        <span class="c">#     &#39;locale&#39;: u&#39;en-us&#39;,</span>
-        <span class="c">#     &#39;first_name&#39;: u&#39;Dan&#39;,</span>
-        <span class="c">#     &#39;last_name&#39;: u&#39;McDougall&#39;,</span>
-        <span class="c">#     &#39;name&#39;: u&#39;Dan McDougall&#39;,</span>
-        <span class="c">#     &#39;email&#39;: u&#39;daniel.mcdougall@liftoffsoftware.com&#39;}</span>
+        <span class="c"># user = {&#39;given_name&#39;: &#39;Joe&#39;,</span>
+        <span class="c">#    &#39;verified_email&#39;: True,</span>
+        <span class="c">#    &#39;hd&#39;: &#39;example.com&#39;,</span>
+        <span class="c">#    &#39;gender&#39;: &#39;male&#39;,</span>
+        <span class="c">#    &#39;email&#39;: &#39;joe.schmoe@example.com&#39;,</span>
+        <span class="c">#    &#39;name&#39;: &#39;Joe Schmoe&#39;,</span>
+        <span class="c">#    &#39;picture&#39;: &#39;https://lh6.googleusercontent.com/path/to/some.jpg&#39;,</span>
+        <span class="c">#    &#39;id&#39;: &#39;999999999999999999999&#39;,</span>
+        <span class="c">#    &#39;family_name&#39;: &#39;Schmoe&#39;,</span>
+        <span class="c">#    &#39;link&#39;: &#39;https://plus.google.com/999999999999999999999&#39;}</span>
         <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="c"># Use the email for the upn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -590,6 +635,133 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span></div>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">pass</span> <span class="c"># No PAM auth available.</span>
+
+<div class="viewcode-block" id="CASAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">CASAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CAS authentication handler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cas_user_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;&lt;cas:user&gt;(.*)&lt;/cas:user&gt;&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="CASAuthHandler.initialize"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print out helpful error messages if the requisite settings aren&#39;t</span>
+<span class="sd">        configured.</span>
+
+<span class="sd">        NOTE: It won&#39;t hurt anything to override this method in your</span>
+<span class="sd">        RequestHandler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;cas_server&quot;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;CAS Server URL&quot;</span><span class="p">))</span>
+        <span class="c"># The cas_version is optional</span>
+</div>
+    <span class="nd">@tornado.web.asynchronous</span>
+<div class="viewcode-block" id="CASAuthHandler.get"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session* and any</span>
+<span class="sd">        other values that might be attached to the user object given to us by</span>
+<span class="sd">        Google.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+            <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;CASAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;CASAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">logout_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/logout&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">logout_url</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">server_ticket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;ticket&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">server_ticket</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="n">server_ticket</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CASAuthHandler.authenticate_redirect"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.authenticate_redirect">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate_redirect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Redirects to the authentication URL for this CAS service.</span>
+
+<span class="sd">        After authentication, the service will redirect back to the given</span>
+<span class="sd">        callback URI with additional parameters.</span>
+
+<span class="sd">        We request the given attributes for the authenticated user by</span>
+<span class="sd">        default (name, email, language, and username). If you don&#39;t need</span>
+<span class="sd">        all those attributes for your app, you can request fewer with</span>
+<span class="sd">        the ax_attrs keyword argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span>
+        <span class="n">service_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+        <span class="n">redirect_url</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">login?service=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cas_server</span><span class="p">,</span> <span class="n">quote</span><span class="p">(</span><span class="n">service_url</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Redirecting to CAS URL: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">redirect_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">redirect_url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CASAuthHandler.get_authenticated_user"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get_authenticated_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_ticket</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Requests the user&#39;s information from the CAS server using the given</span>
+<span class="sd">        *server_ticket* and calls ``self._on_auth`` with the resulting user</span>
+<span class="sd">        dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cas_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="n">ca_certs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_ca_certs&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span>
+        <span class="n">service_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+        <span class="c">#validate the ST</span>
+        <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s">&#39;proxyValidate&#39;</span>
+        <span class="k">if</span> <span class="n">cas_version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s">&#39;validate&#39;</span>
+        <span class="n">validate_url</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">cas_server</span> <span class="o">+</span>
+            <span class="n">validate_suffix</span> <span class="o">+</span>
+            <span class="s">&#39;?service=&#39;</span> <span class="o">+</span>
+            <span class="n">quote</span><span class="p">(</span><span class="n">service_url</span><span class="p">)</span> <span class="o">+</span>
+            <span class="s">&#39;&amp;ticket=&#39;</span> <span class="o">+</span>
+            <span class="n">quote</span><span class="p">(</span><span class="n">server_ticket</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Fetching CAS URL: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">validate_url</span><span class="p">)</span>
+        <span class="n">validate_cert</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">ca_certs</span><span class="p">:</span>
+            <span class="n">validate_cert</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">http_client</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpclient</span><span class="o">.</span><span class="n">AsyncHTTPClient</span><span class="p">()</span>
+        <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span>
+            <span class="n">validate_url</span><span class="p">,</span> <span class="n">validate_cert</span><span class="o">=</span><span class="n">validate_cert</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CASAuthHandler._on_auth"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Just a continuation of the get() method (the final step where it</span>
+<span class="sd">        actually sets the cookie).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">userid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cas_user_regex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">userid</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">userid</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;CAS authentication failed&quot;</span><span class="p">))</span>
+        <span class="c"># NOTE: Do we ever get anything more than the userid from a CAS server?</span>
+        <span class="c"># Needs more research and probably proper XML parsing...</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">userid</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span></div></div>
 </pre></div>
 
           </div>
@@ -632,8 +804,8 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

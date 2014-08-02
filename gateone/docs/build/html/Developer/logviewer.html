@@ -117,7 +117,8 @@ Each frame consists of JavaScript-style timestamp (because it is compact)
 followed by a colon and then the text characters of the frame.  A frame ends
 when a U+F0F0F0 character is encountered.</p>
 <p>Here are two example .golog frames demonstrating the format:</p>
-<div class="highlight-python"><pre>1317344834868:\x1b[H\x1b[2JHost/IP or SSH URL [localhost]: &lt;U+F0F0F&gt;1317344836086:\r\nPort [22]: &lt;U+F0F0F&gt;</pre>
+<div class="highlight-python"><div class="highlight"><pre>1317344834868:\x1b[H\x1b[2JHost/IP or SSH URL [localhost]: &lt;U+F0F0F&gt;1317344836086:\r\nPort [22]: &lt;U+F0F0F&gt;
+</pre></div>
 </div>
 <p>Gate One logs can be opened, decoded, and parsed in Python fairly easily:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gzip</span>
@@ -197,8 +198,9 @@ Besides that, it looks really nice =)</p>
 visible in the output.  Trailing whitespace and escape sequences will not be
 removed.</p>
 <p>..note:</p>
-<div class="highlight-python"><pre>Converts our standard recording-based log format into something that
-can be used with grep and similar search/filter tools.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Converts our standard recording-based log format into something that
+can be used with grep and similar search/filter tools.
+</pre></div>
 </div>
 </dd></dl>
 
@@ -332,8 +334,8 @@ the HTML template.</td>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

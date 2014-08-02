@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140609214034" # Gets replaced by git (holds the date/time)
+__commit__ = "20140709170344" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -185,6 +185,47 @@ as `--debug` is equivalent to ``"debug" = true`` in 10server.conf:
 
     The following values in 10server.conf are case sensitive: `true`, `false`
     and `null` (and should not be placed in quotes).
+
+Gate One's configuration files also provide access control mechanisms.  These
+are controlled by setting the *scope* of the configuration block.  In this
+example all users that match the given IP address will be denied access to
+Gate One::
+
+    {
+        "user.ip_address=(127.0.0.1|10.1.1.100)": { // Replaces "*"
+            "gateone": { // These settings apply to all of Gate One
+                "blacklist": true,
+            }
+        }
+    }
+
+You can define scopes however you like using user's attributes.  For example::
+
+    {
+        "user.email=.*@company.com": {
+            "terminal": {
+                "commands": {"extra": "/some/extra/command.sh"}
+            }
+        }
+    }
+
+The above example would make it so that all users with an email address ending
+in '@company.com' will get access to the "extra" command when using the
+"terminal" application.
+
+.. note::
+
+    Different authentication types provide different user attributes.  For
+    example, if you have "auth" set to "google" authenticated users will have a
+    'gender' attribute.  So for example--if you wanted to be evil--you could
+    provide different settings for men and women (e.g. "user.gender=male").
+
+.. tip::
+
+    When using API authentication you can pass whatever extra user attributes
+    you want via the 'auth' object.  These attributes will be automatically
+    assigned to the user and can be used with the policy mechanism to control
+    access and settings.
 
 Running gateone.py with the `--help` switch will print the usage information as
 well as descriptions of what each configurable option does:
@@ -907,6 +948,22 @@ def timeout_sessions():
         import traceback
         traceback.print_exc(file=sys.stdout)
 
+def broadcast_message(args=sys.argv, message=""):
+    """
+    Broadcasts a given *message* to all users in Gate One.  If no message is
+    given `sys.argv` will be parsed and everything after the word 'broadcast'
+    will be broadcast.
+    """
+    prefs = get_settings(options.settings_dir)
+    broadcast_file = os.path.join(options.session_dir, 'broadcast')
+    broadcast_file = prefs['*']['gateone'].get(
+        'broadcast_file', broadcast_file) # If set
+    with io.open(broadcast_file, 'w') as b:
+        if not message:
+            for message in args:
+                logging.info(_("Broadcasting %s to all users") % repr(message))
+                b.write(message)
+
 # Classes
 class StaticHandler(tornado.web.StaticFileHandler):
     """
@@ -1514,7 +1571,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         with io.open(broadcast_file) as f:
             message = f.read()
         if message:
-            message = message.rstrip()
+            message = _("(Broadcast) %s") % message.rstrip()
             metadata = {'clients': []}
             for instance in cls.instances:
                 try: # Only send to users that have authenticated
@@ -1526,9 +1583,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     'ip_address': user['ip_address']
                 }
                 metadata['clients'].append(user_info)
-            msg_log.info(
-                "Broadcast (via broadcast_file): %s" % message,
-                metadata=metadata)
+            msg_log.info("Broadcast %s" % message, metadata=metadata)
             message_dict = {'go:user_message': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
             io.open(broadcast_file, 'w').write(u'') # Empty it out
@@ -1754,6 +1809,18 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         user = self.current_user
         # NOTE: self.current_user will call self.get_current_user() and set
         # self._current_user the first time it is used.
+        policy = applicable_policies("gateone", user, self.prefs)
+        blacklisted = policy.get('blacklist', False)
+        if blacklisted:
+            auth_log.info(_(
+                '{"ip_address": "%s"} Access Denied (blacklisted).'))
+            blacklist_msg = (
+                _("Your IP address (%s) has been blacklisted")
+                % client_address)
+            message = {'go:blacklisted': blacklist_msg}
+            self.write_message(message)
+            self.close() # Close the WebSocket
+            return
         metadata = {'ip_address': client_address}
         if user and 'upn' in user:
             # Update our loggers to include the user metadata
@@ -1782,7 +1849,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # expire/go bad, tell it to re-auth by calling the appropriate
             # action on the other side.
             message = {'go:reauthenticate': True}
-            self.write_message(json_encode(message))
+            self.write_message(message)
             self.close() # Close the WebSocket
         # NOTE: By getting the prefs with each call to open() we make
         #       it possible to make changes inside the settings dir without
@@ -2196,6 +2263,27 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Make sure the client is authenticated if authentication is enabled
         reauth = {'go:reauthenticate': True}
         user = self.current_user # Just a shortcut to keep lines short
+        # Apply the container/prefix settings (if present)
+        self.container = settings.get('container', self.container)
+        self.prefix = settings.get('prefix', self.prefix)
+        # Update self.base_url if a url was given
+        url = settings.get('url', None)
+        if url:
+            orig_base_url = self.base_url
+            parsed = urlparse(url)
+            port = parsed.port
+            if not port:
+                port = 443
+                if parsed.scheme == 'http':
+                    port = 80
+            self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
+                protocol=parsed.scheme,
+                host=parsed.hostname,
+                port=port,
+                url_prefix=parsed.path)
+            if orig_base_url != self.base_url:
+                self.logger.info(_(
+                    "Proxy in use: Client URL differs from server."))
         auth_method = self.settings.get('auth', None)
         if auth_method and auth_method != 'api':
             # Regular, non-API authentication
@@ -2322,27 +2410,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.auth_log = go_logger('gateone.auth', **metadata)
         self.msg_log = go_logger('gateone.message', **metadata)
         self.client_log = go_logger('gateone.client', **metadata)
-        # Apply the container/prefix settings (if present)
-        self.container = settings.get('container', self.container)
-        self.prefix = settings.get('prefix', self.prefix)
-        # Update self.base_url if a url was given
-        url = settings.get('url', None)
-        if url:
-            orig_base_url = self.base_url
-            parsed = urlparse(url)
-            port = parsed.port
-            if not port:
-                port = 443
-                if parsed.scheme == 'http':
-                    port = 80
-            self.base_url = "{protocol}://{host}:{port}{url_prefix}".format(
-                protocol=parsed.scheme,
-                host=parsed.hostname,
-                port=port,
-                url_prefix=parsed.path)
-            if orig_base_url != self.base_url:
-                self.logger.info(_(
-                    "Proxy in use: Client URL differs from server."))
         # NOTE: NOT using self.auth_log() here on purpose (this log message
         # should stay consistent for easier auditing):
         auth_log.info(
@@ -3895,6 +3962,7 @@ def main(installed=True):
     enabled_plugins = []
     enabled_applications = []
     cli_commands = {} # Holds CLI commands provided by plugins/applications
+    cli_commands['broadcast'] = broadcast_message
     go_settings = {}
     if 'gateone' in all_settings['*']:
         # The check above will fail in first-run situations

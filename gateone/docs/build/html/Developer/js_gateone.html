@@ -156,11 +156,11 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Name :</th><td class="field-body">Name of the wrapped function.  It will be used to call any <tt class="xref py py-obj docutils literal"><span class="pre">init()</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">postInit()</span></tt> functions.  If you just want dependencies checked you can just pass a unique string.</td>
+<tr class="field-odd field"><th class="field-name">Name:</th><td class="field-body">Name of the wrapped function.  It will be used to call any <tt class="xref py py-obj docutils literal"><span class="pre">init()</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">postInit()</span></tt> functions.  If you just want dependencies checked you can just pass any unique string.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Dependencies :</th><td class="field-body">An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.</td>
+<tr class="field-even field"><th class="field-name">Dependencies:</th><td class="field-body">An array of strings containing the JavaScript objects that must be present in the global namespace before we load the contained JavaScript.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Func :</th><td class="field-body">A function containing the JavaScript code to execute as soon as the dependencies are available.</td>
+<tr class="field-odd field"><th class="field-name">Func:</th><td class="field-body">A function containing the JavaScript code to execute as soon as the dependencies are available.</td>
 </tr>
 </tbody>
 </table>
@@ -1437,7 +1437,7 @@
 <dt id="GateOne.Net.sendChars">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">sendChars</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.sendChars" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendChars()</span></tt> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendChars()</span></tt> instead.</p>
 </div>
 </dd></dl>
 
@@ -1445,7 +1445,7 @@
 <dt id="GateOne.Net.sendString">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">sendString</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.sendString" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.sendString" title="GateOne.Terminal.sendString"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendString()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.sendString" title="GateOne.Terminal.sendString"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendString()</span></tt></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1516,8 +1516,14 @@
 <dt id="GateOne.Net.sendDimensions">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">sendDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.sendDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt></a> instead.</p>
 </div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Net.blacklisted">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">blacklisted</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#GateOne.Net.blacklisted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the server tells us the client has been blacklisted (i.e for abuse).  Sets <tt class="docutils literal"><span class="pre">GateOne.Net.connect</span> <span class="pre">=</span> <span class="pre">GateOne.Utils.noop;</span></tt> so a new connection won't be attempted after being disconnected.  It also displays a message to the user from the server.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1620,7 +1626,7 @@
 <dt id="GateOne.Net.setTerminal">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">setTerminal</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.setTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.setTerminal" title="GateOne.Terminal.setTerminal"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTerminal()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.setTerminal" title="GateOne.Terminal.setTerminal"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTerminal()</span></tt></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1628,7 +1634,7 @@
 <dt id="GateOne.Net.killTerminal">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">killTerminal</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.killTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.killTerminal" title="GateOne.Terminal.killTerminal"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.killTerminal()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.killTerminal" title="GateOne.Terminal.killTerminal"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.killTerminal()</span></tt></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1636,7 +1642,7 @@
 <dt id="GateOne.Net.refresh">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">refresh</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.refresh" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.refresh" title="GateOne.Terminal.refresh"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.refresh()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.refresh" title="GateOne.Terminal.refresh"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.refresh()</span></tt></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1644,7 +1650,7 @@
 <dt id="GateOne.Net.fullRefresh">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">fullRefresh</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.fullRefresh" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span>Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.fullRefresh" title="GateOne.Terminal.fullRefresh"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.fullRefresh()</span></tt></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version 1.2: </span>Use <a class="reference internal" href="../Applications/terminal/js_terminal.html#GateOne.Terminal.fullRefresh" title="GateOne.Terminal.fullRefresh"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.fullRefresh()</span></tt></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1725,12 +1731,6 @@
 <dt id="GateOne.Visual.goDimensions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">goDimensions</tt><a class="headerlink" href="#GateOne.Visual.goDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stores the dimensions of the <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> element in the form of <tt class="docutils literal"><span class="pre">{w:</span> <span class="pre">'800',</span> <span class="pre">h:</span> <span class="pre">'600'}</span></tt> where 'w' and 'h' represent the width and height in pixels.  It is used by several functions in order to calculate how far to slide terminals, how many rows and columns will fit, etc.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="GateOne.Visual.init">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the 'grid' icon to the toolbar for users to click on to bring up/down the grid view.</p>
 <p>Registers the following WebSocket actions:</p>
 <blockquote>
 <div><table border="1" class="docutils">
@@ -1753,6 +1753,12 @@
 </tbody>
 </table>
 </div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Visual.init">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the 'grid' icon to the toolbar for users to click on to bring up/down the grid view.</p>
 <p>Registers the following Gate One events:</p>
 <blockquote>
 <div><table border="1" class="docutils">
@@ -1979,7 +1985,12 @@
 <dl class="staticmethod">
 <dt id="GateOne.Visual.getTransform">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">getTransform</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.getTransform" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><dl class="docutils">
+<dt>// These two are here just in case the server needs to send us a message before everything has completed loading:</dt>
+<dd>'<a class="reference external" href="go:notice">go:notice</a>': go.Visual.serverMessageAction,
+'<a class="reference external" href="go:user_message">go:user_message</a>': go.Visual.userMessageAction</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -2382,7 +2393,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dl class="staticmethod">
 <dt id="GateOne.Storage.init">
 <tt class="descclassname">GateOne.Storage.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Storage.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Registers the <tt class="xref py py-obj docutils literal"><span class="pre">go:file_sync</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">go:cache_expired</span></tt> WebSocket actions and opens our 'fileCache' DB.</p>
+<dd><p>Doesn't do anything (most init stuff for this module needs to happen before everything else loads).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2685,11 +2696,11 @@ Why is this mechanism the opposite of everything else where you call the functio
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">App :</th><td class="field-body">The name of the application to open.</td>
+<tr class="field-odd field"><th class="field-name">App:</th><td class="field-body">The name of the application to open.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Settings :</th><td class="field-body">Optional settings which will be passed to the application's <tt class="docutils literal"><span class="pre">__new__()</span></tt> method.</td>
+<tr class="field-even field"><th class="field-name">Settings:</th><td class="field-body">Optional settings which will be passed to the application's <tt class="docutils literal"><span class="pre">__new__()</span></tt> method.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Where :</th><td class="field-body">A querySelector-like string or DOM node where you wish to place the application.</td>
+<tr class="field-odd field"><th class="field-name">Where:</th><td class="field-body">A querySelector-like string or DOM node where you wish to place the application.</td>
 </tr>
 </tbody>
 </table>
@@ -2767,8 +2778,8 @@ Why is this mechanism the opposite of everything else where you call the functio
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

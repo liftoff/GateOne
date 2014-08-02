@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140609214034";
+GateOne.__commit__ = "20140709170344";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2487,6 +2487,15 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.Logging.deprecated("GateOne.Net.sendDimensions", "Use GateOne.Terminal.sendDimensions() instead.");
         GateOne.Terminal.sendDimensions(term, ctrl_l);
     },
+    blacklisted: function(msg) {
+        /**:GateOne.Net.blacklisted(msg)
+
+        Called when the server tells us the client has been blacklisted (i.e for abuse).  Sets ``GateOne.Net.connect = GateOne.Utils.noop;`` so a new connection won't be attempted after being disconnected.  It also displays a message to the user from the server.
+        */
+        GateOne.Net.connect = GateOne.Utils.noop;
+        GateOne.Net.connectionError = GateOne.Utils.noop;
+        GateOne.node.innerHTML = msg;
+    },
     connectionError: function(msg) {
         /**:GateOne.Net.connectionError(msg)
 
@@ -2638,7 +2647,7 @@ GateOne.Base.update(GateOne.Net, {
                 'container': go.prefs.goDiv.split('#')[1],
                 'prefix': prefix,
                 'location': go.location,
-                'url': document.URL
+                'url': go.prefs.url
             };
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
@@ -2879,6 +2888,7 @@ go.Net.actions = {
     'go:ping': go.Net.ping,
     'go:pong': go.Net.pong,
     'go:timeout': go.Net.timeoutAction,
+    'go:blacklisted': go.Net.blacklisted,
     'go:locations': go.Net.locationsAction,
     'go:reauthenticate': go.Net.reauthenticate,
  // This is here because it needs to happen before most calls to init():
@@ -4248,7 +4258,12 @@ GateOne.Base.update(GateOne.Visual, {
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             existingDT = u.getNode('.✈wsdroptarget'), // Only need to know if one is present; the rest are assumed
             dropTarget = u.createElement('div', {'class': '✈wsdroptarget', 'style': {'position': 'absolute', 'top': 0, 'bottom': 0, 'left': 0, 'width': '100%', 'height': '100%', 'z-index': 200, 'background-color': 'transparent'}}),
-            thumb = v.nodeThumb(self, 0.25);
+            thumb = v.nodeThumb(self, 0.25),
+            computedStyle = getComputedStyle(thumb, null),
+            thumbHeight = parseInt(computedStyle['height'].split('px')[0]),
+            thumbWidth = parseInt(computedStyle['width'].split('px')[0]),
+            newThumbHeight = thumbHeight * 0.25,
+            newThumbWidth = thumbWidth * 0.25;
         if (!existingDT) {
             workspaces.forEach(function(wsNode) {
                 if (wsNode.id != e.target.getAttribute('id')) {
@@ -4263,7 +4278,9 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // NOTE: The thumbnail needs to be visible on the page when we call setDragImage().
         //       Once setDragImage() is called we send it off-screen so it doesn't get in the way of the drop target.
-        v.applyStyle(thumb, {'position': 'absolute', 'top': 0, 'left': 0});
+        v.applyStyle(thumb, {'position': 'absolute', 'top': 0, 'left': 0, 'background': 'black'});
+        // NOTE: This has been commented out because it doesn't appear to work (the drag image is still huge).
+//         v.applyStyle(thumb, {'position': 'absolute', 'top': 0, 'left': 0, 'background': 'transparent', 'width': newThumbWidth + 'px', 'height': newThumbHeight + 'px'});
         v.applyTransform(thumb, 'translate(-40%, -40%) scale(0.25)');
         setTimeout(function() {
             v.applyTransform(thumb, 'translate(1000%, 1000%) scale(0.25)');
@@ -4364,8 +4381,13 @@ GateOne.Base.update(GateOne.Visual, {
     },
     _selectWorkspace: function(e) {
         // Internal function for toggleGridView() so we can remove it after calling addEventListener()
-        var v = go.Visual,
+        var u = go.Utils,
+            v = go.Visual,
+            wsInfoDiv = u.getNode('.✈wsinfo'),
+            infoContainer = u.getNode('.✈infocontainer'),
             workspaceNum = this.getAttribute('data-workspace');
+        infoContainer.removeEventListener('mouseup', v._selectWorkspace, false);
+        wsInfoDiv.removeEventListener('mouseup', v._selectWorkspace, false);
         localStorage[go.prefs.prefix+'selectedWorkspace'] = workspaceNum;
         v.gridView = true;
         v.toggleGridView(false);
@@ -4390,7 +4412,7 @@ GateOne.Base.update(GateOne.Visual, {
             v.gridView = false;
             // Remove the events we added for the grid:
             workspaces.forEach(function(wsNode) {
-                wsNode.removeEventListener('click', v._selectWorkspace, false);
+                wsNode.removeEventListener('mouseup', v._selectWorkspace, false);
                 wsNode.onmouseover = undefined;
                 wsNode.classList.remove('✈wsshadow');
                 wsNode.removeAttribute('draggable');
@@ -4468,7 +4490,7 @@ GateOne.Base.update(GateOne.Visual, {
                         odd = true;
                     }
                     count += 1;
-                    wsNode.addEventListener('click', v._selectWorkspace, false);
+                    wsNode.addEventListener('mouseup', v._selectWorkspace, false);
                     wsNode.onmouseover = function(e) {
                         var displayText = wsNode.getAttribute('data-title'),
                             wsInfoDiv = u.createElement('div', {'class': '✈wsinfo'}),
@@ -4483,8 +4505,8 @@ GateOne.Base.update(GateOne.Visual, {
                         wsInfoDiv.setAttribute('data-workspace', wsNode.getAttribute('data-workspace'));
                         infoContainer.setAttribute('data-workspace', wsNode.getAttribute('data-workspace'));
                         infoContainer.appendChild(wsInfoDiv);
-                        infoContainer.addEventListener('mousedown', v._selectWorkspace, false);
-                        wsInfoDiv.addEventListener('mousedown', v._selectWorkspace, false);
+                        infoContainer.addEventListener('mouseup', v._selectWorkspace, false);
+                        wsInfoDiv.addEventListener('mouseup', v._selectWorkspace, false);
                         v.applyTransform(wsInfoDiv, 'scale(2)');
                         wsNode.appendChild(infoContainer);
                         if (v.infoContainerTimeout) {

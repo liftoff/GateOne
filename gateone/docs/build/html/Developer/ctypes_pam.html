@@ -96,11 +96,13 @@ given service.  Returns False otherwise.</p>
 </table>
 <p>If additional keyword arguments are provided they will be passed to
 PAM_SET_ITEM() like so:</p>
-<div class="highlight-python"><pre>PAM_SET_ITEM(handle, &lt;keyword mapped to PAM_whatever&gt;, &lt;value&gt;)</pre>
+<div class="highlight-python"><div class="highlight"><pre>PAM_SET_ITEM(handle, &lt;keyword mapped to PAM_whatever&gt;, &lt;value&gt;)
+</pre></div>
 </div>
 <p>Where the keyword will be automatically converted to a PAM_whatever constant
 if present in this file.  Example:</p>
-<div class="highlight-python"><pre>authenticate(user, pass, PAM_RHOST="myhost")</pre>
+<div class="highlight-python"><div class="highlight"><pre>authenticate(user, pass, PAM_RHOST=&quot;myhost&quot;)
+</pre></div>
 </div>
 <p>...would result in:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">PAM_SET_ITEM</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;myhost&quot;</span><span class="p">)</span> <span class="c"># PAM_RHOST (4) taken from the global</span>
@@ -177,8 +179,8 @@ if present in this file.  Example:</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

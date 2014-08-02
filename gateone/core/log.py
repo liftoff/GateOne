@@ -144,12 +144,16 @@ def go_logger(name, **kwargs):
         # Logging is disabled but we still have to return the adapter so that
         # passing metadata to the logger won't throw exceptions
         return JSONAdapter(logger, kwargs)
+    preserve = None # Save the stdout handler (because it looks nice =)
     if name == None:
-        # root logger; leave it alone
-        LOGS.add(options.log_file_prefix)
-        return logger
+        # root logger; make sure we save the pretty-printing stdout handler...
+        for handler in logger.handlers:
+            if not isinstance(handler, logging.handlers.RotatingFileHandler):
+                preserve = handler
     # Remove any existing handlers on the logger
     logger.handlers = []
+    if preserve: # Add back the one we preserved (if any)
+        logger.handlers.append(preserve)
     logger.setLevel(getattr(logging, options.logging.upper()))
     if options.log_file_prefix:
         if name:

@@ -225,8 +225,8 @@ backwards compatibility.</p>
 <dl class="class">
 <dt id="gateone.auth.authentication.GoogleAuthHandler">
 <em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">GoogleAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#GoogleAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.GoogleAuthHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Google authentication handler using Tornado's built-in GoogleMixin (fairly
-boilerplate).</p>
+<dd><p>Google authentication handler using Tornado's built-in GoogleOAuth2Mixin
+(fairly boilerplate).</p>
 <dl class="method">
 <dt id="gateone.auth.authentication.GoogleAuthHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#GoogleAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.GoogleAuthHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -298,6 +298,56 @@ the browser will be redirected to login.</p>
 <dd><p>Checks the user's request header for the proper Authorization data.
 If it checks out the user will be logged in via _on_auth().  If not,
 the browser will be redirected to login.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.CASAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">CASAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>CAS authentication handler.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out helpful error messages if the requisite settings aren't
+configured.</p>
+<p>NOTE: It won't hurt anything to override this method in your
+RequestHandler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user object given to us by
+Google.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.authenticate_redirect">
+<tt class="descname">authenticate_redirect</tt><big>(</big><em>callback=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redirects to the authentication URL for this CAS service.</p>
+<p>After authentication, the service will redirect back to the given
+callback URI with additional parameters.</p>
+<p>We request the given attributes for the authenticated user by
+default (name, email, language, and username). If you don't need
+all those attributes for your app, you can request fewer with
+the ax_attrs keyword argument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.get_authenticated_user">
+<tt class="descname">get_authenticated_user</tt><big>(</big><em>server_ticket</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests the user's information from the CAS server using the given
+<em>server_ticket</em> and calls <tt class="docutils literal"><span class="pre">self._on_auth</span></tt> with the resulting user
+dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler._on_auth">
+<tt class="descname">_on_auth</tt><big>(</big><em>response</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler._on_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler._on_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just a continuation of the get() method (the final step where it
+actually sets the cookie).</p>
 </dd></dl>
 
 </dd></dl>
@@ -378,8 +428,8 @@ the browser will be redirected to login.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

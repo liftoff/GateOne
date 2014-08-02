@@ -589,7 +589,7 @@ def parse_commands(commands):
     out = OrderedDict()
     command = OrderedDict()
     for item in commands:
-        if item.startswith('-'):
+        if item.startswith('-') or ' ' in item:
             out[command].append(item)
         else:
             command = item

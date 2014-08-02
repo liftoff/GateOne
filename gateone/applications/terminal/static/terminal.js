@@ -2230,20 +2230,23 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.terminals[term1] = go.Terminal.terminals[term2];
         go.Terminal.terminals[term2] = temp;
         // Have to fix the node IDs inside GateOne.Terminal.terminals
-        go.Terminal.terminals[term1]['node'].id = prefix + 'term' + term1 + '_pre';
-        go.Terminal.terminals[term1]['pasteNode'].id = prefix + 'pastearea' + term1;
-        go.Terminal.terminals[term1]['screenNode'].id = prefix + 'term' + term1 + 'screen';
-        go.Terminal.terminals[term1]['scrollbackNode'].id = prefix + 'term' + term1 + 'scrollback';
-        go.Terminal.terminals[term1]['terminal'].id = prefix + 'term' + term1;
-        go.Terminal.terminals[term2]['node'].id = prefix + 'term' + term2 + '_pre';
-        go.Terminal.terminals[term2]['pasteNode'].id = prefix + 'pastearea' + term2;
-        go.Terminal.terminals[term2]['screenNode'].id = prefix + 'term' + term2 + 'screen';
-        go.Terminal.terminals[term2]['scrollbackNode'].id = prefix + 'term' + term2 + 'scrollback';
-        go.Terminal.terminals[term2]['terminal'].id = prefix + 'term' + term2;
+//         go.Terminal.terminals[term1]['node'].id = prefix + 'term' + term1 + '_pre';
+//         go.Terminal.terminals[term1]['pasteNode'].id = prefix + 'pastearea' + term1;
+//         go.Terminal.terminals[term1]['screenNode'].id = prefix + 'term' + term1 + 'screen';
+//         go.Terminal.terminals[term1]['scrollbackNode'].id = prefix + 'term' + term1 + 'scrollback';
+//         go.Terminal.terminals[term1]['terminal'].id = prefix + 'term' + term1;
+//         go.Terminal.terminals[term2]['node'].id = prefix + 'term' + term2 + '_pre';
+//         go.Terminal.terminals[term2]['pasteNode'].id = prefix + 'pastearea' + term2;
+//         go.Terminal.terminals[term2]['screenNode'].id = prefix + 'term' + term2 + 'screen';
+//         go.Terminal.terminals[term2]['scrollbackNode'].id = prefix + 'term' + term2 + 'scrollback';
+//         go.Terminal.terminals[term2]['terminal'].id = prefix + 'term' + term2;
         u.scrollToBottom(go.Terminal.terminals[term1]['node']);
         u.scrollToBottom(go.Terminal.terminals[term2]['node']);
         // Lastly we tell the server about this change so if the user resumes their session the ordering will remain
         go.ws.send(JSON.stringify({'terminal:swap_terminals': {'term1': term1, 'term2': term2}}));
+        // Force input events to be re-attached
+        go.Terminal.Input.disableCapture();
+        go.Terminal.Input.capture();
     },
     printScreen: function(term) {
         /**:GateOne.Terminal.printScreen(term)
@@ -3633,6 +3636,19 @@ go.Base.update(GateOne.Terminal, {
                 return shareObj['broadcast'];
             }
         }
+    },
+    _trimmedScreen: function(screen) {
+        /**:GateOne.Terminal._trimmedScreen(screen)
+
+        Returns *screen* with all trailing empty lines removed.
+        */
+        var lastLine = 0;
+        for (var i=0; i <= screen.length-1; i++) {
+            if (screen[i].length && screen[i].trim().length) {
+                lastLine = i;
+            }
+        }
+        return screen.slice(0, lastLine+1);
     },
     lastLines: function(/*opt*/n, /*opt*/term) {
         /**:GateOne.Terminal.lastLines([n[, term]])

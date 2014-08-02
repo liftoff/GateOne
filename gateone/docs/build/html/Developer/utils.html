@@ -383,10 +383,12 @@ swap the following Gate One variables in defined terminal 'commands':</p>
 </div></blockquote>
 <p>This allows for unique or user-specific values to be swapped into command
 line arguments like so:</p>
-<div class="highlight-python"><pre>ssh_connect.py -M -S '%SESSION%/%SESSION%/%r@%L:%p'</pre>
+<div class="highlight-python"><div class="highlight"><pre>ssh_connect.py -M -S &#39;%SESSION%/%SESSION%/%r@%L:%p&#39;
+</pre></div>
 </div>
 <p>Could become:</p>
-<div class="highlight-python"><pre>ssh_connect.py -M -S '/tmp/gateone/NWI0YzYxNzAwMTA3NGYyZmI0OWJmODczYmQyMjQwMDYwM/%r@%L:%p'</pre>
+<div class="highlight-python"><div class="highlight"><pre>ssh_connect.py -M -S &#39;/tmp/gateone/NWI0YzYxNzAwMTA3NGYyZmI0OWJmODczYmQyMjQwMDYwM/%r@%L:%p&#39;
+</pre></div>
 </div>
 <p>Here's an example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;echo &#39;</span><span class="si">%F</span><span class="s">OO</span><span class="si">% %</span><span class="s">BAR%&#39;&quot;</span>
@@ -417,8 +419,12 @@ is typically used.</p>
 <dl class="function">
 <dt id="gateone.core.utils.random_words">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">random_words</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#random_words"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.random_words" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <em>n</em> random English words (as a tuple) from the <tt class="xref py py-obj docutils literal"><span class="pre">english_wordlist.txt</span></tt>
-file (bundled with Gate One).</p>
+<dd><p>Returns <em>n</em> random English words (as a tuple of strings) from the
+<tt class="xref py py-obj docutils literal"><span class="pre">english_wordlist.txt</span></tt> file (bundled with Gate One).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In Python 2 the words will be Unicode strings.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -471,21 +477,22 @@ in the <em>enabled</em> list will be returned.</p>
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em>, <em>basepath=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_plugins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds plugins' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a dictionary of
 JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
-<div class="highlight-python"><pre>{
-    'js': [ // NOTE: These would be be inside *plugin_dir*/static
-        'happy_plugin/static/whatever.js',
-        'ssh/static/ssh.js',
+<div class="highlight-python"><div class="highlight"><pre>{
+    &#39;js&#39;: [ // NOTE: These would be be inside *plugin_dir*/static
+        &#39;happy_plugin/static/whatever.js&#39;,
+        &#39;ssh/static/ssh.js&#39;,
     ],
-    'css': [
-        'bookmarks/static/bookmarks.css',
-        'ssh/templates/ssh.css'
+    &#39;css&#39;: [
+        &#39;bookmarks/static/bookmarks.css&#39;,
+        &#39;ssh/templates/ssh.css&#39;
     ],
-    // NOTE: CSS URLs will require '&amp;container=&lt;container&gt;' and '&amp;prefix=&lt;prefix&gt;' to load.
-    'py': [ // NOTE: These will get added to sys.path
-        'happy_plugin',
-        'ssh'
+    // NOTE: CSS URLs will require &#39;&amp;container=&lt;container&gt;&#39; and &#39;&amp;prefix=&lt;prefix&gt;&#39; to load.
+    &#39;py&#39;: [ // NOTE: These will get added to sys.path
+        &#39;happy_plugin&#39;,
+        &#39;ssh&#39;
     ],
-}</pre>
+}
+</pre></div>
 </div>
 <p>*.js files inside of <em>plugin_dir</em>/&lt;the plugin&gt;/static will get automatically
 added to Gate One's index.html like so:</p>
@@ -958,9 +965,9 @@ sessions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Session_dir :</th><td class="field-body">The path to Gate One's session directory.</td>
+<tr class="field-odd field"><th class="field-name">Session_dir:</th><td class="field-body">The path to Gate One's session directory.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Pid_file :</th><td class="field-body">The path to Gate One's PID file</td>
+<tr class="field-even field"><th class="field-name">Pid_file:</th><td class="field-body">The path to Gate One's PID file</td>
 </tr>
 </tbody>
 </table>
@@ -1035,8 +1042,8 @@ sessions.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

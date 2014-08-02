@@ -246,7 +246,6 @@ def terminal_policies(cls):
         'resize': policy_write_check_dict,
         'set_term_encoding': policy_write_check_dict,
         'set_term_keyboard_mode': policy_write_check_dict,
-        'swap_terminals': policy_write_check_dict,
         'move_terminal': policy_write_check_dict,
         'kill_terminal': policy_write_check_arg,
         'reset_terminal': policy_write_check_arg,

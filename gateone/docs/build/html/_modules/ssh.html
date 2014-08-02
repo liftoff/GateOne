@@ -1201,7 +1201,18 @@
         <span class="kn">import</span> <span class="nn">stat</span>
         <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXOTH</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o755</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o755</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="n">ssh_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Could not set </span><span class="si">%s</span><span class="s"> as executable.  You will need to &#39;chmod &quot;</span>
+                    <span class="s">&quot;a+x&#39; that script manually.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">ssh_connect_path</span><span class="p">)</span>
+                <span class="n">user_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Error loading SSH plugin:  The ssh_connect.py script is &quot;</span>
+                    <span class="s">&quot;not executable.  See the logs for more details.&quot;</span><span class="p">)</span>
+                <span class="n">send_msg</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_message</span><span class="p">,</span> <span class="n">user_msg</span><span class="p">)</span>
+                <span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;terminal:authenticate&quot;</span><span class="p">,</span> <span class="s">&quot;terminal:new_terminal&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">send_msg</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ssh_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal.ssh&quot;</span><span class="p">,</span> <span class="n">plugin</span><span class="o">=</span><span class="s">&#39;ssh&#39;</span><span class="p">)</span>
     <span class="c"># NOTE:  Why not use the &#39;Events&#39; hook for these?  You can&#39;t attach two</span>
     <span class="c"># functions to the same event via that mechanism because it&#39;s a dict</span>
@@ -1305,8 +1316,8 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

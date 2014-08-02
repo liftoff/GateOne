@@ -80,9 +80,9 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Settings :</th><td class="field-body">An object containing the settings that will control how the new terminal is created.  Typically contains the application's 'info' data from the server.</td>
+<tr class="field-odd field"><th class="field-name">Settings:</th><td class="field-body">An object containing the settings that will control how the new terminal is created.  Typically contains the application's 'info' data from the server.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Where :</th><td class="field-body">An optional querySelector-like string or DOM node where the new Terminal should be placed.  If not given a new workspace will be created to contain the Terminal.</td>
+<tr class="field-even field"><th class="field-name">Where:</th><td class="field-body">An optional querySelector-like string or DOM node where the new Terminal should be placed.  If not given a new workspace will be created to contain the Terminal.</td>
 </tr>
 </tbody>
 </table>
@@ -800,6 +800,19 @@ the appropriate message to the Gate One server.</p>
 <dd><p>Returns the broadcast URL for the given <em>term</em> (if any).</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="GateOne.Terminal._trimmedScreen">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">_trimmedScreen</tt><big>(</big><em>screen</em><big>)</big><a class="headerlink" href="#GateOne.Terminal._trimmedScreen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>screen</em> with all trailing empty lines removed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.lastLines">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">lastLines</tt><big>(</big><span class="optional">[</span><em>n</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.lastLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the last <em>n</em> non-blank (trimmed) line in the terminal.  Useful for pattern matching.</p>
+<p>If <em>term</em> is not given the <tt class="docutils literal"><span class="pre">localStorage[prefix+'selectedTerminal']</span></tt> will be used.</p>
+</dd></dl>
+
 </div>
 
 
@@ -862,8 +875,8 @@ the appropriate message to the Gate One server.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

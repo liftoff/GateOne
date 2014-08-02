@@ -144,7 +144,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-            >>> GateOne.Utils.scrollToBottom('#term1_pre');
+            >>> GateOne.Utils.scrollToBottom('#'+GateOne.prefs.prefix+'term1_pre');
         */
         var node = GateOne.Utils.getNode(elem);
         if (node) {

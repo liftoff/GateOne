@@ -233,6 +233,46 @@ confusion.</p>
 <p class="last">The following values in 10server.conf are case sensitive: <tt class="xref py py-obj docutils literal"><span class="pre">true</span></tt>, <tt class="xref py py-obj docutils literal"><span class="pre">false</span></tt>
 and <tt class="xref py py-obj docutils literal"><span class="pre">null</span></tt> (and should not be placed in quotes).</p>
 </div>
+<p>Gate One's configuration files also provide access control mechanisms.  These
+are controlled by setting the <em>scope</em> of the configuration block.  In this
+example all users that match the given IP address will be denied access to
+Gate One:</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+    &quot;user.ip_address=(127.0.0.1|10.1.1.100)&quot;: { // Replaces &quot;*&quot;
+        &quot;gateone&quot;: { // These settings apply to all of Gate One
+            &quot;blacklist&quot;: true,
+        }
+    }
+}
+</pre></div>
+</div>
+<p>You can define scopes however you like using user's attributes.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&quot;user.email=.*@company.com&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;terminal&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;commands&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;extra&quot;</span><span class="p">:</span> <span class="s">&quot;/some/extra/command.sh&quot;</span><span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The above example would make it so that all users with an email address ending
+in <a class="reference external" href="mailto:'&#37;&#52;&#48;company&#46;com">'<span>&#64;</span>company<span>&#46;</span>com</a>' will get access to the &quot;extra&quot; command when using the
+&quot;terminal&quot; application.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different authentication types provide different user attributes.  For
+example, if you have &quot;auth&quot; set to &quot;google&quot; authenticated users will have a
+'gender' attribute.  So for example--if you wanted to be evil--you could
+provide different settings for men and women (e.g. &quot;user.gender=male&quot;).</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">When using API authentication you can pass whatever extra user attributes
+you want via the 'auth' object.  These attributes will be automatically
+assigned to the user and can be used with the policy mechanism to control
+access and settings.</p>
+</div>
 <p>Running gateone.py with the <tt class="xref py py-obj docutils literal"><span class="pre">--help</span></tt> switch will print the usage information as
 well as descriptions of what each configurable option does:</p>
 <pre class="ansi-block literal-block">
@@ -1150,15 +1190,16 @@ allows the client to measure the round-trip time of the WebSocket.</p>
 does not exist and creating/updating the user's 'session' file (which
 just stores metadata related to their session).</p>
 <p>Example usage:</p>
-<div class="highlight-python"><pre>auth_obj = {
-    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
-    'upn': 'joe@company.com',
-    'timestamp': '1323391717238',
-    'signature': &lt;gibberish&gt;,
-    'signature_method': 'HMAC-SHA1',
-    'api_version': '1.0'
+<div class="highlight-python"><div class="highlight"><pre>auth_obj = {
+    &#39;api_key&#39;: &#39;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&#39;,
+    &#39;upn&#39;: &#39;joe@company.com&#39;,
+    &#39;timestamp&#39;: &#39;1323391717238&#39;,
+    &#39;signature&#39;: &lt;gibberish&gt;,
+    &#39;signature_method&#39;: &#39;HMAC-SHA1&#39;,
+    &#39;api_version&#39;: &#39;1.0&#39;
 }
-result = self.api_auth(auth_obj)</pre>
+result = self.api_auth(auth_obj)
+</pre></div>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -1473,10 +1514,11 @@ the global with whatever name you like.</p>
 <dd><p>Renders, caches (in the <tt class="xref py py-obj docutils literal"><span class="pre">cache_dir</span></tt>), and sends a stylesheet template at
 the given <em>css_path</em>.  The template will be rendered with the following
 keyword arguments:</p>
-<div class="highlight-python"><pre>container = self.container
+<div class="highlight-python"><div class="highlight"><pre>container = self.container
 prefix = self.prefix
-url_prefix = self.settings['url_prefix']
-**kwargs</pre>
+url_prefix = self.settings[&#39;url_prefix&#39;]
+**kwargs
+</pre></div>
 </div>
 <p>Returns the path to the rendered template.</p>
 <div class="admonition note">
@@ -1646,8 +1688,8 @@ currently connected (and authenticated) to this Gate One server.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

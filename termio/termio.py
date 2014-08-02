@@ -646,7 +646,7 @@ class BaseMultiplex(object):
             self.postprocess()
         if self.CALLBACK_UPDATE in self.callbacks:
             for callback in self.callbacks[self.CALLBACK_UPDATE].values():
-                self._call_callback(callback)
+                self._call_callback(callback, stream=stream)
 
     def preprocess(self, stream):
         """
@@ -1206,7 +1206,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         logging.debug("MultiplexPOSIXIOLoop.__del__()")
         self.terminate()
 
-    def _call_callback(self, callback):
+    def _call_callback(self, callback, *args, **kwargs):
         """
         If the IOLoop is started, adds the callback via
         :meth:`IOLoop.add_callback` to ensure it gets called at the next IOLoop
@@ -1214,9 +1214,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         *callback* will get called immediately and directly.
         """
         if self.io_loop._running:
-            self.io_loop.add_callback(callback)
+            self.io_loop.add_callback(callback, *args, **kwargs)
         else:
-            callback()
+            callback(*args, **kwargs)
 
     def _reenable_output(self):
         """

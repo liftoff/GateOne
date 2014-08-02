@@ -606,7 +606,7 @@
     <span class="n">cert</span><span class="o">.</span><span class="n">get_issuer</span><span class="p">()</span><span class="o">.</span><span class="n">CN</span> <span class="o">=</span> <span class="s">&#39;Untrusted Authority&#39;</span>
     <span class="n">cert</span><span class="o">.</span><span class="n">get_issuer</span><span class="p">()</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="s">&#39;Self-Signed&#39;</span>
     <span class="n">cert</span><span class="o">.</span><span class="n">set_pubkey</span><span class="p">(</span><span class="n">pkey</span><span class="p">)</span>
-    <span class="n">cert</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">pkey</span><span class="p">,</span> <span class="s">&#39;md5&#39;</span><span class="p">)</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">pkey</span><span class="p">,</span> <span class="s">&#39;sha512&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">certfile_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">dump_certificate</span><span class="p">(</span>
             <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">FILETYPE_PEM</span><span class="p">,</span> <span class="n">cert</span><span class="p">))</span>
@@ -749,15 +749,18 @@
 </div>
 <div class="viewcode-block" id="random_words"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.random_words">[docs]</a><span class="k">def</span> <span class="nf">random_words</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns *n* random English words (as a tuple) from the `english_wordlist.txt`</span>
-<span class="sd">    file (bundled with Gate One).</span>
+<span class="sd">    Returns *n* random English words (as a tuple of strings) from the</span>
+<span class="sd">    `english_wordlist.txt` file (bundled with Gate One).</span>
+
+<span class="sd">    .. note:: In Python 2 the words will be Unicode strings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_string</span>
     <span class="n">words</span> <span class="o">=</span> <span class="n">resource_string</span><span class="p">(</span>
-        <span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;static/english_wordlist.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;static/english_wordlist.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="n">out_words</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-        <span class="n">out_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">out_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out_words</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="get_process_tree"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.get_process_tree">[docs]</a><span class="k">def</span> <span class="nf">get_process_tree</span><span class="p">(</span><span class="n">parent_pid</span><span class="p">):</span>
@@ -1034,7 +1037,10 @@
             <span class="k">continue</span>
         <span class="n">plugin</span> <span class="o">=</span> <span class="n">directory</span>
         <span class="n">module_path_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-        <span class="n">go_index</span> <span class="o">=</span> <span class="n">module_path_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">)</span>
+        <span class="c"># Find the *last* directory named &#39;gateone&#39;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">module_path_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">_dir</span> <span class="o">==</span> <span class="s">&#39;gateone&#39;</span><span class="p">:</span> <span class="c"># If we ever change the name... Fix this</span>
+                <span class="n">go_index</span> <span class="o">=</span> <span class="n">i</span>
         <span class="n">module_base</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path_list</span><span class="p">[</span><span class="n">go_index</span><span class="p">:])</span>
         <span class="n">module_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_base</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
         <span class="n">http_static_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/static&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
@@ -1083,6 +1089,7 @@
 
 <span class="sd">    .. note::  Assumes they&#39;re all in `sys.path`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;load_modules(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">modules</span><span class="p">)</span>
     <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
         <span class="n">imported</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
@@ -1398,17 +1405,18 @@
 <span class="sd">        True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Convert to Punycode if an IDN</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">hostname</span> <span class="o">=</span> <span class="n">hostname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;idna&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">UnicodeError</span><span class="p">:</span> <span class="c"># Can&#39;t convert to Punycode: Bad hostname</span>
-        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">hostname</span> <span class="o">=</span> <span class="n">hostname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;idna&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeError</span><span class="p">:</span> <span class="c"># Can&#39;t convert to Punycode: Bad hostname</span>
+            <span class="k">return</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">hostname</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&quot;.&quot;</span><span class="p">:</span> <span class="c"># Strip the tailing dot if present</span>
+    <span class="k">if</span> <span class="n">hostname</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="n">b</span><span class="s">&quot;.&quot;</span><span class="p">:</span> <span class="c"># Strip the tailing dot if present</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">hostname</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">allowed</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(?!-)[A-Z\d-]{1,63}(?&lt;!-)$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">allowed</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;(?!-)[A-Z\d-]{1,63}(?&lt;!-)$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">allow_underscore</span><span class="p">:</span>
-        <span class="n">allowed</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(?!-)[_A-Z\d-]{1,63}(?&lt;!-)$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">allowed</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;(?!-)[_A-Z\d-]{1,63}(?&lt;!-)$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">allowed</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">hostname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;.&quot;</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="recursive_chown"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.recursive_chown">[docs]</a><span class="k">def</span> <span class="nf">recursive_chown</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">):</span>
@@ -1847,8 +1855,8 @@
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

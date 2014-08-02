@@ -411,7 +411,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var terms = u.toArray(u.getNodes('.✈terminal')),
             selectedText = u.getSelText();
         if (!t.Input.inputNode) {
-            t.Input.inputNode = u.createElement('textarea', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
+            t.Input.inputNode = u.createElement('textarea', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '0px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
             go.node.appendChild(t.Input.inputNode);
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
@@ -574,8 +574,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.sendString(t.Input.composition);
             t.Input.commandBuffer += t.Input.composition;
         }
-        t.Input.inputNode.style['top'] = "-99999px";
-        t.Input.inputNode.style['left'] = "-99999px";
+        t.Input.inputNode.style['top'] = "0px";
+        t.Input.inputNode.style['left'] = null;
         setTimeout(function() {
             // Wrapped in a timeout because Firefox fires the onkeyup event immediately after compositionend and we don't want that to result in double keystrokes
             t.Input.composition = null;

@@ -290,7 +290,8 @@ so it doesn't cause the <tt class="xref py py-class docutils literal"><span clas
 <dt id="logging_plugin._retrieve_log_flat">
 <tt class="descclassname">logging_plugin.</tt><tt class="descname">_retrieve_log_flat</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/logging_plugin.html#_retrieve_log_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._retrieve_log_flat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the given <em>log_filename</em> to <em>queue</em> in a flat format equivalent to:</p>
-<div class="highlight-python"><pre>./logviewer.py --flat log_filename</pre>
+<div class="highlight-python"><div class="highlight"><pre>./logviewer.py --flat log_filename
+</pre></div>
 </div>
 <p><em>settings</em> - A dict containing the <em>log_filename</em>, <em>colors_css</em>, and
 <em>theme_css</em> to use when generating the HTML output.</p>
@@ -309,7 +310,8 @@ so it doesn't cause the <tt class="xref py py-class docutils literal"><span clas
 <tt class="descclassname">logging_plugin.</tt><tt class="descname">_retrieve_log_playback</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/logging_plugin.html#_retrieve_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._retrieve_log_playback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a JSON-encoded message to the client containing the log in a
 self-contained HTML format similar to:</p>
-<div class="highlight-python"><pre>./logviewer.py log_filename</pre>
+<div class="highlight-python"><div class="highlight"><pre>./logviewer.py log_filename
+</pre></div>
 </div>
 <p><em>settings</em> - A dict containing the <em>log_filename</em>, <em>colors</em>, and <em>theme</em> to
 use when generating the HTML output.</p>
@@ -328,11 +330,12 @@ use when generating the HTML output.</p>
 </tbody>
 </table>
 <p>The output will look like this:</p>
-<div class="highlight-python"><pre>{
-    'result': "Success",
-    'log': &lt;HTML rendered output&gt;,
-    'metadata': {&lt;metadata of the log&gt;}
-}</pre>
+<div class="highlight-python"><div class="highlight"><pre>{
+    &#39;result&#39;: &quot;Success&quot;,
+    &#39;log&#39;: &lt;HTML rendered output&gt;,
+    &#39;metadata&#39;: {&lt;metadata of the log&gt;}
+}
+</pre></div>
 </div>
 <p>It is expected that the client will create a new window with the result of
 this method.</p>
@@ -350,7 +353,8 @@ so it doesn't cause the <tt class="xref py py-class docutils literal"><span clas
 <tt class="descclassname">logging_plugin.</tt><tt class="descname">_save_log_playback</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/logging_plugin.html#_save_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._save_log_playback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a JSON-encoded message to the client containing the log in a
 self-contained HTML format similar to:</p>
-<div class="highlight-python"><pre>./logviewer.py log_filename</pre>
+<div class="highlight-python"><div class="highlight"><pre>./logviewer.py log_filename
+</pre></div>
 </div>
 <p>The difference between this function and <a class="reference internal" href="#logging_plugin._retrieve_log_playback" title="logging_plugin._retrieve_log_playback"><tt class="xref py py-meth docutils literal"><span class="pre">_retrieve_log_playback()</span></tt></a>
 is that this one instructs the client to save the file to disk instead of
@@ -370,12 +374,13 @@ opening it in a new window.</p>
 </tbody>
 </table>
 <p>The output will look like this:</p>
-<div class="highlight-python"><pre>{
-    'result': "Success",
-    'data': &lt;HTML rendered output&gt;,
-    'mimetype': 'text/html'
-    'filename': &lt;filename of the log recording&gt;
-}</pre>
+<div class="highlight-python"><div class="highlight"><pre>{
+    &#39;result&#39;: &quot;Success&quot;,
+    &#39;data&#39;: &lt;HTML rendered output&gt;,
+    &#39;mimetype&#39;: &#39;text/html&#39;
+    &#39;filename&#39;: &lt;filename of the log recording&gt;
+}
+</pre></div>
 </div>
 <p>It is expected that the client will create a new window with the result of
 this method.</p>
@@ -480,8 +485,8 @@ WebSocket action.  The rendered template will be saved in Gate One's
     </div>
 
     <div class="footer">
-        &copy; Copyright 2013, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

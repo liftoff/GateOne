@@ -1279,8 +1279,16 @@ class TerminalApplication(GOApplication):
             return
         term1_dict = self.loc_terms.pop(term1)
         term2_dict = self.loc_terms.pop(term2)
+        self.remove_terminal_callbacks(
+            term1_dict['multiplex'], self.callback_id)
+        self.remove_terminal_callbacks(
+            term2_dict['multiplex'], self.callback_id)
         self.loc_terms.update({term1: term2_dict})
         self.loc_terms.update({term2: term1_dict})
+        self.add_terminal_callbacks(
+            term1, term2_dict['multiplex'], self.callback_id)
+        self.add_terminal_callbacks(
+            term2, term1_dict['multiplex'], self.callback_id)
         self.trigger("terminal:swap_terminals", term1, term2)
 
     @require(authenticated(), policies('terminal'))
@@ -1596,7 +1604,7 @@ class TerminalApplication(GOApplication):
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
 
-    def refresh_screen(self, term, full=False):
+    def refresh_screen(self, term, full=False, stream=None):
         """
         Writes the state of the given terminal's screen and scrollback buffer to
         the client using `_send_refresh()`.  Also ensures that screen updates
@@ -1646,7 +1654,7 @@ class TerminalApplication(GOApplication):
                     msec, refresh)
         except KeyError as e: # Session died (i.e. command ended).
             self.term_log.debug(_("KeyError in refresh_screen: %s" % e))
-        self.trigger("terminal:refresh_screen", term)
+        self.trigger("terminal:refresh_screen", term, stream=stream)
 
     def full_refresh(self, term):
         """Calls `self.refresh_screen(*term*, full=True)`"""

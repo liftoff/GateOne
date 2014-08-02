@@ -225,7 +225,7 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
     """
     esc_sequence = re.compile(
         r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
-    csi_sequence = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
+    csi_sequence = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*?)([A-Za-z@_])')
     #esc_rstrip = re.compile('[ \t]+\x1b.+$')
     out = u""
     esc_buffer = u""
