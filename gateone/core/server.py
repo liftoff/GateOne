@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140801222935" # Gets replaced by git (holds the date/time)
+__commit__ = "20140802114654" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -617,9 +617,11 @@ def _(string):
 from gateone.async import MultiprocessRunner, ThreadedRunner
 try:
     CPU_ASYNC = MultiprocessRunner()
-    CPU_ASYNC.call(noop, memoize=False)
 except NotImplementedError:
     # System doesn't support multiprocessing (for whatever reason).
+    logging.warning(_(
+        "Multiprocessing is not functional on this system.  "
+        "Threading for all async calls."))
     CPU_ASYNC = ThreadedRunner() # Fake it using threads
 IO_ASYNC = ThreadedRunner()
 
@@ -4412,6 +4414,14 @@ def main(installed=True):
         os.close(tempfd2)
         if uid != os.getuid():
             drop_privileges(uid, gid, [tty_gid])
+        try:
+            CPU_ASYNC.call(noop, memoize=False)
+        except NotImplementedError:
+            logging.warning(_(
+                "Multiprocessing is not functional on this system.  "
+                "Threading for all async calls."))
+            global CPU_ASYNC
+            CPU_ASYNC = IO_ASYNC
         write_pid(go_settings['pid_file'])
         pid = read_pid(go_settings['pid_file'])
         logger.info(_("Process running with pid " + pid))

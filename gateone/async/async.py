@@ -260,7 +260,7 @@ class AsyncRunner(object):
                 string += pickle.dumps(args, 0)
             if kwargs:
                 string += pickle.dumps(kwargs, 0)
-            if string in MEMO:
+            if string and string in MEMO:
                 f = futures.Future() # Emulate a completed Future()
                 if callback:
                     f.set_result(callback(MEMO[string]))
