@@ -253,9 +253,13 @@ class AsyncRunner(object):
         callback = kwargs.pop('callback', None)
         memoize = kwargs.pop('memoize', True)
         if memoize:
+            string = b''
             if hasattr(function, '__name__'):
-                string = function.__name__
-            string += pickle.dumps(args, 0) + pickle.dumps(kwargs, 0)
+                string = function.__name__.encode('utf-8')
+            if args:
+                string += pickle.dumps(args, 0)
+            if kwargs:
+                string += pickle.dumps(kwargs, 0)
             if string in MEMO:
                 f = futures.Future() # Emulate a completed Future()
                 if callback:

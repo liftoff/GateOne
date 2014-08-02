@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140709170344" # Gets replaced by git (holds the date/time)
+__commit__ = "20140801222935" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -583,7 +583,7 @@ from gateone.auth.authentication import CASAuthHandler, PAMAuthHandler
 from gateone.auth.authentication import SSLAuthHandler
 from gateone.auth.authorization import require, authenticated, policies
 from gateone.auth.authorization import applicable_policies
-from .utils import generate_session_id, mkdir_p, touch
+from .utils import generate_session_id, mkdir_p, touch, noop
 from .utils import gen_self_signed_ssl, get_plugins, load_modules
 from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from .utils import json_encode, recursive_chown, ChownError, get_or_cache
@@ -617,6 +617,7 @@ def _(string):
 from gateone.async import MultiprocessRunner, ThreadedRunner
 try:
     CPU_ASYNC = MultiprocessRunner()
+    CPU_ASYNC.call(noop, memoize=False)
 except NotImplementedError:
     # System doesn't support multiprocessing (for whatever reason).
     CPU_ASYNC = ThreadedRunner() # Fake it using threads
