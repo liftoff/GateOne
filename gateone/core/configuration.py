@@ -606,7 +606,7 @@ def generate_server_conf(installed=True):
     directory.
     """
     logger.info(_(
-        u"Gate One settings are incomplete.  A new settings/10server.conf"
+        u"Gate One settings are incomplete.  A new <settings_dir>/10server.conf"
         u" will be generated."))
     auth_settings = {} # Auth stuff goes in 20authentication.conf
     all_setttings = options_to_settings(options) # NOTE: options is global
@@ -622,7 +622,7 @@ def generate_server_conf(installed=True):
     del config_defaults['settings_dir']
     non_options = [
         # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config'
+        'new_api_key', 'help', 'kill', 'config', 'version'
     ]
     # Don't need non-options in there either:
     for non_option in non_options:
@@ -806,7 +806,7 @@ def apply_cli_overrides(go_settings):
     non_options = [
         # These are things that don't really belong in settings
         'new_api_key', 'help', 'kill', 'config', 'combine_js', 'combine_css',
-        'combine_css_container'
+        'combine_css_container', 'version'
     ]
     for arg in list(sys.argv)[1:]:
         if not arg.startswith('-'):
@@ -936,7 +936,7 @@ def options_to_settings(options):
     ]
     non_options = [
         # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config'
+        'new_api_key', 'help', 'kill', 'config', 'version'
     ]
     for key, value in options.items():
         if key in terminal_options:

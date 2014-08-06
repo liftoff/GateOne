@@ -18,8 +18,6 @@ from gateone.core.locale import get_translation
 from gateone.core.log import go_logger
 from gateone.auth.authorization import applicable_policies
 
-term_log = go_logger("gateone.terminal")
-
 # Localization support
 _ = get_translation()
 

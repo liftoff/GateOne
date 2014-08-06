@@ -44,7 +44,6 @@ from tornado.options import options, define
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
 web_handlers = [] # Assigned in init()
-term_log = go_logger("gateone.terminal")
 
 # Localization support
 _ = get_translation()
@@ -92,6 +91,7 @@ def kill_session(session, kill_dtach=False):
         `SESSIONS[session]["kill_session_callbacks"]` list inside of
         :meth:`TerminalApplication.authenticate`.
     """
+    term_log = go_logger("gateone.terminal")
     term_log.debug('kill_session(%s)' % session)
     if kill_dtach:
         from gateone.core.utils import kill_dtached_proc
@@ -177,7 +177,7 @@ class TerminalApplication(GOApplication):
     }
     name = "Terminal" # A user-friendly name that will be displayed to the user
     def __init__(self, ws):
-        term_log.debug("TerminalApplication.__init__(%s)" % ws)
+        logging.debug("TerminalApplication.__init__(%s)" % ws)
         self.policy = {} # Gets set in authenticate() below
         self.terms = {}
         self.loc_terms = {}
@@ -260,7 +260,8 @@ class TerminalApplication(GOApplication):
             css_plugins.append(name)
         plugin_list = list(set(py_plugins + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        term_log.info(_("Active Terminal Plugins: %s" % ", ".join(plugin_list)))
+        self.term_log.info(_(
+            "Active Terminal Plugins: %s" % ", ".join(plugin_list)))
         # Setup some events
         terminals_func = partial(self.terminals, self)
         self.ws.on("go:set_location", terminals_func)
@@ -339,7 +340,7 @@ class TerminalApplication(GOApplication):
         This gets called at the end of :meth:`ApplicationWebSocket.open` when
         the WebSocket is opened.
         """
-        term_log.debug('TerminalApplication.open()')
+        self.term_log.debug('TerminalApplication.open()')
         self.callback_id = "%s;%s;%s" % (
             self.ws.client_id, self.request.host, self.request.remote_ip)
         self.trigger("terminal:open")
@@ -381,7 +382,7 @@ class TerminalApplication(GOApplication):
         Sends all plugin JavaScript files to the client and triggers the
         'terminal:authenticate' event.
         """
-        term_log.debug('TerminalApplication.authenticate()')
+        self.term_log.debug('TerminalApplication.authenticate()')
         self.log_metadata = {
             'application': 'terminal',
             'upn': self.current_user['upn'],
@@ -2623,6 +2624,7 @@ def init(settings):
 
     Also checks to make sure that the logviewer.py script is executable.
     """
+    term_log = go_logger("gateone.terminal")
     logviewer_path = os.path.join(APPLICATION_PATH, 'logviewer.py')
     import stat
     st = os.stat(logviewer_path)
