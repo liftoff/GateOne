@@ -15,7 +15,7 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Standard library imports
-import os, sys, time, io, atexit
+import os, sys, time, io, atexit, logging
 from datetime import datetime, timedelta
 from functools import partial
 
