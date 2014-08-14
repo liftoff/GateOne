@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140802120917" # Gets replaced by git (holds the date/time)
+__commit__ = "20140807160214" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -555,13 +555,13 @@ try:
     from tornado import version as tornado_version
     from tornado import version_info as tornado_version_info
 except (ImportError, NameError):
-    MISSING_DEPS.append('tornado >= 3.2')
+    MISSING_DEPS.append('tornado >= 4.0')
 
-if 'tornado >= 3.2' not in MISSING_DEPS:
+if 'tornado >= 4.0' not in MISSING_DEPS:
     if tornado_version_info[0] < 3:
-        MISSING_DEPS.append('tornado >= 3.2')
+        MISSING_DEPS.append('tornado >= 4.0')
     if tornado_version_info[0] < 3 and tornado_version_info[1] < 2:
-        MISSING_DEPS.append('tornado >= 3.2')
+        MISSING_DEPS.append('tornado >= 4.0')
 
 if MISSING_DEPS:
     print("\x1b[31;1mERROR:\x1b[0m: This host is missing dependencies:")
@@ -1452,6 +1452,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.pinger = None # Replaced with a PeriodicCallback inside open()
         self.timestamps = [] # Tracks/averages client latency
         self.latency = 0 # Keeps a running average
+        self.checked_origin = False
         WebSocketHandler.__init__(self, application, request, **kwargs)
 
     @classmethod
@@ -1711,7 +1712,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         self.write_message(message, binary=True)
 
-    def valid_origin(self, origin):
+    def check_origin(self, origin):
         """
         Checks if the given *origin* matches what's been set in Gate One's
         "origins" setting (usually in 10server.conf).  The *origin* will first
@@ -1726,7 +1727,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             If '*' is in the "origins" setting (anywhere) all origins will be
             allowed.
         """
+        logging.debug("check_origin(%s)" % origin)
+        self.checked_origin = True
         valid = False
+        parsed_origin = urlparse(origin)
+        self.origin = parsed_origin.netloc.lower()
+        host = self.request.headers.get("Host")
+        if self.origin == host:
+            # Origins match so there's nothing to check, really
+            return True
         if 'origins' in self.settings.get('cli_overrides', ''):
             # If given on the command line, always use those origins
             valid_origins = self.settings['origins']
@@ -1736,14 +1745,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             valid_origins = self.prefs['*']['gateone'].get('origins', [])
         if '*' in valid_origins:
             valid = True
-        elif origin in valid_origins:
+        elif self.origin in valid_origins:
             valid = True
         if not valid:
             # Treat the list of valid origins as regular expressions
             for check_origin in valid_origins:
                 if valid_hostname(check_origin):
                     continue # Valid hostnames aren't regular expressions
-                match = re.match(check_origin, origin)
+                match = re.match(check_origin, self.origin)
                 if match:
                     valid = True
                     break
@@ -1780,27 +1789,23 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if hasattr(self, 'set_nodelay'):
             # New feature of Tornado 3.1 that can reduce latency:
             self.set_nodelay(True)
-        if 'Origin' in self.request.headers:
-            origin = self.request.headers['Origin']
-        elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
-            origin = self.request.headers['Sec-Websocket-Origin']
-        origin = origin.lower() # hostnames are case-insensitive
-        origin = origin.split('://', 1)[1]
-        self.origin = origin
+        #origin = origin.lower() # hostnames are case-insensitive
+        #origin = origin.split('://', 1)[1]
+        #self.origin = origin
         client_address = self.request.remote_ip
-        logging.debug("open() origin: %s" % origin)
-        if not self.valid_origin(origin):
-            self.origin_denied = True
-            denied_msg = _('Access denied for origin: %s') % origin
-            auth_log.error(denied_msg)
-            self.write_message(denied_msg)
-            self.write_message(_(
-                "If you feel this is incorrect you just have to add '%s' to"
-                " the 'origins' option in your Gate One settings (e.g. "
-                "inside your 10server.conf).  See the docs for details.")
-                % origin)
-            self.close()
-            return
+        logging.debug("open() origin: %s" % self.origin)
+        #if not self.valid_origin(origin):
+            #self.origin_denied = True
+            #denied_msg = _('Access denied for origin: %s') % origin
+            #auth_log.error(denied_msg)
+            #self.write_message(denied_msg)
+            #self.write_message(_(
+                #"If you feel this is incorrect you just have to add '%s' to"
+                #" the 'origins' option in your Gate One settings (e.g. "
+                #"inside your 10server.conf).  See the docs for details.")
+                #% origin)
+            #self.close()
+            #return
         self.origin_denied = False
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
@@ -1833,7 +1838,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.info( # Use global auth_log so we're not redundant
                 _("WebSocket opened (%s %s) via origin %s.") % (
-                    user['upn'], client_address, origin))
+                    user['upn'], client_address, self.origin))
         else:
             # NOTE: NOT using self.auth_log() here on purpose:
             auth_log.info(_(

@@ -185,6 +185,8 @@ def policy_char_handler(cls, policy):
             term = cls.f_kwargs['term']
         except KeyError:
             # No 'term' was given at all.  Use current_term
+            if not hasattr(instance, 'current_term'):
+                return False
             term = instance.current_term
     # Make sure the term is an int
     term = int(term)

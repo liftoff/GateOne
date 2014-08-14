@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140802120917";
+GateOne.__commit__ = "20140807160214";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2570,6 +2570,9 @@ GateOne.Base.update(GateOne.Net, {
             go.wsURL = "ws://" + host + "/ws";
         }
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
+        if (go.ws && go.ws.close) {
+            go.ws.close();
+        }
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
         go.ws.binaryType = 'arraybuffer'; // In case binary data comes over the wire it is much easier to deal with it in arrayBuffer form.
         go.ws.onopen = function(evt) {
