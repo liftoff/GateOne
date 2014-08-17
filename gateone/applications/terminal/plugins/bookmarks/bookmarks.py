@@ -44,6 +44,7 @@ from functools import partial
 # Our stuff
 from gateone.core.server import BaseHandler
 from gateone.core.utils import noop, json_encode
+from gateone.auth.authorization import require, authenticated
 
 # Tornado stuff
 import tornado.web
@@ -624,6 +625,7 @@ class ExportHandler(tornado.web.RequestHandler):
         self.render(bookmarks_html, bookmarks=bookmarks)
 
 # WebSocket commands (not the same as handlers)
+@require(authenticated())
 def save_bookmarks(self, bookmarks):
     """
     Handles saving *bookmarks* for clients.
@@ -654,6 +656,7 @@ def save_bookmarks(self, bookmarks):
     message = {'terminal:bookmarks_save_result': out_dict}
     self.write_message(json_encode(message))
 
+@require(authenticated())
 def get_bookmarks(self, updateSequenceNum):
     """
     Returns a JSON-encoded list of bookmarks updated since the last
@@ -672,6 +675,7 @@ def get_bookmarks(self, updateSequenceNum):
     message = {'terminal:bookmarks_updated': updated_bookmarks}
     self.write_message(json_encode(message))
 
+@require(authenticated())
 def delete_bookmarks(self, deleted_bookmarks):
     """
     Handles deleting bookmarks given a *deleted_bookmarks* list.
@@ -697,6 +701,7 @@ def delete_bookmarks(self, deleted_bookmarks):
     message = {'terminal:bookmarks_delete_result': out_dict}
     self.write_message(json_encode(message))
 
+@require(authenticated())
 def rename_tags(self, renamed_tags):
     """
     Handles renaming tags.

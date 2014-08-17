@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140814090336" # Gets replaced by git (holds the date/time)
+__commit__ = "20140816213542" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -917,7 +917,7 @@ def timeout_sessions():
             # necessary due to Gate One's prodigous use of dynamic imports but
             # in reality people will see an idle gateone.py eating up 30 megs of
             # RAM and wonder, "WTF...  No one has connected in weeks."
-            if os.uname().sysname != "SunOS":
+            if os.uname()[0] != "SunOS":
                 # For whatever reason neither of these methods work on Solaris
                 logger.info(_("The last idle session has timed out. Reloading..."))
                 try:

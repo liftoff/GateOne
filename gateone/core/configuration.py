@@ -622,7 +622,8 @@ def generate_server_conf(installed=True):
     del config_defaults['settings_dir']
     non_options = [
         # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config', 'version'
+        'new_api_key', 'help', 'kill', 'config', 'version', 'combine_css',
+        'combine_js', 'combine_css_container'
     ]
     # Don't need non-options in there either:
     for non_option in non_options:
@@ -670,7 +671,7 @@ def generate_server_conf(installed=True):
             mode='w', encoding='utf-8').write(u'')
     auth_conf_path = os.path.join(settings_path, '20authentication.conf')
     template_path = os.path.join(
-        GATEONE_DIR, 'templates', 'settings', '10server.conf')
+        GATEONE_DIR, 'templates', 'settings', 'generic.conf')
     new_settings = settings_template(
         template_path, settings=config_defaults)
     with io.open(server_conf_path, mode='w') as s:
@@ -769,7 +770,7 @@ def convert_old_server_conf():
             else:
                 settings.update({key: value})
         template_path = os.path.join(
-            GATEONE_DIR, 'templates', 'settings', '10server.conf')
+            GATEONE_DIR, 'templates', 'settings', 'generic.conf')
         new_settings = settings_template(template_path, settings=settings)
         if not os.path.exists(server_conf_path):
             with io.open(server_conf_path, 'w') as s:
