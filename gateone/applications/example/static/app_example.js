@@ -94,7 +94,7 @@ go.Base.update(GateOne.ExampleApp, {
 //         form.appendChild(input);
 //         form.appendChild(go)
 //         div.appendChild(form);
-        div.innerHTML = "<p>Nothing to see here (yet).</p><p>If you don't want to see the Example app in your New Workspace Workspace just remove it:</p><p><code>rm -rf /opt/gateone/applications/example</code></p><p><b>NOTE:</b> You can close this example app by clicking on the X in the toolbar.</p>";
+        div.innerHTML = "<p>Nothing to see here (yet).</p><p>If you don't want to see the Example app in your New Workspace Workspace just disable it by adding an 'enabled_applications' setting in your gateone/conf.d/*.conf settings.  For example, <code>\"enabled_applications\": [\"terminal\"]</code></p><p><b>NOTE:</b> You can close this example app by clicking on the X in the toolbar.</p>";
         where.appendChild(div);
     }
 });

@@ -566,7 +566,10 @@ def main(args=sys.argv):
     """
     Parse command line arguments and view the log in the specified format.
     """
-    usage = ('\t%prog [options] <log file>')
+    cli_command = ""
+    if sys.argv[0].endswith('gateone'):
+        cli_command = "termlog "
+    usage = '\t%prog {0}[options] <log file>'.format(cli_command)
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()
     parser.add_option("-f", "--flat",
