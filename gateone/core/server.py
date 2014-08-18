@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140816213542" # Gets replaced by git (holds the date/time)
+__commit__ = "20140817132238" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -583,6 +583,7 @@ from gateone.auth.authentication import CASAuthHandler, PAMAuthHandler
 from gateone.auth.authentication import SSLAuthHandler
 from gateone.auth.authorization import require, authenticated, policies
 from gateone.auth.authorization import applicable_policies
+from gateone.async import MultiprocessRunner, ThreadedRunner
 from .utils import generate_session_id, mkdir_p, touch, noop
 from .utils import gen_self_signed_ssl, get_plugins, load_modules
 from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
@@ -614,16 +615,6 @@ def _(string):
     else:
         return string
 
-from gateone.async import MultiprocessRunner, ThreadedRunner
-try:
-    CPU_ASYNC = MultiprocessRunner()
-except NotImplementedError:
-    # System doesn't support multiprocessing (for whatever reason).
-    logging.warning(_(
-        "Multiprocessing is not functional on this system.  "
-        "Threading for all async calls."))
-    CPU_ASYNC = ThreadedRunner() # Fake it using threads
-IO_ASYNC = ThreadedRunner()
 
 # Globals
 CMD = None # Will be overwritten by options.command
@@ -864,16 +855,6 @@ def kill_all_sessions(timeout=False):
                 if SESSIONS[session]["kill_session_callbacks"]:
                     for callback in SESSIONS[session]["kill_session_callbacks"]:
                         callback(session)
-
-@atexit.register
-def shutdown_async():
-    """
-    Shuts down our asynchronous processes/threads.  Specifically, calls
-    ``CPU_ASYNC.shutdown()`` and ``IO_ASYNC.shutdown()``.
-    """
-    logging.debug(_("Shutting down asynchronous processes/threads..."))
-    CPU_ASYNC.shutdown(wait=False)
-    IO_ASYNC.shutdown(wait=False)
 
 def timeout_sessions():
     """
@@ -4421,14 +4402,39 @@ def main(installed=True):
         os.close(tempfd2)
         if uid != os.getuid():
             drop_privileges(uid, gid, [tty_gid])
+        global CPU_ASYNC
+        global IO_ASYNC
+        IO_ASYNC = ThreadedRunner()
+        cores = go_settings.get('multiprocessing_workers')
         try:
-            CPU_ASYNC.call(noop, memoize=False)
-        except NotImplementedError:
+            cores = int(cores)
+        except TypeError:
+            cores = None
+        if cores == 0:
             logging.warning(_(
-                "Multiprocessing is not functional on this system.  "
-                "Threading for all async calls."))
-            global CPU_ASYNC
-            CPU_ASYNC = IO_ASYNC
+                "Multiprocessing is disabled.  Performance will be sub-optimal."
+            ))
+            CPU_ASYNC = IO_ASYNC # Use threading instead
+        else:
+            try:
+                CPU_ASYNC = MultiprocessRunner(max_workers=cores)
+                CPU_ASYNC.call(noop, memoize=False) # Perform a realistic test
+            except NotImplementedError:
+                # System doesn't support multiprocessing (for whatever reason).
+                logging.warning(_(
+                    "Multiprocessing is not functional on this system.  "
+                    "Threading for all async calls."))
+                CPU_ASYNC = IO_ASYNC # Fall back to using threading
+        @atexit.register
+        def shutdown_async():
+            """
+            Shuts down our asynchronous processes/threads.  Specifically, calls
+            ``CPU_ASYNC.shutdown()`` and ``IO_ASYNC.shutdown()``.
+            """
+            logging.debug(_("Shutting down asynchronous processes/threads..."))
+            if CPU_ASYNC != IO_ASYNC:
+                CPU_ASYNC.shutdown(wait=False)
+            IO_ASYNC.shutdown(wait=False)
         write_pid(go_settings['pid_file'])
         pid = read_pid(go_settings['pid_file'])
         logger.info(_("Process running with pid " + pid))

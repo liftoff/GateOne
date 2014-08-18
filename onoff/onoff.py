@@ -138,9 +138,65 @@ class OnOffMixin(object):
             self._on_off_events = {}
         if not hasattr(self, 'exc_info'):
             self.exc_info = None
+        # Replace this function with the *actual* function so we don't have to
+        # perform those hasattr() checks every time we trigger an event...
+        self.trigger = self._trigger
+        if logging.getLogger().level <= 10:
+            self.trigger = self._debug_trigger
+        self.trigger(events, *args, **kwargs) # Fire off the intended function
+
+    def _trigger(self, events, *args, **kwargs):
+        """
+        This is the actual trigger function.  It replaces
+        :meth:`OnOffMixin.trigger` on the first invokation.
+        """
+        if isinstance(events, (str, unicode)):
+            events = [events]
+        for event in events:
+            if event in self._on_off_events:
+                for callback_obj in self._on_off_events[event]:
+                    try:
+                        callback_obj['callback'](*args, **kwargs)
+                    except TypeError as e:
+                        self.exc_info = sys.exc_info() # Save it just in case
+                        if hasattr(callback_obj['callback'], '__name__'):
+                            logging.warning(
+                                "trigger() failed trying to call %s.  "
+                                "Attempting to call with automatic 'self' "
+                                "applied..." %
+                                callback_obj['callback'].__name__)
+                        try:
+                            callback_obj['callback'](self, *args, **kwargs)
+                            logging.warning(
+                                "You probably want to update your code to bind "
+                                "'self' to that function using "
+                                "functools.partial()")
+                        except TypeError as ee:
+                            # The callback in question had its own TypeError
+                            # Pass it on...
+                            raise self.exc_info[1], None, self.exc_info[2]
+                    callback_obj['calls'] += 1
+                    if callback_obj['calls'] == callback_obj['times']:
+                        self.off(event, callback_obj['callback'])
+
+    def _debug_trigger(self, events, *args, **kwargs):
+        """
+        This is the same function as :meth:`OnOffMixin.trigger` with additional
+        logging enabled.  Normally this method only gets used when debug
+        logging is enabled.
+        """
+        truncated_args = []
+        for arg in args:
+            if len(repr(arg)) > 100:
+                truncated_args.append(repr(arg)[:100] + '...')
+            else:
+                truncated_args.append(arg)
+        truncated_kwargs = {}
+        for key, value in kwargs.items():
+            truncated_kwargs.update({key: repr(value)[:100] + '...'})
         logging.debug(
             "OnOffMixin.triggering event(s): %s (args: %s, kwargs: %s)"
-            % (events, args, kwargs))
+            % (events, truncated_args, truncated_kwargs))
         if isinstance(events, (str, unicode)):
             events = [events]
         for event in events:

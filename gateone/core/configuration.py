@@ -549,6 +549,16 @@ def define_options(installed=True):
             "where Gate One lives is named something other than #gateone"),
         type=basestring
     )
+    define(
+        "multiprocessing_workers",
+        default=None,
+        group='gateone',
+        help=_(
+            "The number of processes to spawn use when using multiprocessing. "
+            "Default is: <number of cores> + 1.  Set to 0 to disable "
+            "multiprocessing."),
+        type=int
+    )
 
 def settings_template(path, **kwargs):
     """
