@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140817132238";
+GateOne.__commit__ = "20140817203554";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4591,6 +4591,7 @@ GateOne.Base.update(GateOne.Visual, {
             :resizable: If set to ``false`` the dialog will not be resizable (all dialogs are resizable by default).  Note that if a dialog may not be resized it will also not be maximizable.
             :maximizable: If set to ``false`` the dialog will not have a maximize icon.
             :minimizable: If set to ``false`` the dialog will not have a minimize icon.
+            :maximize: Open the dialog maximized.
             :above: If set to ``true`` the dialog will be kept above others.
             :data: (object) If given, any contained properties will be set as 'data-\*' attributes on the dialogContainer.
             :where: If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (`GateOne.node`) and will be movable anywhere on the page.
@@ -5025,6 +5026,9 @@ GateOne.Base.update(GateOne.Visual, {
         dialogToForeground();
         if (options && options['events'] && options['events']['opened']) {
             options['events']['opened'](dialogContainer);
+        }
+        if (options && options['maximize']) {
+            toggleMaximize(); // Open maximized
         }
         return closeDialog;
     },

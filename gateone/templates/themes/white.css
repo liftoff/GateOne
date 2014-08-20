@@ -683,7 +683,7 @@ potential conflicts with other classes that may be on the page.
     padding-right: 1.5em; /* Making room for the X */
     padding-left: 1.5em; /* Balancing it out so the title stays centered */
     padding-top: 0;
-    padding-bottom: .1em;
+    padding-bottom: 1px; /* To ensure the text doesn't touch the bottom */
     text-align: center;
     font-size: 0.9em;
     border-radius: 0.25em 0.25em 0 0;

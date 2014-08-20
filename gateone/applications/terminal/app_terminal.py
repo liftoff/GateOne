@@ -29,8 +29,7 @@ from gateone.core.configuration import get_settings, RUDict
 from gateone.core.utils import cmd_var_swap, json_encode
 from gateone.core.utils import mkdir_p, get_plugins
 from gateone.core.utils import process_opt_esc_sequence, bind, MimeTypeFail
-from gateone.core.utils import which
-from gateone.core.utils import short_hash, load_modules, create_data_uri
+from gateone.core.utils import short_hash, load_modules, create_data_uri, which
 from gateone.core.locale import get_translation
 from gateone.core.log import go_logger, string_to_syslog_facility
 from gateone.applications.terminal.logviewer import main as logviewer_main

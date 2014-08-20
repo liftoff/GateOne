@@ -559,6 +559,14 @@ def define_options(installed=True):
             "multiprocessing."),
         type=int
     )
+    define(
+        "configure",
+        default=False,
+        group='gateone',
+        help=_(
+            "Only configure Gate One (create SSL certs, conf.d, etc).  Do not"
+            "start any Gate One processes."),
+    )
 
 def settings_template(path, **kwargs):
     """
@@ -633,7 +641,7 @@ def generate_server_conf(installed=True):
     non_options = [
         # These are things that don't really belong in settings
         'new_api_key', 'help', 'kill', 'config', 'version', 'combine_css',
-        'combine_js', 'combine_css_container'
+        'combine_js', 'combine_css_container', 'configure'
     ]
     # Don't need non-options in there either:
     for non_option in non_options:
@@ -817,7 +825,7 @@ def apply_cli_overrides(go_settings):
     non_options = [
         # These are things that don't really belong in settings
         'new_api_key', 'help', 'kill', 'config', 'combine_js', 'combine_css',
-        'combine_css_container', 'version'
+        'combine_css_container', 'version', 'configure'
     ]
     for arg in list(sys.argv)[1:]:
         if not arg.startswith('-'):
@@ -947,7 +955,7 @@ def options_to_settings(options):
     ]
     non_options = [
         # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config', 'version'
+        'new_api_key', 'help', 'kill', 'config', 'version', 'configure'
     ]
     for key, value in options.items():
         if key in terminal_options:

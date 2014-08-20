@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140817132238" # Gets replaced by git (holds the date/time)
+__commit__ = "20140817203554" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3942,7 +3942,7 @@ def main(installed=True):
         try:
             mkdir_p(settings_dir)
         except:
-            logging.error(_(
+            print(_(
                "Could not find/create settings directory at %s" % settings_dir))
             sys.exit(1)
     try:
@@ -3964,6 +3964,16 @@ def main(installed=True):
             'enabled_applications', [])
         enabled_applications = [a.lower() for a in enabled_applications]
         go_settings = all_settings['*']['gateone']
+    elif 'log_file_prefix' not in ' '.join(sys.argv):
+        log_dir = os.path.dirname(options.log_file_prefix)
+        try:
+            mkdir_p(log_dir)
+        except:
+            print(_("Could not create log directory: %s" % log_dir))
+            print(_(
+                "You probably want to provide a different destination via "
+                "--log_file_prefix=/path/to/gateone.log"))
+            sys.exit(1)
     PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
     imported = load_modules(PLUGINS['py'])
     for plugin in imported:
@@ -3985,6 +3995,7 @@ def main(installed=True):
     # IOError exceptions from Tornado's parse_command_line() below...
     if [a for a in sys.argv[1:] if not a.startswith('-')]:
         options.log_file_prefix = None
+    # Make sure
     # Having parse_command_line() after loading applications in case an
     # application has additional calls to define().
     try:
@@ -4173,7 +4184,7 @@ def main(installed=True):
     user_locale = locale.get(go_settings['locale'])
     _ = user_locale.translate # Also replaces our wrapper so no more .encode()
     # Create the log dir if not already present (NOTE: Assumes we're root)
-    log_dir = os.path.split(go_settings['log_file_prefix'])[0]
+    log_dir = os.path.dirname(go_settings['log_file_prefix'])
     if options.logging.upper() != 'NONE':
         if not os.path.exists(log_dir):
             try:
@@ -4276,7 +4287,7 @@ def main(installed=True):
     # ones if not.
     if not go_settings['disable_ssl']:
         if not os.path.exists(go_settings['keyfile']):
-            ssl_base = os.path.split(go_settings['keyfile'])[0]
+            ssl_base = os.path.dirname(go_settings['keyfile'])
             if not os.path.exists(ssl_base):
                 try:
                     mkdir_p(ssl_base)
@@ -4288,7 +4299,7 @@ def main(installed=True):
             logging.info(_("No SSL private key found.  One will be generated."))
             gen_self_signed_ssl(path=ssl_base)
         if not os.path.exists(go_settings['certificate']):
-            ssl_base = os.path.split(go_settings['certificate'])[0]
+            ssl_base = os.path.dirname(go_settings['certificate'])
             logging.info(_("No SSL certificate found.  One will be generated."))
             gen_self_signed_ssl(path=ssl_base)
     # When logging=="debug" it will display all user's keystrokes so make sure
@@ -4345,6 +4356,9 @@ def main(installed=True):
                 " to authenticate all users.  It will only be able to "
                 "authenticate the user that owns the gateone.py process." %
                 go_settings['pam_service']))
+    if options.configure:
+        logger.info(_("Gate One has been configured."))
+        sys.exit(0)
     try: # Start your engines!
         if go_settings.get('enable_unix_socket', False):
             https_server.add_socket(
