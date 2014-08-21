@@ -387,7 +387,7 @@ go.Base.update(GateOne.Playback, {
                     frame = Math.round(t.terminals[term]['playbackFrames'].length * percent),
                     firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']),
                     lastFrame = t.terminals[term]['playbackFrames'].length - 1,
-                    lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']);
+                    lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']),
                     totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime(),
                     currentFrame = frame - 1,
                     selectedFrame = t.terminals[term]['playbackFrames'][currentFrame],

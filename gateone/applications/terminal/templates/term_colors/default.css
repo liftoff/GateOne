@@ -55,14 +55,14 @@ span.✈bf3 { color: #E9E900; } /* Bright Yellow */
 span.✈bf4 { color: #1B4CFF; } /* Bright Blue */
 span.✈bf5 { color: #E01DC6; } /* Bright Magenta */
 span.✈bf6 { color: #28AAA8; } /* Bright Cyan */
-span.✈bf7 { color: #eee; } /* Bright White (use this on dentures) */
+span.✈bf7 { color: #fff; } /* Bright White (use this on dentures) */
 span.✈bf0.✈bb1 { color: #000; background-color: #B21818; } /* Bright Black on Bright Red */
 span.✈bf0.✈bb2 { color: #000; background-color: #00E40C; } /* Bright Black on Bright Green */
 span.✈bf0.✈bb3 { color: #000; background-color: #FFFF00; } /* Bright Black on Bright Yellow */
 span.✈bf0.✈bb4 { color: #000; background-color: #1818B2; } /* Bright Black on Bright Blue */
 span.✈bf0.✈bb5 { color: #000; background-color: #B218B2; } /* Bright Black on Bright Magenta */
 span.✈bf0.✈bb6 { color: #000; background-color: #18B2B2; } /* Bright Black on Bright Cyan */
-span.✈bf0.✈bb7 { color: #000; background-color: #B2B2B2; } /* Bright Black on Bright White */
+span.✈bf0.✈bb7 { color: #000; background-color: #F0F0F0; } /* Bright Black on Bright White */
 /* 16-color ('Bright') Backgrounds */
 span.✈bb0  { background-color: #000; } /* Bright Black */
 span.✈bb1  { background-color: #B21818; } /* Bright Red */
@@ -71,7 +71,7 @@ span.✈bb3  { background-color: #FFFF00; } /* Bright Yellow */
 span.✈bb4  { background-color: #1818B2; } /* Bright Blue */
 span.✈bb5  { background-color: #B218B2; } /* Bright Magenta */
 span.✈bb6  { background-color: #18B2B2; } /* Bright Cyan */
-span.✈bb7  { background-color: #B2B2B2; } /* Bright White */
+span.✈bb7  { background-color: #F0F0F0; } /* Bright White */
 /* Reversed Foregrounds */
 span.✈reverse.✈bf0 { color: #000; background-color: #ccc; } /* Black */
 span.✈reverse.✈bf1 { color: #000; background-color: #D6292C; } /* Red */

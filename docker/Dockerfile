@@ -53,7 +53,7 @@ RUN apt-get -y \
     python-dev \
     git \
     openssh-client
-RUN pip install --upgrade futures tornado cssmin slimit
+RUN pip install --upgrade futures tornado cssmin slimit psutil
 
 # Free up some space:
 RUN apt-get -q -y autoremove
@@ -63,6 +63,7 @@ RUN mkdir -p /gateone/logs && \
     mkdir -p /gateone/users && \
     chown -R gateone:gateone /gateone && \
     mkdir -p /etc/gateone/conf.d && \
+    mkdir -p /etc/gateone/ssl && \
     chown -R gateone:gateone /etc/gateone
 
 # Clone the repo and install Gate One
@@ -73,9 +74,15 @@ RUN cd /gateone && \
     cp docker/update_and_run_gateone.py /usr/local/bin/update_and_run_gateone && \
     cp docker/99docker.conf /etc/gateone/conf.d/99docker.conf
 
-# This ensures our SSL certificates get created:
+# This ensures our configuration files/dirs are created:
 RUN /usr/local/bin/gateone --configure \
     --log_file_prefix="/gateone/logs/gateone.log"
+
+# Remove the auto-generated key/certificate so that a new one gets created the
+# first time the container is started:
+RUN rm -f /etc/gateone/ssl/key.pem && \
+    rm -f /etc/gateone/ssl/certificate.pem
+# (We don't want everyone using the same SSL key/certificate)
 
 EXPOSE 8000
 

@@ -2628,7 +2628,7 @@ go.Base.update(GateOne.Terminal, {
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(): ', message);
         var term = message['term'],
-            shareID = message['share_id'];
+            shareID = message.share_id;
         // This gets called when a terminal is moved from one 'location' to another.  When that happens we need to open it up like it's new...
         if (!go.prefs.embedded) {
             if (!go.Terminal.terminals[term]) {
@@ -2697,7 +2697,7 @@ go.Base.update(GateOne.Terminal, {
                 if (termNumbers.length) {
                     // Reattach the running terminals
                     termNumbers.forEach(function(termNum) {
-                        var shareID = terminals[termNum]['share_id'];
+                        var shareID = terminals[termNum].share_id;
                         if (!go.Terminal.terminals[termNum]) {
                             metadata = terminals[termNum]['metadata'] || {};
                             if (metadata['resumeEvent']) {
@@ -2707,7 +2707,7 @@ go.Base.update(GateOne.Terminal, {
                             }
                             go.Terminal.lastTermNumber = termNum;
                         }
-                        if (terminals[termNum]['share_id'] && !go.Terminal.terminals[termNum]['shareID']) {
+                        if (terminals[termNum].share_id && !go.Terminal.terminals[termNum]['shareID']) {
                             go.Terminal.terminals[termNum]['shareID'] = shareID;
                         }
                     });
@@ -3074,9 +3074,9 @@ go.Base.update(GateOne.Terminal, {
         .. note:: If a user is granted write permission to a terminal they will automatically be granted read permission.
         */
         logDebug('GateOne.Terminal.sharePermissions(): ', permissions);
-        var settings = {'term': term, 'read': permissions['read'], 'write': permissions['write'], 'password': permissions['password']};
-        if (permissions['broadcast'] !== undefined) {
-            settings['broadcast'] = permissions['broadcast'];
+        var settings = {'term': term, 'read': permissions.read, 'write': permissions['write'], 'password': permissions['password']};
+        if (permissions.broadcast !== undefined) {
+            settings['broadcast'] = permissions.broadcast;
         }
         go.ws.send(JSON.stringify({"terminal:permissions": settings}));
         E.trigger("terminal:permissions", settings);
@@ -3089,12 +3089,8 @@ go.Base.update(GateOne.Terminal, {
         var closeDialog, // Filled out below
             anonDesc = gettext('Anyone (Broadcast)'),
             authenticatedDesc = gettext('Authenticated Users'),
-            tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
-            td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
             container = u.createElement('div', {'class': '✈share_dialog'}),
-            tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight/3) + 'px'}}),
-            users = u.createElement('table', {'class': '✈share_users'}),
-            tbody = u.createElement('tbody'),
+            tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight / 3) + 'px'}}),
             shareIDExplanation = gettext("The Share ID is used to generate the broadcast URL."),
             shareIDLabel = u.createElement('label'),
             shareIDInput = u.createElement('input', {'type': 'text', 'id': 'share_id', 'class': '✈share_id', 'placeholder': 'Auto'}),
@@ -3107,6 +3103,20 @@ go.Base.update(GateOne.Terminal, {
             done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             newShareID = u.createElement('button', {'id': 'new_share_id', 'type': 'submit', 'value': 'New Sharing ID', 'title': gettext("Generate a new share ID (the last part of the broadcast URL)"), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             shareObj = go.Terminal.sharedTermObj(term),
+            writeCheckFunc = function() {
+                var read = this.parentNode.parentNode.querySelector('input[name="read"]');
+                if (this.checked) {
+                    read.checked = true;
+                }
+                apply.style.display = '';
+            },
+            readCheckFunc = function() {
+                var write = this.parentNode.parentNode.querySelector('input[name="write"]');
+                if (!this.checked) {
+                    write.checked = false;
+                }
+                apply.style.display = '';
+            },
             addUsers = function(userList) {
                 // Add the "Authenticated Users" and "Anonymous" rows first
                 var shareID = go.Terminal.shareID(term),
@@ -3123,6 +3133,7 @@ go.Base.update(GateOne.Terminal, {
                         ],
                         'table_attrs': {'class': '✈sharing_table'}
                     },
+                    user,
                     tableData = [],
                     table; // Assigned below
                 shareObj = go.Terminal.sharedTermObj(term); // Refresh it (just in case)
@@ -3134,10 +3145,10 @@ go.Base.update(GateOne.Terminal, {
                 }
                 userList.unshift(anonUsers);
                 userList.unshift(authenticatedUsers);
-                for (var user in userList) {
-                    var upn = userList[user]['upn'],
+                for (user in userList) {
+                    var upn = userList[user].upn,
                         upnSpan = u.createElement('span', {'class': '✈user_upn'}),
-                        ip = userList[user]['ip_address'] || '',
+                        ip = userList[user].ip_address || '',
                         readCheck = u.createElement('input', {'type': 'checkbox', 'name': 'read'}),
                         writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'}),
                         anon = false;
@@ -3150,13 +3161,7 @@ go.Base.update(GateOne.Terminal, {
                     } else if (upn == authenticatedDesc) {
                         if (anon) { continue; } // ANONYMOUS and AUTHENTICATED cannot co-exist
                     }
-                    writeCheck.addEventListener('click', function() {
-                        var read = this.parentNode.parentNode.querySelector('input[name="read"]');
-                        if (this.checked) {
-                            read.checked = true;
-                        }
-                        apply.style.display = '';
-                    }, false);
+                    writeCheck.addEventListener('click', writeCheckFunc, false);
                     if (upn == anonDesc) {
                         upn = "broadcast";
                         writeCheck.disabled = true;
@@ -3167,20 +3172,14 @@ go.Base.update(GateOne.Terminal, {
                     if (upn == authenticatedDesc) {
                         upn = "AUTHENTICATED";
                     }
-                    if (shareObj && shareObj['read'].indexOf(upn) != -1) {
+                    if (shareObj && shareObj.read.indexOf(upn) != -1) {
                         readCheck.checked = true;
                     }
-                    if (shareObj && shareObj['write'].indexOf(upn) != -1) {
+                    if (shareObj && shareObj.write.indexOf(upn) != -1) {
                         writeCheck.checked = true;
                     }
                     upnSpan.setAttribute('data-upn', upn);
-                    readCheck.addEventListener('click', function() {
-                        var write = this.parentNode.parentNode.querySelector('input[name="write"]');
-                        if (!this.checked) {
-                            write.checked = false;
-                        }
-                        apply.style.display = '';
-                    }, false);
+                    readCheck.addEventListener('click', readCheckFunc, false);
                     tableData.unshift([upnSpan, ip, readCheck, writeCheck]);
                 }
                 table = v.table(tableSettings, tableData);
@@ -3195,29 +3194,31 @@ go.Base.update(GateOne.Terminal, {
                 shareObj = go.Terminal.sharedTermObj(term); // Refresh it (just in case)
                 rows.forEach(function(row) {
                     var user = row.querySelector('.✈user_upn').getAttribute('data-upn'),
-                        read = row.querySelector('input[name="read"').checked,
+                        read = row.querySelector('input[name="read"]').checked,
                         write = row.querySelector('input[name="write"]').checked;
                     if (read) {
                         if (user == 'broadcast') {
                             // The "Anyone (Broadcast)" read checkbox is special:
-                            permissions['broadcast'] = true;
+                            permissions.broadcast = true;
                         } else {
-                            permissions["read"].push(user);
+                            permissions.read.push(user);
                         }
                     }
                     if (write) {
-                        permissions["write"].push(user);
+                        permissions.write.push(user);
                     }
                 });
-                if (!permissions['password'].length) {
-                    permissions['password'] = null;
+                if (!permissions.password.length) {
+                    permissions.password = null;
                 }
-                if (!permissions['broadcast'] && !permissions['read'].length && !permissions['write'].length) {
-                    shareObj['closeFunc'](); // Closes the widget
+                if (!permissions.broadcast && !permissions.read.length && !permissions.write.length) {
+                    if (shareObj) {
+                        shareObj.closeFunc(); // Closes the widget
+                    }
                     v.displayMessage(gettext("Terminal " + term + " is no longer shared."));
                     shareIDInput.value = '';
                 }
-                if (!permissions['broadcast']) {
+                if (!permissions.broadcast) {
                     broadcastURLInput.value = "";
                 }
                 go.Terminal.sharePermissions(term, permissions);
@@ -3233,7 +3234,7 @@ go.Base.update(GateOne.Terminal, {
         newShareID.onclick = function(e) {
             e.preventDefault();
             go.Terminal.setShareID(term);
-        }
+        };
         shareIDInput.title = shareIDExplanation;
         shareIDLabel.title = shareIDExplanation;
         shareIDInput.setAttribute('data-term', term);
@@ -3278,8 +3279,8 @@ go.Base.update(GateOne.Terminal, {
         broadcastURLLabel.htmlFor = prefix+"broadcast_url";
         passwordLabel.innerHTML = "Password:";
         passwordLabel.htmlFor = prefix+"share_password";
-        if (shareObj && shareObj['password']) {
-            password.value = shareObj['password'];
+        if (shareObj && shareObj.password) {
+            password.value = shareObj.password;
         }
         apply.innerHTML = "Apply";
         done.innerHTML = "Done";
@@ -3308,7 +3309,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var settings = {'term': term};
         if (shareID) {
-            settings['share_id'] = shareID;
+            settings.share_id = shareID;
         }
         go.ws.send(JSON.stringify({'terminal:new_share_id': settings}));
         setTimeout(function() {
@@ -3365,10 +3366,10 @@ go.Base.update(GateOne.Terminal, {
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             term, shareID, shareObj, widgetExists, closeFunc, dialogTerm, toolbarSharing, existing, nonOwnerShared;
         for (shareID in message['terminals']) {
-            if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID]['closeFunc']) {
+            if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID].closeFunc) {
                 // Preserve the existing widget closeFunc (if any)
-                closeFunc = go.Terminal.sharedTerminals[shareID]['closeFunc'];
-                message['terminals'][shareID]['closeFunc'] = closeFunc;
+                closeFunc = go.Terminal.sharedTerminals[shareID].closeFunc;
+                message['terminals'][shareID].closeFunc = closeFunc;
             }
         }
         go.Terminal.sharedTerminals = message['terminals'];
@@ -3540,7 +3541,7 @@ go.Base.update(GateOne.Terminal, {
         for (var user in viewers) {
             var upn = viewers[user]['upn'],
                 upnSpan = u.createElement('span', {'class': '✈user_upn'}),
-                ip = viewers[user]['ip_address'] || '',
+                ip = viewers[user].ip_address || '',
                 authenticatedCheck = u.createElement('input', {'type': 'checkbox', 'name': 'authenticated'}),
                 writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'}),
                 anon = false;
@@ -3599,7 +3600,7 @@ go.Base.update(GateOne.Terminal, {
         widgetContent.appendChild(viewersVal);
         widgetContent.appendChild(settings);
         closeFunc = v.widget('Terminal Sharing', widgetContent, {'onclose': endSharing, 'top': '0px', 'left': '85%', 'where': go.Terminal.terminals[term]['where']});
-        shareObj['closeFunc'] = closeFunc;
+        shareObj.closeFunc = closeFunc;
     },
     sharedTermObj: function(term) {
         /**:GateOne.Terminal.sharedTermObj(term)

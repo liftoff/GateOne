@@ -2156,6 +2156,8 @@ class TerminalApplication(GOApplication):
         from gateone.core.utils import random_words
         if 'term' not in settings:
             return # Invalid
+        if 'shared' not in self.ws.persist['terminal']:
+            return # Nothing to do
         term = int(settings.get('term', self.current_term))
         random_share_id = '-'.join(random_words(2))
         new_share_id = settings.get('share_id', random_share_id)
@@ -2487,7 +2489,7 @@ class TerminalApplication(GOApplication):
                 share_obj = share_dict
                 break # This is the share dict we want
         # Remove ourselves from the list of viewers for this terminal
-        for viewer in list(share_obj['viewers']):
+        for viewer in list(share_dict['viewers']):
             if viewer['client_id'] == self.ws.client_id:
                 share_obj['viewers'].remove(viewer)
         try:

@@ -6,4 +6,5 @@ GateOne.exportShortcuts = function() {
     window.v = GateOne.Visual;
     window.E = GateOne.Events;
     window.t = GateOne.Terminal;
+    window.gettext = GateOne.i18n.gettext;
 };

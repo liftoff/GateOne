@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140820214314";
+GateOne.__commit__ = "20140820215541";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -5921,11 +5921,16 @@ GateOne.Base.update(GateOne.User, {
             E.on("go:save_prefs", callback);
         }
     },
-    listUsers: function() {
-        /**:GateOne.User.listUsers()
+    listUsers: function(/*opt*/callback) {
+        /**:GateOne.User.listUsers([callback])
 
         Sends the `terminal:list_users` WebSocket action to the server which will reply with the `go:user_list` WebSocket action containing a list of all users that are currently connected.  Only users which are allowed to list users via the "list_users" policy will be able to perform this action.
+
+        If a *callback* is given it will be called with the list of users (once it arrives from the server).
         */
+        if (callback) {
+            E.once("go:user_list", callback);
+        }
         go.ws.send(JSON.stringify({"go:list_users": null}));
     },
     userListAction: function(userList) {
