@@ -445,6 +445,7 @@ potential conflicts with other classes that may be on the page.
     overflow-y: auto;
     padding-right: .4em;
     padding-top: .2em;
+    padding-bottom: .2em;
     padding-left: .4em;
     font-size: 1em;
     margin: 0.1em;

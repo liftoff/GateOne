@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140820204830";
+GateOne.__commit__ = "20140820205220";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1206,7 +1206,7 @@ GateOne.Base.update(GateOne.Utils, {
             node = u.getNode(elem);
         if (node) {
             display = node.getAttribute('data-original-display');
-            if (display) {
+            if (display && display != 'none') {
                 node.style.display = display;
                 node.removeAttribute('data-original-display');
             } else {
