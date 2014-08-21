@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140817203554" # Gets replaced by git (holds the date/time)
+__commit__ = "20140819220642" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3936,7 +3936,7 @@ def main(installed=True):
     settings_dir = options.settings_dir # Set the default
     for arg in sys.argv:
         if arg.startswith('--settings_dir'):
-            settings_dir = arg.split('=', 1)[1]
+            settings_dir = arg.split('=', 1)[1].strip('"').strip("'")
     if not os.path.isdir(settings_dir) and '--help' not in sys.argv:
         # Try to create it
         try:
@@ -3955,6 +3955,9 @@ def main(installed=True):
     cli_commands = {} # Holds CLI commands provided by plugins/applications
     cli_commands['broadcast'] = broadcast_message
     go_settings = {}
+    log_fail_msg = _(
+        "You probably want to provide a different destination via "
+        "--log_file_prefix=/path/to/gateone.log")
     if 'gateone' in all_settings['*']:
         # The check above will fail in first-run situations
         enabled_plugins = all_settings['*']['gateone'].get(
@@ -3964,15 +3967,26 @@ def main(installed=True):
             'enabled_applications', [])
         enabled_applications = [a.lower() for a in enabled_applications]
         go_settings = all_settings['*']['gateone']
+        if 'log_file_prefix' in go_settings:
+            if 'log_file_prefix' not in ' '.join(sys.argv):
+                log_path = go_settings['log_file_prefix']
+                if bytes == str: # Python 2
+                    log_path = log_path.encode('UTF-8') # Make it str
+                options.log_file_prefix = log_path
+                log_dir = os.path.dirname(go_settings['log_file_prefix'])
+                try:
+                    mkdir_p(log_dir)
+                except:
+                    print(_("Could not create log directory: %s" % log_dir))
+                    print(log_fail_msg)
+                    sys.exit(1)
     elif 'log_file_prefix' not in ' '.join(sys.argv):
-        log_dir = os.path.dirname(options.log_file_prefix)
+        log_dir = os.path.dirname(options.log_file_prefix) # Try the default
         try:
             mkdir_p(log_dir)
         except:
             print(_("Could not create log directory: %s" % log_dir))
-            print(_(
-                "You probably want to provide a different destination via "
-                "--log_file_prefix=/path/to/gateone.log"))
+            print(log_fail_msg)
             sys.exit(1)
     PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
     imported = load_modules(PLUGINS['py'])
@@ -4002,9 +4016,7 @@ def main(installed=True):
         commands = tornado.options.parse_command_line()
     except IOError:
         print(_("Could not write to the log: %s") % options.log_file_prefix)
-        print(_(
-            "You probably want to provide a different destination via "
-            "--log_file_prefix=/path/to/gateone.log"))
+        print(log_fail_msg)
         sys.exit(2)
     # NOTE: Here's how settings/command line args works:
     #       * The 'options' object gets set from the arguments on the command
@@ -4121,13 +4133,23 @@ def main(installed=True):
     except ValueError:
         import pwd
         # Assume it's a username and grab its uid
-        uid = pwd.getpwnam(go_settings['uid']).pw_uid
+        try:
+            uid = pwd.getpwnam(go_settings['uid']).pw_uid
+        except KeyError:
+            logger.error(_("The configured 'uid' ({0}) does not exist.").format(
+                go_settings['uid']))
+            sys.exit(1)
     try:
         gid = int(go_settings['gid'])
     except ValueError:
         import grp
         # Assume it's a group name and grab its gid
-        gid = grp.getgrnam(go_settings['gid']).gr_gid
+        try:
+            gid = grp.getgrnam(go_settings['gid']).gr_gid
+        except KeyError:
+            logger.error(_("The configured 'gid' ({0}) does not exist.").format(
+                go_settings['gid']))
+            sys.exit(1)
     if uid == 0 and os.getuid() != 0:
         # Running as non-root; set uid/gid to the current user
         logging.info(_("Running as non-root; will not drop privileges."))

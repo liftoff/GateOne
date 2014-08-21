@@ -400,7 +400,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).
         */
-        u.showElements('.✈pastearea');
+        setTimeout(function() {
+            u.showElements('.✈pastearea');
+        }, 50);
     },
     capture: function() {
         /**:GateOne.Terminal.Input.capture()

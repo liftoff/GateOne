@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140817203554";
+GateOne.__commit__ = "20140819220642";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1260,9 +1260,18 @@ GateOne.Base.update(GateOne.Utils, {
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
         elems.forEach(function(elem) {
-            var node = u.getNode(elem);
-            node.style.display = ''; // Reset
-            node.className = node.className.replace(/(?:^|\s)✈go_none(?!\S)/, '');
+            var node = u.getNode(elem),
+                display = node.getAttribute('data-original-display');
+            if (display) {
+                node.style.display = display;
+                node.removeAttribute('data-original-display');
+            } else {
+                // Fall back to using 'block'
+                node.style.display = 'block';
+                // NOTE: Commented this out because it doesn't appear to work anymore:
+//                 node.style.display = ''; // Reset
+            }
+            node.classList.remove('✈go_none');
         });
     },
     hideElements: function(elems) {
@@ -1279,11 +1288,16 @@ GateOne.Base.update(GateOne.Utils, {
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
         elems.forEach(function(elem) {
-            var node = u.getNode(elem);
-            node.style.display = 'none';
-            if (node.className.indexOf('✈go_none') == -1) {
-                node.className += " ✈go_none";
+            var node = u.getNode(elem),
+                display = node.getAttribute('data-original-display');
+            if (!display) {
+                display = getComputedStyle(node).display;
+                node.setAttribute('data-original-display', display);
             }
+            if (!node.classList.contains('✈go_none')) {
+                node.classList.add("✈go_none");
+            }
+            node.style.display = 'none';
         });
     },
     getSelText: function() {
