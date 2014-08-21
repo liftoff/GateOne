@@ -58,23 +58,20 @@ RUN pip install --upgrade futures tornado cssmin slimit
 # Free up some space:
 RUN apt-get -q -y autoremove
 
-# Create the volume mount point
-# Logs and user data get stored in the volume
+# Create the necessary directories
 RUN mkdir -p /gateone/logs && \
     mkdir -p /gateone/users && \
-    chown -R gateone:gateone /gateone
-
-# The 99docker.conf points the log_file_prefix and user_dir to the paths above
-ADD 99docker.conf /etc/gateone/conf.d/99docker.conf
+    chown -R gateone:gateone /gateone && \
+    mkdir -p /etc/gateone/conf.d && \
+    chown -R gateone:gateone /etc/gateone
 
 # Clone the repo and install Gate One
 RUN cd /gateone && \
     git clone $GATEONE_REPO_URL && \
     cd GateOne && \
-    python setup.py install
-
-# Copy our update script into the container
-ADD update_and_run_gateone.py /usr/local/bin/update_and_run_gateone
+    python setup.py install && \
+    cp docker/update_and_run_gateone.py /usr/local/bin/update_and_run_gateone && \
+    cp docker/99docker.conf /etc/gateone/conf.d/99docker.conf
 
 # This ensures our SSL certificates get created:
 RUN /usr/local/bin/gateone --configure \
