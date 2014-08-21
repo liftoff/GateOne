@@ -58,16 +58,14 @@ RUN pip install --upgrade futures tornado cssmin slimit psutil
 # Free up some space:
 RUN apt-get -q -y autoremove
 
-# Create the necessary directories
+# Create the necessary directories, clone the repo, and install everything
 RUN mkdir -p /gateone/logs && \
     mkdir -p /gateone/users && \
     chown -R gateone:gateone /gateone && \
     mkdir -p /etc/gateone/conf.d && \
     mkdir -p /etc/gateone/ssl && \
-    chown -R gateone:gateone /etc/gateone
-
-# Clone the repo and install Gate One
-RUN cd /gateone && \
+    chown -R gateone:gateone /etc/gateone && \
+    cd /gateone && \
     git clone $GATEONE_REPO_URL && \
     cd GateOne && \
     python setup.py install && \
