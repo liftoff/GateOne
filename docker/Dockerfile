@@ -72,7 +72,7 @@ RUN cd /gateone && \
     cd GateOne && \
     python setup.py install && \
     cp docker/update_and_run_gateone.py /usr/local/bin/update_and_run_gateone && \
-    cp docker/99docker.conf /etc/gateone/conf.d/99docker.conf
+    cp docker/60docker.conf /etc/gateone/conf.d/60docker.conf
 
 # This ensures our configuration files/dirs are created:
 RUN /usr/local/bin/gateone --configure \
