@@ -59,8 +59,7 @@ RUN pip install --upgrade futures tornado cssmin slimit psutil
 RUN apt-get -q -y autoremove
 
 # Create the necessary directories, clone the repo, and install everything
-RUN umask 022 && \
-    mkdir -p /gateone/logs && \
+RUN mkdir -p /gateone/logs && \
     mkdir -p /gateone/users && \
     chown -R gateone:gateone /gateone && \
     mkdir -p /etc/gateone/conf.d && \
