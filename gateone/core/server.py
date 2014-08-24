@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140821211010" # Gets replaced by git (holds the date/time)
+__commit__ = "20140823210207" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -893,29 +893,6 @@ def timeout_sessions():
             if SESSION_WATCHER:
                 SESSION_WATCHER.stop() # Stop ourselves
                 SESSION_WATCHER = None # So authenticate() will know to start it
-            # Reload gateone.py to free up memory (CPython can be a bit
-            # overzealous in keeping things cached).  In theory this isn't
-            # necessary due to Gate One's prodigous use of dynamic imports but
-            # in reality people will see an idle gateone.py eating up 30 megs of
-            # RAM and wonder, "WTF...  No one has connected in weeks."
-            if os.uname()[0] != "SunOS":
-                # For whatever reason neither of these methods work on Solaris
-                logger.info(_(
-                    "The last idle session has timed out. Reloading..."))
-                # These AsyncRunners need to be stopped for this to work...
-                if CPU_ASYNC != IO_ASYNC:
-                    CPU_ASYNC.shutdown(wait=False)
-                IO_ASYNC.shutdown(wait=False)
-                try:
-                    #os.execv(sys.executable, [sys.executable] + sys.argv)
-                    os.spawnv(os.P_NOWAIT, sys.executable,
-                        [sys.executable] + sys.argv)
-                except OSError:
-                    # Mac OS X versions prior to 10.6 do not support execv in
-                    # a process that contains multiple threads.
-                    os.spawnv(os.P_NOWAIT, sys.executable,
-                        [sys.executable] + sys.argv)
-                    sys.exit(0)
         for session in list(SESSIONS.keys()):
             if "last_seen" not in SESSIONS[session]:
                 # Session is in the process of being created.  We'll check it
