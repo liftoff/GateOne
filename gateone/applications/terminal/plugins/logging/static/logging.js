@@ -632,6 +632,7 @@ go.Base.update(GateOne.TermLogging, {
         Opens a new window displaying the (flat) log contained within *message* if there are no errors reported.
         */
         var l = go.TermLogging,
+            newWindow, goDiv, css, newContent,
             out = "",
             result = message['result'],
             logLines = message['log'],
@@ -641,10 +642,10 @@ go.Base.update(GateOne.TermLogging, {
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
-            var newWindow = window.open('', '_newtab'),
-                goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true),
-                css = u.getNodes('style'), // Grab em all
-                newContent = "<html><head><title>Gate One Log (Flat): " + metadata['filename'] + "</title></head><body></body></html>";
+            newWindow = window.open('', '_newtab');
+            goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true);
+            css = u.getNodes('style'); // Grab em all
+            newContent = "<html><head><title>Gate One Log (Flat): " + metadata['filename'] + "</title></head><body></body></html>";
             newWindow.focus();
             newWindow.document.write(newContent);
             newWindow.document.close();

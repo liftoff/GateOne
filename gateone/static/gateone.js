@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140821210919";
+GateOne.__commit__ = "20140821211010";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -574,6 +574,7 @@ var go = GateOne.Base.update(GateOne, {
             E = go.Events,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
+            gridwrapper, style, gridWidth, adjust, paddingRight,
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
             prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'✈panel ✈prefs_panel'}),
             prefsPanelH2 = u.createElement('h2'),
@@ -775,25 +776,23 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Create the workspace grid if not in embedded mode
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
-            var gridwrapper = u.getNode('#'+prefix+'gridwrapper');
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper');
             // Create the grid if it isn't already present
             if (!gridwrapper) {
                 gridwrapper = v.createGrid('gridwrapper');
                 goDiv.appendChild(gridwrapper);
-                var style = getComputedStyle(goDiv, null),
-                    adjust = 0,
-                    paddingRight = (style['padding-right'] || style['paddingRight']);
+                style = getComputedStyle(goDiv, null);
+                adjust = 0;
+                paddingRight = (style['padding-right'] || style['paddingRight']);
                 if (paddingRight) {
                     adjust = parseInt(paddingRight.split('px')[0]);
                 }
-                var gridWidth = (v.goDimensions.w+adjust) * 2;
+                gridWidth = (parseInt(style.width.split('px')[0]) + adjust) * 2;
                 gridwrapper.style.width = gridWidth + 'px';
             }
         }
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         E.on("go:panel_toggle:in", updateCSSfunc);
-        // Make sure the gridwrapper is the proper width for 2 columns
-        v.updateDimensions();
         // NOTE:  Application and plugin init() and postInit() functions will get called as part of the file sync process.
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         v.togglePanel(); // Scales them all away
@@ -801,12 +800,15 @@ var go = GateOne.Base.update(GateOne, {
             E.on("go:connection_established", function() {
                 // This is really for reconnect events
                 // If there's no workspaces make the new workspace workspace
-                var workspaces = u.getNodes('.✈workspace');
-                if (!workspaces.length) {v.newWorkspaceWorkspace();}
+                if (!u.getNodes('.✈workspace').length) {
+                    v.newWorkspaceWorkspace();
+                }
+                v.updateDimensions();
             });
             E.on("go:js_loaded", function(apps) {
                 if (!u.getNodes('.✈workspace').length) {
                     v.newWorkspaceWorkspace();
+                    v.updateDimensions();
                 }
             });
         }
@@ -1514,7 +1516,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
                 go.Visual.updateDimensions(); // In case the styles changed the size of text
                 go.node.removeEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
-                go.Events.trigger("go:css_loaded");
+                go.Events.trigger("go:css_loaded", message);
             };
         if (message['result'] == 'Success') {
             // This is for handling any given CSS file
@@ -2950,6 +2952,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             prefix = go.prefs.prefix,
             toolbarIconGrid = u.createElement('div', {'id': 'icon_grid', 'class': '✈toolbar_icon ✈icon_grid', 'title': "Grid View"}),
+            debouncedUpdateDimensions = u.debounce(go.Visual.updateDimensions, 250),
             gridToggle = function() {
                 v.toggleGridView(true);
             };
@@ -2961,8 +2964,7 @@ GateOne.Base.update(GateOne.Visual, {
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:switch_workspace', v.locationsCheck);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 250);
-        window.addEventListener('resize', go.Visual.updateDimensions, false);
+        window.addEventListener('resize', debouncedUpdateDimensions, false);
         document.addEventListener(visibilityChange, go.Visual.handleVisibility, false);
     },
     postInit: function() {
@@ -3400,27 +3402,45 @@ GateOne.Base.update(GateOne.Visual, {
         Sets :js:attr:`GateOne.Visual.goDimensions` to the current width/height of :js:attr:`GateOne.prefs.goDiv`.  Typically called when the browser window is resized.
 
             >>> GateOne.Visual.updateDimensions();
+
+        Also sends the "go:set_dimensions" WebSocket action to the server so that it has a reference of the client's width/height as well as information about the size of the goDiv (usually #gateone) element and the size of workspaces.
         */
         logDebug('updateDimensions()');
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
             goDiv = go.node,
+            prevWidth, prevHeight,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             rightAdjust = 0,
             style = getComputedStyle(goDiv, null),
-            sidebarWidth,
+            sidebarWidth = 0,
             paddingRight = (style['padding-right'] || style['paddingRight']);
         if (style['padding-right']) {
             var rightAdjust = parseInt(paddingRight.split('px')[0]);
+        }
+        if (v.goDimensions && v.goDimensions.w) {
+            prevWidth = v.goDimensions.w;
+            prevHeight = v.goDimensions.h;
         }
         v.goDimensions.w = parseInt(style.width.split('px')[0]);
         v.goDimensions.h = parseInt(style.height.split('px')[0]);
         if (!go.sideinfo.innerHTML.length) {
             go.sideinfo.innerHTML = "Gate One";
         }
-        sidebarWidth = go.toolbar.clientWidth || go.sideinfo.clientHeight;
+        if (u.isVisible(go.toolbar)) {
+            sidebarWidth = go.toolbar.clientWidth;
+        }
+        if (u.isVisible(go.sideinfo)) {
+            // Use whichever is wider
+            sidebarWidth = Math.max(sidebarWidth, go.sideinfo.clientHeight);
+            // NOTE: We use the clientHeight on the sideinfo because it is rotated sideways 90°
+        }
+        if (prevWidth == v.goDimensions.w && prevHeight == v.goDimensions.h) {
+            // Nothing changed so we don't need to proceed further
+            return;
+        }
         if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
             // Update the width of gridwrapper in case #gateone has padding
             wrapperDiv.style.width = ((v.goDimensions.w+rightAdjust)*2) + 'px';
@@ -3431,6 +3451,14 @@ GateOne.Base.update(GateOne.Visual, {
                 });
             }
         }
+        go.ws.send(JSON.stringify({
+            "go:set_dimensions": {
+                "gateone": {"width": v.goDimensions.w, "height": v.goDimensions.h},
+                "workspace": {"width": v.goDimensions.w - sidebarWidth, "height": v.goDimensions.h},
+                "window": {"width": window.innerWidth, "height": window.innerHeight},
+                "screen": {"width": screen.width, "height": screen.height}
+            }
+        }));
         go.Events.trigger("go:update_dimensions", v.goDimensions);
     },
     transitionEvent: function() {
@@ -3881,7 +3909,7 @@ GateOne.Base.update(GateOne.Visual, {
         gridwrapper.appendChild(workspaceNode);
         workspaceNode.focus();
         go.Events.trigger('go:new_workspace', workspaceNum);
-        setTimeout(go.Visual.updateDimensions, 2000);
+//         setTimeout(go.Visual.updateDimensions, 2000);
         return workspaceNode;
     },
     closeWorkspace: function(workspace, /*opt*/message) {
@@ -4619,17 +4647,13 @@ GateOne.Base.update(GateOne.Visual, {
             specialEvents = {'focused': true, 'opened': true, 'closed': true, 'moved': true, 'resized': true},
             dialogToForeground = function(e) {
                 // Move this dialog to the front of our array and fix all the z-index of all the dialogs
-                for (var i in v.dialogs) {
+                var i, origIndex = v.dialogs.indexOf(dialogContainer);
+                for (i in v.dialogs) {
                     if (dialogContainer == v.dialogs[i]) {
                         v.dialogs.splice(i, 1); // Remove it
                         i--; // Fix the index since we just changed it
                         v.dialogs.unshift(dialogContainer); // Bring to front
-                        dialogContainer.style.opacity = 1; // Make sure it is visible
-                        dialogContainer.classList.add('✈dialogactive');
-                        if (options && options['events'] && options['events']['focused']) {
-                            options['events']['focused'](dialogContainer);
-                        };
-                        if (options && options['noEsc']) {
+                        if (options && options.noEsc) {
                             ;;
                         } else {
                             // Make it so the user can press the ESC key to close the dialog
@@ -4645,8 +4669,17 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 }
                 // Set the z-index of each dialog to be its original z-index - its position in the array (should ensure the first item in the array has the highest z-index and so on)
-                for (var i in v.dialogs) {
-                    if (i != 0) {
+                for (i in v.dialogs) {
+                    if (i == 0) {
+                        dialogContainer.style.opacity = 1; // Make sure it is visible
+                        dialogContainer.classList.add('✈dialogactive');
+                        if (i != origIndex) {
+                            if (options && options.events && options.events.focused) {
+                                console.log('calling focus event on ', dialogContainer);
+                                options.events.focused(dialogContainer);
+                            }
+                        }
+                    } else {
                         // Set all non-foreground dialogs opacity to be slightly less than 1 to make the active dialog more obvious
                         v.dialogs[i].classList.remove('✈dialogactive');
                     }
@@ -4740,10 +4773,8 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                     newX = v.dragOrigin.dialogX + xMoved;
                     newY = v.dragOrigin.dialogY + yMoved;
-                    if (dialogContainer.dragging) {
-                        dialogContainer.style.left = newX + 'px';
-                        dialogContainer.style.top = newY + 'px';
-                    }
+                    dialogContainer.style.left = newX + 'px';
+                    dialogContainer.style.top = newY + 'px';
                     dialogToForeground(e);
                 } else if (dialogContainer.resizing) {
 //                     dialogContainer.className = '✈dialogcontainer';
@@ -4774,7 +4805,7 @@ GateOne.Base.update(GateOne.Visual, {
                         dialogContainer.opacityTemp = Math.min(parseFloat(dialogContainer.style.opacity) + 0.05, 1.0);
                     }
                     dialogContainer.style.opacity = dialogContainer.opacityTemp;
-                    if (options && !options['noTransitions']) {
+                    if (options && !options.noTransitions) {
                         setTimeout(function() {
                             v.enableTransitions(dialogContainer); // Turn them back on
                         }, 10);
@@ -4784,12 +4815,12 @@ GateOne.Base.update(GateOne.Visual, {
             toggleMaximize = function(e) {
                 dialogContainerStyle = getComputedStyle(dialogContainer, null); // Update with the latest info
                 var dialogDivStyle = getComputedStyle(dialogDiv, null);
-//                 if (options && !options['noTransitions']) {
+//                 if (options && !options.noTransitions) {
 //                     if (!dialogContainer.classList.contains('✈halfsectrans')) {
 //                         dialogContainer.classList.add('✈halfsectrans');
 //                     }
 //                 }
-                if (options && !options['noTransitions']) {
+                if (options && !options.noTransitions) {
                     v.enableTransitions(dialogContainer);
                 }
                 if (!dialogContainer.origWidth) {
@@ -4821,11 +4852,11 @@ GateOne.Base.update(GateOne.Visual, {
                 dialogToForeground(e);
                 // Maximizing counts as both moving *and* resizing
                 setTimeout(function() {
-                    if (options['events']['moved']) {
-                        options['events']['moved'](dialogContainer);
+                    if (options.events['moved']) {
+                        options.events['moved'](dialogContainer);
                     };
-                    if (options['events']['resized']) {
-                        options['events']['resized'](dialogContainer);
+                    if (options.events['resized']) {
+                        options.events['resized'](dialogContainer);
                     };
                 }, 550);
             },
@@ -4834,7 +4865,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
-                if (options && !options['noTransitions']) {
+                if (options && !options.noTransitions) {
                     v.enableTransitions(dialogContainer);
                 }
                 dialogContainer.style.opacity = 0;
@@ -4857,8 +4888,8 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 // Return focus to the previously-active element
                 prevActiveElement.focus();
-                if (options && options['events'] && options['events']['closed']) {
-                    options['events']['closed'](dialogContainer);
+                if (options && options.events && options.events['closed']) {
+                    options.events['closed'](dialogContainer);
                 }
             };
         // Keep track of all open dialogs so we can determine the foreground order
@@ -4894,7 +4925,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': '✈dialogcontainer ' + _class, 'style': style});
         dialogContainer.setAttribute('data-title', title);
-        if (options && options['noTransitions']) {
+        if (options && options.noTransitions) {
             v.disableTransitions(dialogContainer);
         }
         v.dialogs.push(dialogContainer);
@@ -4917,14 +4948,14 @@ GateOne.Base.update(GateOne.Visual, {
         // These have to be attached to document.body otherwise the dialogs will be constrained within #gateone which could just be a small portion of a larger web page.
         document.body.addEventListener("mousemove", moveResizeDialog, true);
         document.body.addEventListener("mouseup", function(e) {
-            if (options && options['events']) {
-                if (dialogContainer.dragging && options['events']['moved']) {
+            if (options && options.events) {
+                if (dialogContainer.dragging && options.events['moved']) {
                     // Fire the 'move' event
-                    options['events']['moved'](dialogContainer);
+                    options.events['moved'](dialogContainer);
                 }
-                if (dialogContainer.resizing && options['events']['resized']) {
+                if (dialogContainer.resizing && options.events['resized']) {
                     // Fire the 'resize' event
-                    options['events']['resized'](dialogContainer);
+                    options.events['resized'](dialogContainer);
                 }
             }
             dialogContainer.dragging = false;
@@ -4971,11 +5002,11 @@ GateOne.Base.update(GateOne.Visual, {
         if (resizable) {
             dialogContainer.appendChild(dragHandle);
         }
-        if (options && options['events']) {
+        if (options && options.events) {
             // Attach any given regular DOM events
-            for (var event in options['events']) {
+            for (var event in options.events) {
                 if (!specialEvents[event]) {
-                    dialogContainer.addEventListener(event, options['events'][event], false);
+                    dialogContainer.addEventListener(event, options.events[event], false);
                 }
             }
         }
@@ -5018,8 +5049,8 @@ GateOne.Base.update(GateOne.Visual, {
             }, 10);
         }, 1010);
         dialogToForeground();
-        if (options && options['events'] && options['events']['opened']) {
-            options['events']['opened'](dialogContainer);
+        if (options && options.events && options.events['opened']) {
+            options.events['opened'](dialogContainer);
         }
         if (options && options['maximize']) {
             toggleMaximize(); // Open maximized

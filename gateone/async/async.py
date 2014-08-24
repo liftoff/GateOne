@@ -33,7 +33,7 @@ _ = get_translation()
 # A global to old memoized results (so multiple instances can share)
 MEMO = {}
 PID = os.getpid() # So we can tell if we're in the parent process or not
-ONE_CALLS = {} # Tracks functions in progress for call_one()
+ONE_CALLS = {} # Tracks functions in progress for call_singleton()
 
 def restart_executor(fn):
     """
@@ -119,8 +119,8 @@ def _cleanup_queue(identifier, future=None):
 
 def _call_complete(self, identifier, f=None):
     """
-    Used by `AsyncRunner.call_one`; removes the given *identifier* from the
-    global `ONE_CALLS` dict if there are no more calls remaining.  Otherwise
+    Used by `AsyncRunner.call_singleton`; removes the given *identifier* from
+    the global `ONE_CALLS` dict if there are no more calls remaining.  Otherwise
     the call count will be decremented by one.
     """
     if identifier in ONE_CALLS and ONE_CALLS[identifier]['queue']:
@@ -133,7 +133,11 @@ def _call_complete(self, identifier, f=None):
             self.restart_shutdown_timeout()
             future = self.executor.submit(safe_call, function, *args, **kwargs)
             ONE_CALLS[identifier]['future'] = future
-            if callback:
+            exception = future.exception()
+            if exception:
+                logging.error(_("Exception in Future: %s (id: %s)")
+                    % (exception, identifier))
+            elif callback:
                 done_callback(future, lambda f: callback(f.result()))
             completed = partial(_cleanup_queue, identifier)
             done_callback(ONE_CALLS[identifier]['future'], completed)

@@ -53,7 +53,7 @@ RUN apt-get -y \
     python-dev \
     git \
     openssh-client
-RUN pip install --upgrade futures tornado cssmin slimit psutil
+RUN pip install --upgrade futures tornado cssmin slimit psutil ujson
 
 # Free up some space:
 RUN apt-get -q -y autoremove

@@ -10,7 +10,7 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140821210919" # Gets replaced by git (holds the date/time)
+__commit__ = "20140821211010" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -900,9 +900,16 @@ def timeout_sessions():
             # RAM and wonder, "WTF...  No one has connected in weeks."
             if os.uname()[0] != "SunOS":
                 # For whatever reason neither of these methods work on Solaris
-                logger.info(_("The last idle session has timed out. Reloading..."))
+                logger.info(_(
+                    "The last idle session has timed out. Reloading..."))
+                # These AsyncRunners need to be stopped for this to work...
+                if CPU_ASYNC != IO_ASYNC:
+                    CPU_ASYNC.shutdown(wait=False)
+                IO_ASYNC.shutdown(wait=False)
                 try:
-                    os.execv(sys.executable, [sys.executable] + sys.argv)
+                    #os.execv(sys.executable, [sys.executable] + sys.argv)
+                    os.spawnv(os.P_NOWAIT, sys.executable,
+                        [sys.executable] + sys.argv)
                 except OSError:
                     # Mac OS X versions prior to 10.6 do not support execv in
                     # a process that contains multiple threads.
@@ -1404,6 +1411,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:get_locations': self.get_locations,
             'go:set_location': self.set_location,
             'go:set_locale': self.set_locale,
+            'go:set_dimensions': self.set_dimensions,
             'go:debug': self.debug,
         }
         # Setup some instance-specific loggers that we can later update with
@@ -1417,7 +1425,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self._events = {}
         self.session = None # Just a placeholder; gets set in authenticate()
         self.locations = {} # Just a placeholder; gets set in authenticate()
-        self.location = None # Just a placeholder; gets set in authenticate()
+        self.location = "default" # Just a placeholder; gets set in authenticate()
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
@@ -2660,6 +2668,28 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:locations': location_data}
         self.write_message(message)
         self.trigger("go:get_locations")
+
+    @require(policies('gateone'))
+    def set_dimensions(self, dimensions):
+        """
+        Attached to the `go:set_dimensions` WebSocket action.  Sets
+        ``self.dimensions`` to the given *dimensions* which should be a dict::
+
+            {
+                "width": 1366,
+                "height": 768,
+                "workspace_width": 1337,
+                "workspace_height": 768
+            }
+
+        .. note::
+
+            The idea behind this mechanism is to give applications (e.g. X11) a
+            means to know how big things are at the client so it can size things
+            correctly before sending them to the client.
+        """
+        self.dimensions = dimensions
+        self.trigger("go:set_dimensions", dimensions)
 
     def render_style(self, style_path, force=False, **kwargs):
         """
