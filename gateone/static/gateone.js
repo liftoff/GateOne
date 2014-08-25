@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140823210207";
+GateOne.__commit__ = "20140823210437";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -675,8 +675,8 @@ var go = GateOne.Base.update(GateOne, {
             }
             if (disableTransitions) {
                 var newStyle = u.createElement('style', {'id': 'disable_transitions'});
-                newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-                u.getNode(goDiv).appendChild(newStyle);
+                newStyle.innerHTML = "#"+go.node.id+" * {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                document.body.appendChild(newStyle);
                 go.prefs.disableTransitions = true;
             } else {
                 var existing = u.getNode('#'+prefix+'disable_transitions');
@@ -3409,12 +3409,11 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-            goDiv = go.node,
             prevWidth, prevHeight,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             rightAdjust = 0,
-            style = getComputedStyle(goDiv, null),
+            style = getComputedStyle(go.node, null),
             sidebarWidth = 0,
             paddingRight = (style['padding-right'] || style['paddingRight']);
         if (style['padding-right']) {
@@ -4969,6 +4968,7 @@ GateOne.Base.update(GateOne.Visual, {
         dialogContainer.addEventListener(mousewheelevt, opacityControl, false);
         dialogContainer.dialogToForeground = dialogToForeground;
         dialogContainer.setTitle = setTitle;
+        dialogContainer.dialogTitle = dialogTitle; // So the height/width can be checked
         dialogContainer.style.opacity = 0;
         dialogContainer.opacityTemp = 1;
         setTimeout(function() {

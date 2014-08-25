@@ -314,9 +314,9 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
         # Convert to datetime object
         frame_time = datetime.fromtimestamp(frame_time/1000)
         if show_esc:
-            frame_time = frame_time.strftime(u'\x1b[0m%b %m %H:%M:%S')
+            frame_time = frame_time.strftime(u'\x1b[0m%b %d %H:%M:%S')
         else: # Renditions preserved == I want pretty.  Make the date bold:
-            frame_time = frame_time.strftime(u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
+            frame_time = frame_time.strftime(u'\x1b[0;1m%b %d %H:%M:%S\x1b[m')
         if not show_esc:
             term.write(frame[14:])
         if term.capture:
