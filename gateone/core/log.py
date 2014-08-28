@@ -85,7 +85,11 @@ class JSONAdapter(logging.LoggerAdapter):
             extra.update(kwargs.pop('metadata'))
         if extra:
             json_data = json.dumps(extra, sort_keys=True, ensure_ascii=False)
-            line = u'{json_data} {msg}'.format(json_data=json_data, msg=msg)
+            try:
+                line = u'{json_data} {msg}'.format(json_data=json_data, msg=msg)
+            except UnicodeDecodeError:
+                line = u'{json_data} {msg}'.format(
+                    json_data=json_data, msg=repr(msg))
         else:
             line = msg
         return (line, kwargs)

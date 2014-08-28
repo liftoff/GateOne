@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140823210437";
+GateOne.__commit__ = "20140825193132";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -140,7 +140,7 @@ GateOne.Base.module = function(parent, name, version, deps) {
     GateOne.loadedModules.push(module.__name__);
     return module;
 };
-GateOne.Base.dependencyTimeout = 15000; // 15 seconds
+GateOne.Base.dependencyTimeout = 30000; // 30 seconds
 GateOne.Base.dependencyRetries = {};
 GateOne.Base.superSandbox = function(name, dependencies, func) {
     /**:GateOne.Base.superSandbox(name, dependencies, func)
@@ -340,14 +340,14 @@ This object holds all of Gate One's preferences.  Both those things that are mea
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     goDiv: '#gateone', // Default element to place gateone inside.
-    keepaliveInterval: 15000, // How often we try to ping the Gate One server to check for a connection problem.
+    keepaliveInterval: 60000, // How often we try to ping the Gate One server to check for a connection problem.
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
     skipChecks: false, // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures).
     style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true.
     theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc).
-    pingTimeout: 5000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response).
+    pingTimeout: 10000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response).
     url: null // URL of the GateOne server.  Will default to whatever is in window.location.
 }
 GateOne.noSavePrefs = {
@@ -401,13 +401,30 @@ var go = GateOne.Base.update(GateOne, {
     ws: null, // Where our WebSocket gets stored
     savePrefsCallbacks: [], // DEPRECATED: For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
     restoreDefaults: function() {
-        // Restores all of Gate One's user-specific prefs to default values
-        GateOne.prefs = {
+        /**:GateOne.restoreDefaults()
+
+        Restores all of Gate One's user-specific prefs to default values.  Primarily used in debugging Gate One.
+        */
+        var go = GateOne;
+        go.prefs = {
+            auth: go.prefs.auth, // Preserve
+            authenticate: true,
+            embedded: go.prefs.embedded, // Preserve
+            fillContainer: go.prefs.fillContainer, // Preserve
+            fontSize: '100%',
+            goDiv: go.prefs.goDiv, // Preserve
+            keepaliveInterval: 60000,
+            prefix: go.prefs.prefix, // Preserve
+            showTitle: go.prefs.showTitle, // Preserve
+            showToolbar: go.prefs.showToolbar, // Preserve
+            skipChecks: go.prefs.skipChecks, // Preserve
+            style: go.prefs.style, // Preserve
             theme: 'black',
-            fontSize: '100%'
+            pingTimeout: 10000,
+            url: go.prefs.url // Preserve
         }
-        GateOne.Events.trigger('go:restore_defaults');
-        GateOne.Utils.savePrefs(true); // 'true' here skips the notification
+        go.Events.trigger('go:restore_defaults');
+        go.Utils.savePrefs(true); // 'true' here skips the notification
     },
     // This starts up GateOne using the given *prefs*
     init: function(prefs, /*opt*/callback) {
@@ -2411,12 +2428,14 @@ GateOne.Base.update(GateOne.Net, {
             clearTimeout(go.Net.pingTimeout);
             go.Net.pingTimeout = null;
         }
-        go.Net.pingTimeout = setTimeout(function() {
-            logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
-            if (go.ws.readyState == 1) { go.ws.close(); }
-            go.Net.connectionProblem = true;
-            go.Events.trigger('go:ping_timeout');
-        }, timeout);
+        if (timeout && timeout > 1000) { // minimum of a 1s timeout
+            go.Net.pingTimeout = setTimeout(function() {
+                logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
+                if (go.ws.readyState == 1) { go.ws.close(); }
+                go.Net.connectionProblem = true;
+                go.Events.trigger('go:ping_timeout');
+            }, timeout);
+        }
     },
     pong: function(timestamp) {
         /**:GateOne.Net.pong(timestamp)
@@ -2702,9 +2721,11 @@ GateOne.Base.update(GateOne.Net, {
                 // Log the latency of the Gate One server after everything has settled down
                 setTimeout(function() {go.Net.ping(true);}, 4000);
                 // Start our keepalive process to check for timeouts
-                go.Net.keepalivePing = setInterval(function() {
-                    go.Net.ping(false);
-                }, go.prefs.keepaliveInterval);
+                if (go.prefs.keepaliveInterval) {
+                    go.Net.keepalivePing = setInterval(function() {
+                        go.Net.ping(false);
+                    }, go.prefs.keepaliveInterval);
+                }
             }, 100);
         }
     },
@@ -3386,13 +3407,15 @@ GateOne.Base.update(GateOne.Visual, {
             heightDiff = go.node.clientHeight - go.toolbar.clientHeight,
             scrollbarAdjust = (go.Visual.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("setTitle(" + title + ")");
-        sideinfo.innerHTML = title;
-        // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-        v.applyTransform(sideinfo, "rotate(90deg)"); // This removes the 'scale()' and 'translateY()' portions (if present)
-        if (sideinfo.clientWidth > heightDiff) { // We have overlap
-            scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-            scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
-            v.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
+        if (sideinfo) {
+            sideinfo.innerHTML = title;
+            // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
+            v.applyTransform(sideinfo, "rotate(90deg)"); // This removes the 'scale()' and 'translateY()' portions (if present)
+            if (sideinfo.clientWidth > heightDiff) { // We have overlap
+                scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
+                scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
+                v.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
+            }
         }
         go.Events.trigger('go:set_title_action', title);
     },
@@ -4674,7 +4697,7 @@ GateOne.Base.update(GateOne.Visual, {
                         dialogContainer.classList.add('✈dialogactive');
                         if (i != origIndex) {
                             if (options && options.events && options.events.focused) {
-                                console.log('calling focus event on ', dialogContainer);
+//                                 console.log('calling focus event on ', dialogContainer);
                                 options.events.focused(dialogContainer);
                             }
                         }

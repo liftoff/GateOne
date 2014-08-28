@@ -9,8 +9,13 @@
 __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
+__license_info__ = {
+    "license": "AGPLv3",
+    "users": 0, # 0 being unlimited
+    "version": __version__
+}
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140823210437" # Gets replaced by git (holds the date/time)
+__commit__ = "20140825193132" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1389,6 +1394,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:set_location': self.set_location,
             'go:set_locale': self.set_locale,
             'go:set_dimensions': self.set_dimensions,
+            'go:license_info': self.license_info,
             'go:debug': self.debug,
         }
         # Setup some instance-specific loggers that we can later update with
@@ -3633,6 +3639,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 continue
         return tuple(out)
 
+    def license_info(self):
+        """
+        Returns the contents of the `__license_info__` dict to the client as
+        a JSON-encoded message.
+        """
+        self.write_message(__license_info__)
+
     @require(authenticated(), policies('gateone'))
     def debug(self):
         """
@@ -3927,10 +3940,41 @@ def set_license():
     license_path = os.path.join(GATEONE_DIR, '.license')
     if os.path.exists(license_path):
         with io.open(license_path, 'r', encoding='utf-8') as f:
-            license = f.read()
+            license = f.read().strip()
             if license:
+                import json
                 global __license__
-                __license__ = license.strip()
+                global __license_info__
+                try:
+                    license_info = json.loads(license)
+                except ValueError:
+                    pass # Invalid license
+                __license__ = "Commercial"
+                __license_info__ = license_info
+
+# TODO: Make this install in the settings_dir instead of the GATEONE_DIR so it persists after installation or re-installation
+def install_license(args=sys.argv):
+    """
+    Handles the 'install_license' CLI command.  Just installs the license at the
+    path given via `sys.argv[1]` (first argument after the 'install_license'
+    command).
+    """
+    install_path = os.path.join(GATEONE_DIR, '.license')
+    if len(args) < 1:
+        print("Usage: {0} /path/to/license.txt".format(sys.argv[0]))
+        sys.exit(1)
+    import shutil
+    license_path = os.path.expanduser(args[0]) # In case ~
+    license_path = os.path.expandvars(license_path) # In case $HOME (or similar)
+    if os.path.exists(install_path):
+        yesno = raw_input(_(
+            "A license file is already installed.  Are you sure you want to "
+            "replace it? (y/n) "))
+        if yesno not in ('yes', 'y', 'YES', 'Y'):
+            sys.exit(1)
+    shutil.copy(license_path, install_path)
+    print("{0} has been installed ({1})".format(license_path, install_path))
+    sys.exit(0)
 
 def main(installed=True):
     global _
@@ -3961,6 +4005,7 @@ def main(installed=True):
     enabled_applications = []
     cli_commands = {} # Holds CLI commands provided by plugins/applications
     cli_commands['broadcast'] = broadcast_message
+    cli_commands['install_license'] = install_license
     go_settings = {}
     log_fail_msg = _(
         "You probably want to provide a different destination via "
@@ -4132,6 +4177,17 @@ def main(installed=True):
             else:
                 cli_commands[command](commands[1:])
         sys.exit(0)
+    if __license__ == "AGPLv3":
+        agplv3_url = 'http://www.gnu.org/licenses/agpl-3.0.html'
+        logging.info("Gate One License: {0} ({1})".format(
+            __license__, agplv3_url))
+    else:
+        logging.info(
+            "Gate One License: {license} (Max Users: {users}, "
+            "Version: {version})".format(
+                license=__license_info__['license'],
+                users=__license_info__['users'],
+                version=__license_info__['license']))
     logging.info(_("Imported applications: {0}".format(
         ', '.join([a.info['name'] for a in APPLICATIONS]))))
     # Change the uid/gid strings into integers

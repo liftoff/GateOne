@@ -497,7 +497,7 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("terminal:term_closed", function(term) {
             // Check if the closed terminal belonged to someone else (shared) and tell the server to detach it if necessary
-            console.log("term_closed: " + term);
+            logDebug("term_closed: " + term);
         });
         // Open/Create our terminal database
         S.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
@@ -1532,7 +1532,7 @@ go.Base.update(GateOne.Terminal, {
                 count = 0,
                 X = e.clientX,
                 Y = e.clientY,
-                timeout = 500;
+                timeout = 50;
             if (pastearea.style.display != 'none') {
                 u.hideElement(pastearea);
                 go.Terminal.Input.pasteareaTemp = pastearea.onmousemove;

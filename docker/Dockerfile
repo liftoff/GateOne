@@ -45,7 +45,6 @@ RUN apt-get -y upgrade
 # Install dependencies
 RUN apt-get -y \
     install python-pip \
-    python-xpyb \
     python-imaging \
     python-setuptools \
     python-mutagen \

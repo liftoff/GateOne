@@ -326,6 +326,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             return;
         } else {
             go.Terminal.unHighlight();
+//             go.Terminal.Input.capture();
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             if (document.activeElement.classList && !document.activeElement.classList.contains('✈IME')) {
@@ -414,7 +415,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             selectedText = u.getSelText();
         if (!t.Input.inputNode) {
             t.Input.inputNode = u.createElement('textarea', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '0px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
-            go.node.appendChild(t.Input.inputNode);
+            document.body.appendChild(t.Input.inputNode);
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
             t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
@@ -423,9 +424,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (!t.Input.addedEventListeners) {
             t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
             t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
-            go.node.addEventListener('keydown', t.Input.onKeyDown, true);
-            go.node.addEventListener('keyup', t.Input.onKeyUp, true);
+            t.Input.inputNode.addEventListener('paste', t.Input.onPaste, false);
             t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
+            t.Input.inputNode.addEventListener('keydown', t.Input.onKeyDown, true);
+            t.Input.inputNode.addEventListener('keyup', t.Input.onKeyUp, true);
             terms.forEach(function(termNode) {
                 termNode.addEventListener('copy', t.Input.onCopy, false);
                 termNode.addEventListener('paste', t.Input.onPaste, false);
@@ -472,11 +474,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (t.Input.InputNode) {
             t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
             t.Input.inputNode.tabIndex = null;
+            t.Input.inputNode.removeEventListener('paste', t.Input.onPaste, false);
             t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
+            t.Input.inputNode.removeEventListener('keydown', t.Input.onKeyDown, true);
+            t.Input.inputNode.removeEventListener('keyup', t.Input.onKeyUp, true);
             u.hideElement(t.Input.inputNode);
         }
-        go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
-        go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
         terms.forEach(function(termNode) {
             termNode.removeEventListener('copy', t.Input.onCopy, false);
             termNode.removeEventListener('paste', t.Input.onPaste, false);
@@ -497,8 +500,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Attached to the 'paste' event on the terminal application container; converts pasted text to plaintext and sends it to the selected terminal.
         */
-        var goDiv = go.node;
-        logDebug("go.Terminal.Input.onPaste() goDiv registered paste event.");
+        logDebug("go.Terminal.Input.onPaste() registered paste event.");
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
         }
@@ -748,7 +750,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         }
                     }
                 } else { // Shift was held down
-                    if (t.Input.keyTable[key.string]['shift']) {
+                    if (key.string == 'KEY_INSERT') {
+                        t.paste(e);
+                    } else if (t.Input.keyTable[key.string]['shift']) {
                         q(t.Input.keyTable[key.string]['shift']);
                     // This allows the browser's native pgup and pgdown to scroll up and down when the shift key is held:
                     } else if (key.string == 'KEY_PAGE_UP') {
@@ -927,11 +931,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
     },
     handleVisibility: function(e) {
-        // Calls GateOne.Terminal.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
+        /**:GateOne.Terminal.handleVisibility(e)
+
+        Calls GateOne.Terminal.Input.capture() when the page becomes visible again *if* a terminal had focus before the document went invisible.
+        */
         if (!u.isPageHidden()) {
             // Page has become visibile again
             logDebug("Ninja Mode disabled.");
-            if (document.activeElement == go.node) {
+            if (document.activeElement.classList.contains('✈terminal')) {
                 // Gate One was active when the page became hidden
                 t.Input.capture(); // Resume keyboard input
             }
