@@ -882,23 +882,23 @@ go.Base.update(GateOne.Terminal, {
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
-//         infoContainer.addEventListener('mousemove', function(e) {
-//             u.removeElement(infoContainer);
-//             go.Terminal.switchTerminal(term);
-//         }, false);
+        infoContainer.addEventListener('mousemove', function(e) {
+            u.removeElement(infoContainer);
+            go.Terminal.switchTerminal(term);
+        }, false);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
             clearTimeout(v.infoTimer);
             v.infoTimer = null;
         }
-//         v.infoTimer = setTimeout(function() {
-//             if (!go.prefs.disableTransitions) {
-//                 v.applyStyle(infoContainer, {'opacity': 0});
-//             }
-//             setTimeout(function() {
-//                 u.removeElement(infoContainer);
-//             }, 1000);
-//         }, 1000);
+        v.infoTimer = setTimeout(function() {
+            if (!go.prefs.disableTransitions) {
+                v.applyStyle(infoContainer, {'opacity': 0});
+            }
+            setTimeout(function() {
+                u.removeElement(infoContainer);
+            }, 1000);
+        }, 1000);
     },
     sendDimensions: function(/*opt*/term, /*opt*/ctrl_l) {
         /**:GateOne.Terminal.sendDimensions([term[, ctrl_l]])
