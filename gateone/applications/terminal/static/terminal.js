@@ -389,6 +389,9 @@ go.Base.update(GateOne.Terminal, {
                     'action': 'GateOne.Terminal.popupTerm(null, {"global": false});' // May change to global: true later
                 });
             E.on("terminal:new_terminal", go.Terminal.showIcons);
+            E.on("go:ws_transitionend", function(wsNode) {
+                go.Terminal.alignTerminal();
+            });
         }
         // Load the bell sound from the cache.  If that fails ask the server to send us the file.
         if (go.prefs.bellSound.length) {
@@ -460,27 +463,30 @@ go.Base.update(GateOne.Terminal, {
             }, 1000);
             go.Terminal.Input.capture();
         });
-        E.on("go:update_dimensions", go.Terminal.onResizeEvent);
         E.on("go:connnection_established", go.Terminal.reconnectEvent);
         go.Terminal.loadFont();
         go.Terminal.loadTextColors();
-        E.on("go:js_loaded", function() {
-            // This ensures that whatever effects are applied to a terminal applied when resized too:
-            E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
-            if (!go.prefs.broadcastTerminal) {
-                go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
-                go.ws.send(JSON.stringify({'terminal:enumerate_commands': null}));
-                go.Terminal.listSharedTerminals();
-                if (cmdQueryString) {
-                    E.on("terminal:term_reattach", function(termNums, terminals) {
-                        if (!termNums.length) {
-                            go.Terminal.newTerminal(); // Open up a new terminal right away if the terminal_cmd query string is provided
-                        }
-                    });
+        E.on("go:css_loaded", function() {
+            if (!go.Terminal.loadEventsAttached) {
+                // This ensures that whatever effects are applied to a terminal applied when resized too:
+                E.on("go:update_dimensions", go.Terminal.onResizeEvent);
+                E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
+                if (!go.prefs.broadcastTerminal) {
+                    go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
+                    go.ws.send(JSON.stringify({'terminal:enumerate_commands': null}));
+                    go.Terminal.listSharedTerminals();
+                    if (cmdQueryString) {
+                        E.on("terminal:term_reattach", function(termNums, terminals) {
+                            if (!termNums.length) {
+                                go.Terminal.newTerminal(); // Open up a new terminal right away if the terminal_cmd query string is provided
+                            }
+                        });
+                    }
                 }
+                go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
+                go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
+                go.Terminal.loadEventsAttached = true;
             }
-            go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
-            go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
         });
         E.on("go:set_location", go.Terminal.changeLocation);
         E.on("terminal:resume_popup", function(term, termObj) {
@@ -876,23 +882,23 @@ go.Base.update(GateOne.Terminal, {
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
-        infoContainer.addEventListener('mousemove', function(e) {
-            u.removeElement(infoContainer);
-            go.Terminal.switchTerminal(term);
-        }, false);
+//         infoContainer.addEventListener('mousemove', function(e) {
+//             u.removeElement(infoContainer);
+//             go.Terminal.switchTerminal(term);
+//         }, false);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
             clearTimeout(v.infoTimer);
             v.infoTimer = null;
         }
-        v.infoTimer = setTimeout(function() {
-            if (!go.prefs.disableTransitions) {
-                v.applyStyle(infoContainer, {'opacity': 0});
-            }
-            setTimeout(function() {
-                u.removeElement(infoContainer);
-            }, 1000);
-        }, 1000);
+//         v.infoTimer = setTimeout(function() {
+//             if (!go.prefs.disableTransitions) {
+//                 v.applyStyle(infoContainer, {'opacity': 0});
+//             }
+//             setTimeout(function() {
+//                 u.removeElement(infoContainer);
+//             }, 1000);
+//         }, 1000);
     },
     sendDimensions: function(/*opt*/term, /*opt*/ctrl_l) {
         /**:GateOne.Terminal.sendDimensions([term[, ctrl_l]])
@@ -1155,6 +1161,9 @@ go.Base.update(GateOne.Terminal, {
         Uses a CSS3 transform to move the terminal <pre> element upwards just a bit so that the scrollback buffer isn't visislbe unless you actually scroll.  This improves the terminal's overall appearance considerably because the bottoms of characters in the scollback buffer tend to look like graphical glitches.
         */
         logDebug("alignTerminal("+term+")");
+        if (!term) { // Use currentTerm
+            term = localStorage[prefix+'selectedTerminal'];
+        }
         if (!go.Terminal.terminals[term]) {
             return; // Can happen if the terminal is closed immediately after being opened
         }
@@ -1270,7 +1279,7 @@ go.Base.update(GateOne.Terminal, {
                                 existingLine = existingPre.querySelector('.' + prefix + 'line_' + i),
                                 lineSpan = u.createElement('span', {'class': classes});
                             if (!existingLine) {
-                                lineSpan.innerHTML = screen[i];
+                                lineSpan.innerHTML = screen[i] + '\n';
                                 existingScreen.appendChild(lineSpan);
                                 // Update the existing screen array in-place to cut down on GC
                                 go.Terminal.terminals[term]['screen'][i] = screen[i];
@@ -2052,15 +2061,6 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.setActive(term);
         go.Terminal.setTitle(term, displayText);
         if (term == selectedTerm) {
-            // This call to alignTerminal is here because sometimes the terminal won't be aligned after loading the page (the call to alignTerminal can happen at the wrong time).
-            // If the alignment isn't necessary this call shouldn't disrupt anything (should be instantaneous).
-            if (go.Terminal.alignTimer) {
-                clearTimeout(go.Terminal.alignTimer);
-                go.Terminal.alignTimer = null;
-            }
-            go.Terminal.alignTimer = setTimeout(function() {
-                go.Terminal.alignTerminal(term);
-            }, 1050); // Just enough to debounce
             return true; // Nothing to do
         }
         logDebug('switchTerminal('+term+')');
@@ -2150,14 +2150,8 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
+        go.User.setActiveApp('Terminal');
         go.Terminal.displayTermInfo(term);
-        if (go.Terminal.alignTimer) {
-            clearTimeout(go.Terminal.alignTimer);
-            go.Terminal.alignTimer = null;
-        }
-        go.Terminal.alignTimer = setTimeout(function() {
-            go.Terminal.alignTerminal(term);
-        }, 1050); // Just enough to debounce
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Terminal.switchWorkspaceEvent(workspace)
@@ -2691,7 +2685,7 @@ go.Base.update(GateOne.Terminal, {
         if (go.Terminal.reattachTerminalsCallbacks.length || "term_reattach" in E.callbacks) {
             reattachCallbacks = true;
         }
-        // This is wrapped in a super short timeout so the message above will get displayed while it takes place (otherwise the browser will pause while it thinks really hard and then shows the message *and* brings up the terminals at the same time)
+        // This is wrapped in a timeout so the message above will get displayed while it takes place (otherwise the browser will pause while it thinks really hard and then shows the message *and* brings up the terminals at the same time)
         setTimeout(function() {
             if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
                 if (termNumbers.length) {
@@ -2721,7 +2715,7 @@ go.Base.update(GateOne.Terminal, {
                     callback(termNumbers);
                 });
             }
-        }, 50);
+        }, 1050);
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

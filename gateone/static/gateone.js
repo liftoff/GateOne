@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140825193132";
+GateOne.__commit__ = "20140827234108";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -178,6 +178,7 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
     */
 //     console.log('superSandbox('+name+')');
     var missingDependency = false,
+        exceptionMsg = "Exception calling dependency function",
         getType = {}, // Only used to check if an object is a function
         getParent = function(parent, depArray) {
             // Returns the final parent object if it can be found in `window`.  Otherwise returns `false`.
@@ -216,10 +217,19 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
                 if (!dependency()) {
                     dependencyFailure();
                 } else {
-//                     console.log("Dependency check succeeded!");
+                    if (GateOne.Logging && GateOne.Logging.logDebug) {
+                        GateOne.Logging.logDebug("Dependency check function for "+dependency+" succeeded!");
+                    } else {
+                        // Only uncomment this if you need to debug this functionality (noisy!)
+//                         console.log("Dependency check function for "+dependency+" succeeded!");
+                    }
                 }
             } catch (e) {
-                console.log("Exception calling dependency function", e);
+                if (GateOne.Logging && GateOne.Logging.logError) {
+                    GateOne.Logging.logError(exceptionMsg, e);
+                } else {
+                    console.log(exceptionMsg, e);
+                }
                 dependencyFailure();
             }
         }
@@ -3500,8 +3510,8 @@ GateOne.Base.update(GateOne.Visual, {
                 'MozTransition':'transitionend',
                 'WebkitTransition':'webkitTransitionEnd'
             };
-        for(t in transitions){
-            if( el.style[t] !== undefined ){
+        for (t in transitions){
+            if(el.style[t] !== undefined) {
                 return transitions[t];
             }
         }
@@ -3542,7 +3552,8 @@ GateOne.Base.update(GateOne.Visual, {
             >>> GateOne.Visual.applyTransform(GateOne.node, 'translateX(-2%)', function() { GateOne.Visual.applyTransform(GateOne.node, 'translateX(2%)') }, function() { GateOne.Visual.applyTransform(GateOne.node, ''); }, function() { console.log('transition chain complete'); });
         */
 //         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');
-        var transforms = {
+        var u = go.Utils,
+            transforms = {
                 '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
                 '-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
                 '-o-transform': '', // Opera
@@ -3563,9 +3574,9 @@ GateOne.Base.update(GateOne.Visual, {
                     };
                 node.addEventListener(go.Visual.transitionEvent(), next, false);
             };
-        if (go.Utils.isNodeList(obj) || go.Utils.isHTMLCollection(obj) || go.Utils.isArray(obj)) {
-            go.Utils.toArray(obj).forEach(function(node) {
-                node = go.Utils.getNode(node);
+        if (u.isNodeList(obj) || u.isHTMLCollection(obj) || u.isArray(obj)) {
+            u.toArray(obj).forEach(function(node) {
+                node = u.getNode(node);
                 for (var prefix in transforms) {
                     node.style[prefix] = transform;
                 }
@@ -3576,8 +3587,8 @@ GateOne.Base.update(GateOne.Visual, {
                     chain(node);
                 }
             });
-        } else if (typeof(obj) == 'string' || go.Utils.isElement(obj)) {
-            var node = go.Utils.getNode(obj); // Doesn't hurt to pass a node to getNode
+        } else if (typeof(obj) == 'string' || u.isElement(obj)) {
+            var node = u.getNode(obj); // Doesn't hurt to pass a node to getNode
             for (var prefix in transforms) {
                 node.style[prefix] = transform;
             }
@@ -4030,6 +4041,21 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
     },
+    _slideEndForeground: function(e) {
+        var v = go.Visual;
+        e.target.removeEventListener(v.transitionEndName, v._slideEndForeground, false);
+        v.disableTransitions(e.target);
+        v.applyTransform(e.target, 'translate(0px, 0px)');
+        e.target.style.display = ''; // Reset
+        v.transitioning = false;
+        GateOne.Events.trigger("go:ws_transitionend", e.target);
+    },
+    _slideEndBackground: function(e) {
+        var v = GateOne.Visual;
+        e.target.removeEventListener(v.transitionEndName, v._slideEndBackground, false);
+        v.disableTransitions(e.target);
+        e.target.style.display = 'none';
+    },
     slideToWorkspace: function(workspace) {
         /**:GateOne.Visual.slideToWorkspace(workspace)
 
@@ -4045,7 +4071,8 @@ GateOne.Base.update(GateOne.Visual, {
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             rightAdjust = 0,
             bottomAdjust = 0,
-            timeToSwitch = 1000;
+            timeToSwitch = 1000,
+            transitionEnd = v.transitionEndName;
         // Reset the grid so that all workspace are in their default positions before we do the switch
         if (!v.noReset) {
             v.resetGrid(true);
@@ -4053,6 +4080,7 @@ GateOne.Base.update(GateOne.Visual, {
             v.noReset = false; // Reset the reset :)
         }
         setTimeout(function() { // This is wrapped in a 1ms timeout to ensure the browser applies it AFTER the first set of transforms are applied.  Otherewise it will happen so fast that the animation won't take place.
+            v.transitioning = true;
             workspaces.forEach(function(wsNode) {
                 v.enableTransitions(wsNode);  // Turn animations back on in preparation for the next step
                 // Calculate all the width and height adjustments so we know where to move them
@@ -4068,34 +4096,18 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             });
             workspaces.forEach(function(wsNode) {
+                wsNode.removeEventListener(transitionEnd, v._slideEndBackground, false); // In case already attached
+                wsNode.removeEventListener(transitionEnd, v._slideEndForeground, false); // In case already attached
                 // Move each workspace into position
                 if (wsNode.id == prefix + 'workspace' + workspace) { // Apply to the workspace we're switching to
+                    wsNode.addEventListener(transitionEnd, v._slideEndForeground, false);
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
                 } else {
+                    wsNode.addEventListener(transitionEnd, v._slideEndBackground, false);
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
                 }
             });
         }, 1);
-        // Now hide everything but the workspace in the primary view
-        if (v.hiddenWorkspacesTimer) {
-            clearTimeout(v.hiddenWorkspacesTimer);
-            v.hiddenWorkspacesTimer = null;
-        }
-        if (go.prefs.disableTransitions) {
-            timeToSwitch = 2;
-        }
-        v.hiddenWorkspacesTimer = setTimeout(function() {
-            workspaces.forEach(function(wsNode) {
-                v.disableTransitions(wsNode);
-                if (wsNode.id == prefix + 'workspace' + workspace) {
-                    // This will be the only visible workspace so we need it front and center...
-                    v.applyTransform(wsNode, 'translate(0px, 0px)');
-                    wsNode.style.display = ''; // Reset
-                } else {
-                    wsNode.style.display = 'none';
-                }
-            });
-        }, timeToSwitch); // NOTE:  This is 1s based on the assumption that the CSS has the transition configured to take 1s.
     },
     stopIndicator: function(direction) {
         /**:GateOne.Visual.stopIndicator(direction)
@@ -5765,6 +5777,7 @@ window.GateOne = GateOne; // Make everything usable
 var go = GateOne,
     u = go.Utils,
     v = go.Visual,
+    U, // Set below
     prefix = go.prefs.prefix,
     gettext = go.i18n.gettext;
 
@@ -5775,26 +5788,28 @@ var logFatal = go.Logging.logFatal,
     logInfo = go.Logging.logInfo,
     logDebug = go.Logging.logDebug;
 
-GateOne.Base.module(GateOne, "User", "1.2", ['Base', 'Utils', 'Visual']);
+U = GateOne.Base.module(GateOne, "User", "1.2", ['Base', 'Utils', 'Visual']);
 /**:GateOne.User
 
 The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.
+
+The following WebSocket actions are attached to functions provided by `GateOne.User`:
+
+    ===================  ==========================================
+    Action               Function
+    ===================  ==========================================
+    `go:gateone_user`    :js:func:`GateOne.User.storeSessionAction`
+    `go:set_username`    :js:func:`GateOne.User.setUsernameAction`
+    `go:applications`    :js:func:`GateOne.User.applicationsAction`
+    `go:user_list`       :js:func:`GateOne.User.userListAction`
+    ===================  ==========================================
 */
-GateOne.User.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
+U.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
 GateOne.Base.update(GateOne.User, {
     init: function() {
         /**:GateOne.User.init()
 
-        Adds the user's ID (aka UPN) to the prefs panel along with a logout link.  Also registers the following WebSocket actions:
-
-            ===================  ==========================================
-            Action               Function
-            ===================  ==========================================
-            `go:gateone_user`    :js:func:`GateOne.User.storeSessionAction`
-            `go:set_username`    :js:func:`GateOne.User.setUsernameAction`
-            `go:applications`    :js:func:`GateOne.User.applicationsAction`
-            `go:user_list`       :js:func:`GateOne.User.userListAction`
-            ===================  ==========================================
+        Adds the user's ID (aka UPN) to the prefs panel along with a logout link.
         */
         // prefix gets changed inside of GateOne.initialize() so we need to reset it
         prefix = go.prefs.prefix;
@@ -5816,6 +5831,34 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserLogout.insertAdjacentHTML("beforeBegin", "(");
             prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         }
+        go.Events.on('go:switch_workspace', U.workspaceApp);
+    },
+    workspaceApp: function(workspace) {
+        /**:GateOne.User.workspaceApp(workspace)
+
+        Attached to the 'go:switch_workspace' event; sets :js:attr:`GateOne.User.activeApplication` to whatever application is attached to the ``data-application`` attribute on the provided *workspace*.
+        */
+        var workspaceNode = u.getNode('#'+prefix+'workspace'+workspace),
+            app;
+        if (workspaceNode) {
+            app = workspaceNode.getAttribute('data-application');
+            if (app) { U.setActiveApp(app); }
+        }
+    },
+    setActiveApp: function(app) {
+        /**:GateOne.User.setActiveApp(app)
+
+        Sets :js:attr:`GateOne.User.activeApplication` the given *app*.
+
+        .. note:: The *app* argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside GateOne.User.applications).
+        */
+        logDebug('setActiveApp(): ' + app);
+        U.applications.forEach(function(appObj) {
+            if (appObj.name.toLowerCase() == app.toLowerCase()) {
+                app = appObj.name;
+            }
+        });
+        U.activeApplication = app;
     },
     setUsernameAction: function(username) {
         /**:GateOne.User.setUsernameAction(username)
@@ -6002,12 +6045,12 @@ go.Net.addAction('go:set_username', go.User.setUsernameAction);
 go.Net.addAction('go:applications', go.User.applicationsAction);
 go.Net.addAction('go:user_list', go.User.userListAction);
 
-GateOne.Base.module(GateOne, "Events", '1.0', ['Base', 'Utils']);
+var E = GateOne.Base.module(GateOne, "Events", '1.0', ['Base', 'Utils']);
 /**:GateOne.Events
 
 An object for event-specific stuff.  Inspired by Backbone.js Events.
 */
-GateOne.Events.callbacks = {};
+E.callbacks = {};
 GateOne.Base.update(GateOne.Events, {
     on: function(events, callback, context, times) {
         /**:GateOne.Events.on(events, callback[, context[, times]])
@@ -6036,7 +6079,6 @@ GateOne.Base.update(GateOne.Events, {
             >>> GateOne.Events.trigger("test_event", 'an argument');
             args: an argument, this.foo: bar
         */
-        var E = GateOne.Events;
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event],
                 callObj = {
@@ -6065,7 +6107,7 @@ GateOne.Base.update(GateOne.Events, {
 
             >>> GateOne.Events.off("new_terminal", someFunction);
         */
-        var E = GateOne.Events, eventList, i, n;
+        var eventList, i, n;
         if (!arguments.length) {
             E.callbacks = {}; // Clear all events/callbacks
         } else {
@@ -6103,7 +6145,7 @@ GateOne.Base.update(GateOne.Events, {
 
         A shortcut that performs the equivalent of ``GateOne.Events.on(events, callback, context, 1)``.
         */
-        return GateOne.Events.on(events, callback, context, 1);
+        return E.on(events, callback, context, 1);
     },
     trigger: function(events) {
         /**:GateOne.Events.trigger(events)
@@ -6118,8 +6160,7 @@ GateOne.Base.update(GateOne.Events, {
             >>> GateOne.Events.trigger("new_terminal", 1);
         */
         logDebug("Triggering " + events);
-        var E = GateOne.Events,
-            args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
+        var args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event];
             if (!callList) {
@@ -6131,13 +6172,14 @@ GateOne.Base.update(GateOne.Events, {
                 // NOTE: This deprecated check will go away eventually!
                 if (callList) {
                     // Warn about this being deprecated
-                    GateOne.Logging.deprecated("Event: " + event, "Events now use prefixes such as 'go:' or 'terminal:'.");
+                    go.Logging.deprecated("Event: " + event, "Events now use prefixes such as 'go:' or 'terminal:'.");
                 }
             }
             if (callList) {
                 callList.forEach(function(callObj) {
                     var context = callObj.context || this;
                     if (callObj.callback) {
+                        logDebug("trigger(): Calling ", callObj);
                         callObj.callback.apply(context, args);
                         if (callObj.times) {
                             callObj.times -= 1;

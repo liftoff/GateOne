@@ -475,8 +475,7 @@
         embedded: true,
         goDiv: '#gateone6',
         prefix: 'go6_',
-        logLevel: 'DEBUG',
-        style: {'display': 'none'} // Don't need to see it.  Terminals will go elsewhere.
+        logLevel: 'DEBUG'
     }, newExternalTerminal); // Did you know GateOne.init() takes a callback?
     // The callback will be called after Gate One is initialized.
             </code></pre>
@@ -771,8 +770,7 @@ document.querySelector('#go_embed6').onsubmit = function(e) {
         embedded: true,
         goDiv: '#gateone6',
         prefix: 'go6_',
-        logLevel: 'DEBUG',
-        style: { 'display': 'none' }
+        logLevel: 'DEBUG'
     }, newExternalTerminal);
     GateOne.Net.reauthenticate = reauthenticate;
 }

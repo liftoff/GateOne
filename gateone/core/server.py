@@ -15,7 +15,7 @@ __license_info__ = {
     "version": __version__
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140825193132" # Gets replaced by git (holds the date/time)
+__commit__ = "20140827234108" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1761,23 +1761,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if hasattr(self, 'set_nodelay'):
             # New feature of Tornado 3.1 that can reduce latency:
             self.set_nodelay(True)
-        #origin = origin.lower() # hostnames are case-insensitive
-        #origin = origin.split('://', 1)[1]
-        #self.origin = origin
         client_address = self.request.remote_ip
         logging.debug("open() origin: %s" % self.origin)
-        #if not self.valid_origin(origin):
-            #self.origin_denied = True
-            #denied_msg = _('Access denied for origin: %s') % origin
-            #auth_log.error(denied_msg)
-            #self.write_message(denied_msg)
-            #self.write_message(_(
-                #"If you feel this is incorrect you just have to add '%s' to"
-                #" the 'origins' option in your Gate One settings (e.g. "
-                #"inside your 10server.conf).  See the docs for details.")
-                #% origin)
-            #self.close()
-            #return
         self.origin_denied = False
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
@@ -2099,7 +2084,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             ))
             self.write_message(json_encode(reauth))
             return False
-        upn = auth_obj['upn']
+        upn = str(auth_obj['upn'])
         timestamp = str(auth_obj['timestamp']) # str in case integer
         signature = auth_obj['signature']
         signature_method = auth_obj['signature_method']
@@ -2136,6 +2121,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             secret, api_key, upn, timestamp, hmac_algo=hmac_algo)
         if sig_check != signature:
             self.auth_log.error(_('API AUTH: Signature check failed.'))
+            self.auth_log.error(_('Got signature: {0}, expected: {1}').format(
+                repr(signature), repr(sig_check)))
             self.write_message(json_encode(reauth))
             return False
         # Everything matches (great!) so now we do due diligence

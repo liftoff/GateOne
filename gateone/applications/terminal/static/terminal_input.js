@@ -326,7 +326,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             return;
         } else {
             go.Terminal.unHighlight();
-//             go.Terminal.Input.capture();
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             if (document.activeElement.classList && !document.activeElement.classList.contains('✈IME')) {
@@ -399,11 +398,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     onCopy: function() {
         /**:GateOne.Terminal.Input.onCopy()
 
-        Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).
+        Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).  Also displays a message to the user letting them know that the text was copied successfully (because having your highlighted text suddenly disappear isn't that intuitive).
         */
-        setTimeout(function() {
-            u.showElements('.✈pastearea');
-        }, 50);
+        if (go.User.activeApplication == 'Terminal') {
+            setTimeout(function() {
+                u.showElements('.✈pastearea');
+            }, 50);
+            v.displayMessage("Text copied to clipboard.");
+        }
     },
     capture: function() {
         /**:GateOne.Terminal.Input.capture()
@@ -415,7 +417,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             selectedText = u.getSelText();
         if (!t.Input.inputNode) {
             t.Input.inputNode = u.createElement('textarea', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '0px', 'autocapitalize': 'off', 'autocomplete': 'off', 'autocorrect': 'off', 'spellcheck': 'false'}});
-            document.body.appendChild(t.Input.inputNode);
+            go.node.appendChild(t.Input.inputNode);
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
             t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
@@ -428,6 +430,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
             t.Input.inputNode.addEventListener('keydown', t.Input.onKeyDown, true);
             t.Input.inputNode.addEventListener('keyup', t.Input.onKeyUp, true);
+            go.node.addEventListener('copy', t.Input.onCopy, false);
             terms.forEach(function(termNode) {
                 termNode.addEventListener('copy', t.Input.onCopy, false);
                 termNode.addEventListener('paste', t.Input.onPaste, false);
@@ -449,7 +452,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
-        logDebug('go.Terminal.Input.disableCapture()');
+        logDebug('go.Terminal.Input.disableCapture()', e);
         var terms = u.toArray(u.getNodes('.✈terminal'));
         if (!force) {
             if (t.switchedWorkspace) {
@@ -480,6 +483,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode.removeEventListener('keyup', t.Input.onKeyUp, true);
             u.hideElement(t.Input.inputNode);
         }
+        go.node.removeEventListener('copy', t.Input.onCopy, false);
         terms.forEach(function(termNode) {
             termNode.removeEventListener('copy', t.Input.onCopy, false);
             termNode.removeEventListener('paste', t.Input.onPaste, false);
@@ -638,7 +642,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var key = i.key(e),
             modifiers = i.modifiers(e),
             term = localStorage[go.prefs.prefix+'selectedTerminal'];
-        logDebug("go.Terminal.Input.onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
+        logDebug("GateOne.Terminal.Input.onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
         if (i.handledGlobal) {
             // Global shortcuts take precedence
             return;
@@ -788,7 +792,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
-        logDebug("go.Terminal.Input.emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
+        logDebug("GateOne.Terminal.Input.emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
         // Handle ctrl-<key> and ctrl-shift-<key> combos
         if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {

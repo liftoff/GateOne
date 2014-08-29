@@ -1728,8 +1728,8 @@ def create_signature(*parts, **kwargs):
         create_signature(
             'secret',
             'some-api-key',
-            '1234567890123',
             'user@somehost',
+            '1234567890123',
             hmac_algo=hashlib.sha1)
 
     .. note::
