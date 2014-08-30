@@ -194,7 +194,7 @@ def print_help(commands):
     print("")
     for module, command_dict in commands.items():
         print(bold("Commands provided by '%s':\n" % module))
-        for command, details in command_dict.items():
+        for command, details in sorted(command_dict.items()):
             print("  %-32s %s" % (command, details['description']))
         print("")
     print(bold("Example command usage:\n"))
@@ -222,7 +222,7 @@ def define_options(installed=True, cli_commands=None):
     user_locale = locale.get(default_locale)
     # NOTE: The locale setting above is only for the --help messages.
     # Simplify the auth option help message
-    auths = "none, api, google, ssl"
+    auths = "none, api, cas, google, ssl"
     from gateone.auth.authentication import PAMAuthHandler, KerberosAuthHandler
     if KerberosAuthHandler:
         auths += ", kerberos"
@@ -469,7 +469,7 @@ def define_options(installed=True, cli_commands=None):
         default="30s", # 30 seconds
         group='gateone',
         help=_(
-            "How long before an API authentication object becomes invalid.  "),
+            "How long before an API authentication object becomes invalid."),
         type=basestring
     )
     define(
@@ -529,8 +529,8 @@ def define_options(installed=True, cli_commands=None):
         group='gateone',
         help=_("A JavaScript object (string) that will be used when running "
                "GateOne.init() inside index.html.  "
-               "Example: --js_init=\"{scheme: 'white'}\" would result in "
-               "GateOne.init({scheme: 'white'})"),
+               "Example: --js_init=\"{theme: 'white'}\" would result in "
+               "GateOne.init({theme: 'white'})"),
         type=basestring
     )
     define(
@@ -601,7 +601,7 @@ def define_options(installed=True, cli_commands=None):
         group='gateone',
         help=_(
             "Combines all of Gate One's JavaScript files into one big file and "
-            "saves it at the given path (e.g. ./gateone.py "
+            "saves it to the given path (e.g. ./gateone.py "
             "--combine_js=/tmp/gateone.js)"),
         type=basestring
     )
@@ -611,7 +611,7 @@ def define_options(installed=True, cli_commands=None):
         group='gateone',
         help=_(
             "Combines all of Gate One's CSS Template files into one big file "
-            "and saves it at the given path (e.g. ./gateone.py "
+            "and saves it to the given path (e.g. ./gateone.py "
             "--combine_css=/tmp/gateone.css)."),
         type=basestring
     )
@@ -639,7 +639,7 @@ def define_options(installed=True, cli_commands=None):
         default=False,
         group='gateone',
         help=_(
-            "Only configure Gate One (create SSL certs, conf.d, etc).  Do not"
+            "Only configure Gate One (create SSL certs, conf.d, etc).  Do not "
             "start any Gate One processes."),
     )
 
