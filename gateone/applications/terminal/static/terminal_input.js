@@ -421,6 +421,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
             t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
+            E.on('go:new_workspace_workspace', function(workspace) {
+                t.Input.disableCapture(null, true); // Force capture off when bringing up the New Workspace Workspace
+            });
         }
         u.showElement(t.Input.inputNode);
         if (!t.Input.addedEventListeners) {
@@ -474,7 +477,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 return; // Act as if we were never called to avoid flashing the overlay
             }
         }
-        if (t.Input.InputNode) {
+        if (t.Input.inputNode) {
             t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
             t.Input.inputNode.tabIndex = null;
             t.Input.inputNode.removeEventListener('paste', t.Input.onPaste, false);

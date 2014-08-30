@@ -68,28 +68,28 @@
     height: 100%;
     top: 0;
     right: 0;
-    background-image: linear-gradient(to left, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+    background-image: linear-gradient(to left, rgba(255, 255, 255, 0.46) 0%, rgba(125,185,232,0) 100%);
 }
 .✈ws_stop_left {
     width: 3em;
     height: 100%;
     top: 0;
     left: 0;
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.46) 0%, rgba(125,185,232,0) 100%);
 }
 .✈ws_stop_up {
     width: 100%;
     height: 3em;
     top: 0;
     left: 0;
-    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.46) 0%, rgba(125,185,232,0) 100%);
 }
 .✈ws_stop_down {
     width: 100%;
     height: 3em;
     bottom: 0;
     left: 0;
-    background-image: linear-gradient(to top, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+    background-image: linear-gradient(to top, rgba(255, 255, 255, 0.46) 0%, rgba(125,185,232,0) 100%);
 }
 .✈new_workspace_workspace {
     width: 100%;
@@ -101,7 +101,6 @@
     color: #fff;
     text-align: center;
     width: 80%;
-    background-color: #000;
     font-family: Ubuntu, Arial, sans-serif;
     border-bottom: 1px solid #222;
     margin: 0 auto;
@@ -462,12 +461,9 @@ potential conflicts with other classes that may be on the page.
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
     box-shadow: 0.2em 0.2em 0.5em #000;
-    background-image: -moz-linear-gradient(#eee, #999);
-    background-image: -webkit-linear-gradient(#eee, #999);
-    background-image: -o-linear-gradient(#eee, #999);
     background-image: linear-gradient(#eee, #999);
     border: 0.1em #fff outset;
-    border-radius: 0.5em;
+    border-radius: 0.3em;
 }
 .✈panel h2 {
     width: 100%;
@@ -504,10 +500,6 @@ potential conflicts with other classes that may be on the page.
     margin-bottom: 0.2em;
     border: 0.1em #000 solid;
     box-shadow: 2px 2px 4px #888;
-    background-image: -moz-linear-gradient(#fff, #ccc);
-    background-image: -webkit-linear-gradient(#fff, #ccc);
-    background-image: -ms-linear-gradient(#fff, #ccc);
-    background-image: -o-linear-gradient(#fff, #ccc);
     background-image: linear-gradient(#fff, #ccc);
 }
 .✈paneltablerow {
@@ -622,24 +614,15 @@ potential conflicts with other classes that may be on the page.
     color: #FFF;
     border: solid 1px #333;
     background: #333;
-    background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#000));
-    background: -moz-linear-gradient(top,  #666,  #000);
-    background: -o-linear-gradient(top,  #666,  #000);
-    background: linear-gradient(top,  #666,  #000);
+    background: linear-gradient(to bottom,  #666,  #000);
 }
 .✈black:hover {
     background: #000;
-    background: -webkit-gradient(linear, left top, left bottom, from(#444), to(#000));
-    background: -moz-linear-gradient(top,  #444,  #000);
-    background: -o-linear-gradient(top,  #444,  #000);
-    background: linear-gradient(top,  #444,  #000);
+    background: linear-gradient(to bottom,  #444,  #000);
 }
 .✈black:active {
     color: #666;
-    background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
-    background: -moz-linear-gradient(top,  #000,  #444);
-    background: -o-linear-gradient(top,  #000,  #444);
-    background: linear-gradient(top,  #000,  #444);
+    background: linear-gradient(to bottom,  #000,  #444);
 }
 .✈black:focus {
     color: #fff;
@@ -666,9 +649,6 @@ potential conflicts with other classes that may be on the page.
     color: #000;
     border-radius: 0.5em;
     box-shadow: 0.2em 0.2em 0.5em #000;
-    background-image: -moz-linear-gradient(#eee, #aaa);
-    background-image: -webkit-linear-gradient(#eee, #aaa);
-    background-image: -o-linear-gradient(#eee, #aaa);
     background-image: linear-gradient(#eee, #aaa);
     -webkit-transition: opacity 0.5s ease-in-out;
     -moz-transition: opacity 0.5s ease-in-out;
@@ -888,10 +868,7 @@ potential conflicts with other classes that may be on the page.
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
-    background-image: -moz-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    background-image: -webkit-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    background-image: -o-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    background-image: linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
+    background-image: linear-gradient(to bottom,  #fff, rgba(200, 200, 200, 0.5));
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

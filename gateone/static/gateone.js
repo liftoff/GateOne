@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140827234108";
+GateOne.__commit__ = "20140829085358";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3134,7 +3134,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var workspaceNode = go.Utils.getNode('#'+go.prefs.prefix+'workspace'+workspace),
             app = workspaceNode.getAttribute('data-application');
-        if (app && go.loadedApplications[app].__appinfo__.relocatable) {
+        if (app && go.loadedApplications[app] && go.loadedApplications[app].__appinfo__.relocatable) {
             // Temporarily disabled while I complete the locations panel
             go.Visual.showLocationsIcon();
         } else {
@@ -3165,6 +3165,7 @@ GateOne.Base.update(GateOne.Visual, {
             wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace, // Set below
             workspaceNum, // Ditto
+            currentApp,
             callFunc = function(settings, parentApp, e) {
                 var subAppName = name = settings['name'];
                 if (parentApp !== undefined) {
@@ -3229,6 +3230,33 @@ GateOne.Base.update(GateOne.Visual, {
                 appSquare.appendChild(appIcon);
                 appSquare.appendChild(appText);
                 wsAppGrid.appendChild(appSquare);
+            },
+            createAppGrid = function() {
+                var appIcons = u.toArray(u.getNodes('.✈application')),
+                    appTops = [],
+                    rows = 0,
+                    rowLength = 0;
+                wsContainer.style.opacity = 1;
+                // Figure out how many spacers we need and add them
+                for (var i=0; i<appIcons.length; i++) {
+                    var top = appIcons[i].offsetTop;
+                    if (appTops.indexOf(top) == -1) {
+                        appTops.push(top);
+                    }
+                }
+                rows = appTops.length;
+                rowLength = Math.ceil(appIcons.length/rows);
+                spacers = (rowLength * rows) % appIcons.length;
+                for (var i=0; i<spacers; i++) {
+                    var appObj = {'name': 'spacer'};
+                    addIcon(appObj, undefined, true);
+                }
+                // This little timeout prevents all sorts of graphic nonsense (apparently if you focus() during a transition browsers get all sorts of confused!)
+                setTimeout(function() {
+                    if (appIcons[go.Visual.lastAppPosition]) {
+                        appIcons[go.Visual.lastAppPosition].focus();
+                    }
+                }, 500);
             };
         if (v.debounceNewWSWS) {
             clearTimeout(v.debounceNewWSWS);
@@ -3367,38 +3395,18 @@ GateOne.Base.update(GateOne.Visual, {
             addIcon(appObj);
         });
         workspace = v.newWorkspace();
-        workspaceNum = workspace.id.split(prefix+'workspace')[1];
+        workspaceNum = workspace.getAttribute('data-workspace');
+        currentApp = workspace.getAttribute('data-application');
+        workspace.setAttribute('data-application', "New Workspace Workspace");
         workspace.appendChild(wsContainer);
         appIcons = u.toArray(u.getNodes('.✈application'));
         selectedApp = appIcons[go.Visual.lastAppPosition];
-        // Scale it back into view
-        setTimeout(function() {
-            var appIcons = u.toArray(u.getNodes('.✈application')),
-                appTops = [],
-                rows = 0,
-                rowLength = 0;
-            wsContainer.style.opacity = 1;
-            // Figure out how many spacers we need and add them
-            for (var i=0; i<appIcons.length; i++) {
-                var top = appIcons[i].offsetTop;
-                if (appTops.indexOf(top) == -1) {
-                    appTops.push(top);
-                }
-            }
-            rows = appTops.length;
-            rowLength = Math.ceil(appIcons.length/rows);
-            spacers = (rowLength * rows) % appIcons.length;
-            for (var i=0; i<spacers; i++) {
-                var appObj = {'name': 'spacer'};
-                addIcon(appObj, undefined, true);
-            }
-            // This little timeout prevents all sorts of graphic nonsense (apparently if you focus() during a transition browsers get all sorts of confused!)
-            setTimeout(function() {
-                if (appIcons[go.Visual.lastAppPosition]) {
-                    appIcons[go.Visual.lastAppPosition].focus();
-                }
-            }, 500);
-        }, 10);
+        // Bring it back into view
+        if (currentApp == "New Workspace Workspace") { // Current workspace is already a New WS WS; just redraw it
+            createAppGrid();
+        } else {
+            E.once("go:ws_transitionend", createAppGrid);
+        }
         v.setTitle("New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
         E.trigger('go:new_workspace_workspace', workspace);
@@ -3413,7 +3421,7 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             scaleDown,
-            sideinfo = u.getNode('.✈sideinfo'),
+            sideinfo = go.sideinfo,
             heightDiff = go.node.clientHeight - go.toolbar.clientHeight,
             scrollbarAdjust = (go.Visual.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("setTitle(" + title + ")");
@@ -3909,12 +3917,13 @@ GateOne.Base.update(GateOne.Visual, {
             workspaceNum = 0,
             workspaceNode,
             sidebarWidth,
+            newWSWS,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
             existingWorkspace = u.getNode('#'+prefix+'workspace'+currentWorkspace),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             workspaceObj = {created: new Date()};
         if (existingWorkspace) {
-            var newWSWS = existingWorkspace.querySelector('.✈new_workspace_workspace');
+            newWSWS = existingWorkspace.querySelector('.✈new_workspace_workspace');
             if (newWSWS) {
                 existingWorkspace.innerHTML = ''; // Empty it out
                 return existingWorkspace; // Use it
@@ -3942,7 +3951,6 @@ GateOne.Base.update(GateOne.Visual, {
         gridwrapper.appendChild(workspaceNode);
         workspaceNode.focus();
         go.Events.trigger('go:new_workspace', workspaceNum);
-//         setTimeout(go.Visual.updateDimensions, 2000);
         return workspaceNode;
     },
     closeWorkspace: function(workspace, /*opt*/message) {
@@ -3991,6 +3999,9 @@ GateOne.Base.update(GateOne.Visual, {
         .. tip:: If you wish to use your own workspace-switching animation just write your own function to handle it and call `GateOne.Events.off('go:switch_workspace', GateOne.Visual.slideToWorkspace); GateOne.Events.on('go:switch_workspace', yourFunction);`
         */
         logDebug('switchWorkspace(' + workspace + ')');
+        if (localStorage[go.prefs.prefix+'selectedWorkspace'] == workspace) {
+            return; // Nothing to do
+        }
         go.Events.trigger('go:switch_workspace', workspace);
         // NOTE: The following *must* come after the tiggered event above!
         localStorage[go.prefs.prefix+'selectedWorkspace'] = workspace;
@@ -4048,7 +4059,7 @@ GateOne.Base.update(GateOne.Visual, {
         v.applyTransform(e.target, 'translate(0px, 0px)');
         e.target.style.display = ''; // Reset
         v.transitioning = false;
-        GateOne.Events.trigger("go:ws_transitionend", e.target);
+        go.Events.trigger("go:ws_transitionend", e.target);
     },
     _slideEndBackground: function(e) {
         var v = GateOne.Visual;
@@ -4100,8 +4111,13 @@ GateOne.Base.update(GateOne.Visual, {
                 wsNode.removeEventListener(transitionEnd, v._slideEndForeground, false); // In case already attached
                 // Move each workspace into position
                 if (wsNode.id == prefix + 'workspace' + workspace) { // Apply to the workspace we're switching to
-                    wsNode.addEventListener(transitionEnd, v._slideEndForeground, false);
+                    if (!go.prefs.disableTransitions) {
+                        wsNode.addEventListener(transitionEnd, v._slideEndForeground, false);
+                    }
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
+                    if (go.prefs.disableTransitions) {
+                        go.Events.trigger("go:ws_transitionend", wsNode);
+                    }
                 } else {
                     wsNode.addEventListener(transitionEnd, v._slideEndBackground, false);
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
@@ -4157,7 +4173,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 count += 1;
             });
-            if (u.isEven(workspace+1)) {
+            if (u.isEven(workspace+1) && workspaces[workspace-1]) {
                 var slideTo = workspaces[workspace-1].id.split(prefix+'workspace')[1];
                 v.switchWorkspace(slideTo);
             } else {
@@ -4185,7 +4201,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 count += 1;
             });
-            if (!u.isEven(workspace+1)) {
+            if (!u.isEven(workspace+1) && workspaces[workspace+1]) {
                 var slideTo = workspaces[workspace+1].id.split(prefix+'workspace')[1];
                 v.switchWorkspace(slideTo);
             } else {
@@ -5842,7 +5858,11 @@ GateOne.Base.update(GateOne.User, {
             app;
         if (workspaceNode) {
             app = workspaceNode.getAttribute('data-application');
-            if (app) { U.setActiveApp(app); }
+            if (app) {
+                U.setActiveApp(app);
+            } else {
+                U.setActiveApp(null);
+            }
         }
     },
     setActiveApp: function(app) {
@@ -5853,11 +5873,13 @@ GateOne.Base.update(GateOne.User, {
         .. note:: The *app* argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside GateOne.User.applications).
         */
         logDebug('setActiveApp(): ' + app);
-        U.applications.forEach(function(appObj) {
-            if (appObj.name.toLowerCase() == app.toLowerCase()) {
-                app = appObj.name;
-            }
-        });
+        if (app) {
+            U.applications.forEach(function(appObj) {
+                if (appObj.name.toLowerCase() == app.toLowerCase()) {
+                    app = appObj.name;
+                }
+            });
+        }
         U.activeApplication = app;
     },
     setUsernameAction: function(username) {

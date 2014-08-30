@@ -15,7 +15,7 @@ __license_info__ = {
     "version": __version__
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140827234108" # Gets replaced by git (holds the date/time)
+__commit__ = "20140829085358" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -929,6 +929,9 @@ def broadcast_message(args=sys.argv, message=""):
     given `sys.argv` will be parsed and everything after the word 'broadcast'
     will be broadcast.
     """
+    if '--help' in args or len(args) < 1:
+        print("Usage: gateone broadcast 'Your message here.'")
+        sys.exit(1)
     prefs = get_settings(options.settings_dir)
     broadcast_file = os.path.join(options.session_dir, 'broadcast')
     broadcast_file = prefs['*']['gateone'].get(
@@ -2096,16 +2099,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'HMAC-SHA512': hashlib.sha512,
         }
         if signature_method not in supported_hmacs:
-            self.auth_log.error(_(
-                    'API AUTH: Unsupported API auth '
-                    'signature method: %s' % signature_method))
+            self.auth_log.error(
+                _('API AUTH: Unsupported API auth ' 'signature method: %s')
+                % signature_method)
             self.write_message(json_encode(reauth))
             return False
         hmac_algo = supported_hmacs[signature_method]
         if api_version != "1.0":
-            self.auth_log.error(_(
-                    'API AUTH: Unsupported API version:'
-                    '%s' % api_version))
+            self.auth_log.error(
+                _('API AUTH: Unsupported API version: %s') % api_version)
             self.write_message(json_encode(reauth))
             return False
         try:
@@ -3920,6 +3922,94 @@ class GateOneApp(tornado.web.Application):
         logger.info(_("Loaded global plugins: %s") % ", ".join(plugin_list))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
+def validate_authobj(args=sys.argv):
+    """
+    Handles the 'validate_authobj' CLI command.  Takes a JSON object as the only
+    argument (must be inside single quotes) and validates the singature using
+    the same mechanism as `ApplicationWebSocket.api_auth`.  Example usage:
+
+    .. code-block:: shell
+
+        $ gateone validate_authobj '{"upn": "jdoe@company.com", "signature_method": "HMAC-SHA1", "timestamp": "1409266590093", "signature": "004464e27db90180a4b87b50b00dd77420052b6d", "api_key": "NGQxNTVjZWEzMmM1NDBmNGI5MzYwNTM3ZDY0MzZiNTczY", "api_version": "1.0"}'
+        API Authentication Successful!
+    """
+    from .utils import create_signature
+    if '--help' in args or len(args) < 1:
+        print("Usage: gateone validate_authobj '<JSON auth object>'")
+        sys.exit(1)
+    def fail(*messages):
+        for msg in messages:
+            print("\x1b[1;31mError:\x1b[0m {0}".format(msg))
+        print(_("\n\x1b[1;31mAPI Authentication Failed!\x1b[0m"))
+    print(_("Checking: %s") % args[0])
+    auth_obj = args[0]
+    try:
+        auth_obj = json_decode(auth_obj)
+    except ValueError:
+        fail(_("Not valid JSON: %s") % repr(auth_obj))
+        sys.exit(2)
+    all_settings = get_settings(options.settings_dir)
+    go_settings = all_settings['*']['gateone']
+    # Validate all required values are present
+    required_keys = (
+        'api_key', 'api_version', 'signature',
+        'signature_method', 'timestamp', 'upn',
+    )
+    missing_keys = set()
+    for key in required_keys:
+        if key not in auth_obj:
+            missing_keys.add(key)
+    if missing_keys:
+        fail(_("You appear to be missing the following keys from your JSON "
+                "object: %s") % ', '.join(missing_keys))
+        sys.exit(2)
+    api_keys = go_settings.get('api_keys')
+    if not api_keys:
+        fail(_("You don't appear to have any API keys configured."),
+             _("Tip: You can create them on-demand via: gateone --new_api_key"))
+        sys.exit(2)
+    api_key = auth_obj['api_key']
+    upn = str(auth_obj['upn'])
+    timestamp = str(auth_obj['timestamp']) # str in case integer
+    signature = auth_obj['signature']
+    signature_method = auth_obj['signature_method']
+    api_version = auth_obj['api_version']
+    if api_key not in api_keys:
+        fail(_("The given API key (%s) was not found.") % api_key)
+        sys.exit(2)
+    secret = api_keys.get(api_key)
+    if not secret:
+        fail(_("The given API key (%s) has no secret!") % api_key,
+             _("Your api_keys setting is probably not in the correct format."),
+             _('The correct format is {"api_keys": {"<API key>":"<secret>"}}'),
+             _("It is recommended that you run 'gateone --new_api_key' and "
+               "modify (or at least look at) the resulting 30api_keys.conf"))
+        sys.exit(2)
+    supported_hmacs = {
+        'HMAC-SHA1': hashlib.sha1,
+        'HMAC-SHA256': hashlib.sha256,
+        'HMAC-SHA384': hashlib.sha384,
+        'HMAC-SHA512': hashlib.sha512,
+    }
+    if signature_method not in supported_hmacs:
+        fail(_('API AUTH: Unsupported API auth signature method: %s')
+            % signature_method)
+        sys.exit(2)
+    hmac_algo = supported_hmacs[signature_method]
+    if api_version != "1.0":
+        fail(_('API AUTH: Unsupported API version: %s') % api_version)
+        sys.exit(2)
+    # Everything checked out OK so we can try validating the signature now...
+    sig_check = create_signature(
+        secret, api_key, upn, timestamp,
+        hmac_algo=supported_hmacs[signature_method])
+    if sig_check != signature:
+        fail(_(
+            "The generated signature (%s) does not match what was provided in "
+            "the given auth object (%s)") % (sig_check, signature))
+        sys.exit(2)
+    print("\x1b[1;32mAPI Authentication Successful!\x1b[0m")
+
 def set_license():
     """
     Sets the __license__ global based on what can be found in `GATEONE_DIR`.
@@ -3946,10 +4036,10 @@ def install_license(args=sys.argv):
     path given via `sys.argv[1]` (first argument after the 'install_license'
     command).
     """
-    install_path = os.path.join(GATEONE_DIR, '.license')
-    if len(args) < 1:
+    if '--help' in args or len(args) < 1:
         print("Usage: {0} /path/to/license.txt".format(sys.argv[0]))
         sys.exit(1)
+    install_path = os.path.join(GATEONE_DIR, '.license')
     import shutil
     license_path = os.path.expanduser(args[0]) # In case ~
     license_path = os.path.expandvars(license_path) # In case $HOME (or similar)
@@ -3968,7 +4058,8 @@ def main(installed=True):
     global PLUGINS
     global APPLICATIONS
     set_license()
-    define_options(installed=installed)
+    cli_commands = {'gateone': {}} # CLI commands provided by plugins/apps
+    define_options(installed=installed, cli_commands=cli_commands)
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.
     settings_dir = options.settings_dir # Set the default
@@ -3990,9 +4081,19 @@ def main(installed=True):
         sys.exit(2)
     enabled_plugins = []
     enabled_applications = []
-    cli_commands = {} # Holds CLI commands provided by plugins/applications
-    cli_commands['broadcast'] = broadcast_message
-    cli_commands['install_license'] = install_license
+    cli_commands['gateone']['broadcast'] = {
+        'function': broadcast_message,
+        'description': _("Broadcast messages to users connected to Gate One.")
+    }
+    cli_commands['gateone']['install_license'] = {
+        'function': install_license,
+        'description': _("Install a commercial license for Gate One.")
+    }
+    cli_commands['gateone']['validate_authobj'] = {
+        'function': validate_authobj,
+        'description': _(
+            "Test API authentication by validating a JSON auth object.")
+    }
     go_settings = {}
     log_fail_msg = _(
         "You probably want to provide a different destination via "
@@ -4033,7 +4134,7 @@ def main(installed=True):
         try:
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
             if 'commands' in plugin.hooks:
-                cli_commands.update(plugin.hooks['commands'])
+                cli_commands.update({'gateone': plugin.hooks['commands']})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
     APPLICATIONS = get_applications(
@@ -4147,7 +4248,7 @@ def main(installed=True):
             if hasattr(module, 'web_handlers'):
                 web_handlers.extend(module.web_handlers)
             if hasattr(module, 'commands'):
-                cli_commands.update(module.commands)
+                cli_commands.update({module.__name__: module.commands})
         except AttributeError:
             # No apps--probably just a supporting .py file.
             # Uncomment if you can't figure out why your app isn't loading:
@@ -4155,14 +4256,22 @@ def main(installed=True):
             #import traceback
             #traceback.print_exc(file=sys.stdout)
             pass
+    if options.help:
+        from .configuration import print_help
+        print_help(cli_commands)
+        sys.exit(2)
     if commands: # Optional CLI functionality provided by plugins/applications
         from .configuration import parse_commands
         parsed_commands = parse_commands(commands)
+        flattened_commands = {}
+        for mod, cmds in cli_commands.items():
+            for name, command_dict in cmds.items():
+                flattened_commands.update({name: command_dict['function']})
         for command, args in list(parsed_commands.items()):
-            if command not in cli_commands:
+            if command not in flattened_commands:
                 logger.warning(_("Unknown CLI command: '%s'") % (command))
             else:
-                cli_commands[command](commands[1:])
+                flattened_commands[command](commands[1:])
         sys.exit(0)
     if __license__ == "AGPLv3":
         agplv3_url = 'http://www.gnu.org/licenses/agpl-3.0.html'

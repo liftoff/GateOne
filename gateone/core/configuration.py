@@ -131,8 +131,78 @@ def mkdir_p(path):
 
 # Settings and options-related functions
 # NOTE:  "options" refer to command line arguments (for the most part) while
-# "settings" refers to the .conf files.
-def define_options(installed=True):
+# "settings" refers to the .conf files.  "commands" are CLI commmands specified
+# via apps and plugins (for the most part).  e.g. termlog, install_license, etc
+def print_help(commands):
+    """
+    Tornado's options.print_help() function with a few minor changes:
+
+        * Help text is not hard wrapped (why did the Tornado devs do that? Ugh).
+        * It includes information about Gate One 'commands'.
+        * It only prints to stdout.
+    """
+    import textwrap, fcntl, termios, struct
+    try:
+        import curses
+        if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
+            try:
+                curses.setupterm()
+                if curses.tigetnum("colors") > 0:
+                    renditions = True
+            except Exception:
+                renditions = False
+    except ImportError:
+        renditions = False
+    def bold(text):
+        if renditions:
+            return "\x1b[1m%s\x1b[0m" % text
+        return text
+    print("Usage: %s [OPTIONS]" % sys.argv[0])
+    print(bold("\nOptions:\n"))
+    rows, columns, hp, wp = struct.unpack('HHHH', fcntl.ioctl(
+        0, termios.TIOCGWINSZ, struct.pack('HHHH', 0, 0, 0, 0)))
+    by_group = {}
+    for option in options._options.values():
+        by_group.setdefault(option.group_name, []).append(option)
+    for filename, o in sorted(by_group.items()):
+        if filename:
+            print(bold("\n%s options:\n" % os.path.normpath(filename)))
+        o.sort(key=lambda option: option.name)
+        for option in o:
+            prefix = option.name
+            if option.metavar:
+                prefix += "=" + option.metavar
+            description = option.help or ""
+            if option.default is not None and option.default != '':
+                description += " (default %s)" % option.default
+            lines = textwrap.wrap(description, columns - 35)
+            if len(prefix) > 30 or len(lines) == 0:
+                lines.insert(0, '')
+            print("  --%-30s %s" % (prefix, lines[0]))
+            for line in lines[1:]:
+                print("%-34s %s" % (' ', line))
+    print(bold("\nCommands:\n"))
+    print("  Usage: %s <command> [OPTIONS]\n" % sys.argv[0])
+    commands_description = _(
+        "GateOne supports many different CLI 'commands' which can be used "
+        "to invoke special functionality provided by plugins and applications "
+        "(and application's plugins).  Each command can have it's own options "
+        "and most will have a --help function of their own.")
+    lines = textwrap.wrap(commands_description, columns)
+    for line in lines:
+        print("%s %s" % (' ', line))
+    print("")
+    for module, command_dict in commands.items():
+        print(bold("Commands provided by '%s':\n" % module))
+        for command, details in command_dict.items():
+            print("  %-32s %s" % (command, details['description']))
+        print("")
+    print(bold("Example command usage:\n"))
+    print("  %s termlog --help" % sys.argv[0])
+    print("") # The oh-so-important whitespace before the prompt
+    sys.exit(1)
+
+def define_options(installed=True, cli_commands=None):
     """
     Calls `tornado.options.define` for all of Gate One's command-line options.
 
@@ -214,6 +284,11 @@ def define_options(installed=True):
         cache_dir_default = os.path.join(settings_base, 'cache')
     options.log_file_prefix = log_default
     ssl_dir = os.path.join(settings_base, 'ssl')
+    # Override Tornado's help so we can print CLI 'commands'
+    del options._options['help']
+    define("help",
+        type=bool,
+        help="Show this help information")
     define("version",
         type=bool,
         group='gateone',

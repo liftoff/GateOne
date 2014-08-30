@@ -2788,5 +2788,8 @@ web_handlers.append((r'terminal/shared/(.*)', SharedTermHandler))
 
 # Command line argument commands
 commands = {
-    'termlog': logviewer_main
+    'termlog': {
+        'function': logviewer_main,
+        'description': _("View terminal session logs.")
+    }
 }

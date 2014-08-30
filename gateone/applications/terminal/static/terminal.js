@@ -191,6 +191,13 @@ go.Base.update(GateOne.Terminal, {
                     go.ws.send(JSON.stringify({'terminal:enumerate_fonts': null}));
                     go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
                 }
+            },
+            transitionEndFunc = function(wsNode) { // Called after workspaces are switched
+                if (go.User.activeApplication == "Terminal") {
+                    go.Terminal.alignTerminal();
+                } else {
+                    go.Terminal.Input.disableCapture(null, true); // Force capture off
+                }
             };
         if (cmdQueryString) {
             go.Terminal.defaultCommand = cmdQueryString;
@@ -389,9 +396,7 @@ go.Base.update(GateOne.Terminal, {
                     'action': 'GateOne.Terminal.popupTerm(null, {"global": false});' // May change to global: true later
                 });
             E.on("terminal:new_terminal", go.Terminal.showIcons);
-            E.on("go:ws_transitionend", function(wsNode) {
-                go.Terminal.alignTerminal();
-            });
+            E.on("go:ws_transitionend", transitionEndFunc);
         }
         // Load the bell sound from the cache.  If that fails ask the server to send us the file.
         if (go.prefs.bellSound.length) {
@@ -2122,17 +2127,25 @@ go.Base.update(GateOne.Terminal, {
             setActivityCheckboxes = function(term) {
                 var monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                     monitorActivity = u.getNode('#'+prefix+'monitor_activity');
-                monitorInactivity.checked = go.Terminal.terminals[term]['inactivityTimer']
-                monitorActivity.checked = go.Terminal.terminals[term]['activityNotify'];
+                if (monitorInactivity) {
+                    monitorInactivity.checked = go.Terminal.terminals[term]['inactivityTimer'];
+                }
+                if (monitorActivity) {
+                    monitorActivity.checked = go.Terminal.terminals[term]['activityNotify'];
+                }
             },
             setEncodingValue = function(term) {
                 var infoPanelEncoding = u.getNode('#'+prefix+'encoding');
-                infoPanelEncoding.value = go.Terminal.terminals[term]['encoding'];
+                if (infoPanelEncoding) {
+                    infoPanelEncoding.value = go.Terminal.terminals[term]['encoding'];
+                }
             },
             setKeyboardValue = function(term) {
                 var infoPanelKeyboard = u.getNode('#'+prefix+'keyboard');
-                infoPanelKeyboard.value = go.Terminal.terminals[term]['keyboard'];
-            }
+                if (infoPanelKeyboard) {
+                    infoPanelKeyboard.value = go.Terminal.terminals[term]['keyboard'];
+                }
+            };
         if (!go.Terminal.terminals[term]) {
             return;
         }
@@ -2161,26 +2174,26 @@ go.Base.update(GateOne.Terminal, {
         logDebug('GateOne.Terminal.switchWorkspaceEvent('+workspace+')');
         var termFound = false;
         // TODO: Make this switch to the appropriate terminal when multiple terminals share the same workspace (FUTURE)
-        for (var term in go.Terminal.terminals) {
-            // Only want terminals which are integers; not the 'count()' function
-            if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == workspace) {
-                    // At least one terminal is on this workspace
-                    go.Terminal.switchTerminal(term);
-                    termFound = term;
+        if (go.User.activeApplication == 'Terminal') {
+            for (var term in go.Terminal.terminals) {
+                // Only want terminals which are integers; not the 'count()' function
+                if (term % 1 === 0) {
+                    if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                        // At least one terminal is on this workspace
+                        go.Terminal.switchTerminal(term);
+                        termFound = term;
+                    }
                 }
-            }
-        };
-        if (!termFound) {
-            go.Terminal.Input.disableCapture();
-            go.Terminal.hideIcons();
-        } else {
+            };
             go.Terminal.switchedWorkspace = true;
             setTimeout(function() {
                 // Need a mechanism to inform GateOne.Input.disableCapture() that we just switched to this workspace and no matter what sort of event bubbles up from a click (or whatever) that will cause a blur should be ignored.
                 go.Terminal.switchedWorkspace = false;
             }, 100);
             go.Terminal.showIcons();
+        } else {
+            go.Terminal.Input.disableCapture(null, true);
+            go.Terminal.hideIcons();
         }
     },
     workspaceClosedEvent: function(workspace) {
@@ -2197,7 +2210,7 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.closeTerminal(term);
                 }
             }
-        };
+        }
     },
     swappedWorkspacesEvent: function(ws1, ws2) {
         /**:GateOne.Terminal.swappedWorkspacesEvent(ws1, ws2)
@@ -2223,17 +2236,6 @@ go.Base.update(GateOne.Terminal, {
         temp = go.Terminal.terminals[term1];
         go.Terminal.terminals[term1] = go.Terminal.terminals[term2];
         go.Terminal.terminals[term2] = temp;
-        // Have to fix the node IDs inside GateOne.Terminal.terminals
-//         go.Terminal.terminals[term1]['node'].id = prefix + 'term' + term1 + '_pre';
-//         go.Terminal.terminals[term1]['pasteNode'].id = prefix + 'pastearea' + term1;
-//         go.Terminal.terminals[term1]['screenNode'].id = prefix + 'term' + term1 + 'screen';
-//         go.Terminal.terminals[term1]['scrollbackNode'].id = prefix + 'term' + term1 + 'scrollback';
-//         go.Terminal.terminals[term1]['terminal'].id = prefix + 'term' + term1;
-//         go.Terminal.terminals[term2]['node'].id = prefix + 'term' + term2 + '_pre';
-//         go.Terminal.terminals[term2]['pasteNode'].id = prefix + 'pastearea' + term2;
-//         go.Terminal.terminals[term2]['screenNode'].id = prefix + 'term' + term2 + 'screen';
-//         go.Terminal.terminals[term2]['scrollbackNode'].id = prefix + 'term' + term2 + 'scrollback';
-//         go.Terminal.terminals[term2]['terminal'].id = prefix + 'term' + term2;
         u.scrollToBottom(go.Terminal.terminals[term1]['node']);
         u.scrollToBottom(go.Terminal.terminals[term2]['node']);
         // Lastly we tell the server about this change so if the user resumes their session the ordering will remain
