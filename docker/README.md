@@ -3,7 +3,7 @@ What is Gate One?
 
 This is the official Docker repo for [Gate One][1]--a web based terminal emulator and SSH client (and soon to support X11).  The first time you 'docker run' the liftoff/gateone image it will automatically update itself with [the latest code from Github][2].
 
-Inside the image Gate One is configured to run as the 'gateone' user and listen on port 8000.  It is also configured to use /gateone/logs for logging and /gateone/users for the user_dir.  The settings_dir is still at the usual /etc/gateone/conf.d location and SSL certificates (which will be generated automatically the first time you run the image) are stored in /etc/gateone/ssl/.
+Inside the image Gate One is configured to run as the root user (due to a bug in Docker; see https://github.com/docker/docker/issues/5892) and listen on port 8000.  It is also configured to use /gateone/logs for logging and /gateone/users for the user_dir.  The settings_dir is still at the usual /etc/gateone/conf.d location and SSL certificates (which will be generated automatically the first time you run the image) are stored in /etc/gateone/ssl/.
 
 Using this Image
 ----------------
