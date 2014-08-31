@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140829221250";
+GateOne.__commit__ = "20140830214708";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3405,7 +3405,12 @@ GateOne.Base.update(GateOne.Visual, {
         if (currentApp == "New Workspace Workspace") { // Current workspace is already a New WS WS; just redraw it
             createAppGrid();
         } else {
-            E.once("go:ws_transitionend", createAppGrid);
+            if (workspaceNum == 1) {
+                // No other apps open; create the app grid immediately
+                setTimeout(createAppGrid, 1); // Wrapped in a super short timeout to make the fade in effect work
+            } else {
+                E.once("go:ws_transitionend", createAppGrid);
+            }
         }
         v.setTitle("New Workspace - Applications");
         v.switchWorkspace(workspaceNum)
