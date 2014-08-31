@@ -15,7 +15,7 @@ __license_info__ = {
     "version": __version__
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140829220048" # Gets replaced by git (holds the date/time)
+__commit__ = "20140829221250" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1418,6 +1418,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.origin_denied = True # Only allow valid origins
         self.file_cache = FILE_CACHE # So applications and plugins can reference
         self.persist = PERSIST # So applications and plugins can reference
+        if 'theme_mtimes' not in self.persist:
+            # Track theme file modification times so we can be more efficient
+            self.persist['theme_mtimes'] = {}
         self.apps = [] # Gets filled up by self.initialize()
         # The security dict stores applications' various policy functions
         self.security = {}
@@ -2702,8 +2705,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
-# TODO:  Get this checking the modification time of all theme files and only
-#        rendering/sending a new theme if something has changed.
     def get_theme(self, settings):
         """
         Sends the theme stylesheets matching the properties specified in
@@ -2745,17 +2746,20 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             embedded=self.settings['embedded']
         )
         out_dict = {'files': []}
+        theme_mtimes = self.persist['theme_mtimes']
+        cache_dir = self.settings['cache_dir']
         theme_filename = "%s.css" % theme
         theme_path = os.path.join(themes_path, theme_filename)
-        template_loaders = tornado.web.RequestHandler._template_loaders
-        # This wierd little bit empties Tornado's template cache:
-        for web_template_path in template_loaders:
-            template_loaders[web_template_path].reset()
-        rendered_path = self.render_style(
-            theme_path, **template_args)
-        filename = os.path.split(rendered_path)[1]
+        cached_theme_path = os.path.join(cache_dir, theme_filename)
+        filename_hash = hashlib.md5(
+            theme_filename.encode('utf-8')).hexdigest()[:10]
         theme_files = []
-        theme_files.append(rendered_path)
+        theme_files.append(theme_path)
+        mtime = os.stat(theme_path).st_mtime
+        modifications = False
+        if theme_path not in theme_mtimes or mtime != theme_mtimes[theme_path]:
+            theme_mtimes[theme_path] = mtime
+            modifications = True
         # Now enumerate all applications/plugins looking for their own
         # implementations of this theme (must have same name).
         plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
@@ -2766,9 +2770,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             theme_css_file = os.path.join(themes_dir, theme_filename)
             if not os.path.exists(theme_css_file):
                 continue
-            rendered_path = self.render_style(
-                theme_css_file, **template_args)
-            theme_files.append(rendered_path)
+            theme_files.append(theme_css_file)
+            mtime = os.stat(theme_css_file).st_mtime
+            if (theme_css_file not in theme_mtimes
+            or mtime != theme_mtimes[theme_css_file]):
+                theme_mtimes[theme_css_file] = mtime
+                modifications = True
         # Find application's theme-specific CSS files
         applications_dir = os.path.join(GATEONE_DIR, 'applications')
         for app in os.listdir(applications_dir):
@@ -2777,9 +2784,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             theme_css_file = os.path.join(themes_dir, theme_filename)
             if not os.path.exists(theme_css_file):
                 continue
-            rendered_path = self.render_style(
-                theme_css_file, **template_args)
-            theme_files.append(rendered_path)
+            theme_files.append(theme_css_file)
+            mtime = os.stat(theme_css_file).st_mtime
+            if (theme_css_file not in theme_mtimes
+            or mtime != theme_mtimes[theme_css_file]):
+                theme_mtimes[theme_css_file] = mtime
+                modifications = True
             # Find application plugin's theme-specific CSS files
             plugins_dir = os.path.join(app_dir, 'plugins')
             if not os.path.exists(plugins_dir):
@@ -2790,45 +2800,49 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 theme_css_file = os.path.join(themes_dir, theme_filename)
                 if not os.path.exists(theme_css_file):
                     continue
+                theme_files.append(theme_css_file)
+                mtime = os.stat(theme_css_file).st_mtime
+                if (theme_css_file not in theme_mtimes
+                or mtime != theme_mtimes[theme_css_file]):
+                    theme_mtimes[theme_css_file] = mtime
+                    modifications = True
+        # Grab the modification times for each theme file
+        if modifications:
+            logging.debug(_(
+                "Modification to theme file detected.  "
+                "Theme will be recreated."))
+            # Combine the theme files into one
+            rendered_theme_files = []
+            template_loaders = tornado.web.RequestHandler._template_loaders
+            # This wierd little bit empties Tornado's template cache:
+            for web_template_path in template_loaders:
+                template_loaders[web_template_path].reset()
+            #rendered_path = self.render_style(
+                #theme_path, **template_args)
+            #rendered_theme_files.append(rendered_path)
+            for template_file in theme_files:
                 rendered_path = self.render_style(
-                    theme_css_file, **template_args)
-                theme_files.append(rendered_path)
-        # Combine the theme files into one
-        filename = 'theme.css'
-        filename_hash = hashlib.md5(
-            filename.encode('utf-8')).hexdigest()[:10]
-        cache_dir = self.settings['cache_dir']
-        cached_theme_path = os.path.join(cache_dir, filename)
-        new_theme_path = os.path.join(cache_dir, filename+'.new')
-        with io.open(new_theme_path, 'wb') as f:
-            for path in theme_files:
-                f.write(io.open(path, 'rb').read())
-        with open(new_theme_path, 'rb') as f:
-            new = f.read()
-        old = ''
-        if os.path.exists(cached_theme_path):
-            with open(cached_theme_path, 'rb') as f:
-                old = f.read()
-        if new != old:
-            # They're different.  Replace the old one...
+                    template_file, **template_args)
+                rendered_theme_files.append(rendered_path)
+            new_theme_path = os.path.join(cache_dir, theme_filename+'.new')
+            with io.open(new_theme_path, 'wb') as f:
+                for path in rendered_theme_files:
+                    f.write(io.open(path, 'rb').read())
             os.rename(new_theme_path, cached_theme_path)
-        else:
-            # Clean up
-            os.remove(new_theme_path)
         mtime = os.stat(cached_theme_path).st_mtime
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
             mtime = time.time()
         kind = 'css'
         out_dict['files'].append({
-            'filename': filename,
+            'filename': theme_filename,
             'hash': filename_hash,
             'mtime': mtime,
             'kind': kind,
             'element_id': 'theme'
         })
         self.file_cache[filename_hash] = {
-            'filename': filename,
+            'filename': theme_filename,
             'kind': kind,
             'path': cached_theme_path,
             'mtime': mtime,
@@ -2838,7 +2852,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             message = {'go:file_sync': out_dict}
             self.write_message(message)
         else:
-            self.file_request(filename_hash, use_client_cache=use_client_cache)
+            self.file_request(
+                filename_hash, use_client_cache=use_client_cache)
 
     @require(authenticated())
     def get_js(self, filename):
