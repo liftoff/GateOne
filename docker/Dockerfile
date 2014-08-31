@@ -35,8 +35,6 @@ MAINTAINER Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
 ENV GATEONE_REPO_URL https://github.com/liftoff/GateOne.git
 
-RUN groupadd -r gateone && useradd -r -g gateone gateone
-
 # Ensure everything is up-to-date
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update --fix-missing
@@ -60,10 +58,8 @@ RUN apt-get -q -y autoremove
 # Create the necessary directories, clone the repo, and install everything
 RUN mkdir -p /gateone/logs && \
     mkdir -p /gateone/users && \
-    chown -R gateone:gateone /gateone && \
     mkdir -p /etc/gateone/conf.d && \
     mkdir -p /etc/gateone/ssl && \
-    chown -R gateone:gateone /etc/gateone && \
     cd /gateone && \
     git clone $GATEONE_REPO_URL && \
     cd GateOne && \
