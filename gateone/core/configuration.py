@@ -364,15 +364,16 @@ def define_options(installed=True, cli_commands=None):
         "disable_ssl",
         default=False,
         group='gateone',
-        help=_("If enabled, Gate One will run without SSL (generally not a "
+        help=_("If enabled Gate One will run without SSL (generally not a "
                "good idea).")
     )
     define(
         "certificate",
         default=os.path.join(ssl_dir, "certificate.pem"),
         group='gateone',
-        help=_("Path to the SSL certificate.  Will be auto-generated if none is"
-               " provided."),
+        help=_(
+            "Path to the SSL certificate.  Will be auto-generated if not "
+            "found."),
         type=basestring
     )
     define(
@@ -415,8 +416,9 @@ def define_options(installed=True, cli_commands=None):
         "user_logs_max_age",
         default="30d",
         group='gateone',
-        help=_("Maximum amount of length of time to keep any given user log "
-                "before it is removed."),
+        help=_(
+            "Maximum length of time to keep any given user log before it is "
+            "automatically removed."),
         type=basestring
     )
     define(
@@ -477,14 +479,14 @@ def define_options(installed=True, cli_commands=None):
         default=None,
         group='gateone',
         help=_("Kerberos REALM (aka DOMAIN) to use when authenticating clients."
-               " Only relevant if Kerberos authentication is enabled."),
+               "  Only relevant if Kerberos authentication is enabled."),
         type=basestring
     )
     define(
         "sso_service",
         default='HTTP',
         group='gateone',
-        help=_("Kerberos service (aka application) to use. Defaults to HTTP. "
+        help=_("Kerberos service (aka application) to use.  "
                "Only relevant if Kerberos authentication is enabled."),
         type=basestring
     )
@@ -512,7 +514,9 @@ def define_options(installed=True, cli_commands=None):
         default=False,
         group='gateone',
         help=_(
-            "When embedding Gate One, this option is available to templates.")
+            "When embedding Gate One this option is available to plugins, "
+            "applications, and templates so they know they're running in "
+            "embedded mode and can change behavior (if necessary).")
     )
     define(
         "locale",
@@ -520,7 +524,7 @@ def define_options(installed=True, cli_commands=None):
         group='gateone',
         help=_("The locale (e.g. pt_PT) Gate One should use for translations."
              "  If not provided, will default to $LANG (which is '%s' in your "
-             "current shell), or en_US if not set."
+             "current shell)."
              % os.environ.get('LANG', 'not set').split('.')[0]),
         type=basestring
     )
@@ -537,7 +541,7 @@ def define_options(installed=True, cli_commands=None):
         "https_redirect",
         default=False,
         group='gateone',
-        help=_("If enabled, a separate listener will be started on port 80 that"
+        help=_("If enabled a separate listener will be started on port 80 that"
                " redirects users to the configured port using HTTPS.")
     )
     define(
@@ -555,36 +559,34 @@ def define_options(installed=True, cli_commands=None):
         default=default_origins,
         group='gateone',
         help=_("A semicolon-separated list of origins you wish to allow access "
-               "to your Gate One server over the WebSocket.  This value must "
-               "contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will"
-               " use to connect to your Gate One server as well as the "
-               "hostnames/FQDNs of any sites that will be embedding Gate One. "
+               "to your Gate One server over the WebSocket.  This value may "
+               "contain hostnames/FQDNs (e.g. foo;foo.bar;) and IP addresses.  "
+               "This value must contain all the hostnames/IPs that users will "
+               "use to connect to Gate One.  "
                "Alternatively, '*' may be  specified to allow access from "
-               "anywhere."),
+               "anywhere.  NOTE: Using a '*' is only a good idea if you've "
+               "configured Gate One to use API authentication."),
         type=basestring
     )
     define(
         "pid_file",
         default=pid_default,
         group='gateone',
-        help=_(
-            "Define the path to the pid file.  Default: /var/run/gateone.pid"),
+        help=_("Define the path to the pid file."),
         type=basestring
     )
     define(
         "uid",
         default=str(os.getuid()),
         group='gateone',
-        help=_(
-            "Drop privileges and run Gate One as this user/uid."),
+        help=_("Drop privileges and run Gate One as this user/uid."),
         type=basestring
     )
     define(
         "gid",
         default=str(os.getgid()),
         group='gateone',
-        help=_(
-            "Drop privileges and run Gate One as this group/gid."),
+        help=_("Drop privileges and run Gate One as this group/gid."),
         type=basestring
     )
     define(
