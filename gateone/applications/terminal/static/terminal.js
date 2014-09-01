@@ -1123,6 +1123,7 @@ go.Base.update(GateOne.Terminal, {
             scrollbackObj = {'term': term, 'scrollback': scrollback, 'date': new Date()}; // Date is probably not necessary but you never know...   Could be useful
         terminalDB.put('scrollback', scrollbackObj); // Put it in the 'scrollback' store
     },
+    _dirtyLines: [],
     applyScreen: function(screen, /*opt*/term, /*opt*/noUpdate) {
         /**:GateOne.Terminal.applyScreen(screen[, term[, noUpdate]])
 
@@ -1134,31 +1135,41 @@ go.Base.update(GateOne.Terminal, {
 
         .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
         */
-        var existingPre = go.Terminal.terminals[term]['node'],
-            existingScreen = go.Terminal.terminals[term]['screenNode'];
+        var termObj = go.Terminal.terminals[term],
+            screenNode = termObj['screenNode'],
+            existingScreen = termObj['screen'],
+            i, existingLine, classes, lineSpan,
+            dirtyLines = go.Terminal._dirtyLines,
+            updateDirtyLines = function() {
+                for (i=0; i < dirtyLines.length; i++) {
+                    dirtyLines[i][0].innerHTML = dirtyLines[i][1] + '\n';
+                }
+                dirtyLines.length = 0 // Empty it out (makes the object shallow/saves GC later)
+            };
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
         for (var i=0; i < screen.length; i++) {
             if (screen[i].length) {
-                var existingLine = go.Terminal.terminals[term]['lineCache'][i];
+                existingLine = termObj['lineCache'][i];
                 if (existingLine) {
-                    if (screen[i] != existingLine.innerHTML) {
+                    if (screen[i] != existingScreen[i]) {
                         if (noUpdate !== true) {
                             // Update the existing screen array in-place to cut down on GC
-                            go.Terminal.terminals[term]['screen'][i] = screen[i];
+                            termObj['screen'][i] = screen[i];
                         }
-                        existingLine.innerHTML = screen[i] + '\n';
+                        dirtyLines.push([existingLine, screen[i]]);
                     }
                 } else { // Size of the terminal increased
-                    var classes = '✈termline ' + prefix + 'line_' + i,
-                        lineSpan = u.createElement('span', {'class': classes});
+                    classes = '✈termline ' + prefix + 'line_' + i;
+                    lineSpan = u.createElement('span', {'class': classes});
                     lineSpan.innerHTML = screen[i] + '\n';
-                    existingScreen.appendChild(lineSpan);
-                    go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
+                    screenNode.appendChild(lineSpan);
+                    termObj['lineCache'][i] = lineSpan;
                 }
             }
         }
+        requestAnimationFrame(updateDirtyLines);
     },
     alignTerminal: function(term) {
         /**:GateOne.Terminal.alignTerminal(term)
@@ -1240,8 +1251,7 @@ go.Base.update(GateOne.Terminal, {
             screenUpdate = false,
             termTitle = "Gate One", // Will be replaced down below
             goDiv = go.node,
-            existingPre = null,
-            existingScreen = null;
+            i, existingPre, existingScreen, existingLine, lineSpan, inactivity, prevLength, classes, scriptElements, reScrollback, then, now;
         if (!go.Terminal.terminals[term]) {
             return; // Nothing to do
         }
@@ -1272,63 +1282,58 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.terminals[term]['backspace'] = backspace;
         }
         if (screen) {
-            try {
-                if (existingScreen && go.Terminal.terminals[term]['screen'].length != screen.length) {
-                    // Resized
-                    var prevLength = go.Terminal.terminals[term]['screen'].length;
-                    go.Terminal.terminals[term]['screen'].length = screen.length; // Resize the array to match
-                    if (prevLength < screen.length) {
-                        // Grow to fit
-                        for (var i=0; i < screen.length; i++) {
-                            var classes = '✈termline ' + prefix + 'line_' + i,
-                                existingLine = existingPre.querySelector('.' + prefix + 'line_' + i),
-                                lineSpan = u.createElement('span', {'class': classes});
-                            if (!existingLine) {
-                                lineSpan.innerHTML = screen[i] + '\n';
-                                existingScreen.appendChild(lineSpan);
-                                // Update the existing screen array in-place to cut down on GC
-                                go.Terminal.terminals[term]['screen'][i] = screen[i];
-                                // Update the existing lineCache too
-                                go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
-                            }
+            if (existingScreen && go.Terminal.terminals[term]['screen'].length != screen.length) {
+                // Resized
+                prevLength = go.Terminal.terminals[term]['screen'].length;
+                go.Terminal.terminals[term]['screen'].length = screen.length; // Resize the array to match
+                if (prevLength < screen.length) {
+                    // Grow to fit
+                    for (i=0; i < screen.length; i++) {
+                        classes = '✈termline ' + prefix + 'line_' + i;
+                        existingLine = existingPre.querySelector('.' + prefix + 'line_' + i);
+                        lineSpan = u.createElement('span', {'class': classes});
+                        if (!existingLine) {
+                            lineSpan.innerHTML = screen[i] + '\n';
+                            existingScreen.appendChild(lineSpan);
+                            // Update the existing screen array in-place to cut down on GC
+                            go.Terminal.terminals[term]['screen'][i] = screen[i];
+                            // Update the existing lineCache too
+                            go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
                         }
-                    } else {
-                        // Shrink to fit
-                        for (var i=0; i < prevLength; i++) {
-                            var classes = '✈termline ' + prefix + 'line_' + i,
-                                existingLine = existingPre.querySelector('.' + prefix + 'line_' + i);
-                            if (existingLine) {
-                                if (i >= screen.length) {
-                                   u.removeElement(existingLine);
-                                }
+                    }
+                } else {
+                    // Shrink to fit
+                    for (i=0; i < prevLength; i++) {
+                        classes = '✈termline ' + prefix + 'line_' + i;
+                        existingLine = existingPre.querySelector('.' + prefix + 'line_' + i);
+                        if (existingLine) {
+                            if (i >= screen.length) {
+                                u.removeElement(existingLine);
                             }
                         }
                     }
-                    go.Terminal.alignTerminal(term);
                 }
-                if (existingScreen) { // Update the terminal display
-                    go.Terminal.applyScreen(screen, term);
-                    u.scrollToBottom(existingPre);
-                }
-                screenUpdate = true;
-                go.Terminal.terminals[term]['scrollbackVisible'] = false;
-                // This is a convenience for plugin authors:  Execute any incoming <script> tags automatically
-                var scriptElements = go.Terminal.terminals[term]['node'].querySelectorAll('script');
-                if (scriptElements.length) {
-                    u.toArray(scriptElements).forEach(function(tag) {
-                        eval(tag.innerHTML);
-                    });
-                }
-            } catch (e) { // Likely the terminal just closed
-                logDebug('Caught exception in termUpdateFromWorker: ' + e);
-                u.noop(); // Just ignore it.
+                go.Terminal.alignTerminal(term);
+            }
+            if (existingScreen) { // Update the terminal display
+                go.Terminal.applyScreen(screen, term);
+                u.scrollToBottom(existingPre);
+            }
+            screenUpdate = true;
+            go.Terminal.terminals[term]['scrollbackVisible'] = false;
+            // This is a convenience for plugin authors:  Execute any incoming <script> tags automatically
+            scriptElements = go.Terminal.terminals[term]['node'].querySelectorAll('script');
+            if (scriptElements.length) {
+                u.toArray(scriptElements).forEach(function(tag) {
+                    eval(tag.innerHTML);
+                });
             }
         }
         if (go.prefs.scrollback == 0) {
             scrollback = []; // Empty it out since the user has disabled the scrollback buffer
         }
         if (scrollback.length && go.Terminal.terminals[term]['scrollback'].toString() != scrollback.toString()) {
-            var reScrollback = u.partial(go.Terminal.enableScrollback, term);
+            reScrollback = u.partial(go.Terminal.enableScrollback, term);
             go.Terminal.terminals[term]['scrollback'] = scrollback;
             go.Terminal.writeScrollback(term, scrollback); // Uses IndexedDB so it should be nice and async
             // This updates the scrollback buffer in the DOM
@@ -1338,22 +1343,14 @@ go.Base.update(GateOne.Terminal, {
         }
         if (consoleLog) {
             // This is only used when debugging the Web Worker
-            try {
-                logInfo(consoleLog);
-            } finally {
-                consoleLog = null;
-            }
+            logInfo(consoleLog);
         }
         if (screenUpdate) {
             // Take care of the activity/inactivity notifications
             if (go.Terminal.terminals[term]['inactivityTimer']) {
                 clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
-                var inactivity = u.partial(go.Terminal.notifyInactivity, term + ': ' + termTitle);
-                try {
-                    go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
-                } finally {
-                    inactivity = null;
-                }
+                inactivity = u.partial(go.Terminal.notifyInactivity, term + ': ' + termTitle);
+                go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
             }
             if (go.Terminal.terminals[term]['activityNotify']) {
                 if (!go.Terminal.terminals[term]['lastNotifyTime']) {
@@ -1361,17 +1358,12 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.terminals[term]['lastNotifyTime'] = new Date();
                     go.Terminal.notifyActivity(term + ': ' + termTitle);
                 } else {
-                    var then = new Date(go.Terminal.terminals[term]['lastNotifyTime']),
-                        now = new Date();
-                    try {
-                        then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
-                        if (now > then) {
-                            go.Terminal.terminals[term]['lastNotifyTime'] = new Date(); // Reset
-                            go.Terminal.notifyActivity(term + ': ' + termTitle);
-                        }
-                    } finally {
-                        then = null;
-                        now = null;
+                    then = new Date(go.Terminal.terminals[term]['lastNotifyTime']);
+                    now = new Date();
+                    then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
+                    if (now > then) {
+                        go.Terminal.terminals[term]['lastNotifyTime'] = new Date(); // Reset
+                        go.Terminal.notifyActivity(term + ': ' + termTitle);
                     }
                 }
             }
@@ -1379,7 +1371,7 @@ go.Base.update(GateOne.Terminal, {
             E.trigger("terminal:term_updated", term);
             if (go.Terminal.updateTermCallbacks.length) {
                 go.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('terminal:term_updated', func) instead.");
-                for (var i=0; i<go.Terminal.updateTermCallbacks.length; i++) {
+                for (i=0; i<go.Terminal.updateTermCallbacks.length; i++) {
                     go.Terminal.updateTermCallbacks[i](term);
                 }
             }
@@ -1433,7 +1425,7 @@ go.Base.update(GateOne.Terminal, {
             checkBackspace = null,
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalAction() termUpdateObj: ' + u.items(termUpdateObj));
-        logDebug("screen length: " + termUpdateObj['screen'].length);
+//         logDebug("screen length: " + termUpdateObj['screen'].length);
         if (!go.Terminal.terminals[term]) {
             return; // Terminal was just closed
         }

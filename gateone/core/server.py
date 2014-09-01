@@ -15,7 +15,7 @@ __license_info__ = {
     "version": __version__
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140830222151" # Gets replaced by git (holds the date/time)
+__commit__ = "20140830222534" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
