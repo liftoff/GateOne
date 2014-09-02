@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140830222534";
+GateOne.__commit__ = "20140831202610";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4004,9 +4004,6 @@ GateOne.Base.update(GateOne.Visual, {
         .. tip:: If you wish to use your own workspace-switching animation just write your own function to handle it and call `GateOne.Events.off('go:switch_workspace', GateOne.Visual.slideToWorkspace); GateOne.Events.on('go:switch_workspace', yourFunction);`
         */
         logDebug('switchWorkspace(' + workspace + ')');
-        if (localStorage[go.prefs.prefix+'selectedWorkspace'] == workspace) {
-            return; // Nothing to do
-        }
         go.Events.trigger('go:switch_workspace', workspace);
         // NOTE: The following *must* come after the tiggered event above!
         localStorage[go.prefs.prefix+'selectedWorkspace'] = workspace;
@@ -4121,11 +4118,16 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
                     if (go.prefs.disableTransitions) {
-                        go.Events.trigger("go:ws_transitionend", wsNode);
+                        v._slideEndForeground({'target': wsNode}); // Emulate an event (slightly)
                     }
                 } else {
-                    wsNode.addEventListener(transitionEnd, v._slideEndBackground, false);
+                    if (!go.prefs.disableTransitions) {
+                        wsNode.addEventListener(transitionEnd, v._slideEndBackground, false);
+                    }
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
+                    if (go.prefs.disableTransitions) {
+                        v._slideEndBackground({'target': wsNode});
+                    }
                 }
             });
         }, 1);

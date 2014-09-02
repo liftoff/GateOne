@@ -463,9 +463,7 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:grid_view:close", function() {
             go.Terminal.enableScrollback();
             u.showElements('.✈pastearea');
-            setTimeout(function() {
-                go.Terminal.alignTerminal(localStorage[prefix+'selectedTerminal']);
-            }, 1000);
+            setTimeout(go.Terminal.alignTerminal, 1000);
             go.Terminal.Input.capture();
         });
         E.on("go:connnection_established", go.Terminal.reconnectEvent);
@@ -887,10 +885,6 @@ go.Base.update(GateOne.Terminal, {
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
-        infoContainer.addEventListener('mousemove', function(e) {
-            u.removeElement(infoContainer);
-            go.Terminal.switchTerminal(term);
-        }, false);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
             clearTimeout(v.infoTimer);
@@ -1892,6 +1886,7 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.enableScrollback(term);
         // Fire our new_terminal event if everything was successful
         if (go.Terminal.terminals[term]) {
+            go.Terminal.alignTerminal(term);
             E.trigger("terminal:new_terminal", term, trulyNew);
         }
         return term; // So you can call it from your own code and know what terminal number you wound up with

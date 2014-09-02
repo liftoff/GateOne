@@ -26,7 +26,7 @@ if (typeof(go.prefs.showPlaybackControls) == "undefined") {
     go.prefs.showPlaybackControls = true;
 }
 // Don't want the client saving this
-go.noSavePrefs['showPlaybackControls'] = null;
+go.noSavePrefs.showPlaybackControls = null;
 
 // GateOne.Playback
 go.Base.module(GateOne, 'Playback', '1.1', ['Base', 'Net', 'Logging']);
@@ -117,11 +117,11 @@ go.Base.update(GateOne.Playback, {
         If no terminal is present in the current workspace the playback controls will be removed.
         */
         logDebug('GateOne.Playback.switchWorkspaceEvent('+workspace+')');
-        var termFound = false;
-        for (var term in go.Terminal.terminals) {
+        var termFound = false, term;
+        for (term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                if (go.Terminal.terminals[term].workspace == workspace) {
                     // At least one terminal is on this workspace
                     termFound = true;
                 }
@@ -154,7 +154,7 @@ go.Base.update(GateOne.Playback, {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
                 if (!termPre.querySelector('.✈playback_spacer')) {
-                    if (!t.terminals[term]['noAdjust']) {
+                    if (!t.terminals[term].noAdjust) {
                         termPre.appendChild(extraSpace);
                         if (u.isVisible(termPre)) {
                             if (go.prefs.rows) {
@@ -188,26 +188,26 @@ go.Base.update(GateOne.Playback, {
     pushPlaybackFrame: function(term) {
         /**:GateOne.Playback.pushPlaybackFrame(term)
 
-        Adds the current screen of *term* to `GateOne.Terminal.terminals[term]['playbackFrames']`.
+        Adds the current screen of *term* to `GateOne.Terminal.terminals[term].playbackFrames`.
         */
         var p = go.Playback,
             playbackFrames = null;
         if (!p.progressBarElement) {
             p.progressBarElement = u.getNode('#'+prefix+'progressBar');
         }
-        if (!t.terminals[term]['playbackFrames']) {
-            t.terminals[term]['playbackFrames'] = [];
+        if (!t.terminals[term].playbackFrames) {
+            t.terminals[term].playbackFrames = [];
         }
-        playbackFrames = t.terminals[term]['playbackFrames'];
+        playbackFrames = t.terminals[term].playbackFrames;
         // Add the new playback frame to the terminal object
         if (playbackFrames.length < go.prefs.playbackFrames) {
-            playbackFrames.push({'screen': t.terminals[term]['screen'].slice(0), 'time': new Date()});
+            playbackFrames.push({'screen': t.terminals[term].screen.slice(0), 'time': new Date()});
         } else {
             // This strange method of pushing new elements on to the array prevents some garbage collection
             for (var i = 0, len = playbackFrames.length - 1; i < len; i++) {
                 playbackFrames[i] = playbackFrames[i + 1];
             }
-            playbackFrames[playbackFrames.length - 1] = {'screen': t.terminals[term]['screen'].slice(0), 'time': new Date()};
+            playbackFrames[playbackFrames.length - 1] = {'screen': t.terminals[term].screen.slice(0), 'time': new Date()};
         }
         // Fix the progress bar if it is in a non-default state and stop playback
         if (p.progressBarElement) {
@@ -224,10 +224,10 @@ go.Base.update(GateOne.Playback, {
 
         Called when the user clicks the "Save" button in the prefs panel.  Makes sure the 'playbackFrames' setting gets updated according to what the user entered into the form.
         */
-        var playbackValue = u.getNode('#'+prefix+'prefs_playback').value;
+        var playbackValue = u.getNode('#'+prefix+'prefs_playback').value, term;
         // Reset playbackFrames in case the user increased or decreased the value
-        for (var termObj in t.terminals) {
-            termObj['playbackFrames'] = [];
+        for (term in t.terminals) {
+            t.terminals[term].playbackFrames = [];
         }
         try {
             if (playbackValue) {
@@ -269,17 +269,17 @@ go.Base.update(GateOne.Playback, {
 
         For the given *term*, returns the last frame # with a 'time' less than the first frame's time + *ms*.
         */
-        var firstFrameObj = t.terminals[term]['playbackFrames'][0],
+        var firstFrameObj = t.terminals[term].playbackFrames[0],
             // Get a Date() that reflects the current position:
-            frameTime = new Date(firstFrameObj['time']),
+            frameTime = new Date(firstFrameObj.time),
             frameObj = null,
             dateTime = null,
-            framesLength = t.terminals[term]['playbackFrames'].length - 1,
+            framesLength = t.terminals[term].playbackFrames.length - 1,
             frame = 0;
         frameTime.setMilliseconds(frameTime.getMilliseconds() + ms);
-        for (var i in t.terminals[term]['playbackFrames']) {
-            frameObj = t.terminals[term]['playbackFrames'][i];
-            dateTime = new Date(frameObj['time']);
+        for (var i in t.terminals[term].playbackFrames) {
+            frameObj = t.terminals[term].playbackFrames[i];
+            dateTime = new Date(frameObj.time);
             if (dateTime.getTime() > frameTime.getTime()) {
                 frame = i;
                 break
@@ -295,16 +295,16 @@ go.Base.update(GateOne.Playback, {
         var p = go.Playback,
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
             progressBar = u.getNode('#'+prefix+'progressBar'),
-            selectedFrame = t.terminals[term]['playbackFrames'][p.selectFrame(term, p.milliseconds)],
-            frameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']),
-            lastFrame = t.terminals[term]['playbackFrames'].length - 1,
-            lastDateTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']);
+            selectedFrame = t.terminals[term].playbackFrames[p.selectFrame(term, p.milliseconds)],
+            frameTime = new Date(t.terminals[term].playbackFrames[0].time),
+            lastFrame = t.terminals[term].playbackFrames.length - 1,
+            lastDateTime = new Date(t.terminals[term].playbackFrames[lastFrame].time);
         frameTime.setMilliseconds(frameTime.getMilliseconds() + p.milliseconds);
         if (!selectedFrame) { // All done
             var playPause = u.getNode('#'+prefix+'playPause');
             playPause.innerHTML = '\u25B8';
             v.applyTransform(playPause, 'scale(1.5) translateY(-5%)'); // Needs to be resized a bit
-            t.applyScreen(t.terminals[term]['playbackFrames'][lastFrame]['screen'], term, true);
+            t.applyScreen(t.terminals[term].playbackFrames[lastFrame].screen, term, true);
             p.clockElement.innerHTML = lastDateTime.toLocaleTimeString();
             sideinfo.innerHTML = lastDateTime.toLocaleDateString();
             progressBar.style.width = '100%';
@@ -318,9 +318,9 @@ go.Base.update(GateOne.Playback, {
         }
         p.clockElement.innerHTML = frameTime.toLocaleTimeString();
         sideinfo.innerHTML = frameTime.toLocaleDateString();
-        t.applyScreen(selectedFrame['screen'], term, true);
+        t.applyScreen(selectedFrame.screen, term, true);
         // Update progress bar
-        var firstDateTime = new Date(t.terminals[term]['playbackFrames'][0]['time']);
+        var firstDateTime = new Date(t.terminals[term].playbackFrames[0].time);
         var percent = Math.abs((lastDateTime.getTime() - frameTime.getTime())/(lastDateTime.getTime() - firstDateTime.getTime()) - 1);
         if (percent > 1) {
             percent = 1; // Last frame might be > 100% due to timing...  No biggie
@@ -384,25 +384,25 @@ go.Base.update(GateOne.Playback, {
                     pB = u.getNode('#'+prefix+'progressBar'),
                     pBC = u.getNode('#'+prefix+'progressBarContainer'),
                     percent = (lX / pBC.offsetWidth),
-                    frame = Math.round(t.terminals[term]['playbackFrames'].length * percent),
-                    firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']),
-                    lastFrame = t.terminals[term]['playbackFrames'].length - 1,
-                    lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']),
+                    frame = Math.round(t.terminals[term].playbackFrames.length * percent),
+                    firstFrameTime = new Date(t.terminals[term].playbackFrames[0].time),
+                    lastFrame = t.terminals[term].playbackFrames.length - 1,
+                    lastFrameTime = new Date(t.terminals[term].playbackFrames[lastFrame].time),
                     totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime(),
                     currentFrame = frame - 1,
-                    selectedFrame = t.terminals[term]['playbackFrames'][currentFrame],
-                    frameTime = new Date(selectedFrame['time']);
+                    selectedFrame = t.terminals[term].playbackFrames[currentFrame],
+                    frameTime = new Date(selectedFrame.time);
                 p.milliseconds = Math.round(totalMilliseconds * percent); // In case there's something being played back, this will skip forward
                 if (p.clockUpdater) {
                     clearInterval(p.clockUpdater);
                     p.clockUpdater = null;
                 }
-                if (t.terminals[term]['scrollbackTimer']) {
-                    clearTimeout(t.terminals[term]['scrollbackTimer']);
+                if (t.terminals[term].scrollbackTimer) {
+                    clearTimeout(t.terminals[term].scrollbackTimer);
                 }
                 pB.style.width = (percent*100) + '%'; // Update the progress bar to reflect the user's click
                 // Now update the terminal window to reflect the (approximate) selected frame
-                t.applyScreen(selectedFrame['screen'], term, true);
+                t.applyScreen(selectedFrame.screen, term, true);
                 p.clockElement.innerHTML = frameTime.toLocaleTimeString();
             }
         }
@@ -439,17 +439,17 @@ go.Base.update(GateOne.Playback, {
                 lastFrame,
                 lastFrameTime,
                 totalMilliseconds;
-            if (!t.terminals[term]['playbackFrames']) {
+            if (!t.terminals[term].playbackFrames) {
                 return;
             }
-            firstFrameTime = new Date(t.terminals[term]['playbackFrames'][0]['time']);
-            lastFrame = t.terminals[term]['playbackFrames'].length - 1;
-            lastFrameTime = new Date(t.terminals[term]['playbackFrames'][lastFrame]['time']);
+            firstFrameTime = new Date(t.terminals[term].playbackFrames[0].time);
+            lastFrame = t.terminals[term].playbackFrames.length - 1;
+            lastFrameTime = new Date(t.terminals[term].playbackFrames[lastFrame].time);
             totalMilliseconds = lastFrameTime.getTime() - firstFrameTime.getTime();
             if (t.terminals[term]) { // Only do this if there's an actual terminal present
                 var terminalObj = t.terminals[term],
-                    selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
-                    sbT = terminalObj['scrollbackTimer'];
+                    selectedFrame = terminalObj.playbackFrames[p.currentFrame],
+                    sbT = terminalObj.scrollbackTimer;
                 if (modifiers.ctrl || modifiers.alt || modifiers.meta) {
                     return;
                 }
@@ -464,34 +464,34 @@ go.Base.update(GateOne.Playback, {
                         clearTimeout(sbT);
                         sbT = null;
                     }
-                    if (terminalObj['scrollbackVisible']) {
+                    if (terminalObj.scrollbackVisible) {
                         // This just ensures that we're keeping states set properly
-                        terminalObj['scrollbackVisible'] = false;
+                        terminalObj.scrollbackVisible = false;
                     }
                     if (typeof(p.currentFrame) == "undefined") {
-                        p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
-                        selectedFrame = terminalObj['playbackFrames'][p.currentFrame]
+                        p.currentFrame = terminalObj.playbackFrames.length - 1; // Reset
+                        selectedFrame = terminalObj.playbackFrames[p.currentFrame]
                         p.progressBarElement.style.width = '100%';
                     }
                     if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
                         p.currentFrame += 1;
-                        if (p.currentFrame >= terminalObj['playbackFrames'].length - 1) {
-                            p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
+                        if (p.currentFrame >= terminalObj.playbackFrames.length - 1) {
+                            p.currentFrame = terminalObj.playbackFrames.length - 1; // Reset
                             p.progressBarElement.style.width = '100%';
-                            t.applyScreen(terminalObj['screen'], term, true);
+                            t.applyScreen(terminalObj.screen, term, true);
                             if (!p.clockUpdater) { // Get the clock updating again
                                 p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
                             }
-                            terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
+                            terminalObj.scrollbackTimer = setTimeout(function() { // Get the scrollback timer going again
                                 t.enableScrollback(term);
                             }, 500);
                         } else {
-                            percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
+                            percent = (p.currentFrame / terminalObj.playbackFrames.length) * 100;
                             p.progressBarElement.style.width = percent + '%';
                             p.milliseconds = Math.round(totalMilliseconds * percent); // In case there's something being played back, this will skip forward
                             if (selectedFrame) {
-                                t.applyScreen(selectedFrame['screen'], term, true);
-                                u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                                t.applyScreen(selectedFrame.screen, term, true);
+                                u.getNode('#'+prefix+'clock').innerHTML = selectedFrame.time.toLocaleTimeString();
                             }
                         }
                     } else {
@@ -499,12 +499,12 @@ go.Base.update(GateOne.Playback, {
                         if (p.currentFrame < 0) {
                             p.currentFrame = 0; // Don't go lower than zero
                         }
-                        percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
+                        percent = (p.currentFrame / terminalObj.playbackFrames.length) * 100;
                         p.progressBarElement.style.width = percent + '%';
                         p.milliseconds = Math.round(totalMilliseconds * percent); // In case there's something being played back, this will skip forward
                         if (selectedFrame) {
-                            t.applyScreen(selectedFrame['screen'], term, true);
-                            u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                            t.applyScreen(selectedFrame.screen, term, true);
+                            u.getNode('#'+prefix+'clock').innerHTML = selectedFrame.time.toLocaleTimeString();
                         } else {
                             p.currentFrame = 0; // First frame
                             p.progressBarElement.style.width = '0%';
@@ -522,7 +522,7 @@ go.Base.update(GateOne.Playback, {
 
         When the server is done rendering the recording it will be sent back to the client via the 'save_file' WebSocket action.
         */
-        var recording = JSON.stringify(go.Terminal.terminals[term]['playbackFrames']),
+        var recording = JSON.stringify(go.Terminal.terminals[term].playbackFrames),
             settings = {
                 'recording': recording,
                 'prefix': prefix,

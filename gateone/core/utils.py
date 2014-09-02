@@ -399,9 +399,10 @@ def json_encode(obj):
 
 def gen_self_signed_ssl(path=None):
     """
-    Generates a self-signed SSL certificate using `pyOpenSSL` or the `openssl <http://www.openssl.org/docs/apps/openssl.html>`_ command depending on
-    what's available,  The resulting key/certificate will use the RSA algorithm
-    at 4096 bits.
+    Generates a self-signed SSL certificate using `pyOpenSSL` or the
+    `openssl <http://www.openssl.org/docs/apps/openssl.html>`_ command
+    depending on what's available,  The resulting key/certificate will use the
+    RSA algorithm at 4096 bits.
     """
     try:
         import OpenSSL

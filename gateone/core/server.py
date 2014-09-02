@@ -10,12 +10,16 @@ __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
 __license__ = "AGPLv3" # ...or proprietary (see LICENSE.txt)
 __license_info__ = {
-    "license": "AGPLv3",
-    "users": 0, # 0 being unlimited
-    "version": __version__
+    "AGPLv3": {
+        "product": "gateone",
+        "users": 0, # 0 being unlimited
+        "customer": "Unsupported",
+        "version": __version__,
+        "license_format": "1.0",
+    }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140830222534" # Gets replaced by git (holds the date/time)
+__commit__ = "20140831202610" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -528,6 +532,7 @@ import pty
 import atexit
 import ssl
 import hashlib
+import copy
 from functools import partial
 from datetime import datetime, timedelta
 try:
@@ -1382,7 +1387,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     file_watcher = None    # Will be replaced with a PeriodicCallback
     prefs = {} # Gets updated with every call to initialize()
     def __init__(self, application, request, **kwargs):
-        self.user = None
         self.actions = {
             'go:ping': self.pong,
             'go:log': self.log_message,
@@ -1663,8 +1667,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         difference being that when API authentication is enabled the WebSocket
         will expect and perform its own auth of the client.
         """
-        if self.user:
-            return self.user
         expiration = self.settings.get('auth_timeout', "14d")
         # Need the expiration in days (which is a bit silly but whatever):
         expiration = (
@@ -1752,7 +1754,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
             * `self.client_id`: Unique identifier for this instance.
             * `self.base_url`: The base URL (e.g. https://foo.com/gateone/) used to access Gate One.
-            * `self.origin`: A shortcut to reference the client's origin.
 
         Triggers the `go:open` event.
 
@@ -1897,9 +1898,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         PLUGIN_WS_CMDS[key](value, tws=self)
                         # tws==ApplicationWebSocket
                     except (KeyError, TypeError, AttributeError) as e:
-                        self.logger.error(_(
-                            "Error running plugin WebSocket action: %s" % key))
-                else:
+                        self.logger.error(
+                           _("Error running plugin WebSocket action: %s") % key)
+                elif key in self.actions:
                     try:
                         if value is None:
                             self.actions[key]()
@@ -1910,11 +1911,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         import traceback
                         for frame in traceback.extract_tb(sys.exc_info()[2]):
                             fname, lineno, fn, text = frame
-                        self.logger.error(_(
-                         "Error/Unknown WebSocket action, %s: %s (%s line %s)" %
-                         (key, e, fname, lineno)))
+                        self.logger.error(
+                         _("Error in WebSocket action, %s: %s (%s line %s)") %
+                         (key, e, fname, lineno))
                         if self.settings['logging'] == 'debug':
                             traceback.print_exc(file=sys.stdout)
+                else:
+                    self.logger.error(
+                        _("Client sent unknown WebSocket action: %s") % key)
 
     def on_close(self):
         """
@@ -2235,6 +2239,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         Triggers the `go:authenticate` event.
         """
+        cls = ApplicationWebSocket
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
         reauth = {'go:reauthenticate': True}
@@ -2427,6 +2432,27 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
         self.trigger('go:authenticate')
+        # Perform a license check
+        users = ApplicationWebSocket._list_connected_users()
+        user_count = 0
+        for user in users:
+            if not user: # Broadcast/unauthenticated clients don't count
+                continue
+            user_count += 1
+        max_users = 0
+        # Figure out how many users we'll allow by adding up all the licenses
+        for license, data in __license_info__.items():
+            print("license: %s" % license)
+            print("data: %s" % data)
+            if data['product'] == 'gateone':
+                if data['users'] == 0: # Unlimited
+                    return # Nothing to check
+                max_users += data['users']
+        if user_count > max_users:
+            logging.error(
+                _("Licensed user limit {max_users} exceeded: {user_count} "
+                  "connected users").format(
+                    max_users=max_users, user_count=user_count))
 
     def _start_session_watcher(self, restart=False):
         """
@@ -3650,7 +3676,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Returns the contents of the `__license_info__` dict to the client as
         a JSON-encoded message.
         """
-        self.write_message(__license_info__)
+        licenses = copy.deepcopy(__license_info__)
+        # Remove the signatures so the license can't be copied by clients
+        for license, data in licenses.items():
+            if 'signature' in data:
+                del data['signature']
+                del data['signature_method'] # No need to send this either
+            del data['license_format']   # Ditto
+        message = {'go:license_info': licenses}
+        self.write_message(message)
 
     @require(authenticated(), policies('gateone'))
     def debug(self):
@@ -4027,26 +4061,6 @@ def validate_authobj(args=sys.argv):
         sys.exit(2)
     print("\x1b[1;32mAPI Authentication Successful!\x1b[0m")
 
-def set_license():
-    """
-    Sets the __license__ global based on what can be found in `GATEONE_DIR`.
-    """
-    license_path = os.path.join(GATEONE_DIR, '.license')
-    if os.path.exists(license_path):
-        with io.open(license_path, 'r', encoding='utf-8') as f:
-            license = f.read().strip()
-            if license:
-                import json
-                global __license__
-                global __license_info__
-                try:
-                    license_info = json.loads(license)
-                except ValueError:
-                    pass # Invalid license
-                __license__ = "Commercial"
-                __license_info__ = license_info
-
-# TODO: Make this install in the settings_dir instead of the GATEONE_DIR so it persists after installation or re-installation
 def install_license(args=sys.argv):
     """
     Handles the 'install_license' CLI command.  Just installs the license at the
@@ -4056,8 +4070,10 @@ def install_license(args=sys.argv):
     if '--help' in args or len(args) < 1:
         print("Usage: {0} /path/to/license.txt".format(sys.argv[0]))
         sys.exit(1)
-    install_path = os.path.join(GATEONE_DIR, '.license')
     import shutil
+    # Give it a unique filename in case they're installing more than one
+    filename = 'license%s.conf' % datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    install_path = os.path.join(options.settings_dir, filename)
     license_path = os.path.expanduser(args[0]) # In case ~
     license_path = os.path.expandvars(license_path) # In case $HOME (or similar)
     if os.path.exists(install_path):
@@ -4066,15 +4082,95 @@ def install_license(args=sys.argv):
             "replace it? (y/n) "))
         if yesno not in ('yes', 'y', 'YES', 'Y'):
             sys.exit(1)
-    shutil.copy(license_path, install_path)
+    try:
+        shutil.copy(license_path, install_path)
+    except PermissionError:
+        print("Error: Could not copy license (permission denied).")
+        sys.exit(2)
     print("{0} has been installed ({1})".format(license_path, install_path))
     sys.exit(0)
+
+def validate_licenses(licenses):
+    """
+    Given a *licenses* dict, logs and removes any licenses that have expired or
+    have invalid signatures.  It then sets the `__license_info__` global with
+    the updated dict.  Example license dict::
+
+        {
+            "11252c41-d3cd-45b7-929b-4a3baedcc152": {
+                "product": "gateone",
+                "customer": "ACME, Inc",
+                "users": 250,
+                "expires": 1441071222,
+                "license_format": "1.0",
+                "signature": "<gobbledygook>",
+                "signature_method": "secp256k1"
+            }
+        }
+
+    .. note::
+
+        Signatures will be validated against Liftoff Software's public key.
+    """
+    # If you wish to defraud Liftoff Software (and your users) in regards to
+    # licensing just uncomment this line:
+    # return True
+    import base64
+    try:
+        import pyelliptic
+    except ImportError:
+        logging.error(_(
+            "Could not import pyelliptic which is required to validate "
+            "licenses.  Please install it:  sudo pip install pyelliptic"))
+        logging.error(_(
+            "Or you could just download it: "
+            "https://github.com/yann2192/pyelliptic"))
+        sys.exit(2)
+    pubkey = (
+        b'\x02\xca\x00 J\xd9\xbb\x16(_ d\x03\xf6\xc2\x9dc\xea]\xef\x19).5?*#.'
+        b'\xc6\x9cp\xb0G\x82\xab\x9e\x00 W\xa1t\xc1;\x08\xd78\x97\x1f\xfa\xe4'
+        b'\xc7H5\x0f+\xbcG\x8a\xb6\xf6^\xf5N\xdd\xdfm\xe0V\xaar')
+    new_licenses = copy.deepcopy(licenses)
+    ecc = pyelliptic.ECC(pubkey=pubkey, curve='secp256k1') # Same as Bitcoin
+    ignore_keys = ("signature", "signature_method", "license_format")
+    for license, data in licenses.items():
+        # Signatures are generated/validated using a concatenated string of all
+        # keys in the license's dict in lexicographical order.
+        combined = ""
+        validated = True
+        # Make a combined string to validate the signature against:
+        for key, value in sorted(data.items()):
+            if key in ignore_keys:
+                continue
+            combined += str(value)
+        now = time.time()
+        if int(data['expires']) < now:
+            logging.error(_(
+                "License for '{product}' has expired: {license}").format(
+                    product=data['product'], license=license))
+            validated = False
+        signature = base64.b64decode(data["signature"])
+        if validated and not ecc.verify(signature, combined):
+            logging.error(_("License has an invalid signature: %s") % license)
+            validated = False
+        if validated: # Show a helpful warning message about soon-to-expires
+            thirty_days_from_now = now + 2592000
+            if int(data['expires']) < thirty_days_from_now:
+                logging.warning(_(
+                    "License for '{product}' will expire in less than 30 days: "
+                    "{license}").format(
+                        product=data['product'], license=license))
+        if not validated:
+            del new_licenses[license]
+    if new_licenses:
+        logging.info("All Gate One licenses are valid and up-to-date.")
+        global __license_info__
+        __license_info__ = new_licenses
 
 def main(installed=True):
     global _
     global PLUGINS
     global APPLICATIONS
-    set_license()
     cli_commands = {'gateone': {}} # CLI commands provided by plugins/apps
     define_options(installed=installed, cli_commands=cli_commands)
     # Before we do anything else we need the get the settings_dir argument (if
@@ -4200,6 +4296,9 @@ def main(installed=True):
             break
         else:
             arguments.append(arg.lstrip('-').split('=', 1)[0])
+    licenses = all_settings.get('*', {}).get('licenses', {})
+    if licenses:
+        validate_licenses(licenses)
     # TODO: Get this outputting installed plugins and versions as well
     if options.version:
         print("\x1b[1mGate One:\x1b[0m")
