@@ -147,7 +147,11 @@
             <span class="n">extra</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">extra</span><span class="p">:</span>
             <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="s">u&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="s">u&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="s">u&#39;{json_data} {msg}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">msg</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
@@ -279,7 +283,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

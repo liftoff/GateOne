@@ -461,9 +461,10 @@
 </div>
 <div class="viewcode-block" id="gen_self_signed_ssl"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.gen_self_signed_ssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_ssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generates a self-signed SSL certificate using `pyOpenSSL` or the `openssl &lt;http://www.openssl.org/docs/apps/openssl.html&gt;`_ command depending on</span>
-<span class="sd">    what&#39;s available,  The resulting key/certificate will use the RSA algorithm</span>
-<span class="sd">    at 4096 bits.</span>
+<span class="sd">    Generates a self-signed SSL certificate using `pyOpenSSL` or the</span>
+<span class="sd">    `openssl &lt;http://www.openssl.org/docs/apps/openssl.html&gt;`_ command</span>
+<span class="sd">    depending on what&#39;s available,  The resulting key/certificate will use the</span>
+<span class="sd">    RSA algorithm at 4096 bits.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">OpenSSL</span>
@@ -1790,8 +1791,8 @@
 <span class="sd">        create_signature(</span>
 <span class="sd">            &#39;secret&#39;,</span>
 <span class="sd">            &#39;some-api-key&#39;,</span>
-<span class="sd">            &#39;1234567890123&#39;,</span>
 <span class="sd">            &#39;user@somehost&#39;,</span>
+<span class="sd">            &#39;1234567890123&#39;,</span>
 <span class="sd">            hmac_algo=hashlib.sha1)</span>
 
 <span class="sd">    .. note::</span>
@@ -1856,7 +1857,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

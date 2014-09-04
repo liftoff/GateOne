@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140831202610" # Gets replaced by git (holds the date/time)
+__commit__ = "20140901214636" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -239,201 +239,7 @@ in '@company.com' will get access to the "extra" command when using the
 Running gateone.py with the `--help` switch will print the usage information as
 well as descriptions of what each configurable option does:
 
-.. ansi-block::
-
-    \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m gateone --help
-    Usage: /usr/local/bin/gateone [OPTIONS]
-
-    Options:
-
-    --help                           show this help information
-
-    /usr/local/lib/python2.7/dist-packages/tornado/log.py options:
-
-    --log_file_max_size              max size of log files before rollover
-                                    (default 100000000)
-    --log_file_num_backups           number of log files to keep (default 10)
-    --log_file_prefix=PATH           Path prefix for log files. Note that if you
-                                    are running multiple tornado processes,
-                                    log_file_prefix must be different for each
-                                    of them (e.g. include the port number)
-    --log_to_stderr                  Send log output to stderr (colorized if
-                                    possible). By default use stderr if
-                                    --log_file_prefix is not set and no other
-                                    logging is configured.
-    --logging=debug|info|warning|error|none
-                                    Set the Python log level. If 'none', tornado
-                                    won't touch the logging configuration.
-                                    (default info)
-
-    gateone options:
-
-    --address                        Run on the given address.  Default is all
-                                    addresses (IPv6 included).  Multiple address
-                                    can be specified using a semicolon as a
-                                    separator (e.g. '127.0.0.1;::1;10.1.1.100').
-    --api_keys                       The 'key:secret,...' API key pairs you wish
-                                    to use (only applies if using API
-                                    authentication)
-    --api_timestamp_window           How long before an API authentication object
-                                    becomes invalid.   (default 30s)
-    --auth                           Authentication method to use.  Valid options
-                                    are: none, api, google, ssl, kerberos, pam
-                                    (default none)
-    --ca_certs                       Path to a file containing any number of
-                                    concatenated CA certificates in PEM format.
-                                    They will be used to authenticate clients if
-                                    the 'ssl_auth' option is set to 'optional'
-                                    or 'required'.
-    --cache_dir                      Path where Gate One should store temporary
-                                    global files (e.g. rendered templates, CSS,
-                                    JS, etc). (default /tmp/gateone_cache)
-    --certificate                    Path to the SSL certificate.  Will be auto-
-                                    generated if none is provided. (default
-                                    /etc/gateone/ssl/certificate.pem)
-    --combine_css                    Combines all of Gate One's CSS Template
-                                    files into one big file and saves it at the
-                                    given path (e.g. gateone
-                                    --combine_css=/tmp/gateone.css).
-    --combine_css_container          Use this setting in conjunction with
-                                    --combine_css if the <div> where Gate One
-                                    lives is named something other than #gateone
-                                    (default gateone)
-    --combine_js                     Combines all of Gate One's JavaScript files
-                                    into one big file and saves it at the given
-                                    path (e.g. gateone
-                                    --combine_js=/tmp/gateone.js)
-    --command                        DEPRECATED: Use the 'commands' option in the
-                                    terminal settings.
-    --config                         DEPRECATED.  Use --settings_dir. (default
-                                    /opt/gateone/server.conf)
-    --cookie_secret                  Use the given 45-character string for cookie
-                                    encryption.
-    --debug                          Enable debugging features such as auto-
-                                    restarting when files are modified. (default
-                                    False)
-    --disable_ssl                    If enabled, Gate One will run without SSL
-                                    (generally not a good idea). (default False)
-    --embedded                       When embedding Gate One, this option is
-                                    available to templates. (default False)
-    --enable_unix_socket             Enable Unix socket support. (default False)
-    --gid                            Drop privileges and run Gate One as this
-                                    group/gid. (default 0)
-    --https_redirect                 If enabled, a separate listener will be
-                                    started on port 80 that redirects users to
-                                    the configured port using HTTPS. (default
-                                    False)
-    --js_init                        A JavaScript object (string) that will be
-                                    used when running GateOne.init() inside
-                                    index.html.  Example: --js_init="{scheme:
-                                    'white'}" would result in
-                                    GateOne.init({scheme: 'white'})
-    --keyfile                        Path to the SSL keyfile.  Will be auto-
-                                    generated if none is provided. (default
-                                    /etc/gateone/ssl/keyfile.pem)
-    --locale                         The locale (e.g. pt_PT) Gate One should use
-                                    for translations.  If not provided, will
-                                    default to $LANG (which is 'en_US' in your
-                                    current shell), or en_US if not set.
-                                    (default en_US)
-    --new_api_key                    Generate a new API key that an external
-                                    application can use to embed Gate One.
-                                    (default False)
-    --origins                        A semicolon-separated list of origins you
-                                    wish to allow access to your Gate One server
-                                    over the WebSocket.  This value must contain
-                                    the hostnames and FQDNs (e.g. foo;foo.bar;)
-                                    users will use to connect to your Gate One
-                                    server as well as the hostnames/FQDNs of any
-                                    sites that will be embedding Gate One.
-                                    Alternatively, '*' may be  specified to
-                                    allow access from anywhere. (default localho
-                                    st;127.0.0.1;enterprise.lan;enterprise;local
-                                    host;enterprise.lan;enterprise;enterprise.ex
-                                    ample.com;127.0.0.1;10.1.1.100)
-    --pam_realm                      Basic auth REALM to display when
-                                    authenticating clients.  Default: hostname.
-                                    Only relevant if PAM authentication is
-                                    enabled. (default enterprise)
-    --pam_service                    PAM service to use.  Defaults to 'login'.
-                                    Only relevant if PAM authentication is
-                                    enabled. (default login)
-    --pid_file                       Define the path to the pid file.  Default:
-                                    /var/run/gateone.pid (default
-                                    /var/run/gateone.pid)
-    --port                           Run on the given port. (default 443)
-    --session_dir                    Path to the location where session
-                                    information will be stored. (default
-                                    /tmp/gateone)
-    --session_timeout                Amount of time that a session is allowed to
-                                    idle before it is killed.  Accepts <num>X
-                                    where X could be one of s, m, h, or d for
-                                    seconds, minutes, hours, and days.  Set to
-                                    '0' to disable the ability to resume
-                                    sessions. (default 5d)
-    --settings_dir                   Path to the settings directory. (default
-                                    /etc/gateone/conf.d)
-    --ssl_auth                       Enable the use of client SSL (X.509)
-                                    certificates as a secondary authentication
-                                    factor (the configured 'auth' type will come
-                                    after SSL auth).  May be one of 'none',
-                                    'optional', or 'required'.  NOTE: Only works
-                                    if the 'ca_certs' option is configured.
-                                    (default none)
-    --sso_realm                      Kerberos REALM (aka DOMAIN) to use when
-                                    authenticating clients. Only relevant if
-                                    Kerberos authentication is enabled.
-    --sso_service                    Kerberos service (aka application) to use.
-                                    Defaults to HTTP. Only relevant if Kerberos
-                                    authentication is enabled. (default HTTP)
-    --syslog_facility                Syslog facility to use when logging to
-                                    syslog (if syslog_session_logging is
-                                    enabled).  Must be one of: auth, cron,
-                                    daemon, kern, local0, local1, local2,
-                                    local3, local4, local5, local6, local7, lpr,
-                                    mail, news, syslog, user, uucp. (default
-                                    daemon)
-    --uid                            Drop privileges and run Gate One as this
-                                    user/uid. (default 0)
-    --unix_socket_path               Path to the Unix socket (if
-                                    --enable_unix_socket=True). (default
-                                    /tmp/gateone.sock)
-    --url_prefix                     An optional prefix to place before all Gate
-                                    One URLs. e.g. '/gateone/'.  Use this if
-                                    Gate One will be running behind a reverse
-                                    proxy where you want it to be located at
-                                    some sub-URL path. (default /)
-    --user_dir                       Path to the location where user files will
-                                    be stored. (default /var/lib/gateone/users)
-    --user_logs_max_age              Maximum amount of length of time to keep any
-                                    given user log before it is removed.
-                                    (default 30d)
-    --version                        Display version information.
-
-    terminal options:
-
-    --dtach                          Wrap terminals with dtach. Allows sessions
-                                    to be resumed even if Gate One is stopped
-                                    and started (which is a sweet feature).
-                                    (default True)
-    --kill                           Kill any running Gate One terminal processes
-                                    including dtach'd processes. (default False)
-    --session_logging                If enabled, logs of user sessions will be
-                                    saved in <user_dir>/<user>/logs.  Default:
-                                    Enabled (default True)
-    --syslog_session_logging         If enabled, logs of user sessions will be
-                                    written to syslog. (default False)
-
-    x11 options:
-
-    --xorg_conf                      If provided, will use the specified
-                                    xorg.conf file when spawning instances of
-                                    Xorg. (default /etc/gateone/x11/xorg.conf)
-
-.. note::
-
-    Some of these options (e.g. log_file_prefix) are inherent to the
-    Tornado framework.  You won't find them anywhere in gateone.py.
+.. program-output:: gateone --help
 
 File Paths
 ----------
@@ -600,7 +406,7 @@ from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from .utils import json_encode, recursive_chown, ChownError, get_or_cache
 from .utils import write_pid, read_pid, remove_pid, drop_privileges
 from .utils import check_write_permissions, get_applications, valid_hostname
-from .utils import total_seconds, MEMO
+from .utils import total_seconds, MEMO, bind
 from .configuration import apply_cli_overrides, define_options, SettingsError
 from .configuration import get_settings
 from onoff import OnOffMixin
@@ -636,39 +442,7 @@ CLEANER = None # Log and leftover session data cleaner PeriodicCallback
 FILE_CACHE = {}
 APPLICATIONS = {}
 PLUGINS = {}
-PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance ApplicationWebSocket
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
-PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
-                       # user successfully authenticates
-PLUGIN_ENV_HOOKS = {} # Allows plugins to add environment variables that will be
-                      # available to all executed commands.
-# Gate One registers a handler for for terminal.py's CALLBACK_OPT special escape
-# sequence callback.  Whenever this escape sequence is encountered, Gate One
-# will parse the sequence's contained characters looking for the following
-# format:
-#   <plugin name>|<whatever>
-# The <whatever> part will be passed to any plugin matching <plugin name> if the
-# plugin has 'Escape': <function> registered in its hooks.
-PLUGIN_ESC_HANDLERS = {}
-# This is used to store plugin terminal hooks that are called when a new
-# terminal is created (so a plugin could override/attach callbacks to the
-# multiplex or terminal emulator instances).  NOTE: This is specifically for
-# adding to the terminal emulator's CALLBACK_* capability.  For modifying the
-# terminal emulator instance directly see PLUGIN_NEW_TERM_HOOKS.
-PLUGIN_TERM_HOOKS = {}
-# The NEW_TERM hooks are called at the end of ApplicationWebSocket.new_terminal()
-# with 'self' and the new instance of the terminal emulator as the only
-# arguments.  It's a more DIY/generic version of PLUGIN_TERM_HOOKS.
-PLUGIN_NEW_TERM_HOOKS = []
-# 'Command' hooks get called before a new Multiplex instance is created inside
-# of ApplicationWebSocket.new_multiplex().  They are passed the 'command' and must
-# return a string that will be used as the replacement 'command'.  This allows
-# plugin authors to modify the configured 'command' before it is executed
-PLUGIN_COMMAND_HOOKS = []
-# 'Multiplex' hooks get called at the end of ApplicationWebSocket.new_multiplex()
-# with the instance of ApplicationWebSocket and the new instance of Multiplex as
-# the only arguments, respectively.
-PLUGIN_NEW_MULTIPLEX_HOOKS = []
 
 # Secondary locale setup
 locale_dir = os.path.join(GATEONE_DIR, 'i18n')
@@ -1523,6 +1297,20 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Reset the memoization dict so that everything using
         # applicable_policies() gets the latest & greatest settings
         MEMO.clear()
+        # Also update __license_info__ so folks don't have to restart Gate One
+        # when installing a new license:
+        licenses = prefs.get('*', {}).get('licenses', {})
+        if licenses:
+            validate_licenses(licenses)
+        else: # Ensure the default license is applied (if license removed)
+            __license_info__.clear()
+            __license_info__["AGPLv3"] = {
+                "product": "gateone",
+                "users": 0, # 0 being unlimited
+                "customer": "Unsupported",
+                "version": __version__,
+                "license_format": "1.0",
+            }
 
     @classmethod
     def broadcast_file_update(cls):
@@ -1599,7 +1387,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
-                    self.on(event, callback)
+                    self.on(event, bind(callback, self))
+            if 'WebSocket' in hooks:
+                # Apply the plugin's WebSocket commands
+                print("Applying WebSocket hooks for %s..." % plugin_name)
+                for ws_action, func in hooks['WebSocket'].items():
+                    print("WebSocket action: %s" % ws_action)
+                    self.actions.update({ws_action: bind(func, self)})
         self.on("go:authenticate", self.send_extra)
         # Setup some actions to take place after the user authenticates
         # Send our plugin .js and .css files to the client
@@ -1893,14 +1687,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         if message_obj:
             for key, value in message_obj.items():
-                if key in PLUGIN_WS_CMDS:
-                    try: # Plugins first so they can override behavior
-                        PLUGIN_WS_CMDS[key](value, tws=self)
-                        # tws==ApplicationWebSocket
-                    except (KeyError, TypeError, AttributeError) as e:
-                        self.logger.error(
-                           _("Error running plugin WebSocket action: %s") % key)
-                elif key in self.actions:
+                if key in self.actions:
                     try:
                         if value is None:
                             self.actions[key]()
@@ -1912,8 +1699,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         for frame in traceback.extract_tb(sys.exc_info()[2]):
                             fname, lineno, fn, text = frame
                         self.logger.error(
-                         _("Error in WebSocket action, %s: %s (%s line %s)") %
-                         (key, e, fname, lineno))
+                           _("Error in WebSocket action, %s: %s (%s line %s)") %
+                           (key, e, fname, lineno))
                         if self.settings['logging'] == 'debug':
                             traceback.print_exc(file=sys.stdout)
                 else:
@@ -2371,13 +2158,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.write_message(json_encode(message))
             self.write_message(json_encode(reauth))
             return
-        try:
-            # Execute any post-authentication hooks that plugins have registered
-            if PLUGIN_AUTH_HOOKS:
-                for auth_hook in PLUGIN_AUTH_HOOKS:
-                    auth_hook(self, self.current_user, self.settings)
-        except Exception as e:
-            self.logger.error(_("Exception in registered Auth hook: %s" % e))
         # Locations are used to differentiate between different tabs/windows
         self.location = settings.get('location', 'default')
         # Update our loggers to include the user metadata
@@ -2442,8 +2222,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         max_users = 0
         # Figure out how many users we'll allow by adding up all the licenses
         for license, data in __license_info__.items():
-            print("license: %s" % license)
-            print("data: %s" % data)
             if data['product'] == 'gateone':
                 if data['users'] == 0: # Unlimited
                     return # Nothing to check
@@ -3784,14 +3562,6 @@ class GateOneApp(tornado.web.Application):
         Setup our Tornado application...  Everything in *settings* will wind up
         in the Tornado settings dict so as to be accessible under self.settings.
         """
-        global PLUGIN_WS_CMDS
-        global PLUGIN_COMMAND_HOOKS
-        global PLUGIN_ESC_HANDLERS
-        global PLUGIN_AUTH_HOOKS
-        global PLUGIN_TERM_HOOKS
-        global PLUGIN_NEW_TERM_HOOKS
-        global PLUGIN_NEW_MULTIPLEX_HOOKS
-        global PLUGIN_ENV_HOOKS
         # Base settings for our Tornado app
         static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
@@ -3908,42 +3678,6 @@ class GateOneApp(tornado.web.Application):
                     else:
                         fixed_hooks.append(hooks['Web'])
                 handlers.extend(fixed_hooks)
-            if 'WebSocket' in hooks:
-                # Apply the plugin's WebSocket commands
-                print("hooks['WebSocket']: %s" % hooks['WebSocket'])
-                PLUGIN_WS_CMDS.update(hooks['WebSocket'])
-            if 'Escape' in hooks:
-                # Apply the plugin's Escape handler
-                PLUGIN_ESC_HANDLERS.update({plugin_name: hooks['Escape']})
-            if 'Auth' in hooks:
-                # Apply the plugin's post-authentication functions
-                if isinstance(hooks['Auth'], (list, tuple)):
-                    PLUGIN_AUTH_HOOKS.extend(hooks['Auth'])
-                else:
-                    PLUGIN_AUTH_HOOKS.append(hooks['Auth'])
-            if 'Command' in hooks:
-                # Apply the plugin's 'Command' hooks (called by new_multiplex)
-                if isinstance(hooks['Command'], (list, tuple)):
-                    PLUGIN_COMMAND_HOOKS.extend(hooks['Command'])
-                else:
-                    PLUGIN_COMMAND_HOOKS.append(hooks['Command'])
-            if 'Multiplex' in hooks:
-                # Apply the plugin's Multiplex hooks (called by new_multiplex)
-                if isinstance(hooks['Multiplex'], (list, tuple)):
-                    PLUGIN_NEW_MULTIPLEX_HOOKS.extend(hooks['Multiplex'])
-                else:
-                    PLUGIN_NEW_MULTIPLEX_HOOKS.append(hooks['Multiplex'])
-            if 'Terminal' in hooks:
-                # Apply the plugin's Terminal hooks (called by new_terminal)
-                PLUGIN_TERM_HOOKS.update(hooks['Terminal'])
-            if 'TermInstance' in hooks:
-                # Apply the plugin's TermInstance hooks (called by new_terminal)
-                if isinstance(hooks['TermInstance'], (list, tuple)):
-                    PLUGIN_NEW_TERM_HOOKS.extend(hooks['TermInstance'])
-                else:
-                    PLUGIN_NEW_TERM_HOOKS.append(hooks['TermInstance'])
-            if 'Environment' in hooks:
-                PLUGIN_ENV_HOOKS.update(hooks['Environment'])
             if 'Init' in hooks:
                 # Call the plugin's initialization functions
                 hooks['Init'](tornado_settings)
@@ -3979,9 +3713,9 @@ def validate_authobj(args=sys.argv):
     argument (must be inside single quotes) and validates the singature using
     the same mechanism as `ApplicationWebSocket.api_auth`.  Example usage:
 
-    .. code-block:: shell
+    .. ansi-block::
 
-        $ gateone validate_authobj '{"upn": "jdoe@company.com", "signature_method": "HMAC-SHA1", "timestamp": "1409266590093", "signature": "004464e27db90180a4b87b50b00dd77420052b6d", "api_key": "NGQxNTVjZWEzMmM1NDBmNGI5MzYwNTM3ZDY0MzZiNTczY", "api_version": "1.0"}'
+        \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m gateone validate_authobj '{"upn": "jdoe@company.com", "signature_method": "HMAC-SHA1", "timestamp": "1409266590093", "signature": "004464e27db90180a4b87b50b00dd77420052b6d", "api_key": "NGQxNTVjZWEzMmM1NDBmNGI5MzYwNTM3ZDY0MzZiNTczY", "api_version": "1.0"}'
         API Authentication Successful!
     """
     from .utils import create_signature

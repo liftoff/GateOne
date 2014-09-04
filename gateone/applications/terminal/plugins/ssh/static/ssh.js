@@ -1,5 +1,5 @@
 
-GateOne.Base.superSandbox("GateOne.SSH", ["GateOne.Bookmarks", "GateOne.Terminal", "GateOne.Terminal.Input"], function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.SSH", ["GateOne.Bookmarks", "GateOne.Terminal", "GateOne.Terminal.Input", "GateOne.Editor"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts
@@ -1106,9 +1106,14 @@ go.Base.update(go.SSH, {
 
         .. note:: Meant to be used as a callback function passed to :js:meth:`GateOne.Utils.xhrGet`.
         */
-        var sshKHTextArea = u.getNode('#'+prefix+'ssh_kh_textarea');
+        var sshKHTextArea = u.getNode('#'+prefix+'ssh_kh_textarea'),
+            enableEditor = function() {
+                // Add the Editor so we get line numbers
+                go.Editor.fromTextArea(u.getNode("#go_default_ssh_kh_textarea"), { lineNumbers: true, lineWrapping: true, tabindex: 1, autofocus: true });
+            };
         sshKHTextArea.value = known_hosts;
         // Now show the panel
+//         v.togglePanel('#'+prefix+'panel_known_hosts', enableEditor);
         v.togglePanel('#'+prefix+'panel_known_hosts');
     },
     createKHPanel: function() {
@@ -1119,7 +1124,7 @@ go.Base.update(go.SSH, {
         If the panel already exists its contents will be destroyed and re-created.
         */
         var existingPanel = u.getNode('#'+prefix+'panel_known_hosts'),
-            sshPanel = u.createElement('div', {'id': 'panel_known_hosts', 'class': '✈panel ✈sectrans'}),
+            sshPanel = u.createElement('div', {'id': 'panel_known_hosts', 'class': '✈panel ✈sectrans ✈panel_known_hosts'}),
             sshHeader = u.createElement('div', {'id': 'ssh_header', 'class': '✈sectrans'}),
             sshHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             sshKHTextArea = u.createElement('textarea', {'id': 'ssh_kh_textarea', 'rows': 30, 'cols': 100}),
@@ -1139,11 +1144,9 @@ go.Base.update(go.SSH, {
         }
         sshKHTextArea.onfocus = function(e) {
             sshKHTextArea.focus();
-//             go.Input.disableCapture(); // So users can paste into it
             go.Terminal.Input.disableCapture();
         }
         sshKHTextArea.onblur = function(e) {
-//             go.Input.capture(); // Go back to normal
             go.Terminal.Input.capture();
         }
         form.onsubmit = function(e) {

@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140831202610";
+GateOne.__commit__ = "20140901214636";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -259,6 +259,7 @@ GateOne.Base.superSandbox = function(name, dependencies, func) {
             }
             go.Utils._ranPostInit.push(name);
         }
+        if (moduleObj) { moduleObj.__initialized__ = true; }
     }
 }
 GateOne.Base.module(GateOne, "Base", "1.2", []);
@@ -701,9 +702,15 @@ var go = GateOne.Base.update(GateOne, {
                 }
             }
             if (disableTransitions) {
-                var newStyle = u.createElement('style', {'id': 'disable_transitions'});
-                newStyle.innerHTML = "#"+go.node.id+" * {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;} .✈ws_stop {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-                document.body.appendChild(newStyle);
+                var newStyle = u.createElement('style', {'id': 'disable_transitions'}),
+                    classes = ['✈workspace', '✈ws_stop', '✈notice', '✈'],
+                    disabledCSS = " {-webkit-transition: none !important; -moz-transition: none !important; -ms-transition: none !important; -o-transition: none !important; transition: none !important;} ",
+                    finalCSS = "";
+                classes.forEach(function(className) {
+                    finalCSS += ("." + className + disabledCSS + '\n');
+                });
+                newStyle.innerHTML = finalCSS;
+                u.getNode("head").appendChild(newStyle);
                 go.prefs.disableTransitions = true;
             } else {
                 var existing = u.getNode('#'+prefix+'disable_transitions');
@@ -792,14 +799,14 @@ var go = GateOne.Base.update(GateOne, {
         goDiv.tabIndex = 1;
         if (go.prefs.disableTransitions) {
             var newStyle = u.createElement('style', {'id': 'disable_transitions'}),
-                classes = ['✈workspace', '✈ws_stop', '✈notice'],
+                classes = ['✈workspace', '✈ws_stop', '✈notice', '✈panel'],
                 disabledCSS = " {-webkit-transition: none !important; -moz-transition: none !important; -ms-transition: none !important; -o-transition: none !important; transition: none !important;} ",
                 finalCSS = "";
             classes.forEach(function(className) {
                 finalCSS += ("." + className + disabledCSS + '\n');
             });
             newStyle.innerHTML = finalCSS;
-            goDiv.appendChild(newStyle);
+            u.getNode("head").appendChild(newStyle);
         }
         // Create the workspace grid if not in embedded mode
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
@@ -1136,9 +1143,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-        .. code-block:: javascript
-
-            > GateOne.Utils.isElement(GateOne.Utils.getNode('#gateone'));
+            >>> GateOne.Utils.isElement(GateOne.Utils.getNode('#gateone'));
             true
         */
         return obj instanceof HTMLElement;
@@ -1415,6 +1420,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
                 go.initializedModules.push(moduleObj.__name__);
             }
+            if (moduleObj) { moduleObj.__initialized__ = true; }
         });
         if (go.Utils.postInitDebounce) {
             clearTimeout(go.Utils.postInitDebounce);
@@ -1604,9 +1610,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-        .. code-block:: javascript
-
-            GateOne.Utils.loadTheme("white");
+            >>> GateOne.Utils.loadTheme("white");
         */
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
@@ -1678,10 +1682,8 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-        .. code-block:: javascript
-
-            > var mycallback = function(responseText) { console.log("It worked: " + responseText) };
-            > GateOne.Utils.xhrGet('https://demo.example.com/static/about.html', mycallback);
+            >>> var mycallback = function(responseText) { console.log("It worked: " + responseText) };
+            >>> GateOne.Utils.xhrGet('https://demo.example.com/static/about.html', mycallback);
             It worked: <!DOCTYPE html>
             <html>
             <head>
@@ -1738,9 +1740,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Examples:
 
-        .. code-block:: javascript
-
-            GateOne.Utils.getCookie(GateOne.prefs.prefix + 'gateone_user'); // Returns the 'gateone_user' cookie
+            >>> GateOne.Utils.getCookie(GateOne.prefs.prefix + 'gateone_user'); // Returns the 'gateone_user' cookie
         */
         var i,x,y,ARRcookies=document.cookie.split(";");
         for (i=0;i<ARRcookies.length;i++) {
@@ -1763,9 +1763,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Examples:
 
-        .. code-block:: javascript
-
-            GateOne.Utils.setCookie('test', 'some value', 30); // Sets the 'test' cookie to 'some value' with an expiration of 30 days
+            >>> GateOne.Utils.setCookie('test', 'some value', 30); // Sets the 'test' cookie to 'some value' with an expiration of 30 days
         */
         var exdate=new Date();
         exdate.setDate(exdate.getDate() + days);
@@ -1781,11 +1779,9 @@ GateOne.Base.update(GateOne.Utils, {
         :param string path: The path of the cookie to delete (typically '/' but could be '/some/path/on/the/webserver' =).
         :param string path: The domain where this cookie is from (an empty string means "the current domain in window.location.href").
 
-        Examples:
+        Example:
 
-        .. code-block:: javascript
-
-            GateOne.Utils.deleteCookie('gateone_user', '/', ''); // Deletes the 'gateone_user' cookie
+            >>> GateOne.Utils.deleteCookie('gateone_user', '/', ''); // Deletes the 'gateone_user' cookie
         */
         document.cookie = name + "=" + ((path) ? ";path=" + path : "") + ((domain) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
     },
@@ -1801,11 +1797,9 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-        .. code-block:: javascript
-
-            > GateOne.Utils.randomString(8);
+            >>> GateOne.Utils.randomString(8);
             "oa2f9txf"
-            > GateOne.Utils.randomString(8, '123abc');
+            >>> GateOne.Utils.randomString(8, '123abc');
             "1b3ac12b"
         */
         var result = '';
@@ -1864,9 +1858,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Example:
 
-        .. code-block:: javascript
-
-            > GateOne.Utils.isPageHidden();
+            >>> GateOne.Utils.isPageHidden();
             false
         */
         // Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
@@ -1913,7 +1905,6 @@ GateOne.Base.update(GateOne.Utils, {
             >>> // Assume window.location.href = 'https://gateone/?foo=bar,bar,bar'
             >>> GateOne.Utils.getQueryVariable('foo');
             'bar,bar,bar'
-            >>>
 
         Optionally, a *url* may be specified to perform the same evaluation on *url* insead of :js:attr:`window.location`.
         */
@@ -2032,13 +2023,15 @@ There are various shortcut functions available to save some typing:
 
 It is recommended that you assign these shortcuts at the top of your code like so:
 
-    >>> var logFatal = GateOne.Logging.logFatal,
-            logError = GateOne.Logging.logError,
-            logWarning = GateOne.Logging.logWarning,
-            logInfo = GateOne.Logging.logInfo,
-            logDebug = GateOne.Logging.logDebug;
+.. code-block:: javascript
 
-That way you can just type "logDebug()" anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).
+    var logFatal = GateOne.Logging.logFatal,
+        logError = GateOne.Logging.logError,
+        logWarning = GateOne.Logging.logWarning,
+        logInfo = GateOne.Logging.logInfo,
+        logDebug = GateOne.Logging.logDebug;
+
+That way you can just add "logDebug()" anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).
 */
 GateOne.Logging.levels = {
     // Forward and backward for ease of use
@@ -2080,7 +2073,7 @@ GateOne.Base.update(GateOne.Logging, {
         Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.  Examples:
 
             >>> GateOne.Logging.setLevel(10); // Set log level to DEBUG
-            >>> GateOne.Logging.setLevel("DEBUG") // Same thing; they both work!
+            >>> GateOne.Logging.setLevel("debug") // Same thing; they both work!
         */
         var l = GateOne.Logging,
             levelStr = null;
@@ -2227,9 +2220,9 @@ GateOne.Base.update(GateOne.Logging, {
     addDestination: function(name, dest) {
         /**:GateOne.Logging.addDestination(name, dest)
 
-        Creates a new log destination named, *name* that calls function *dest* like so::
+        Creates a new log destination named, *name* that calls function *dest* like so:
 
-            dest(<log message>);
+            >>> dest(message);
 
         Example usage:
 
@@ -3544,7 +3537,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         The *transform* should be *just* the actual transform function (e.g. ``scale(0.5)``).  :js:func:`~GateOne.Visual.applyTransform` will take care of applying the transform according to how each browser implements it.  For example:
 
-        >>> GateOne.Visual.applyTransform('#somediv', 'translateX(500%)');
+            >>> GateOne.Visual.applyTransform('#somediv', 'translateX(500%)');
 
         ...would result in ``#somediv`` getting styles applied to it like this:
 
@@ -3630,9 +3623,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     getTransform: function(elem) {
         /**:GateOne.Visual.getTransform(elem)
-// These two are here just in case the server needs to send us a message before everything has completed loading:
-    'go:notice': go.Visual.serverMessageAction,
-    'go:user_message': go.Visual.userMessageAction
+
         :param number elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string ID or a DOM node.
 
         Returns the transform string applied to the style of the given *elem*
@@ -3655,11 +3646,10 @@ GateOne.Base.update(GateOne.Visual, {
             return node.style['-o-transform'];
         }
     },
-    togglePanel: function(panel) {
-        /**:GateOne.Visual.togglePanel(panel)
+    togglePanel: function(panel, callback) {
+        /**:GateOne.Visual.togglePanel(panel[, callback])
 
-        Toggles the given *panel* in or out of view.  If other panels are open at the time, they will be closed.
-        If *panel* evaluates to false, all open panels will be closed.
+        Toggles the given *panel* in or out of view.  If other panels are open at the time, they will be closed. If *panel* evaluates to false, all open panels will be closed.
 
         This function also has some events that can be hooked into:
 
@@ -3670,6 +3660,8 @@ GateOne.Base.update(GateOne.Visual, {
 
             >>> GateOne.Events.on("go:panel_toggle:in", myFunc); // When panel is toggled into view
             >>> GateOne.Events.on("go:panel_toggle:out", myFunc); // When panel is toggled out of view
+
+        If a *callback* is given it will be called after the panel has *completed* being toggled *in* (i.e. after animations have completed).
         */
         var v = go.Visual,
             u = go.Utils,
@@ -3690,6 +3682,9 @@ GateOne.Base.update(GateOne.Visual, {
                     u.hideElement(panel);
                     v.hidePanelsTimeout[panel.id] = null;
                 }, 1250);
+            },
+            removeEvent = function() {
+                panel.removeEventListener(v.transitionEndName, callback, false);
             };
         if (v.togglingPanel) {
             return; // Don't let the user muck with the toggle until everything has run its course
@@ -3726,8 +3721,16 @@ GateOne.Base.update(GateOne.Visual, {
             u.showElement(panel);
             setTimeout(function() {
                 // This timeout ensures that the scale-in effect happens after showElement()
+                if (callback) {
+                    if (go.prefs.disableTransitions) {
+                        setTimeout(callback, 100); // Emulate the transitionend event (slightly)
+                    } else {
+                        panel.addEventListener(v.transitionEndName, callback, false);
+                        panel.addEventListener(v.transitionEndName, removeEvent, false);
+                    }
+                }
                 v.applyTransform(panel, 'scale(1)');
-            }, 1);
+            }, 10);
             // Call any registered 'in' callbacks for all of these panels
             E.trigger("go:panel_toggle:in", panel)
             if (v.panelToggleCallbacks['in']['#'+panel.id]) {
@@ -3749,7 +3752,6 @@ GateOne.Base.update(GateOne.Visual, {
             }
             v.togglingPanel = false;
         } else {
-            // Send it away
             v.applyTransform(panel, 'scale(0)');
             // Call any registered 'out' callbacks for all of these panels
             E.trigger("go:panel_toggle:out", panel);
@@ -4620,16 +4622,13 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = GateOne.Utils,
             v = GateOne.Visual,
-            grid = null;
+            grid = u.createElement('div', {'id': id, 'class': '✈grid'});
         v.squares = [];
         if (workspaceNames) {
             workspaceNames.forEach(addSquare);
-            grid = u.createElement('div', {'id': id});
             v.squares.forEach(function(square) {
                 grid.appendChild(square);
             });
-        } else {
-            grid = u.createElement('div', {'id': id});
         }
         v.squares = null; // Cleanup
         return grid;
@@ -6108,6 +6107,8 @@ GateOne.Base.update(GateOne.Events, {
             >>> GateOne.Events.trigger("test_event", 'an argument');
             args: an argument, this.foo: bar
         */
+        // Commented out because it's super noisy.  Uncomment to debug
+//         logDebug("on("+events+")", callback);
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event],
                 callObj = {
@@ -6208,7 +6209,7 @@ GateOne.Base.update(GateOne.Events, {
                 callList.forEach(function(callObj) {
                     var context = callObj.context || this;
                     if (callObj.callback) {
-                        logDebug("trigger(): Calling ", callObj);
+//                         logDebug("trigger(): Calling ", callObj);
                         callObj.callback.apply(context, args);
                         if (callObj.times) {
                             callObj.times -= 1;

@@ -8,13 +8,6 @@
     position: absolute;
     outline: none;
     overflow: hidden;
-    background-color: #000;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0;
-    z-index: 0;
     font-size: 1em;
     /* WebKit */
     -webkit-transform-origin: top right;
@@ -41,8 +34,13 @@
     margin: 0 auto;
     text-align: center;
 }
-.✈workspace {
+div.✈grid {
+    background-color: #000;
+    display: inline-block;
+}
+div.✈workspace {
     color: #FFF;
+    background-color: #000;
     position: relative;
     float: left;
     -webkit-transition: -webkit-transform 1s ease-in-out;
@@ -91,13 +89,13 @@
     left: 0;
     background-image: linear-gradient(to top, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
 }
-.✈new_workspace_workspace {
+div.✈workspace .✈new_workspace_workspace {
     width: 100%;
     height: 100%;
     overflow-y: auto;
     background-color: #000;
 }
-.✈new_workspace_workspace_title {
+div.✈workspace .✈new_workspace_workspace_title {
     color: #fff;
     text-align: center;
     width: 80%;
@@ -105,12 +103,12 @@
     border-bottom: 1px solid #222;
     margin: 0 auto;
 }
-.✈app_grid {
+div.✈workspace .✈new_workspace_workspace .✈app_grid {
     width: 80%;
     margin: 0 auto;
     text-align: center;
 }
-.✈application {
+div.✈workspace .✈new_workspace_workspace .✈application {
     display: inline-block;
     width: 15%;
     background: linear-gradient(to bottom, #333, #191919);
@@ -130,18 +128,18 @@
     height: 10em;
     font-family: sans-serif;
 }
-.✈application span {
+div.✈workspace .✈new_workspace_workspace .✈application span {
     margin: 0 0 1em 0;
     word-wrap: break-word;
     display: inline-block;
 }
-.✈application:hover {
+div.✈workspace .✈new_workspace_workspace .✈application:hover {
     box-shadow: 0 0 0.6em #444;
     background: linear-gradient(to bottom, #333, #686868);
     cursor: pointer;
     text-shadow: .1em .1em .4em #000;
 }
-.✈application:focus {
+div.✈workspace .✈new_workspace_workspace .✈application:focus {
     box-shadow: 0 0 0.6em #444;
     background: linear-gradient(to bottom, #333, #686868);
     cursor: pointer;
@@ -305,7 +303,7 @@ potential conflicts with other classes that may be on the page.
     margin: 0;
     display: -webkit-box;
     display: -moz-box;
-    display: -ms-box;
+    display: -ms-flexbox;
     display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
@@ -333,7 +331,7 @@ potential conflicts with other classes that may be on the page.
     background-color: rgba(0, 0, 0, 0.7);
     display: -webkit-box;
     display: -moz-box;
-    display: -ms-box;
+    display: -ms-flexbox;
     display: flex;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;

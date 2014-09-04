@@ -692,33 +692,6 @@ file.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="bookmarks.save_bookmarks">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">save_bookmarks</tt><big>(</big><em>self</em>, <em>bookmarks</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#save_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.save_bookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles saving <em>bookmarks</em> for clients.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="bookmarks.get_bookmarks">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">get_bookmarks</tt><big>(</big><em>self</em>, <em>updateSequenceNum</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#get_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_bookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a JSON-encoded list of bookmarks updated since the last
-<em>updateSequenceNum</em>.</p>
-<p>If <em>updateSequenceNum</em> resolves to False, all bookmarks will be sent to
-the client.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="bookmarks.delete_bookmarks">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">delete_bookmarks</tt><big>(</big><em>self</em>, <em>deleted_bookmarks</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#delete_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.delete_bookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles deleting bookmarks given a <em>deleted_bookmarks</em> list.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="bookmarks.rename_tags">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">rename_tags</tt><big>(</big><em>self</em>, <em>renamed_tags</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#rename_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.rename_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles renaming tags.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="bookmarks.send_bookmarks_css_template">
 <tt class="descclassname">bookmarks.</tt><tt class="descname">send_bookmarks_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#send_bookmarks_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.send_bookmarks_css_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends our bookmarks.css template to the client using the 'load_style'
@@ -804,7 +777,7 @@ WebSocket action.  The rendered template will be saved in Gate One's
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

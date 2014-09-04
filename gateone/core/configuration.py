@@ -142,6 +142,7 @@ def print_help(commands):
         * It only prints to stdout.
     """
     import textwrap, fcntl, termios, struct
+    renditions = False
     try:
         import curses
         if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
@@ -152,7 +153,7 @@ def print_help(commands):
             except Exception:
                 renditions = False
     except ImportError:
-        renditions = False
+        pass
     def bold(text):
         if renditions:
             return "\x1b[1m%s\x1b[0m" % text

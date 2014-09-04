@@ -251,9 +251,10 @@ This is just a wrapper that ensures that the returned string is unicode.</p>
 <dl class="function">
 <dt id="gateone.core.utils.gen_self_signed_ssl">
 <tt class="descclassname">gateone.core.utils.</tt><tt class="descname">gen_self_signed_ssl</tt><big>(</big><em>path=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#gen_self_signed_ssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.gen_self_signed_ssl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a self-signed SSL certificate using <tt class="xref py py-obj docutils literal"><span class="pre">pyOpenSSL</span></tt> or the <a class="reference external" href="http://www.openssl.org/docs/apps/openssl.html">openssl</a> command depending on
-what's available,  The resulting key/certificate will use the RSA algorithm
-at 4096 bits.</p>
+<dd><p>Generates a self-signed SSL certificate using <tt class="xref py py-obj docutils literal"><span class="pre">pyOpenSSL</span></tt> or the
+<a class="reference external" href="http://www.openssl.org/docs/apps/openssl.html">openssl</a> command
+depending on what's available,  The resulting key/certificate will use the
+RSA algorithm at 4096 bits.</p>
 </dd></dl>
 
 <dl class="function">
@@ -936,8 +937,8 @@ provided, <tt class="xref py py-obj docutils literal"><span class="pre">hashlib.
 <div class="highlight-python"><div class="highlight"><pre><span class="n">create_signature</span><span class="p">(</span>
     <span class="s">&#39;secret&#39;</span><span class="p">,</span>
     <span class="s">&#39;some-api-key&#39;</span><span class="p">,</span>
-    <span class="s">&#39;1234567890123&#39;</span><span class="p">,</span>
     <span class="s">&#39;user@somehost&#39;</span><span class="p">,</span>
+    <span class="s">&#39;1234567890123&#39;</span><span class="p">,</span>
     <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1043,7 +1044,7 @@ sessions.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

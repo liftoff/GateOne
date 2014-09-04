@@ -2,7 +2,7 @@
 // TODO: Make it so you can call 'new Terminal()' or something like that to get a singular object to control terminals.
 
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
-GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User", "GateOne.Input", "GateOne.Storage"], function(window, undefined) {
+GateOne.Base.superSandbox("GateOne.Terminal", ["GateOne.Visual", "GateOne.User.__initialized__", "GateOne.Input", "GateOne.Storage"], function(window, undefined) {
 "use strict";
 
 // Sandbox-wide shortcuts
@@ -1970,8 +1970,8 @@ go.Base.update(GateOne.Terminal, {
 
         The *options* argument may contain the following:
 
-            :global: If ``true`` the dialog will be appended to `document.body` instead of the current workspace (the default).
-            :where: If given, the popup terminal will be placed within the given element.
+            :global: If ``true`` the dialog will be appended to `GateOne.node` (e.g. #gateone) instead of the current workspace.
+            :where: If provided the popup terminal will be placed within the given element.
 
         If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.
         */
@@ -1995,7 +1995,7 @@ go.Base.update(GateOne.Terminal, {
                 }, 250);
             },
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
-            where = options['where'] || u.getNode('#'+prefix+'workspace'+currentWorkspace),
+            where = options.where || u.getNode('#'+prefix+'workspace'+currentWorkspace),
             closeDialog,
             termQuitFunc = function(termNum) {
                 if (termNum == term) {
@@ -2003,10 +2003,13 @@ go.Base.update(GateOne.Terminal, {
                     E.off('terminal:term_closed', termQuitFunc);
                 }
             };
-        if (options['global']) {
+        if (!where) { // If the location cannot be found just make a global pop-up terminal
+            options.global = true;
+        }
+        if (options.global) {
             where = go.node;
         }
-        where = u.getNode(where); // In case of a string
+        where = u.getNode(where);
         closeDialog = v.dialog("Pop-up Terminal", content, {'where': where, 'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'});
         E.on('terminal:term_closed', termQuitFunc);
         go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup", 'where': where.id || where.className}, 'style': {'width': '100%', 'height': '100%'}}, content);

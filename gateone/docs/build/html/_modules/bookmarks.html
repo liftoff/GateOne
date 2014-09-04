@@ -106,6 +106,7 @@
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone.core.server</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">require</span><span class="p">,</span> <span class="n">authenticated</span>
 
 <span class="c"># Tornado stuff</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
@@ -686,7 +687,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">bookmarks_html</span><span class="p">,</span> <span class="n">bookmarks</span><span class="o">=</span><span class="n">bookmarks</span><span class="p">)</span>
 
 <span class="c"># WebSocket commands (not the same as handlers)</span></div>
-<div class="viewcode-block" id="save_bookmarks"><a class="viewcode-back" href="../Applications/terminal/plugin_bookmarks.html#bookmarks.save_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">save_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bookmarks</span><span class="p">):</span>
+<span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">save_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bookmarks</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles saving *bookmarks* for clients.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -715,8 +717,9 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Upload successful&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:bookmarks_save_result&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-</div>
-<div class="viewcode-block" id="get_bookmarks"><a class="viewcode-back" href="../Applications/terminal/plugin_bookmarks.html#bookmarks.get_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">get_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateSequenceNum</span><span class="p">):</span>
+
+<span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">get_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateSequenceNum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a JSON-encoded list of bookmarks updated since the last</span>
 <span class="sd">    *updateSequenceNum*.</span>
@@ -733,8 +736,9 @@
     <span class="n">updated_bookmarks</span> <span class="o">=</span> <span class="n">bookmarks_db</span><span class="o">.</span><span class="n">get_bookmarks</span><span class="p">(</span><span class="n">updateSequenceNum</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:bookmarks_updated&#39;</span><span class="p">:</span> <span class="n">updated_bookmarks</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-</div>
-<div class="viewcode-block" id="delete_bookmarks"><a class="viewcode-back" href="../Applications/terminal/plugin_bookmarks.html#bookmarks.delete_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">delete_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deleted_bookmarks</span><span class="p">):</span>
+
+<span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">delete_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deleted_bookmarks</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles deleting bookmarks given a *deleted_bookmarks* list.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -758,8 +762,9 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;errors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:bookmarks_delete_result&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-</div>
-<div class="viewcode-block" id="rename_tags"><a class="viewcode-back" href="../Applications/terminal/plugin_bookmarks.html#bookmarks.rename_tags">[docs]</a><span class="k">def</span> <span class="nf">rename_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renamed_tags</span><span class="p">):</span>
+
+<span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">rename_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renamed_tags</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles renaming tags.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -777,7 +782,7 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:bookmarks_renamed_tags&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-</div>
+
 <div class="viewcode-block" id="send_bookmarks_css_template"><a class="viewcode-back" href="../Applications/terminal/plugin_bookmarks.html#bookmarks.send_bookmarks_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_bookmarks_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends our bookmarks.css template to the client using the &#39;load_style&#39;</span>
@@ -846,7 +851,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

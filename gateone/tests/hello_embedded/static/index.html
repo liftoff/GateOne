@@ -65,12 +65,12 @@
     &lt;!-- That's it! --&gt;
             </code></pre>
 
-            <p>Reload the page then click on <a class="anchorLink" href="#terminalsection1">Basic Terminal</a> to see what Gate One looks like when embedded.</p>
+            <p>Reload the page then click on <a class="anchorLink" href="#terminalsection1">Basic Embed</a> to see what Gate One looks like when embedded.</p>
 
     	</section>
 
     	<section id="terminalsection1">
-    		<h2 class="work" id="terminal1">Basic Terminal</h2>
+    		<h2 class="work" id="terminal1">Basic Embed</h2>
 
     		<!-- Important note:  In order for 'fillContainer: true' to work the parent element must have its position set to something other than static (which is the default positioning for all DIVs) -->
     		<div id="gateonecontainer" style="position: relative; width: 60em; height: 30em;">
@@ -155,7 +155,7 @@
                 <div id="gateone3"><form id="go_embed3" style="background-color: #fff; color: #000; text-align: center;">Enter the URL for your Gate One server<br><br><p><input name="gourl3" id="gourl3" size=40 placeholder="https://your-gateone-server/" /><input type="submit" value="Go!" style="margin-left: .5em;"></input></p></form></div>
             </div>
 
-            <p>Notice anything missing?  The actual terminal!  Why isn't it there?  Because we haven't placed it yet.  That's one of the caveats of embedded mode...  You have to be explicity about nearly <i>everything</i>.</p>
+            <p>Notice anything missing?  No application icons (or terminal)!  Why?  Because all we did was initialize Gate One on the page.  We didn't tell Gate One to actually <i>do</i> anything.  That's one of the caveats of embedded mode...  You have to be explicit in telling Gate One what to do.</p>
 
             <p>To solve this problem we'll add a button that when clicked adds a new terminal...</p>
             <pre><code class="xml">
@@ -508,23 +508,38 @@ var reauthenticate = function() {
     window.location.reload();
 }
 document.querySelector('#go_embed1').onsubmit = function(e) {
-    var gourl = document.querySelector('#gourl1').value;
+    var gourl = document.querySelector('#gourl1').value,
+        success = function() {
+            // Show the user a nice message
+            setTimeout(function() { // Inside a timeout for dramatic effect
+                GateOne.Visual.displayMessage("Congratulations!");
+                setTimeout(function() {
+                    GateOne.Visual.displayMessage("You just embedded Gate One <i>without</i> using an iframe! <br>Now you can control it however you want from your own code.");
+                }, 1000);
+            }, 1000);
+        };
     e.preventDefault(); // Don't actually submit the form
     // Save this value for later
     localStorage['gourl'] = gourl;
     // Set it down below too to save the user some typing
     document.querySelector('#gourl2').value = localStorage['gourl'];
     // Load Gate One instead
-    GateOne.init({url: gourl, goDiv: '#gateone1', logLevel: 'DEBUG', prefix: 'go1_',});
+    GateOne.init({url: gourl, goDiv: '#gateone1', logLevel: 'DEBUG', prefix: 'go1_',}, success); // GateOne.init() can take a callback as a second arg.  Useful knowledge ;)
     // Override reauthenticate() for this part of the tutorial so users aren't left scratching their heads wondering why the page reloads every time they click on the "Go" button.
     GateOne.Net.reauthenticate = reauthenticate;
 }
 document.querySelector('#go_embed2').onsubmit = function(e) {
-    var gourl = document.querySelector('#gourl2').value;
+    var gourl = document.querySelector('#gourl2').value,
+        success = function() {
+            // Show the user a nice message
+            setTimeout(function() { // Inside a timeout for dramatic effect
+                GateOne.Visual.displayMessage("White theme and big text.  Success!");
+            }, 1000);
+        };
     e.preventDefault(); // Don't actually submit the form
     localStorage['gourl'] = gourl;
     // Load Gate One with the settings we defined in the code example
-    GateOne.init({url: gourl, theme: 'white', fontSize: '110%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'});
+    GateOne.init({url: gourl, theme: 'white', fontSize: '110%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'}, success);
     // NOTE: Using #gateone2 and 'go2_' as the prefix above to make sure it loads on the appropriate element
     GateOne.Net.reauthenticate = reauthenticate;
 }

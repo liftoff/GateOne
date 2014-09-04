@@ -131,7 +131,7 @@
 <dl class="staticmethod">
 <dt id="GateOne.Terminal.Input.onCopy">
 <tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onCopy</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onCopy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).</p>
+<dd><p>Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).  Also displays a message to the user letting them know that the text was copied successfully (because having your highlighted text suddenly disappear isn't that intuitive).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -226,6 +226,12 @@ If <em>skipF11check</em> is true, the F11 (fullscreen check) logic will be skipp
 
 </dd></dl>
 
+<dl class="function">
+<dt id="GateOne.Terminal.handleVisibility">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">handleVisibility</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.handleVisibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls GateOne.Terminal.Input.capture() when the page becomes visible again <em>if</em> a terminal had focus before the document went invisible.</p>
+</dd></dl>
+
 </div>
 
 
@@ -289,7 +295,7 @@ If <em>skipF11check</em> is true, the F11 (fullscreen check) logic will be skipp
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

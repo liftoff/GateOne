@@ -77,7 +77,7 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># Standard library imports</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">atexit</span><span class="o">,</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
@@ -91,8 +91,7 @@
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">json_encode</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">get_plugins</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">bind</span><span class="p">,</span> <span class="n">MimeTypeFail</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">which</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">short_hash</span><span class="p">,</span> <span class="n">load_modules</span><span class="p">,</span> <span class="n">create_data_uri</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">short_hash</span><span class="p">,</span> <span class="n">load_modules</span><span class="p">,</span> <span class="n">create_data_uri</span><span class="p">,</span> <span class="n">which</span>
 <span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span>
 <span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">logviewer_main</span>
@@ -106,7 +105,6 @@
 <span class="n">APPLICATION_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our application</span>
 <span class="n">REGISTERED_HANDLERS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># So we don&#39;t accidentally re-add handlers</span>
 <span class="n">web_handlers</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Assigned in init()</span>
-<span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">)</span>
 
 <span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
@@ -154,6 +152,7 @@
 <span class="sd">        `SESSIONS[session][&quot;kill_session_callbacks&quot;]` list inside of</span>
 <span class="sd">        :meth:`TerminalApplication.authenticate`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">)</span>
     <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_session(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">session</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">kill_dtach</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">kill_dtached_proc</span>
@@ -239,7 +238,7 @@
     <span class="p">}</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Terminal&quot;</span> <span class="c"># A user-friendly name that will be displayed to the user</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
-        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.__init__(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">ws</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;TerminalApplication.__init__(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">ws</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Gets set in authenticate() below</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">terms</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span> <span class="o">=</span> <span class="p">{}</span>
@@ -322,7 +321,8 @@
             <span class="n">css_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">py_plugins</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
         <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
-        <span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
         <span class="c"># Setup some events</span>
         <span class="n">terminals_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">terminals</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:set_location&quot;</span><span class="p">,</span> <span class="n">terminals_func</span><span class="p">)</span>
@@ -401,7 +401,7 @@
 <span class="sd">        This gets called at the end of :meth:`ApplicationWebSocket.open` when</span>
 <span class="sd">        the WebSocket is opened.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.open()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.open()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">;</span><span class="si">%s</span><span class="s">;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:open&quot;</span><span class="p">)</span>
@@ -443,7 +443,7 @@
 <span class="sd">        Sends all plugin JavaScript files to the client and triggers the</span>
 <span class="sd">        &#39;terminal:authenticate&#39; event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.authenticate()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;TerminalApplication.authenticate()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_metadata</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;application&#39;</span><span class="p">:</span> <span class="s">&#39;terminal&#39;</span><span class="p">,</span>
             <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
@@ -780,7 +780,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">term_settings</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:clear_term_settings&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
 </div>
-    <span class="nd">@require</span><span class="p">(</span><span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
+    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">terminals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a list of the current open terminals to the client using the</span>
@@ -1341,8 +1341,16 @@
             <span class="k">return</span>
         <span class="n">term1_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">term1</span><span class="p">)</span>
         <span class="n">term2_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">term2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_terminal_callbacks</span><span class="p">(</span>
+            <span class="n">term1_dict</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_terminal_callbacks</span><span class="p">(</span>
+            <span class="n">term2_dict</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">term1</span><span class="p">:</span> <span class="n">term2_dict</span><span class="p">})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">term2</span><span class="p">:</span> <span class="n">term1_dict</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_terminal_callbacks</span><span class="p">(</span>
+            <span class="n">term1</span><span class="p">,</span> <span class="n">term2_dict</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_terminal_callbacks</span><span class="p">(</span>
+            <span class="n">term2</span><span class="p">,</span> <span class="n">term1_dict</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:swap_terminals&quot;</span><span class="p">,</span> <span class="n">term1</span><span class="p">,</span> <span class="n">term2</span><span class="p">)</span>
 
     <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
@@ -1658,7 +1666,7 @@
                 <span class="n">multiplex</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span> <span class="c"># Stop trying to write</span>
                     <span class="n">multiplex</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="TerminalApplication.refresh_screen"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.refresh_screen">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalApplication.refresh_screen"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.refresh_screen">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes the state of the given terminal&#39;s screen and scrollback buffer to</span>
 <span class="sd">        the client using `_send_refresh()`.  Also ensures that screen updates</span>
@@ -1708,7 +1716,7 @@
                     <span class="n">msec</span><span class="p">,</span> <span class="n">refresh</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KeyError in refresh_screen: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:refresh_screen&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="s">&quot;terminal:refresh_screen&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="TerminalApplication.full_refresh"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.full_refresh">[docs]</a>    <span class="k">def</span> <span class="nf">full_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calls `self.refresh_screen(*term*, full=True)`&quot;&quot;&quot;</span>
@@ -2210,6 +2218,8 @@
         <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">random_words</span>
         <span class="k">if</span> <span class="s">&#39;term&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
             <span class="k">return</span> <span class="c"># Invalid</span>
+        <span class="k">if</span> <span class="s">&#39;shared&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="c"># Nothing to do</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;term&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">))</span>
         <span class="n">random_share_id</span> <span class="o">=</span> <span class="s">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random_words</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
         <span class="n">new_share_id</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;share_id&#39;</span><span class="p">,</span> <span class="n">random_share_id</span><span class="p">)</span>
@@ -2541,7 +2551,7 @@
                 <span class="n">share_obj</span> <span class="o">=</span> <span class="n">share_dict</span>
                 <span class="k">break</span> <span class="c"># This is the share dict we want</span>
         <span class="c"># Remove ourselves from the list of viewers for this terminal</span>
-        <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">share_obj</span><span class="p">[</span><span class="s">&#39;viewers&#39;</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;viewers&#39;</span><span class="p">]):</span>
             <span class="k">if</span> <span class="n">viewer</span><span class="p">[</span><span class="s">&#39;client_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">client_id</span><span class="p">:</span>
                 <span class="n">share_obj</span><span class="p">[</span><span class="s">&#39;viewers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -2677,6 +2687,7 @@
 
 <span class="sd">    Also checks to make sure that the logviewer.py script is executable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">)</span>
     <span class="n">logviewer_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;logviewer.py&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">stat</span>
     <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">logviewer_path</span><span class="p">)</span>
@@ -2839,7 +2850,10 @@
 
 <span class="c"># Command line argument commands</span>
 <span class="n">commands</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;termlog&#39;</span><span class="p">:</span> <span class="n">logviewer_main</span>
+    <span class="s">&#39;termlog&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;function&#39;</span><span class="p">:</span> <span class="n">logviewer_main</span><span class="p">,</span>
+        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;View terminal session logs.&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -2884,7 +2898,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

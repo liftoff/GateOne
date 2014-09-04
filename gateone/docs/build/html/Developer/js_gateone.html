@@ -69,7 +69,7 @@
             
   <div class="section" id="gateone-js">
 <span id="gateone-javascript"></span><h1>gateone.js<a class="headerlink" href="#gateone-js" title="Permalink to this headline">¶</a></h1>
-<p>Gate One's JavaScript (<a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone.js">source</a>) is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:</p>
+<p>Gate One's JavaScript (<a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone.js">gateone.js</a>) is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:</p>
 <ul>
 <li><dl class="first docutils">
 <dt><a class="reference internal" href="#GateOne" title="GateOne"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne</span></tt></a></dt>
@@ -77,7 +77,7 @@
 <li><a class="reference internal" href="#GateOne.Base" title="GateOne.Base"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Base</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Events" title="GateOne.Events"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Events</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.i18n" title="GateOne.i18n"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.i18n</span></tt></a></li>
-<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></li>
+<li><a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></a> (Source: <a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone_input.js">gateone_input.js</a>)</li>
 <li><a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Storage" title="GateOne.Storage"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Storage</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual</span></tt></a></li>
@@ -581,8 +581,8 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isElement</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getNode</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">));</span>
-<span class="kc">true</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isElement</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getNode</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">));</span>
+<span class="go">true</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -898,7 +898,7 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadTheme</span><span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadTheme</span><span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -950,12 +950,12 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="kd">var</span> <span class="nx">mycallback</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">responseText</span><span class="p">)</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;It worked: &quot;</span> <span class="o">+</span> <span class="nx">responseText</span><span class="p">)</span> <span class="p">};</span>
-<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">xhrGet</span><span class="p">(</span><span class="s1">&#39;https://demo.example.com/static/about.html&#39;</span><span class="p">,</span> <span class="nx">mycallback</span><span class="p">);</span>
-<span class="nx">It</span> <span class="nx">worked</span><span class="o">:</span> <span class="o">&lt;!</span><span class="nx">DOCTYPE</span> <span class="nx">html</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="nx">html</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="nx">head</span><span class="o">&gt;</span>
-<span class="p">...</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">mycallback</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">responseText</span><span class="p">)</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;It worked: &quot;</span> <span class="o">+</span> <span class="nx">responseText</span><span class="p">)</span> <span class="p">};</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">xhrGet</span><span class="p">(</span><span class="s1">&#39;https://demo.example.com/static/about.html&#39;</span><span class="p">,</span> <span class="nx">mycallback</span><span class="p">);</span>
+<span class="go">It worked: &lt;!DOCTYPE html&gt;</span>
+<span class="go">&lt;html&gt;</span>
+<span class="go">&lt;head&gt;</span>
+<span class="go">...</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -991,7 +991,7 @@
 </tbody>
 </table>
 <p>Examples:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getCookie</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">+</span> <span class="s1">&#39;gateone_user&#39;</span><span class="p">);</span> <span class="c1">// Returns the &#39;gateone_user&#39; cookie</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getCookie</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">+</span> <span class="s1">&#39;gateone_user&#39;</span><span class="p">);</span> <span class="c1">// Returns the &#39;gateone_user&#39; cookie</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1014,7 +1014,7 @@
 </tbody>
 </table>
 <p>Examples:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">setCookie</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;some value&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span> <span class="c1">// Sets the &#39;test&#39; cookie to &#39;some value&#39; with an expiration of 30 days</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">setCookie</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;some value&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span> <span class="c1">// Sets the &#39;test&#39; cookie to &#39;some value&#39; with an expiration of 30 days</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1036,8 +1036,8 @@
 </tr>
 </tbody>
 </table>
-<p>Examples:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">deleteCookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span> <span class="c1">// Deletes the &#39;gateone_user&#39; cookie</span>
+<p>Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">deleteCookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span> <span class="c1">// Deletes the &#39;gateone_user&#39; cookie</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1067,10 +1067,10 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
-<span class="s2">&quot;oa2f9txf&quot;</span>
-<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;123abc&#39;</span><span class="p">);</span>
-<span class="s2">&quot;1b3ac12b&quot;</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+<span class="go">&quot;oa2f9txf&quot;</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;123abc&#39;</span><span class="p">);</span>
+<span class="go">&quot;1b3ac12b&quot;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1116,8 +1116,8 @@
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isPageHidden</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.isPageHidden" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="docutils literal"><span class="pre">true</span></tt> if the page (browser tab) is hidden (e.g. inactive).  Returns <tt class="docutils literal"><span class="pre">false</span></tt> otherwise.</p>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPageHidden</span><span class="p">();</span>
-<span class="kc">false</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPageHidden</span><span class="p">();</span>
+<span class="go">false</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1159,7 +1159,6 @@
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Assume window.location.href = &#39;https://gateone/?foo=bar,bar,bar&#39;</span>
 <span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getQueryVariable</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">);</span>
 <span class="go">&#39;bar,bar,bar&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
 <p>Optionally, a <em>url</em> may be specified to perform the same evaluation on <em>url</em> insead of <tt class="xref js js-attr docutils literal"><span class="pre">window.location</span></tt>.</p>
@@ -1243,14 +1242,14 @@
 <li><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.logFatal()</span></tt></li>
 </ul>
 <p>It is recommended that you assign these shortcuts at the top of your code like so:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">logFatal</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logFatal</span><span class="p">,</span>
-        <span class="nx">logError</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logError</span><span class="p">,</span>
-        <span class="nx">logWarning</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logWarning</span><span class="p">,</span>
-        <span class="nx">logInfo</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logInfo</span><span class="p">,</span>
-        <span class="nx">logDebug</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logDebug</span><span class="p">;</span>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">logFatal</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logFatal</span><span class="p">,</span>
+    <span class="nx">logError</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logError</span><span class="p">,</span>
+    <span class="nx">logWarning</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logWarning</span><span class="p">,</span>
+    <span class="nx">logInfo</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logInfo</span><span class="p">,</span>
+    <span class="nx">logDebug</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">logDebug</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>That way you can just type &quot;logDebug()&quot; anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).</p>
+<p>That way you can just add &quot;logDebug()&quot; anywhere in your code and it will get logged appropriately to the default destinations (with a nice timestamp and whatnot).</p>
 <dl class="staticmethod">
 <dt id="GateOne.Logging.init">
 <tt class="descclassname">GateOne.Logging.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Logging.init" title="Permalink to this definition">¶</a></dt>
@@ -1263,7 +1262,7 @@
 <tt class="descclassname">GateOne.Logging.</tt><tt class="descname">setLevel</tt><big>(</big><em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.setLevel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the log <em>level</em> to an integer if the given a string (e.g. &quot;DEBUG&quot;).  Sets it as-is if it's already a number.  Examples:</p>
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">setLevel</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span> <span class="c1">// Set log level to DEBUG</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">setLevel</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span> <span class="c1">// Same thing; they both work!</span>
+<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">setLevel</span><span class="p">(</span><span class="s2">&quot;debug&quot;</span><span class="p">)</span> <span class="c1">// Same thing; they both work!</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1305,7 +1304,7 @@
 <dt id="GateOne.Logging.addDestination">
 <tt class="descclassname">GateOne.Logging.</tt><tt class="descname">addDestination</tt><big>(</big><em>name</em>, <em>dest</em><big>)</big><a class="headerlink" href="#GateOne.Logging.addDestination" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new log destination named, <em>name</em> that calls function <em>dest</em> like so:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="nx">dest</span><span class="p">(</span><span class="o">&lt;</span><span class="nx">log</span> <span class="nx">message</span><span class="o">&gt;</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">dest</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Example usage:</p>
@@ -1898,6 +1897,7 @@
 <div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">updateDimensions</span><span class="p">();</span>
 </pre></div>
 </div>
+<p>Also sends the &quot;<a class="reference external" href="go:set_dimensions">go:set_dimensions</a>&quot; WebSocket action to the server so that it has a reference of the client's width/height as well as information about the size of the goDiv (usually #gateone) element and the size of workspaces.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -1936,10 +1936,7 @@
 <li>An <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> or an Array-like object containing DOM nodes such as <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a> or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (it will apply the transform to all of them).</li>
 </ul>
 <p>The <em>transform</em> should be <em>just</em> the actual transform function (e.g. <tt class="docutils literal"><span class="pre">scale(0.5)</span></tt>).  <a class="reference internal" href="#GateOne.Visual.applyTransform" title="GateOne.Visual.applyTransform"><tt class="xref js js-func docutils literal"><span class="pre">applyTransform()</span></tt></a> will take care of applying the transform according to how each browser implements it.  For example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GateOne</span><span class="o">.</span><span class="n">Visual</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="s">&#39;#somediv&#39;</span><span class="p">,</span> <span class="s">&#39;translateX(500%)&#39;</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">applyTransform</span><span class="p">(</span><span class="s1">&#39;#somediv&#39;</span><span class="p">,</span> <span class="s1">&#39;translateX(500%)&#39;</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>...would result in <tt class="docutils literal"><span class="pre">#somediv</span></tt> getting styles applied to it like this:</p>
@@ -1985,12 +1982,7 @@
 <dl class="staticmethod">
 <dt id="GateOne.Visual.getTransform">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">getTransform</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.getTransform" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>// These two are here just in case the server needs to send us a message before everything has completed loading:</dt>
-<dd>'<a class="reference external" href="go:notice">go:notice</a>': go.Visual.serverMessageAction,
-'<a class="reference external" href="go:user_message">go:user_message</a>': go.Visual.userMessageAction</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
+<dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -2011,9 +2003,8 @@
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.togglePanel">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">togglePanel</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#GateOne.Visual.togglePanel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed.
-If <em>panel</em> evaluates to false, all open panels will be closed.</p>
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">togglePanel</tt><big>(</big><em>panel</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.togglePanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggles the given <em>panel</em> in or out of view.  If other panels are open at the time, they will be closed. If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <p>This function also has some events that can be hooked into:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2026,6 +2017,7 @@ If <em>panel</em> evaluates to false, all open panels will be closed.</p>
 <span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nc">Event</span><span class="nx">s</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:panel_toggle:out&quot;</span><span class="p">,</span> <span class="nx">myFunc</span><span class="p">);</span> <span class="c1">// When panel is toggled out of view</span>
 </pre></div>
 </div>
+<p>If a <em>callback</em> is given it will be called after the panel has <em>completed</em> being toggled <em>in</em> (i.e. after animations have completed).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2269,19 +2261,21 @@ Why is this mechanism the opposite of everything else where you call the functio
 </tr>
 <tr class="field-even field"><th class="field-name">minimizable:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">false</span></tt> the dialog will not have a minimize icon.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">above:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will be kept above others.</td>
+<tr class="field-odd field"><th class="field-name">maximize:</th><td class="field-body">Open the dialog maximized.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">data:</th><td class="field-body">(object) If given, any contained properties will be set as 'data-*' attributes on the dialogContainer.</td>
+<tr class="field-even field"><th class="field-name">above:</th><td class="field-body">If set to <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will be kept above others.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">where:</th><td class="field-body">If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt>) and will be movable anywhere on the page.</td>
+<tr class="field-odd field"><th class="field-name">data:</th><td class="field-body">(object) If given, any contained properties will be set as 'data-*' attributes on the dialogContainer.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">noEsc:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will not watch for the ESC key to close itself.</td>
+<tr class="field-even field"><th class="field-name">where:</th><td class="field-body">If given, the dialog will be placed here (DOM node or querySelector-like string) and will only be able to movable within the parent element.  Otherwise the dialog will be appended to the Gate One container (<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt>) and will be movable anywhere on the page.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">noTransitions:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> CSS3 transitions will not be enabled for this dialog.</td>
+<tr class="field-odd field"><th class="field-name">noEsc:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will not watch for the ESC key to close itself.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">class:</th><td class="field-body">Any additional CSS classes you wish to add to the dialog (space-separated).</td>
+<tr class="field-even field"><th class="field-name">noTransitions:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> CSS3 transitions will not be enabled for this dialog.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">style:</th><td class="field-body">Any CSS you wish to apply to the dialog.  Example:  <tt class="docutils literal"><span class="pre">{'style':</span> <span class="pre">{'width':</span> <span class="pre">'50%',</span> <span class="pre">'height':</span> <span class="pre">'25%'}}</span></tt></td>
+<tr class="field-odd field"><th class="field-name">class:</th><td class="field-body">Any additional CSS classes you wish to add to the dialog (space-separated).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">style:</th><td class="field-body">Any CSS you wish to apply to the dialog.  Example:  <tt class="docutils literal"><span class="pre">{'style':</span> <span class="pre">{'width':</span> <span class="pre">'50%',</span> <span class="pre">'height':</span> <span class="pre">'25%'}}</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -2502,10 +2496,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dt id="GateOne.User">
 <tt class="descclassname">GateOne.</tt><tt class="descname">User</tt><a class="headerlink" href="#GateOne.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.</p>
-<dl class="staticmethod">
-<dt id="GateOne.User.init">
-<tt class="descclassname">GateOne.User.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the user's ID (aka UPN) to the prefs panel along with a logout link.  Also registers the following WebSocket actions:</p>
+<p>The following WebSocket actions are attached to functions provided by <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.User</span></tt>:</p>
 <blockquote>
 <div><table border="1" class="docutils">
 <colgroup>
@@ -2533,6 +2524,26 @@ Why is this mechanism the opposite of everything else where you call the functio
 </tbody>
 </table>
 </div></blockquote>
+<dl class="staticmethod">
+<dt id="GateOne.User.init">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the user's ID (aka UPN) to the prefs panel along with a logout link.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.User.workspaceApp">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">workspaceApp</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.User.workspaceApp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the '<a class="reference external" href="go:switch_workspace">go:switch_workspace</a>' event; sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.activeApplication</span></tt> to whatever application is attached to the <tt class="docutils literal"><span class="pre">data-application</span></tt> attribute on the provided <em>workspace</em>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.User.setActiveApp">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">setActiveApp</tt><big>(</big><em>app</em><big>)</big><a class="headerlink" href="#GateOne.User.setActiveApp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.activeApplication</span></tt> the given <em>app</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>app</em> argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside GateOne.User.applications).</p>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2579,8 +2590,9 @@ Why is this mechanism the opposite of everything else where you call the functio
 
 <dl class="staticmethod">
 <dt id="GateOne.User.listUsers">
-<tt class="descclassname">GateOne.User.</tt><tt class="descname">listUsers</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.listUsers" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">listUsers</tt><big>(</big><span class="optional">[</span><em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.User.listUsers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:list_users</span></tt> WebSocket action to the server which will reply with the <tt class="xref py py-obj docutils literal"><span class="pre">go:user_list</span></tt> WebSocket action containing a list of all users that are currently connected.  Only users which are allowed to list users via the &quot;list_users&quot; policy will be able to perform this action.</p>
+<p>If a <em>callback</em> is given it will be called with the list of users (once it arrives from the server).</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2688,6 +2700,12 @@ Why is this mechanism the opposite of everything else where you call the functio
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.restoreDefaults">
+<tt class="descclassname">GateOne.</tt><tt class="descname">restoreDefaults</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.restoreDefaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restores all of Gate One's user-specific prefs to default values.  Primarily used in debugging Gate One.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.openApplication">
 <tt class="descclassname">GateOne.</tt><tt class="descname">openApplication</tt><big>(</big><em>app</em><span class="optional">[</span>, <em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.openApplication" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens the given <em>app</em> using its <tt class="docutils literal"><span class="pre">__new__()</span></tt> method.</p>
@@ -2716,6 +2734,162 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dt id="GateOne.Visual.enableTransitions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><span class="optional">[</span>, <em>elem2</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.enableTransitions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the 'noanimate' class from <em>elem</em> and any additional elements passed as arguments (if set) which can be a node or querySelector-like string (e.g. #someid).</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input</span></tt></a> was moved to a separate file (<a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone_input.js">gateone_input.js</a>) to reduce the size of <a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone.js">gateone.js</a> (since the input functions don't need to be available on the page right away).</p>
+</div>
+<dl class="attribute">
+<dt id="GateOne.Input">
+<tt class="descclassname">GateOne.</tt><tt class="descname">Input</tt><a class="headerlink" href="#GateOne.Input" title="Permalink to this definition">¶</a></dt>
+<dd><p>GateOne.Input is in charge of all keyboard input as well as copy &amp; paste stuff and touch events.</p>
+<dl class="staticmethod">
+<dt id="GateOne.Input.init">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Input.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches our global keydown/keyup events and touch events</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.onKeyUp">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onKeyUp</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onKeyUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since &quot;meta&quot; doesn't work as an actual modifier on some browsers/platforms.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.onKeyDown">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onKeyDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onKeyDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.</p>
+<p>Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">go:keydown</span></tt> event with keystroke appended to the end of the event (in lower case).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.onGlobalKeyUp">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onGlobalKeyUp</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onGlobalKeyUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to the 'keyup' event on <tt class="xref py py-obj docutils literal"><span class="pre">document.body</span></tt>.  Triggers the <tt class="xref py py-obj docutils literal"><span class="pre">global:keyup</span></tt> event with keystroke appended to the end of the event (in lower case).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.onGlobalKeyDown">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">onGlobalKeyDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.onGlobalKeyDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles global keystroke events (i.e. those attached to the window object).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.execKeystroke">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">execKeystroke</tt><big>(</big><em>e</em>, <em>global</em><big>)</big><a class="headerlink" href="#GateOne.Input.execKeystroke" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the keystroke or shortcut associated with the given keydown event (<em>e</em>).  If <em>global</em> is true, will only execute global shortcuts (no regular keystroke overrides).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.registerShortcut">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">registerShortcut</tt><big>(</big><em>keyString</em>, <em>shortcutObj</em><big>)</big><a class="headerlink" href="#GateOne.Input.registerShortcut" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>keyString</strong> (<em>string</em>) -- The KEY_&lt;key&gt; that will invoke this shortcut.</li>
+<li><strong>shortcutObj</strong> (<em>object</em>) -- A JavaScript object containing two properties:  'modifiers' and 'action'.  See above for their format.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>shortcutObj</strong></p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param action:</th><td class="field-body">A string to be eval()'d or a function to be executed when the provided key combination is pressed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">param modifiers:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">An object containing the modifier keys that must be pressed for the shortcut to be called.  Example: <tt class="xref py py-obj docutils literal"><span class="pre">{&quot;ctrl&quot;:</span> <span class="pre">true,</span> <span class="pre">&quot;alt&quot;:</span> <span class="pre">true,</span> <span class="pre">&quot;meta&quot;:</span> <span class="pre">false,</span> <span class="pre">&quot;shift&quot;:</span> <span class="pre">false}</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Registers the given <em>shortcutObj</em> for the given <em>keyString</em> by adding a new object to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.shortcuts</span></tt>.  Here's an example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">registerShortcut</span><span class="p">(</span><span class="s1">&#39;KEY_ARROW_LEFT&#39;</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s1">&#39;modifiers&#39;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ctrl&#39;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="s1">&#39;alt&#39;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="s1">&#39;altgr&#39;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="s1">&#39;meta&#39;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="s1">&#39;shift&#39;</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;action&#39;</span><span class="o">:</span> <span class="s1">&#39;GateOne.Visual.slideLeft()&#39;</span> <span class="c1">// Can be an eval() string or a function</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>You don't have to provide <em>all</em> modifiers when registering a shortcut.  The following would be equivalent to the above:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">registerShortcut</span><span class="p">(</span><span class="s1">&#39;KEY_ARROW_LEFT&#39;</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s1">&#39;modifiers&#39;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ctrl&#39;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="s1">&#39;shift&#39;</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;action&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">slideLeft</span> <span class="c1">// Also demonstrating that you can pass a function instead of a string</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>Shortcuts registered via this function will only be usable when Gate One is active on the web page in which it is embedded.  For shortcuts that need to <em>always</em> be usable see <a class="reference internal" href="#GateOne.Input.registerGlobalShortcut" title="GateOne.Input.registerGlobalShortcut"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Input.registerGlobalShortcut()</span></tt></a>.</p>
+<p>Optionally, you may also specify a condition or Array of conditions to be met for the shortcut to be executed.  For example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">registerShortcut</span><span class="p">(</span><span class="s1">&#39;KEY_ARROW_LEFT&#39;</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s1">&#39;modifiers&#39;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ctrl&#39;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="s1">&#39;shift&#39;</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;conditions&#39;</span><span class="o">:</span> <span class="p">[</span><span class="nx">myCheckFunction</span><span class="p">,</span> <span class="s1">&#39;GateOne.Terminal.MyPlugin.isAlive&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;action&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">slideLeft</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>In the example above the <tt class="docutils literal"><span class="pre">GateOne.Visual.slideLeft</span></tt> function would only be executed if <tt class="docutils literal"><span class="pre">myCheckFunction()</span></tt> returned <tt class="docutils literal"><span class="pre">true</span></tt> and if 'GateOne.Terminal.MyPlugin.isAlive' existed and also evaluated to <tt class="docutils literal"><span class="pre">true</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.unregisterShortcut">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">unregisterShortcut</tt><big>(</big><em>keyString</em>, <em>shortcutObj</em><big>)</big><a class="headerlink" href="#GateOne.Input.unregisterShortcut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the shortcut associated with the given <em>keyString</em> and <em>shortcutObj</em>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.registerGlobalShortcut">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">registerGlobalShortcut</tt><big>(</big><em>keyString</em>, <em>shortcutObj</em><big>)</big><a class="headerlink" href="#GateOne.Input.registerGlobalShortcut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to register a <em>global</em> shortcut.  Identical to <a class="reference internal" href="#GateOne.Input.registerShortcut" title="GateOne.Input.registerShortcut"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Input.registerShortcut()</span></tt></a> with the exception that shortcuts registered via this function will work even if <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> (e.g. #gateone) doesn't currently have focus.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function only matters when Gate One is embedded into another application.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.unregisterGlobalShortcut">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">unregisterGlobalShortcut</tt><big>(</big><em>keyString</em>, <em>shortcutObj</em><big>)</big><a class="headerlink" href="#GateOne.Input.unregisterGlobalShortcut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the shortcut associated with the given <em>keyString</em> and <em>shortcutObj</em>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.humanReadableShortcut">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">humanReadableShortcut</tt><big>(</big><em>name</em>, <em>modifiers</em><big>)</big><a class="headerlink" href="#GateOne.Input.humanReadableShortcut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a key <em>name</em> such as 'KEY_DELETE' (or just 'G') and a <em>modifiers</em> object, returns a human-readable string.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">humanReadableShortcut</span><span class="p">(</span><span class="s1">&#39;KEY_DELETE&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ctrl&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="s2">&quot;shift&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">});</span>
+<span class="go">Ctrl-Alt-Delete</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.humanReadableShortcutList">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">humanReadableShortcutList</tt><big>(</big><em>shortcuts</em><big>)</big><a class="headerlink" href="#GateOne.Input.humanReadableShortcutList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of <em>shortcuts</em> (e.g. <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Input.shortcuts</span></tt>), returns an Array of keyboard shortcuts suitable for inclusion in a table.  Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">humanReadableShortcutList</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Input</span><span class="p">.</span><span class="nx">shortcuts</span><span class="p">);</span>
+<span class="go">[[&#39;Ctrl-Alt-G&#39;, &#39;Grid View&#39;], [&#39;Ctrl-Alt-N&#39;, &#39;New Workspace&#39;]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -2779,7 +2953,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

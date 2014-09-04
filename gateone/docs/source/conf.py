@@ -87,6 +87,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinxcontrib.programoutput',
     'sphinxcontrib.ansi', # Displays text codes as they would appear in a shell
     'sphinxcontrib.autojs', # Lets us use docstring-like syntax in JS
 ]

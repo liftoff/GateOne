@@ -287,7 +287,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">esc_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
         <span class="s">r&#39;\x1b(.*\x1b</span><span class="se">\\</span><span class="s">|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)&#39;</span><span class="p">)</span>
-    <span class="n">csi_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])&#39;</span><span class="p">)</span>
+    <span class="n">csi_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1B\[([?A-Za-z0-9;@:\!]*?)([A-Za-z@_])&#39;</span><span class="p">)</span>
     <span class="c">#esc_rstrip = re.compile(&#39;[ \t]+\x1b.+$&#39;)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
@@ -376,9 +376,9 @@
         <span class="c"># Convert to datetime object</span>
         <span class="n">frame_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">frame_time</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
-            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0m%b %m %H:%M:%S&#39;</span><span class="p">)</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0m%b </span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> <span class="c"># Renditions preserved == I want pretty.  Make the date bold:</span>
-            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0;1m%b %m %H:%M:%S</span><span class="se">\x1b</span><span class="s">[m&#39;</span><span class="p">)</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0;1m%b </span><span class="si">%d</span><span class="s"> %H:%M:%S</span><span class="se">\x1b</span><span class="s">[m&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_esc</span><span class="p">:</span>
             <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
         <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
@@ -628,7 +628,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse command line arguments and view the log in the specified format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">usage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">%prog [options] &lt;log file&gt;&#39;</span><span class="p">)</span>
+    <span class="n">cli_command</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">):</span>
+        <span class="n">cli_command</span> <span class="o">=</span> <span class="s">&quot;termlog &quot;</span>
+    <span class="n">usage</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\t</span><span class="s">%prog {0}[options] &lt;log file&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cli_command</span><span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">disable_interspersed_args</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-f&quot;</span><span class="p">,</span> <span class="s">&quot;--flat&quot;</span><span class="p">,</span>
@@ -756,7 +759,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

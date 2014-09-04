@@ -350,7 +350,7 @@ terminal emulator returns from the CALLBACK_DSR callback.</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.refresh_screen">
-<tt class="descname">refresh_screen</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.refresh_screen" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">refresh_screen</tt><big>(</big><em>term</em>, <em>full=False</em>, <em>stream=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.refresh_screen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the state of the given terminal's screen and scrollback buffer to
 the client using <a class="reference internal" href="#app_terminal.TerminalApplication._send_refresh" title="app_terminal.TerminalApplication._send_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">_send_refresh()</span></tt></a>.  Also ensures that screen updates
 don't get sent too fast to the client by instituting a rate limiter that
@@ -560,7 +560,7 @@ are not found in the settings directory.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {
