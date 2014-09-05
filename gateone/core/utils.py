@@ -889,138 +889,65 @@ def kill_session_processes(session):
     logging.debug('kill_session_processes cmd: %s' % cmd)
     exitstatus, output = shell_command(cmd)
 
-def get_applications(application_dir, enabled=None):
+def entry_point_files(ep_group, enabled=None):
     """
-    Adds applications' Python files to `sys.path` (if necessary) and returns a
-    list containing the name of each application.  If given, only applications
-    in the *enabled* list will be returned.
-    """
-    out_list = []
-    for directory in os.listdir(application_dir):
-        application = directory.lower()
-        directory = os.path.join(application_dir, directory) # Make absolute
-        module_path = 'gateone.applications.%s' % application
-        if not os.path.isdir(directory):
-            continue
-        if enabled and application not in enabled:
-            continue
-        application_files = os.listdir(directory)
-        if "__init__.py" in application_files:
-            out_list.append(module_path) # Just need the base
-        else: # Look for .py files
-            for app_file in application_files:
-                if app_file.endswith('.py'):
-                    app_path = os.path.join(directory, app_file)
-                    sys.path.insert(0, directory)
-                    (basename, ext) = os.path.splitext(app_path)
-                    basename = basename.split('/')[-1]
-                    module_path = "%s.%s" % (module_path, basename)
-                    out_list.append(module_path)
-    # Sort alphabetically so the order in which they're applied can
-    # be controlled somewhat predictably
-    out_list.sort()
-    return out_list
-
-def get_plugins(plugin_dir, enabled=None, basepath=None):
-    """
-    Adds plugins' Python files to `sys.path` and returns a dictionary of
-    JavaScript, CSS, and Python files contained in *plugin_dir* like so::
+    Given an entry point group name (*ep_group*), returns a dict of available
+    Python, JS, and CSS plugins for Gate One::
 
         {
-            'js': [ // NOTE: These would be be inside *plugin_dir*/static
-                'happy_plugin/static/whatever.js',
-                'ssh/static/ssh.js',
-            ],
-            'css': [
-                'bookmarks/static/bookmarks.css',
-                'ssh/templates/ssh.css'
-            ],
-            // NOTE: CSS URLs will require '&container=<container>' and '&prefix=<prefix>' to load.
-            'py': [ // NOTE: These will get added to sys.path
-                'happy_plugin',
-                'ssh'
-            ],
+            'css': ['editor/static/codemirror.css'],
+            'js': ['editor/static/codemirror.js', 'editor/static/editor.js'],
+            'py': [<module 'gateone.plugins.editor' from 'gateone/plugins/editor/__init__.pyc'>]
         }
 
-    \*.js files inside of *plugin_dir*/<the plugin>/static will get automatically
-    added to Gate One's index.html like so:
+    Optionally, the returned dict will include only those modules and files for
+    plugins in the *enabled* list (if given).
 
-    .. code-block:: html
+    .. note::
 
-        {% for jsplugin in jsplugins %}
-            <script type="text/javascript" src="{{jsplugin}}"></script>
-        {% end %}
+        Python plugins will be imported automatically as part of the
+        discovery process.
 
-    \*.css files will get imported automatically by GateOne.init()
+    To do this it uses the `pkg_resources` module from setuptools.  For plugins
+    to be imported correctly they need to register themselves using the given
+    `entry_point` group (*ep_group*) in their setup.py.  Gate One (currently)
+    uses the following entry point group names:
 
-    Optionally, a list of *enabled* (Python) plugins may be provided and only
-    those plugins will be added to the 'py' portion of the returned dict.
+        * go_plugins
+        * go_applications
+        * go_applications_plugins
 
-    Optionally, if a *basepath* is given imported plugin modules will be
-    imported like so:
-
-        <basepath>.plugin_module_name
-
-    For example::
-
-        get_plugins(
-            "/path/to/gateone/applications/terminal/plugins",
-            basepath="gateone.application.terminal.plugins")
+    ...but this function can return the JS, CSS, and Python modules for any
+    entry point that uses the same module_name/static/ layout.
     """
-    out_dict = {'js': [], 'css': [], 'py': []}
-    if not os.path.exists(plugin_dir):
-        return out_dict
-    for directory in os.listdir(plugin_dir):
-        directory = directory.lower()
-        if enabled and directory not in enabled:
-            continue
-        plugin = directory
-        module_path_list = os.path.normpath(plugin_dir).split(os.path.sep)
-        # Find the *last* directory named 'gateone'
-        for i, _dir in enumerate(module_path_list):
-            if _dir == 'gateone': # If we ever change the name... Fix this
-                go_index = i
-        module_base = '.'.join(module_path_list[go_index:])
-        module_path = '%s.%s' % (module_base, plugin)
-        http_static_path = '%s/static' % plugin
-        http_template_path = '%s/templates' % plugin
-        directory = os.path.join(plugin_dir, directory) # Make absolute
-        if not os.path.isdir(directory):
-            continue # This is not a plugin
-        plugin_files = os.listdir(directory)
-        if "__init__.py" in plugin_files:
-            out_dict['py'].append(module_path) # Just need the base
-        else: # Look for .py files
-            for plugin_file in plugin_files:
-                if plugin_file.endswith('.py'):
-                    plugin_path = os.path.join(directory, plugin_file)
-                    sys.path.insert(0, directory)
-                    (basename, ext) = os.path.splitext(plugin_path)
-                    basename = basename.split('/')[-1]
-                    out_dict['py'].append(basename)
-        for plugin_file in plugin_files:
-            if plugin_file == 'static':
-                static_dir = os.path.join(directory, plugin_file)
-                for static_file in os.listdir(static_dir):
-                    if static_file.endswith('.js'):
-                        http_path = os.path.join(http_static_path, static_file)
-                        out_dict['js'].append(http_path)
-                    elif static_file.endswith('.css'):
-                        http_path = os.path.join(http_static_path, static_file)
-                        out_dict['css'].append(http_path)
-            if plugin_file == 'templates':
-                templates_dir = os.path.join(directory, plugin_file)
-                for template_file in os.listdir(templates_dir):
-                    if template_file.endswith('.css'):
-                        http_path = os.path.join(
-                            http_template_path, template_file)
-                        out_dict['css'].append(http_path)
+    import pkg_resources
+    if not enabled:
+        enabled = []
+    plugin_dict = {
+        'py': [],
+        'js': [],
+        'css': []
+    }
+    for plugin in pkg_resources.iter_entry_points(group=ep_group):
+        if enabled and plugin.name not in enabled:
+            continue # Not enabled, skip it
+        plugin_dict['py'].append(plugin.load())
+        static_path = plugin.module_name.replace('.', '/') + '/static/'
+        if pkg_resources.isdir(static_path):
+            pkg_files = pkg_resources.resource_listdir(
+                plugin.module_name, '/static/')
+            for f in pkg_files:
+                f_path = "%s/static/%s" % (plugin.name, f)
+                if f.endswith('.js'):
+                    plugin_dict['js'].append(f_path)
+                elif f.endswith('.css'):
+                    plugin_dict['css'].append(f_path)
     # Sort all plugins alphabetically so the order in which they're applied can
     # be controlled somewhat predictably
-    out_dict['py'].sort()
-    out_dict['js'].sort()
-    out_dict['css'].sort()
-    return out_dict
+    plugin_dict['py'].sort()
+    plugin_dict['js'].sort()
+    plugin_dict['css'].sort()
+    return plugin_dict
 
 def load_modules(modules):
     """

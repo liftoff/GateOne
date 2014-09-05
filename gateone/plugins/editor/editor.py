@@ -40,7 +40,7 @@ def get_editor_mode(self, mode):
     found the 'go:editor_invalid_mode' WebSocket action will be sent to the
     client so it can know to stop waiting for something that doesn't exist.
     """
-    print("get_editor_mode: %s" % mode)
+    #print("get_editor_mode: %s" % mode)
     plugin_path = os.path.split(__file__)[0]
     mode_file = '%s.js' % mode
     mode_path = os.path.join(plugin_path, 'static', 'mode', mode, mode_file)

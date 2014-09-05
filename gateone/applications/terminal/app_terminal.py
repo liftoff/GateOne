@@ -27,9 +27,9 @@ from gateone.auth.authorization import require, authenticated
 from gateone.auth.authorization import applicable_policies, policies
 from gateone.core.configuration import get_settings, RUDict
 from gateone.core.utils import cmd_var_swap, json_encode
-from gateone.core.utils import mkdir_p, get_plugins
+from gateone.core.utils import mkdir_p, entry_point_files
 from gateone.core.utils import process_opt_esc_sequence, bind, MimeTypeFail
-from gateone.core.utils import short_hash, load_modules, create_data_uri, which
+from gateone.core.utils import short_hash, create_data_uri, which
 from gateone.core.locale import get_translation
 from gateone.core.log import go_logger, string_to_syslog_facility
 from gateone.applications.terminal.logviewer import main as logviewer_main
@@ -243,12 +243,10 @@ class TerminalApplication(GOApplication):
         # load new plugins with a simple page reload)
         enabled_plugins = self.ws.prefs['*']['terminal'].get(
             'enabled_plugins', [])
-        self.plugins = get_plugins(
-            os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
+        self.plugins = entry_point_files('go_terminal_plugins', enabled_plugins)
         py_plugins = []
-        for module_path in self.plugins['py']:
-            name = module_path.split('.')[-1]
-            py_plugins.append(name)
+        for module in self.plugins['py']:
+            py_plugins.append(module.__name__)
         js_plugins = []
         for js_path in self.plugins['js']:
             name = js_path.split(os.path.sep)[0]
@@ -268,8 +266,7 @@ class TerminalApplication(GOApplication):
         self.plugin_hooks = {}
         # TODO: Keep track of plugins and hooks to determine when they've
         #       changed so we can tell clients to pull updates and whatnot
-        imported = load_modules(self.plugins['py'])
-        for plugin in imported:
+        for plugin in self.plugins['py']:
             try:
                 self.plugin_hooks.update({plugin.__name__: plugin.hooks})
                 if hasattr(plugin, 'initialize'):
@@ -2735,11 +2732,10 @@ def init(settings):
     # Initialize plugins so we can add their 'Web' handlers
     enabled_plugins = settings['*']['terminal'].get('enabled_plugins', [])
     plugins_path = os.path.join(APPLICATION_PATH, 'plugins')
-    plugins = get_plugins(plugins_path, enabled_plugins)
+    plugins = entry_point_files('go_applications_plugins', enabled_plugins)
     # Attach plugin hooks
     plugin_hooks = {}
-    imported = load_modules(plugins['py'])
-    for plugin in imported:
+    for plugin in plugins['py']:
         try:
             plugin_hooks.update({plugin.__name__: plugin.hooks})
         except AttributeError:

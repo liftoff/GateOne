@@ -14,14 +14,16 @@ This module contains functions that deal with Gate One's locale, localization,
 and internationalization features.
 """
 
-import os
+import os, gettext, logging
 from .configuration import get_settings
 from tornado.options import options
-from tornado import locale
 
-# FUTURE:
-#from pkg_resources import resource_listdir
-#langs = resource_listdir('gateone', 'i18n')
+# Figure out which languages we have translations for:
+from pkg_resources import resource_listdir, resource_stream, isdir
+from pkg_resources import resource_exists
+locales = [
+    a for a in resource_listdir('gateone', 'i18n')
+        if isdir('gateone/i18n/%s' % a)]
 
 def get_translation(settings_dir=None):
     """
@@ -49,8 +51,17 @@ def get_translation(settings_dir=None):
         if gateone_settings: # All these checks are necessary for early startup
             locale_str = settings['*']['gateone'].get('locale', locale_str)
     except IOError: # server.conf doesn't exist (yet).
-        # Fall back to os.environ['LANG']
         # Already set above
         pass
-    user_locale = locale.get(locale_str)
-    return user_locale.translate
+    if locale_str.startswith('en'): # Gate One's messages are already English
+        return lambda c: c # Just return strings as-is
+    # Try to find a translation
+    mo_path = '/i18n/%s/LC_MESSAGES/gateone.mo' % locale_str
+    if not resource_exists('gateone', mo_path):
+        logging.warning("No translation found for locale: %s" % locale_str)
+        return lambda c: c # No translation so you get English; sorry :(
+    with resource_stream('gateone', mo_path) as f:
+        key = (gettext.GNUTranslations, f)
+        translation = gettext._translations.setdefault(
+            key, gettext.GNUTranslations(f))
+        return translation.ugettext

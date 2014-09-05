@@ -1,4 +1,4 @@
-# Portuguese (Portugal) translations for PROJECT.
+# Russian (Russia) translations for PROJECT.
 # Copyright (C) 2014 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
@@ -11,8 +11,9 @@ msgstr ""
 "POT-Creation-Date: 2014-09-04 19:07-0400\n"
 "PO-Revision-Date: 2014-09-04 19:07-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: pt_PT <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Language-Team: ru_RU <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,224 +21,224 @@ msgstr ""
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:459
 msgid "Synchronization Complete"
-msgstr "Sincronização completa"
+msgstr "Синхронизация Полный"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:466
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:474
 msgid "Missing bookmark icons will be retrieved in the background"
-msgstr "Faltando ícones marcador será recuperado em segundo plano"
+msgstr "Отсутствующие иконки закладки будут извлечены в фоновом режиме"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:473
 msgid "First-Time Synchronization Complete"
-msgstr "Primeiro-Time sincronização completa"
+msgstr "Первое время Синхронизация Полный"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:499
 msgid " tags were renamed."
-msgstr " etiquetas foram renomeados."
+msgstr " теги были переименованы."
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:512
 msgid " bookmarks were deleted or marked as such."
-msgstr " marcadores foram apagadas ou marcadas como tal."
+msgstr " закладки были удалены или помечены как таковые."
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1694
 msgid "Submit"
-msgstr "Submeter "
+msgstr "Отправить"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1695
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1846
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2466
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2532
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "Отмена"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1845
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2465
 msgid "Save"
-msgstr "Guardar"
+msgstr "Сохранить"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2531
 msgid "Go"
-msgstr "Ir"
+msgstr "Дальше"
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:495
 msgid "Are you sure you wish to delete this identity?"
-msgstr "Tem certeza de que deseja apagar esta identidade?"
+msgstr "Вы уверены, что хотите удалить этот идентичность?"
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:497
 msgid ""
 "An X.509 certificate may be uploaded to add to this identity.  If one "
 "already exists, the existing certificate will be overwritten."
-msgstr "Um certificado X.509 podem ser enviados para adicionar a essa identidade. Se já existe um, o certificado existente será substituído."
+msgstr "Сертификат X.509 могут быть загружены, чтобы добавить к этой идентичности. Если он уже существует, существующий сертификат будут перезаписаны."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:986
 msgid ""
 "The private key for this SSH identity is protected by a passphrase.  "
 "Please enter the passphrase so a public key can be generated."
-msgstr "A chave privada para essa identidade SSH é protegido por uma senha. Digite a senha para que uma chave pública pode ser gerada."
+msgstr "Секретный ключ для этого SSH идентичности защищен ключевой фразы. Пожалуйста, введите ключевую фразу, открытый ключ может быть создан."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:987
 msgid ""
 "<b>NOTE:</b> This passphrase will only be used to extract the public key "
 "and will not be stored."
-msgstr "<B> Nota: </ b> Esta senha só serão usados ​​para extrair a chave pública e não serão armazenados."
+msgstr "<Б> ПРИМЕЧАНИЕ: </ B> Это ключевая фраза будет использована только для извлечения открытого ключа и не будут сохранены."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:988
 msgid "Passphrase"
-msgstr "Passphrase"
+msgstr "Ключевая фраза"
 
 #: gateone/applications/terminal/static/terminal.js:87
 msgid "Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume."
-msgstr "Terminal de saída tenha sido suspensa (Ctrl-S). Digite Ctrl-Q para retomar."
+msgstr "Терминал вывод был приостановлен (Ctrl-S). Введите Ctrl-Q возобновить."
 
 #: gateone/applications/terminal/static/terminal.js:125
 msgid ""
 "<p><b>Warning:</b> An extension was detected that can result in a severe "
 "negative impact on terminal performance "
-msgstr "<P> <b> Aviso: </ b> Uma extensão foi detectado que pode resultar em um impacto negativo grave no desempenho do terminal "
+msgstr "<Р> <б> Предупреждение: </ B> расширение было обнаружено, что может привести к серьезным негативным воздействием на клеммной производительности "
 
 #: gateone/applications/terminal/static/terminal.js:364
 msgid "Terminal Sharing"
-msgstr "Compartilhamento de Terminal"
+msgstr "Терминал Sharing"
 
 #: gateone/applications/terminal/static/terminal.js:365
 msgid "Opens up the terminal sharing control panel for this terminal."
-msgstr "Abre-se o painel de controle de compartilhamento de terminais para este terminal."
+msgstr "Открывает терминала панель управления обмен для этого терминала."
 
 #: gateone/applications/terminal/static/terminal.js:370
 msgid "Rescue Terminal"
-msgstr "Resgate Terminal"
+msgstr "Спасение Терминал"
 
 #: gateone/applications/terminal/static/terminal.js:371
 msgid ""
 "Attempts to rescue a hung terminal by performing a terminal reset; the "
 "equivalent of executing the 'reset' command."
-msgstr "Tenta resgatar um terminal pendurado através de uma reinicialização do terminal; o equivalente a executar o comando 'reset'."
+msgstr "Попытки спасти от зависшего терминал, выполнив вход сброса; эквивалент выполнив команду «Сброс»."
 
 #: gateone/applications/terminal/static/terminal.js:2942
 msgid ""
 "<p style=\"width: 18em;\">Words or phrases you would like to remain "
 "persistently highlighted in terminals</p>"
-msgstr "<P style = \"width: 18em; \"> Palavras ou frases que você gostaria de permanecer persistentemente em destaque na terminais </ p>"
+msgstr "<Р стиль = \"ширина: 18ЕМ; \"> Слова или фразы, которые Вы хотели бы оставаться упорно выделены терминалов </ P>"
 
 #: gateone/applications/terminal/static/terminal.js:2964
 msgid "<a onclick=\"GateOne.Terminal.unhighlightWord();\">Remove</a>"
-msgstr "<a onclick=\"GateOne.Terminal.unhighlightWord();\"> Remover </a>"
+msgstr "<a onclick=\"GateOne.Terminal.unhighlightWord();\"> Удалить </a>"
 
 #: gateone/applications/terminal/static/terminal.js:2972
 msgid "Word Highlighting "
-msgstr "Palavra Destacar "
+msgstr "Слово Подсветка "
 
 #: gateone/applications/terminal/static/terminal.js:3076
 msgid "Anyone (Broadcast)"
-msgstr "Qualquer um (Broadcast)"
+msgstr "Любой (трансляция)"
 
 #: gateone/applications/terminal/static/terminal.js:3077
 msgid "Authenticated Users"
-msgstr "Usuários autenticados"
+msgstr "Прошедшие проверку"
 
 #: gateone/applications/terminal/static/terminal.js:3080
 msgid "The Share ID is used to generate the broadcast URL."
-msgstr "A ID Partilhar é utilizado para gerar o URL de transmissão."
+msgstr "Доля ID используется для генерации широковещательной URL."
 
 #: gateone/applications/terminal/static/terminal.js:3090
 msgid "Generate a new share ID (the last part of the broadcast URL)"
-msgstr "Gerar um novo ID partes (a última parte da URL broadcast)"
+msgstr "Создайте новый акционерный ID (последняя часть вещания URL)"
 
 #: gateone/applications/terminal/static/terminal.js:3115
 #: gateone/applications/terminal/static/terminal.js:3518
 msgid "User"
-msgstr "Usuário"
+msgstr "Пользователь"
 
 #: gateone/applications/terminal/static/terminal.js:3116
 #: gateone/applications/terminal/static/terminal.js:3519
 msgid "IP Address"
-msgstr "Endereço IP"
+msgstr "IP-адрес"
 
 #: gateone/applications/terminal/static/terminal.js:3117
 msgid "Read"
-msgstr "Ler"
+msgstr "Читать"
 
 #: gateone/applications/terminal/static/terminal.js:3118
 #: gateone/applications/terminal/static/terminal.js:3521
 msgid "Write"
-msgstr "Escrever"
+msgstr "Написать"
 
 #: gateone/applications/terminal/static/terminal.js:3173
 msgid "Terminal Sharing: "
-msgstr "Compartilhamento de Terminal: "
+msgstr "Терминал Sharing: "
 
 #: gateone/applications/terminal/static/terminal.js:3204
 #: gateone/applications/terminal/static/terminal.js:3574
 msgid "Terminal  is no longer shared."
-msgstr "Terminal já não é compartilhado."
+msgstr "не Терминал не является общим."
 
 #: gateone/applications/terminal/static/terminal.js:3409
 msgid "Shared terminals are available (click the magnifying glass icon)."
-msgstr "Terminais compartilhados estão disponíveis (clique no ícone da lupa)."
+msgstr "Общие терминалы доступны (нажмите стеклянную значок увеличительного)."
 
 #: gateone/applications/terminal/static/terminal.js:3436
 msgid "Owner"
-msgstr "Proprietário"
+msgstr "Владелец    "
 
 #: gateone/applications/terminal/static/terminal.js:3437
 #: gateone/static/gateone.js:3076 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3076
 #: gateone/tests/hello_embedded/static/gateone.js:3076
 msgid "Title"
-msgstr "Título"
+msgstr "Название"
 
 #: gateone/applications/terminal/static/terminal.js:3438
 msgid "Write Access"
-msgstr "Acesso de gravação"
+msgstr "Написать Доступ"
 
 #: gateone/applications/terminal/static/terminal.js:3439
 msgid "Password"
-msgstr "Palavra-passe"
+msgstr "Пароль"
 
 #: gateone/applications/terminal/static/terminal.js:3440
 #: gateone/applications/terminal/static/terminal.js:3455
 msgid "View"
-msgstr "Visualizar"
+msgstr "Просмотреть"
 
 #: gateone/applications/terminal/static/terminal.js:3478
 msgid "Error: You must enter a password to view this shared terminal"
-msgstr "Erro: Você deve digitar uma senha para ver este terminal compartilhado"
+msgstr "Ошибка: Вы должны ввести пароль, чтобы просмотреть эту общую терминал"
 
 #: gateone/applications/terminal/static/terminal.js:3492
 msgid "Shared Terminals"
-msgstr "Terminais compartilhados"
+msgstr "Общие терминалы"
 
 #: gateone/applications/terminal/static/terminal.js:3520
 msgid "Authenticated"
-msgstr "Autenticado"
+msgstr "Авторизировано"
 
 #: gateone/applications/terminal/static/terminal.js:3552
 msgid "Terminal Viewers: "
-msgstr "Os espectadores de terminais: "
+msgstr "Терминальные Зрителей: "
 
 #: gateone/applications/terminal/static/terminal.js:3577
 msgid "Settings"
-msgstr "Configurações"
+msgstr "Настройки"
 
 #: gateone/applications/terminal/static/terminal.js:3579
 msgid "Terminal Sharing Info"
-msgstr "Terminal compartilhar informações"
+msgstr "Терминал Sharing Info"
 
 #: gateone/applications/terminal/static/terminal.js:3580
 msgid "Viewers: "
-msgstr "Os espectadores: "
+msgstr "Зрителей: "
 
 #: gateone/applications/x11/static/x11.js:900
 msgid ""
 "Browser does not support Web Worker transferable objects.  X11 "
 "performance will be (slightly) reduced."
-msgstr "Browser não suporta Trabalhadores Web objetos transferíveis. Desempenho X11 vai ser (ligeiramente) reduzida."
+msgstr "Браузер не поддерживает веб-Worker переносимых объектов. Производительность X11 будет (немного) уменьшается."
 
 #: gateone/static/gateone.js:471 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:471
 #: gateone/tests/hello_embedded/static/gateone.js:471
 msgid "Browser failed WebSocket support check."
-msgstr "Navegador Falha na verificação de apoio WebSocket."
+msgstr "Браузер Ошибка проверки поддержки WebSocket."
 
 #: gateone/static/gateone.js:472 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:472
@@ -246,13 +247,13 @@ msgid ""
 "Sorry but your web browser does not appear to support WebSockets.  Gate "
 "One requires WebSockets in order to (efficiently) communicate with the "
 "server."
-msgstr "Desculpe, mas seu navegador não parece suportar WebSockets. Gate One exige WebSockets, a fim de (eficiente) comunicar com o servidor."
+msgstr "К сожалению, ваш браузер не появляется, чтобы поддержать WebSockets. Gate One требуется WebSockets для того, чтобы (эффективно) связи с сервером."
 
 #: gateone/static/gateone.js:489 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:489
 #: gateone/tests/hello_embedded/static/gateone.js:489
 msgid "Browser failed Blob support check."
-msgstr "Navegador Falha na verificação de apoio Blob."
+msgstr "Браузер не удалось Blob чек поддержки."
 
 #: gateone/static/gateone.js:628 gateone/static/gateone.js:642
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:628
@@ -260,49 +261,49 @@ msgstr "Navegador Falha na verificação de apoio Blob."
 #: gateone/tests/hello_embedded/static/gateone.js:628
 #: gateone/tests/hello_embedded/static/gateone.js:642
 msgid "Preferences"
-msgstr "Preferências"
+msgstr "Настройки"
 
 #: gateone/static/gateone.js:649 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:649
 #: gateone/tests/hello_embedded/static/gateone.js:649
 msgid "<b>Theme:</b> "
-msgstr "<B> Tema: </ b> "
+msgstr "<Б> Тема: </ B> "
 
 #: gateone/static/gateone.js:650 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:650
 #: gateone/tests/hello_embedded/static/gateone.js:650
 msgid "<b>Font Size:</b> "
-msgstr "<B> Tamanho da fonte: </ b> "
+msgstr "<Б> Размер шрифта: </ B> "
 
 #: gateone/static/gateone.js:651 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:651
 #: gateone/tests/hello_embedded/static/gateone.js:651
 msgid "<b>Disable CSS3 Transitions:</b> "
-msgstr "<B> Desativar CSS3 Transitions: </ b> "
+msgstr "<Б> Отключить CSS3 Transitions: </ B> "
 
 #: gateone/static/gateone.js:868 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:868
 #: gateone/tests/hello_embedded/static/gateone.js:868
 msgid "Application, '' could not be found."
-msgstr "Aplicação ',' não pôde ser encontrado."
+msgstr "Применение не может быть найден."
 
 #: gateone/static/gateone.js:874 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:874
 #: gateone/tests/hello_embedded/static/gateone.js:874
 msgid "Application, '' does not have a __new__() method."
-msgstr "Aplicação ',' não tem um método __new __ ()."
+msgstr "Применение не есть метод __new __ ()."
 
 #: gateone/static/gateone.js:1578 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:1578
 #: gateone/tests/hello_embedded/static/gateone.js:1578
 msgid "Error loading stylesheet: "
-msgstr "Erro ao carregar folhas de estilo: "
+msgstr "Ошибка при загрузке стилей: "
 
 #: gateone/static/gateone.js:2484 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2484
 #: gateone/tests/hello_embedded/static/gateone.js:2484
 msgid "Authentication Failure"
-msgstr "Falha de autenticação"
+msgstr "Ошибка проверки подлинности"
 
 #: gateone/static/gateone.js:2484 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2484
@@ -310,13 +311,13 @@ msgstr "Falha de autenticação"
 msgid ""
 "The authentication object was denied by the server.  Click OK to reload "
 "the page."
-msgstr "O objeto de autenticação foi negada pelo servidor. Clique em OK para recarregar a página."
+msgstr "Объект аутентификации было отказано сервером. Нажмите OK, чтобы перезагрузить страницу."
 
 #: gateone/static/gateone.js:2532 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2532
 #: gateone/tests/hello_embedded/static/gateone.js:2532
 msgid "Attempting to connect to the Gate One server..."
-msgstr "A tentativa de conectar-se ao servidor Uma porta ..."
+msgstr "Попытка подключения к Единому сервере Gate ..."
 
 #: gateone/static/gateone.js:2557 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2557
@@ -324,37 +325,37 @@ msgstr "A tentativa de conectar-se ao servidor Uma porta ..."
 msgid ""
 "An SSL certificate must be accepted by your browser to continue.  Please "
 "click <a href='' target='_blank'>here</a> to be redirected."
-msgstr "Um certificado SSL devem ser aceites pelo seu browser para continuar. Por favor, clique <a href='' target='_blank'> aqui </a> para ser redirecionado."
+msgstr "Свидетельство SSL должно быть принято в вашем браузере, чтобы продолжить. Пожалуйста, нажмите <a href='' target='_blank'> здесь </a> будет перенаправлен."
 
 #: gateone/static/gateone.js:2621 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2621
 #: gateone/tests/hello_embedded/static/gateone.js:2621
 msgid "WebSocket Closed"
-msgstr "WebSocket Fechado"
+msgstr "WebSocket Закрытая"
 
 #: gateone/static/gateone.js:2651 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2651
 #: gateone/tests/hello_embedded/static/gateone.js:2651
 msgid "The WebSocket has been disconnected."
-msgstr "O WebSocket foi desconectado."
+msgstr "WebSocket был отключен."
 
 #: gateone/static/gateone.js:3073 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3073
 #: gateone/tests/hello_embedded/static/gateone.js:3073
 msgid "Location"
-msgstr "Localização"
+msgstr "Местоположение"
 
 #: gateone/static/gateone.js:3074 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3074
 #: gateone/tests/hello_embedded/static/gateone.js:3074
 msgid "Application(s)"
-msgstr "Aplicação (s)"
+msgstr "Приложение(я)"
 
 #: gateone/static/gateone.js:3075 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3075
 #: gateone/tests/hello_embedded/static/gateone.js:3075
 msgid "ID"
-msgstr "ID"
+msgstr "ИД"
 
 #: gateone/static/gateone.js:3081 gateone/static/gateone.js:3104
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:3081
@@ -362,19 +363,19 @@ msgstr "ID"
 #: gateone/tests/hello_embedded/static/gateone.js:3081
 #: gateone/tests/hello_embedded/static/gateone.js:3104
 msgid "Locations"
-msgstr "Locais"
+msgstr "Местоположения"
 
 #: gateone/static/gateone.js:3277 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3277
 #: gateone/tests/hello_embedded/static/gateone.js:3277
 msgid "Skipping adding the icon for "
-msgstr "Ignorando adicionar o ícone para "
+msgstr "Пропуск добавления значок "
 
 #: gateone/static/gateone.js:3277 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3277
 #: gateone/tests/hello_embedded/static/gateone.js:3277
 msgid ".  Took too long to load dependencies."
-msgstr ". Levou muito tempo para carregar as dependências."
+msgstr ". Взял слишком много времени для загрузки зависимостей."
 
 #: gateone/static/gateone.js:5272 gateone/static/gateone.js:5306
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:5272
@@ -382,7 +383,7 @@ msgstr ". Levou muito tempo para carregar as dependências."
 #: gateone/tests/hello_embedded/static/gateone.js:5272
 #: gateone/tests/hello_embedded/static/gateone.js:5306
 msgid "Failed to load database: "
-msgstr "Falha ao carregar o banco de dados: "
+msgstr "Не удалось загрузить базу данных: "
 
 #: gateone/static/gateone.js:5700 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:5700
@@ -390,18 +391,17 @@ msgstr "Falha ao carregar o banco de dados: "
 msgid ""
 "Please close other tabs connected to this server and reload this page so "
 "we may upgrade the IndexedDB database."
-msgstr "Por favor, feche outras guias ligados a este servidor e recarregue esta página para que possamos atualizar o banco de dados IndexedDB."
+msgstr "Пожалуйста, закройте другие вкладки, связанные с этим сервером и перезагрузите страницу, чтобы мы могли обновить базу данных IndexedDB."
 
 #: gateone/static/gateone_visual_extra.js:278
 msgid "Yes"
-msgstr "Sim"
+msgstr "Да"
 
 #: gateone/static/gateone_visual_extra.js:279
 msgid "No"
-msgstr "Não
-"
+msgstr "Нет"
 
 #: gateone/static/gateone_visual_extra.js:572
 msgid "GateOne.Visual.table(): You must pass in settings['id'] to this function."
-msgstr "GateOne.Visual.table (): Você deve passar em configurações ['id'] para esta função."
+msgstr "GateOne.Visual.table (): Вы должны пройти в настройках ['ID'] для этой функции."
 

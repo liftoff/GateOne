@@ -36,7 +36,7 @@ from gateone.core.log import go_logger # So your app will have its own log
 from gateone.core.server import BaseHandler
 from gateone.core.utils import bind
 # If you want your app to be able to use its own plugins you'll need these:
-from gateone.core.utils import get_plugins, load_modules
+from gateone.core.utils import entry_point_files
 # You can use this for providing localization but you could just use the stdlib
 # gettext stuff if you want:
 from gateone.core.locale import get_translation
@@ -231,15 +231,18 @@ class ExampleApplication(GOApplication):
         # that should be enabled (so we can exclude the others):
         enabled_plugins = self.ws.prefs['*']['example'].get(
             'enabled_plugins', [])
-        # Now we'll use Gate One's utils.get_plugins() function to fetch a dict
-        # containing all our Python, JavaScript, and CSS plugin files.  This is
+        # Now we'll use Gate One's utils.entry_point_files() function to find
+        # and import all our Python, JavaScript, and CSS plugin files.  This is
         # really only so we can log which plugins are enabled because the
         # process of importing Python plugins happens inside of init() and
         # JS/CSS plugin files get sent via the send_plugin_static_files()
         # function inside of authenticate().
-        self.plugins = get_plugins( # Get everything in example/plugins/
-            os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
+        self.plugins = entry_point_files( # Get everything in example/plugins/
+            'go_example_plugins', enabled_plugins)
         # Now let's separate the plugins by type (to save some typing)
+        py_pluings = []
+        for module in self.plugins['py']:
+            py_plugins.append(module.__name__)
         js_plugins = []
         for js_path in self.plugins['js']:
             name = js_path.split(os.path.sep)[-2]
@@ -249,7 +252,7 @@ class ExampleApplication(GOApplication):
         for css_path in css_plugins:
             name = css_path.split(os.path.sep)[-2]
             css_plugins.append(name)
-        plugin_list = list(set(self.plugins['py'] + js_plugins + css_plugins))
+        plugin_list = list(set(py_plugins + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         example_log.info(_(
             "Active Example Plugins: %s" % ", ".join(plugin_list)))
@@ -283,7 +286,6 @@ class ExampleApplication(GOApplication):
         #     'Events': {'example:authenticate': auth_func}
         # }
         self.plugin_hooks = {} # We'll store our plugin hooks here
-        imported = load_modules(self.plugins['py'])
         for plugin in imported:
             try:
                 # Add the plugin's hooks dict to self.plugin_hooks:

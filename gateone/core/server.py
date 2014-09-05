@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140901214636" # Gets replaced by git (holds the date/time)
+__commit__ = "20140903221003" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -354,6 +354,8 @@ from gateone import GATEONE_DIR
 
 tornado_version = "" # Placeholder in case Tornado import fails below
 
+# 3rd party modules
+import pkg_resources # Technically setuptools isn't part of Python's stdlib
 # Tornado modules (yeah, we use all this stuff)
 try:
     import tornado.httpserver
@@ -401,11 +403,11 @@ from gateone.auth.authorization import require, authenticated, policies
 from gateone.auth.authorization import applicable_policies
 from gateone.async import MultiprocessRunner, ThreadedRunner
 from .utils import generate_session_id, mkdir_p, touch, noop
-from .utils import gen_self_signed_ssl, get_plugins, load_modules
+from .utils import gen_self_signed_ssl, entry_point_files
 from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from .utils import json_encode, recursive_chown, ChownError, get_or_cache
 from .utils import write_pid, read_pid, remove_pid, drop_privileges
-from .utils import check_write_permissions, get_applications, valid_hostname
+from .utils import check_write_permissions, valid_hostname
 from .utils import total_seconds, MEMO, bind
 from .configuration import apply_cli_overrides, define_options, SettingsError
 from .configuration import get_settings
@@ -1390,9 +1392,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     self.on(event, bind(callback, self))
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket commands
-                print("Applying WebSocket hooks for %s..." % plugin_name)
                 for ws_action, func in hooks['WebSocket'].items():
-                    print("WebSocket action: %s" % ws_action)
                     self.actions.update({ws_action: bind(func, self)})
         self.on("go:authenticate", self.send_extra)
         # Setup some actions to take place after the user authenticates
@@ -2173,10 +2173,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.client_log = go_logger('gateone.client', **metadata)
         # NOTE: NOT using self.auth_log() here on purpose (this log message
         # should stay consistent for easier auditing):
-        auth_log.info(
-            _(u"User {upn} authenticated successfully via origin {origin}"
-              u" (location: {location}).").format(
-                  upn=user['upn'], origin=self.origin, location=self.location))
+        log_msg = _(
+            u"User {upn} authenticated successfully via origin {origin} "
+            u"(location {location}).").format(
+                upn=user['upn'],
+                origin=self.origin.decode('idna'),
+                location=self.location)
+        auth_log.info(log_msg)
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
@@ -2623,9 +2626,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # This wierd little bit empties Tornado's template cache:
             for web_template_path in template_loaders:
                 template_loaders[web_template_path].reset()
-            #rendered_path = self.render_style(
-                #theme_path, **template_args)
-            #rendered_theme_files.append(rendered_path)
             for template_file in theme_files:
                 rendered_path = self.render_style(
                     template_file, **template_args)
@@ -3702,7 +3702,10 @@ class GateOneApp(tornado.web.Application):
             name = css_path.split(os.path.sep)[-1].split('.')[0]
             name = os.path.splitext(name)[0]
             css_plugins.append(name)
-        plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
+        py_plugins = []
+        for module in PLUGINS['py']:
+            py_plugins.append(module.__name__)
+        plugin_list = list(set(py_plugins + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         logger.info(_("Loaded global plugins: %s") % ", ".join(plugin_list))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
@@ -3975,22 +3978,21 @@ def main(installed=True):
             print(_("Could not create log directory: %s" % log_dir))
             print(log_fail_msg)
             sys.exit(1)
-    PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
-    imported = load_modules(PLUGINS['py'])
-    for plugin in imported:
+    PLUGINS = entry_point_files('go_plugins', enabled_plugins)
+    for plugin in PLUGINS['py']:
         try:
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
-            if 'commands' in plugin.hooks:
-                cli_commands.update({'gateone': plugin.hooks['commands']})
+            if hasattr(plugin, 'commands'):
+                cli_commands.update({'gateone': plugin.commands})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
-    APPLICATIONS = get_applications(
-        os.path.join(GATEONE_DIR, 'applications'), enabled_applications)
-    # NOTE: load_modules() imports all the .py files in applications.  This
+    # NOTE: entry_point_files() imports all the .py files in applications.  This
     # means that applications can place calls to tornado.options.define()
     # anywhere in their .py files and they should automatically be usable by the
     # user at this point in the startup process.
-    app_modules = load_modules(APPLICATIONS)
+    app_modules = entry_point_files(
+        'go_applications', enabled_applications)['py']
+    APPLICATIONS = [a.__name__ for a in app_modules]
     # Check if the user is running a command as opposed to passing arguments
     # so we can set the log_file_prefix to something innocuous so as to prevent
     # IOError exceptions from Tornado's parse_command_line() below...

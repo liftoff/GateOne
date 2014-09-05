@@ -137,6 +137,8 @@ def fullsplit(path, result=None):
     return fullsplit(head, [tail] + result)
 
 gateone_dir = os.path.join(setup_dir, 'gateone')
+plugin_dir = os.path.join(gateone_dir, 'plugins')
+app_dir = os.path.join(gateone_dir, 'applications')
 
 ignore_list = [
     '__pycache__',
@@ -153,6 +155,7 @@ if '--skip_docs' in sys.argv:
     ignore_list.append('docs')
     sys.argv.remove('--skip_docs')
 
+os.chdir(setup_dir)
 for dirpath, dirnames, filenames in os.walk('gateone'):
     # Ignore PEP 3147 cache dirs and those whose names start with '.'
     dirnames[:] = [
@@ -169,6 +172,48 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
             for f in filenames
             if f not in ignore_list]
         ])
+
+entry_points = {
+    'console_scripts': [
+        'gateone = gateone.core.server:main'
+    ],
+    'go_plugins': [],
+    'go_applications': [],
+}
+# Add plugin entry points for Python plugins
+plugin_ep_template = '{name} = gateone.plugins.{name}'
+for filename in os.listdir(plugin_dir):
+    path = os.path.join(plugin_dir, filename)
+    if os.path.isdir(path):
+        if '__init__.py' in os.listdir(path):
+            entry_points['go_plugins'].append(
+                plugin_ep_template.format(name=filename))
+# Add application (and their plugins) entry points
+app_ep_template = '{name} = gateone.applications.{name}'
+app_plugin_ep_template = '{name} = gateone.applications.{app}.plugins.{name}'
+for filename in os.listdir(app_dir):
+    path = os.path.join(app_dir, filename)
+    if os.path.isdir(path):
+        if '__init__.py' in os.listdir(path):
+            entry = app_ep_template.format(name=filename)
+            entry_points['go_applications'].append(entry)
+        if 'plugins' in os.listdir(path):
+            plugins_path = os.path.join(path, 'plugins')
+            for f in os.listdir(plugins_path):
+                ppath = os.path.join(plugins_path, f)
+                if os.path.isdir(ppath):
+                    if '__init__.py' in os.listdir(ppath):
+                        plugin_ep_name = 'go_%s_plugins' % filename
+                        entry = app_plugin_ep_template.format(
+                            app=filename, name=f)
+                        if not plugin_ep_name in entry_points:
+                            entry_points[plugin_ep_name] = []
+                        entry_points[plugin_ep_name].append(entry)
+print("Creating entry points for the following:")
+for ep, items in sorted(list(entry_points.items())):
+    print("    %s" % ep)
+    for item in sorted(items):
+        print("        %s" % item)
 
 if os.getuid() == 0 and not skip_init:
     if init_script:
@@ -277,11 +322,7 @@ setup(
     install_requires = requires,
     zip_safe = False, # TODO: Convert everything to using pkg_resources
     py_modules = ["gateone"],
-    entry_points = {
-        'console_scripts': [
-            'gateone = gateone.core.server:main'
-        ]
-    },
+    entry_points = entry_points,
     provides = ['gateone', 'termio', 'terminal', 'onoff'],
     packages = packages,
     data_files = data_files,
