@@ -11,6 +11,7 @@ var go = GateOne,
     v = go.Visual,
     E = go.Events,
     I = go.Input,
+    gettext = GateOne.i18n.gettext,
     prefix = go.prefs.prefix,
     noop = u.noop,
     logFatal = GateOne.Logging.logFatal,
@@ -45,12 +46,12 @@ GateOne.Base.update(GateOne.Help, {
             helpPanelDocs = u.createElement('li'),
             helpPanelDocsAnchor = u.createElement('a', {'id': prefix+'help_docs'});
         // Create our info panel
-        helpPanelH2.innerHTML = "Gate One Help";
-        helpPanelH3.innerHTML = "Contents";
+        helpPanelH2.innerHTML = gettext("Gate One Help");
+        helpPanelH3.innerHTML = gettext("Contents");
         helpPanelClose.innerHTML = go.Icons['panelclose'];
-        helpPanelAboutAnchor.innerHTML = "About Gate One";
+        helpPanelAboutAnchor.innerHTML = gettext("About Gate One");
         helpPanelAbout.appendChild(helpPanelAboutAnchor);
-        helpPanelDocsAnchor.innerHTML = "Gate One's Documentation";
+        helpPanelDocsAnchor.innerHTML = gettext("Gate One's Documentation");
         helpPanelDocs.appendChild(helpPanelDocsAnchor);
         helpPanel.appendChild(helpPanelH2);
         helpPanel.appendChild(helpPanelClose);
@@ -59,7 +60,7 @@ GateOne.Base.update(GateOne.Help, {
         helpPanelUL.appendChild(helpPanelDocs);
         helpNav.appendChild(helpPanelH3);
         helpPanel.appendChild(helpNav);
-        GateOneSection.innerHTML = "<b>Gate One Help:</b>";
+        GateOneSection.innerHTML = gettext("<b>Gate One Help:</b>");
         GateOneSection.appendChild(helpPanelUL);
         helpPanelSections.appendChild(GateOneSection);
         helpContent.appendChild(helpPanelSections);
@@ -95,7 +96,7 @@ GateOne.Base.update(GateOne.Help, {
         Displays the Gate One version/credits.
         */
         go.Help.showHelpSection(go.prefs.url+'static/about.html', function() {
-            u.getNode('#gateone_version').innerHTML = "<b>Version:</b> " + go.__version__ + " (" + go.__commit__ + ")";
+            u.getNode('#gateone_version').innerHTML = gettext("<b>Version:</b> ") + go.__version__ + " (" + go.__commit__ + ")";
         });
     },
     // TODO: Finish this...
@@ -108,10 +109,10 @@ GateOne.Base.update(GateOne.Help, {
         */
         var firstTimeDiv = u.createElement('div', {'id': 'help_firsttime'}),
             dismiss = u.createElement('button', {'id': 'dismiss', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
-        firstTimeDiv.innerHTML = 'Gate One is an HTML5 web-based terminal emulator...';
-        dismiss.innerHTML = "Dismiss";
+        firstTimeDiv.innerHTML = gettext('Gate One is a web-based application gateway...');
+        dismiss.innerHTML = gettext("Dismiss");
         firstTimeDiv.appendChild(dismiss);
-        var closeDialog = go.Visual.dialog('Welcome to Gate One', firstTimeDiv);
+        var closeDialog = go.Visual.dialog(gettext('Welcome to Gate One'), firstTimeDiv);
         dismiss.onclick = closeDialog;
     },
     showHelp: function() {
@@ -119,7 +120,7 @@ GateOne.Base.update(GateOne.Help, {
 
         Displays the help panel.
         */
-        v.togglePanel('#'+GateOne.prefs.prefix+'panel_help');
+        v.togglePanel('#'+prefix+'panel_help');
     },
     addHelp: function(section, title, action, /*opt*/callback) {
         /**:GateOne.Help.addHelpSection(section, title, action[, callback])
@@ -153,7 +154,7 @@ GateOne.Base.update(GateOne.Help, {
         }
         if (u.isElement(action)) {
             // TODO: Implement this
-            logError("Haven't implemented the DOM option in this function yet, sorry!");
+            logError(gettext("Haven't implemented the DOM option in this function yet, sorry!"));
         } else {
             helpPanelAnchor.onclick = function(e) {
                 e.preventDefault(); // No need to change the hash

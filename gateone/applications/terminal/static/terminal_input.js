@@ -10,6 +10,7 @@ var go = GateOne,
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
+    gettext = go.i18n.gettext,
     ESC = String.fromCharCode(27),
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -404,7 +405,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             setTimeout(function() {
                 u.showElements('.✈pastearea');
             }, 50);
-            v.displayMessage("Text copied to clipboard.");
+            v.displayMessage(gettext("Text copied to clipboard."));
         }
     },
     capture: function() {
@@ -709,7 +710,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.emulateKey(e, true); // Pretend this never happened
                 t.Input.sendChars();
             }, 750);
-            v.displayMessage("NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode.");
+            v.displayMessage(gettext("NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode."));
             return;
         }
         if (key.string == "KEY_UNKNOWN") {
@@ -944,13 +945,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         */
         if (!u.isPageHidden()) {
             // Page has become visibile again
-            logDebug("Ninja Mode disabled.");
+            logDebug(gettext("Ninja Mode disabled."));
             if (document.activeElement.classList.contains('✈terminal')) {
                 // Gate One was active when the page became hidden
                 t.Input.capture(); // Resume keyboard input
             }
         } else {
-            logDebug("Ninja Mode!  Gate One has become hidden.");
+            logDebug(gettext("Ninja Mode!  Gate One has become hidden."));
         }
     },
     // TODO: Add a GUI for configuring the keyboard.

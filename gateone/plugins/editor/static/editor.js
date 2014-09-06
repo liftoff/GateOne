@@ -11,6 +11,7 @@ var go = GateOne,
     E = go.Events,
     I = go.Input,
     prefix = go.prefs.prefix,
+    gettext = GateOne.i18n.gettext,
     noop = u.noop,
     Editor,
     maxRetries = 200, // Amounts to about 10 seconds
@@ -41,7 +42,7 @@ GateOne.Base.update(GateOne.Editor, {
 
         Called when an invalid mode was requested by the client.  Cancels any waiting editor callbacks and logs an error.
         */
-        logError("CodeMirror editor mode could not be found: " + mode);
+        logError(gettext("CodeMirror editor mode could not be found: ") + mode);
         Editor.invalidModes.push(mode);
     },
     newEditor: function(place, options, callback) {
@@ -70,20 +71,19 @@ GateOne.Base.update(GateOne.Editor, {
             Editor._retryCount = 0;
             callback(cm);
         } else if (Editor.invalidModes[mode]) {
-            logError("Specified CodeMirror mode is invalid: " + mode);
+            logError(gettext("Specified CodeMirror mode is invalid: ") + mode);
             options.mode = null;
             cm = CodeMirror(place, options); // Load it anyway--just without that mode enabled
             Editor._retryCount = 0;
             callback(cm);
         } else {
             if (Editor._retryCount > maxRetries) {
-                logError("Took too long waiting for the given CodeMirror mode.");
+                logError(gettext("Took too long waiting for the given CodeMirror mode."));
                 options.mode = null;
                 cm = CodeMirror(place, options);
                 Editor._retryCount = 0;
                 callback(cm);
             } else {
-                console.log("Retrying after timeout...");
                 Editor._pending = setTimeout(function() {
                     Editor._retryCount += 1;
                     Editor.newEditor(place, options, callback);
@@ -117,20 +117,19 @@ GateOne.Base.update(GateOne.Editor, {
             Editor._retryCount = 0;
             callback(cm);
         } else if (Editor.invalidModes[mode]) {
-            logError("Specified CodeMirror mode is invalid: " + mode);
+            logError(gettext("Specified CodeMirror mode is invalid: ") + mode);
             options.mode = null;
             cm = CodeMirror.fromTextArea(textarea, options); // Load it anyway--just without that mode enabled
             Editor._retryCount = 0;
             callback(cm);
         } else {
             if (Editor._retryCount > maxRetries) {
-                logError("Took too long waiting for the given CodeMirror mode.");
+                logError(gettext("Took too long waiting for the given CodeMirror mode."));
                 options.mode = null;
                 cm = CodeMirror.fromTextArea(textarea, options);
                 Editor._retryCount = 0;
                 callback(cm);
             } else {
-                console.log("Retrying after timeout...");
                 Editor._pending = setTimeout(function() {
                     Editor._retryCount += 1;
                     Editor.fromTextArea(textarea, options, callback);

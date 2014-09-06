@@ -174,9 +174,7 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
         ])
 
 entry_points = {
-    'console_scripts': [
-        'gateone = gateone.core.server:main'
-    ],
+    'console_scripts': ['gateone = gateone.core.server:main'],
     'go_plugins': [],
     'go_applications': [],
 }
@@ -209,11 +207,6 @@ for filename in os.listdir(app_dir):
                         if not plugin_ep_name in entry_points:
                             entry_points[plugin_ep_name] = []
                         entry_points[plugin_ep_name].append(entry)
-print("Creating entry points for the following:")
-for ep, items in sorted(list(entry_points.items())):
-    print("    %s" % ep)
-    for item in sorted(items):
-        print("        %s" % item)
 
 if os.getuid() == 0 and not skip_init:
     if init_script:
@@ -365,6 +358,12 @@ if PYTHON3:
                                 new_ssh_connect += line
                         with open(ssh_connect, 'wb') as new_ssh_c:
                             new_ssh_c.write(new_ssh_connect)
+
+print("Entry points were created for the following:")
+for ep, items in sorted(list(entry_points.items())):
+    print("    %s" % ep)
+    for item in sorted(items):
+        print("        %s" % item)
 
 if not os.path.exists('/opt/gateone'):
     # Don't bother printing out the migration info below if the user has never

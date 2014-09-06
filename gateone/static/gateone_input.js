@@ -491,7 +491,7 @@ GateOne.Base.update(GateOne.Input, {
                     // There's a match in terms of modifiers; check conditions next
                     if (!shortcutObj['conditions']) {
                         // Only assume we're overriding an existing shortcut if there's no conditions
-                        logWarning("Overwriting existing shortcut for: " + keyString);
+                        logWarning(gettext("Overwriting existing shortcut for: ") + keyString);
                         shortcut = shortcutObj;
                         overwrote = true;
                     }
@@ -556,7 +556,7 @@ GateOne.Base.update(GateOne.Input, {
                 }
                 if (match) {
                     // There's a match...  Log and overwrite it
-                    logWarning("Overwriting existing shortcut for: " + keyString);
+                    logWarning(gettext("Overwriting existing shortcut for: ") + keyString);
                     shortcut = shortcutObj;
                     overwrote = true;
                 }

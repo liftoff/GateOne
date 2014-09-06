@@ -241,7 +241,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
             u.prevEmDimensions = {'w': nodeWidth, 'h': nodeHeight};
         } catch(e) {
-            logDebug("Error getting em dimensions (probably just a hidden terminal): " + e);
+            logDebug(gettext("Error getting em dimensions (probably just a hidden terminal): ") + e);
             // Cleanup
             if (where) {
                 where.removeChild(node);
@@ -430,7 +430,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }, 100);
             };
         // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
-        GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
+        GateOne.Visual.alert(gettext("JavaScript Load Error"), gettext("This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable."), okCallback);
     },
     loadScript: function(url, callback){
         /**:GateOne.Utils.loadScript(url[, callback])

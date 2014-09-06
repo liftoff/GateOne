@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140903221003";
+GateOne.__commit__ = "20140905091804";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -323,14 +323,16 @@ GateOne.Base.update(GateOne.i18n, {
         */
         GateOne.i18n.translations = table;
     },
-    setLocale: function(locale) {
-        /**:GateOne.i18n.setLocale(locale)
+    setLocales: function(locales) {
+        /**:GateOne.i18n.setLocales(locales)
 
         Tells the Gate One server to set the user's locale to *locale*.  Example:
 
-            >>> GateOne.i18n.setLocale('fr_FR');
+            >>> GateOne.i18n.setLocales(['fr_FR', 'en-US', 'en']);
+
+        .. note:: Typically you'd pass `navigator.languages` to this function.
         */
-        GateOne.ws.send(JSON.stringify({'go:set_locale': locale}));
+        GateOne.ws.send(JSON.stringify({'go:set_locales': locales}));
     }
 });
 
@@ -487,18 +489,18 @@ var go = GateOne.Base.update(GateOne, {
             if (!BlobBuilder) {
                 if (!Blob) {
                     logError(gettext('Browser failed Blob support check.'));
-                    missingCapabilities.push("Your browser does not appear to support the HTML5 File API (<a href='https://developer.mozilla.org/en-US/docs/DOM/Blob'>Blob objects</a>, specifically).  Some features related to saving files will not work.");
+                    missingCapabilities.push(gettext("Your browser does not appear to support the HTML5 File API (<a href='https://developer.mozilla.org/en-US/docs/DOM/Blob'>Blob objects</a>, specifically).  Some features related to saving files will not work."));
                 }
             }
             // Warn about window.URL or window.webkitURL
             if (!urlObj) {
-                logError('Browser failed window.URL object support check.');
-                missingCapabilities.push("Your browser does not appear to support the <a href='https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL'>window.URL</a> object.  Some features related to saving files will not work.");
+                logError(gettext('Browser failed window.URL object support check.'));
+                missingCapabilities.push(gettext("Your browser does not appear to support the <a href='https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL'>window.URL</a> object.  Some features related to saving files will not work."));
             }
             if (missingCapabilities.length) {
                 // Notify the user of the problems and cancel the init() process
                 if (criticalFailure) {
-                    alert("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded.");
+                    alert(gettext("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded."));
                     return;
                 } else {
                     if (!localStorage[go.prefs.prefix+'disableWarning']) {
@@ -513,7 +515,7 @@ var go = GateOne.Base.update(GateOne, {
                             li.innerHTML = msg;
                             missingList.appendChild(li);
                         });
-                        disableWarningLabel.innerHTML = "Don't display this warning again";
+                        disableWarningLabel.innerHTML = gettext("Don't display this warning again");
                         disableWarningLabel.htmlFor = go.prefs.prefix+'disableWarning';
                         container.appendChild(missingList);
                         container.appendChild(disableWarning);
@@ -562,7 +564,7 @@ var go = GateOne.Base.update(GateOne, {
         var authCheck = go.prefs.url + 'auth?check=True';
         if (go.prefs.auth) {
             // API authentication doesn't need to use the /auth URL.
-            logDebug("Using API authentiation object: " + go.prefs.auth);
+            logDebug(gettext("Using API authentiation object: ") + go.prefs.auth);
             go.Net.connect(callback);
         } else if (go.prefs.authenticate) {
             // Check if we're authenticated after all the scripts are done loading
@@ -636,11 +638,11 @@ var go = GateOne.Base.update(GateOne, {
         // Create our prefs panel
         u.hideElement(prefsPanel); // Start out hidden
         v.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
-        toolbarIconClose.innerHTML = go.Icons['close'];
+        toolbarIconClose.innerHTML = go.Icons.close;
         toolbarIconNewWorkspace.innerHTML = go.Icons['newWS'];
         toolbarIconPrefs.innerHTML = go.Icons['prefs'];
         prefsPanelH2.innerHTML = gettext("Preferences");
-        panelClose.innerHTML = go.Icons['panelclose'];
+        panelClose.innerHTML = go.Icons.panelclose;
         panelClose.onclick = function(e) {
             v.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
         }
@@ -865,13 +867,13 @@ var go = GateOne.Base.update(GateOne, {
         :where:  A querySelector-like string or DOM node where you wish to place the application.
         */
         if (!go.loadedApplications[app]) {
-            logError(gettext("Application, '" + app + "' could not be found."));
+            logError(gettext("Application could not be found: " + app));
             return;
         }
         var appObj = go.loadedApplications[app],
             where = go.Utils.getNode(where) || go.Visual.newWorkspace();
         if (!appObj.__new__) {
-            logError(gettext("Application, '" + app + "' does not have a __new__() method."));
+            logError(gettext("Application does not have a __new__() method:" + app));
             return;
         }
         appObj.__new__(settings, where);
@@ -927,13 +929,13 @@ GateOne.Base.update(GateOne.Utils, {
             date2 = new Date(),
             diff =  date2.getTime() - u.benchmark;
         if (!u.benchmark) {
-            logInfo(msg + ": Nothing to report: startBenchmark() has yet to be run.");
+            logInfo(msg + gettext(": Nothing to report: startBenchmark() has yet to be run."));
             return;
         }
         u.benchmarkCount += 1;
         u.benchmarkTotal += diff;
         u.benchmarkAvg = Math.round(u.benchmarkTotal/u.benchmarkCount);
-        logInfo(msg + ": " + diff + "ms" + ", total: " + u.benchmarkTotal + "ms, Average: " + u.benchmarkAvg);
+        logInfo(msg + ": " + diff + "ms" + gettext(", total: ") + u.benchmarkTotal + gettext("ms, Average: ") + u.benchmarkAvg);
     },
     getNode: function(nodeOrSelector) {
         /**:GateOne.Utils.getNode(nodeOrSelector)
@@ -1450,15 +1452,15 @@ GateOne.Base.update(GateOne.Utils, {
             >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
             >>> // Plugin .js files take precedence.
 
-        If *message['cache']* is `false` or *noCache* is true, will not update the fileCache database with this incoming file.
+        If *message.cache* is `false` or *noCache* is true, will not update the fileCache database with this incoming file.
         */
-        logDebug('loadJSAction()');
+        logDebug('loadJSAction()', message);
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
             requires = false,
             existing, s;
-        if (message['result'] == 'Success') {
+        if (message.result == 'Success') {
             if (message['requires']) {
                 message['requires'].forEach(function(requiredFile) {
                     if (!go.Storage.loadedFiles[requiredFile]) {
@@ -1468,41 +1470,41 @@ GateOne.Base.update(GateOne.Utils, {
             }
             if (requires) {
                 setTimeout(function() {
-                    if (u.failedRequirementsCounter[message['filename']] >= 40) { // ~2 seconds
+                    if (u.failedRequirementsCounter[message.filename] >= 40) { // ~2 seconds
                         // Give up
-                        logError("Failed to load " + message['filename'] + ".  Took too long waiting for " + message['requires']);
+                        logError(gettext("Failed to load: ") + message.filename + ".  " + gettext("Took too long waiting for: ") + message['requires']);
                         return;
                     }
                     // Try again in a moment or so
                     u.loadJSAction(message, noCache);
-                    u.failedRequirementsCounter[message['filename']] += 1;
+                    u.failedRequirementsCounter[message.filename] += 1;
                 }, 50);
                 return;
             } else {
-                logDebug("Dependency loaded!");
+                logDebug(gettext("Dependency loaded!"));
             }
-            if (message['element_id']) {
-                existing = u.getNode('#'+prefix+message['element_id']);
-                s = u.createElement('script', {'id': message['element_id']});
+            if (message.element_id) {
+                existing = u.getNode('#'+prefix+message.element_id);
+                s = u.createElement('script', {'id': message.element_id});
             } else {
-                var elementID = message['filename'].replace(/\./g, '_'); // Element IDs with dots are a no-no.
+                var elementID = message.filename.replace(/\./g, '_'); // Element IDs with dots are a no-no.
                 existing = u.getNode('#'+prefix+elementID);
                 s = u.createElement('script', {'id': elementID});
             }
             if (existing) {
-                existing.innerHTML = message['data'];
+                existing.innerHTML = message.data;
             } else {
-                s.innerHTML = message['data'];
+                s.innerHTML = message.data;
                 go.node.appendChild(s);
             }
-            delete message['result'];
-            if (noCache === undefined && message['cache'] != false) {
+            delete message.result;
+            if (noCache === undefined && message.cache != false) {
                 go.Storage.cacheJS(message);
-            } else if (message['cache'] == false) {
+            } else if (message.cache == false) {
                 // Cleanup the existing entry if present
                 go.Storage.uncacheJS(message);
             }
-            go.Storage.loadedFiles[message['filename']] = true;
+            go.Storage.loadedFiles[message.filename] = true;
             // Don't call runPostInit() until we're done loading all JavaScript
             if (u.initDebounce) {
                 clearTimeout(u.initDebounce);
@@ -1551,24 +1553,24 @@ GateOne.Base.update(GateOne.Utils, {
                 go.node.removeEventListener(go.Visual.transitionEndName, transitionEndFunc, false);
                 go.Events.trigger("go:css_loaded", message);
             };
-        if (message['result'] == 'Success') {
+        if (message.result == 'Success') {
             // This is for handling any given CSS file
             if (message['css']) {
-                if (message['data'].length) {
+                if (message.data.length) {
                     var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme'),
-                        media = message['media'] || 'screen';
-                    if (message['element_id']) {
+                        media = message.media || 'screen';
+                    if (message.element_id) {
                         // Use the element ID that was provided
-                        message['element_id'] = message['element_id'].replace(/\./g, '_'); // IDs with dots are a no-no
-                        existing = u.getNode('#'+prefix+message['element_id']);
-                        stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
+                        message.element_id = message.element_id.replace(/\./g, '_'); // IDs with dots are a no-no
+                        existing = u.getNode('#'+prefix+message.element_id);
+                        stylesheet = u.createElement('style', {'id': message.element_id, 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     } else {
-                        existing = u.getNode('#'+prefix+message['filename']);
-                        stylesheet = u.createElement('style', {'id': message['filename'].replace(/\./g, '_'), 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
+                        existing = u.getNode('#'+prefix+message.filename);
+                        stylesheet = u.createElement('style', {'id': message.filename.replace(/\./g, '_'), 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     }
-                    stylesheet.textContent = message['data'];
+                    stylesheet.textContent = message.data;
                     if (existing) {
-                        existing.textContent = message['data'];
+                        existing.textContent = message.data;
                     } else {
                         u.getNode("head").insertBefore(stylesheet, themeStyle);
                     }
@@ -1578,14 +1580,14 @@ GateOne.Base.update(GateOne.Utils, {
             logError(gettext("Error loading stylesheet: " + JSON.stringify(message)));
             return;
         }
-        delete message['result'];
-        if (noCache === undefined && message['cache'] != false) {
-            go.Storage.cacheStyle(message, message['kind']);
-        } else if (message['cache'] == false) {
+        delete message.result;
+        if (noCache === undefined && message.cache != false) {
+            go.Storage.cacheStyle(message, message.kind);
+        } else if (message.cache == false) {
             // Cleanup the existing entry if present
-            go.Storage.uncacheStyle(message, message['kind']);
+            go.Storage.uncacheStyle(message, message.kind);
         }
-        go.Storage.loadedFiles[message['filename']] = true;
+        go.Storage.loadedFiles[message.filename] = true;
         // Don't trigger the "go:css_loaded" event until everything is done loading
         if (u.cssLoadedDebounce) {
             clearTimeout(u.cssLoadedDebounce);
@@ -1623,7 +1625,7 @@ GateOne.Base.update(GateOne.Utils, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            themesList = messageObj['themes'],
+            themesList = messageObj.themes,
             prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme');
         // Save the themes list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
         go.themesList = themesList;
@@ -1655,7 +1657,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         localStorage[prefs.prefix+'prefs'] = JSON.stringify(userPrefs);
         if (!skipNotification) {
-            GateOne.Visual.displayMessage("Preferences have been saved.");
+            GateOne.Visual.displayMessage(gettext("Preferences have been saved."));
         }
     },
     loadPrefs: function() {
@@ -1836,19 +1838,19 @@ GateOne.Base.update(GateOne.Utils, {
             :mimetype: *Optional:*  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
         */
         var u = go.Utils,
-            result = message['result'],
-            data = message['data'],
-            filename = message['filename'],
+            result = message.result,
+            data = message.data,
+            filename = message.filename,
             mimetype = 'text/plain';
         if (result == 'Success') {
-            if (message['mimetype']) {
-                mimetype = message['mimetype'];
+            if (message.mimetype) {
+                mimetype = message.mimetype;
             }
-            var blob = u.createBlob(message['data'], mimetype);
-            u.saveAs(blob, message['filename']);
+            var blob = u.createBlob(message.data, mimetype);
+            u.saveAs(blob, message.filename);
         } else {
-            go.Visual.displayMessage('An error was encountered trying to save a file...');
-            go.Visual.displayMessage(message['result']);
+            go.Visual.displayMessage(gettext('An error was encountered trying to save a file...'));
+            go.Visual.displayMessage(message.result);
         }
     },
     isPageHidden: function() {
@@ -2047,8 +2049,8 @@ GateOne.Logging.levels = {
     'DEBUG': 10
 };
 GateOne.prefs.logToServer = true; // Log to the server by default
-GateOne.noSavePrefs['logLevel'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
-GateOne.noSavePrefs['logToServer'] = null; // This isn't a user pref
+GateOne.noSavePrefs.logLevel = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
+GateOne.noSavePrefs.logToServer = null; // This isn't a user pref
 GateOne.Base.update(GateOne.Logging, {
     init: function() {
         /**:GateOne.Logging.init()
@@ -2242,7 +2244,7 @@ GateOne.Base.update(GateOne.Logging, {
         if (GateOne.Logging.destinations[name]) {
             delete GateOne.Logging.destinations[name];
         } else {
-            GateOne.Logging.logError("No log destination named, '" + name + "'.");
+            GateOne.Logging.logError(gettext("No log destination named: ") + name);
         }
     },
     dateFormatter: function(dateObj) {
@@ -2361,7 +2363,7 @@ GateOne.Base.update(GateOne.Net, {
         Assigns the `go:ping_timeout` event (which just displays a message to the user indicating as such).
         */
         go.Events.on("go:ping_timeout", function() {
-            go.Visual.displayMessage("A keepalive ping has timed out.  Attempting to reconnect...");
+            go.Visual.displayMessage(gettext("A keepalive ping has timed out.  Attempting to reconnect..."));
         });
     },
     sendChars: function() {
@@ -2370,7 +2372,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.sendChars` instead.
         */
-        go.Logging.deprecated("GateOne.Net.sendChars", "Use GateOne.Terminal.Input.sendChars() instead.");
+        go.Logging.deprecated("GateOne.Net.sendChars", gettext("Use GateOne.Terminal.Input.sendChars() instead."));
         go.Terminal.sendChars();
     },
     sendString: function(chars, term) {
@@ -2379,7 +2381,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.sendString` instead.
         */
-        go.Logging.deprecated("GateOne.Net.sendString", "Use GateOne.Terminal.sendString() instead.");
+        go.Logging.deprecated("GateOne.Net.sendString", gettext("Use GateOne.Terminal.sendString() instead."));
         go.Terminal.sendString(chars, term);
     },
     log: function(message) {
@@ -2433,7 +2435,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         if (timeout && timeout > 1000) { // minimum of a 1s timeout
             go.Net.pingTimeout = setTimeout(function() {
-                logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
+                logError(gettext("Pinging Gate One server took longer than ") + timeout + gettext("ms.  Attempting to reconnect..."));
                 if (go.ws.readyState == 1) { go.ws.close(); }
                 go.Net.connectionProblem = true;
                 go.Events.trigger('go:ping_timeout');
@@ -2451,7 +2453,7 @@ GateOne.Base.update(GateOne.Net, {
             now = new Date(),
             latency = now.getMilliseconds() - dateObj.getMilliseconds();
         if (go.Net.logLatency) {
-            logInfo('PONG: Gate One server round-trip latency: ' + latency + 'ms');
+            logInfo(gettext('PONG: Gate One server round-trip latency: ') + latency + 'ms');
         }
         if (go.Net.pingTimeout) {
             clearTimeout(go.Net.pingTimeout);
@@ -2502,7 +2504,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.sendDimensions` instead.
         */
-        GateOne.Logging.deprecated("GateOne.Net.sendDimensions", "Use GateOne.Terminal.sendDimensions() instead.");
+        GateOne.Logging.deprecated("GateOne.Net.sendDimensions", gettext("Use GateOne.Terminal.sendDimensions() instead."));
         GateOne.Terminal.sendDimensions(term, ctrl_l);
     },
     blacklisted: function(msg) {
@@ -2682,6 +2684,11 @@ GateOne.Base.update(GateOne.Net, {
         v.disableOverlay(); // Just in case we're re-connecting
         // When we fail an origin check we'll get an error within a split second of onOpen() being called so we need to check for that and stop loading stuff if we're not truly connected.
         if (!go.Net.connectionProblem) {
+            if (navigator.languages) { // Get locale strings ASAP
+                go.i18n.setLocales(navigator.languages);
+            } else if (navigator.language) {
+                go.i18n.setLocales([navigator.language]);
+            }
             if (go.connectedTimeout) {
                 clearTimeout(go.connectedTimeout);
                 go.connectedTimeout = null;
@@ -2703,11 +2710,11 @@ GateOne.Base.update(GateOne.Net, {
                             goCookie = eval(goCookie); // Wraped in quotes; this removes them
                         }
                         go.prefs.auth = goCookie;
-                        settings['auth'] = go.prefs.auth;
+                        settings.auth = go.prefs.auth;
                     } else if (localStorage[prefix+'gateone_user']) {
                         logDebug("Using localStorage for auth");
                         go.prefs.auth = localStorage[prefix+'gateone_user'];
-                        settings['auth'] = go.prefs.auth;
+                        settings.auth = go.prefs.auth;
                     }
                 }
                 if (go.prefs.authenticate) {
@@ -2757,7 +2764,7 @@ GateOne.Base.update(GateOne.Net, {
         } else {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
             var noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
-                msg = '<b>Message From Gate One Server:</b> ' + evt.data;
+                msg = gettext('<b>Message From Gate One Server:</b> ') + evt.data;
             v.displayMessage(msg, 10000); // Give it plenty of time
         }
         // Execute each respective action
@@ -2775,7 +2782,7 @@ GateOne.Base.update(GateOne.Net, {
         */
         var u = go.Utils;
         logError("Session timed out.");
-        u.getNode(go.prefs.goDiv).innerHTML = "Your session has timed out.  Reload the page to reconnect to Gate One.";
+        u.getNode(go.prefs.goDiv).innerHTML = gettext("Your session has timed out.  Reload the page to reconnect to Gate One.");
         go.ws.onclose = function() { // Have to replace the existing onclose() function so we don't end up auto-reconnecting.
             // Connection to the server was lost
             logDebug("WebSocket Closed");
@@ -2804,7 +2811,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.setTerminal` instead.
         */
-        go.Logging.deprecated("GateOne.Net.setTerminal", "Use GateOne.Terminal.setTerminal() instead.");
+        go.Logging.deprecated("GateOne.Net.setTerminal", gettext("Use GateOne.Terminal.setTerminal() instead."));
         go.Terminal.setTerminal(term);
     },
     killTerminal: function(term) {
@@ -2813,7 +2820,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.killTerminal` instead.
         */
-        go.Logging.deprecated("GateOne.Net.killTerminal", "Use GateOne.Terminal.killTerminal() instead.");
+        go.Logging.deprecated("GateOne.Net.killTerminal", gettext("Use GateOne.Terminal.killTerminal() instead."));
         go.Terminal.killTerminal(term);
     },
     refresh: function(term) {
@@ -2822,7 +2829,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.refresh` instead.
         */
-        go.Logging.deprecated("GateOne.Net.refresh", "Use GateOne.Terminal.refresh() instead.");
+        go.Logging.deprecated("GateOne.Net.refresh", gettext("Use GateOne.Terminal.refresh() instead."));
         go.Terminal.refresh(term);
     },
     fullRefresh: function(term) {
@@ -2831,7 +2838,7 @@ GateOne.Base.update(GateOne.Net, {
         .. deprecated:: 1.2
             Use :js:meth:`GateOne.Terminal.fullRefresh` instead.
         */
-        go.Logging.deprecated("GateOne.Net.fullRefresh", "Use GateOne.Terminal.fullRefresh() instead.");
+        go.Logging.deprecated("GateOne.Net.fullRefresh", gettext("Use GateOne.Terminal.fullRefresh() instead."));
         go.Terminal.fullRefresh(term);
     },
     getLocations: function() {
@@ -2981,7 +2988,7 @@ GateOne.Base.update(GateOne.Visual, {
                 v.toggleGridView(true);
             };
         // Setup our toolbar icons and actions
-        toolbarIconGrid.innerHTML = GateOne.Icons['grid'];
+        toolbarIconGrid.innerHTML = GateOne.Icons.grid;
         toolbarIconGrid.onclick = gridToggle;
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         go.toolbar.appendChild(toolbarIconGrid);
@@ -3082,7 +3089,7 @@ GateOne.Base.update(GateOne.Visual, {
         for (var loc in go.locations) {
             for (var app in go.locations[loc]) {
                 for (var item in go.locations[loc][app]) {
-                    tableData.push([loc, u.capitalizeFirstLetter(app), item, go.locations[loc][app][item]['title']]);
+                    tableData.push([loc, u.capitalizeFirstLetter(app), item, go.locations[loc][app][item].title]);
                 }
             }
         }
@@ -3160,11 +3167,11 @@ GateOne.Base.update(GateOne.Visual, {
             workspaceNum, // Ditto
             currentApp,
             callFunc = function(settings, parentApp, e) {
-                var subAppName = name = settings['name'];
+                var subAppName = name = settings.name;
                 if (parentApp !== undefined) {
-                    name = parentApp['name'];
+                    name = parentApp.name;
                     settings = parentApp;
-                    settings['sub_application'] = subAppName;
+                    settings.sub_application = subAppName;
                 }
                 workspace.setAttribute('data-application', name);
                 if (go.loadedApplications[name] && go.loadedApplications[name].__new__) {
@@ -3179,8 +3186,8 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             },
             addIcon = function(settings, parentApp, spacer) {
-                if (settings['sub_applications']) {
-                    settings['sub_applications'].forEach(function(subApp) {
+                if (settings.sub_applications) {
+                    settings.sub_applications.forEach(function(subApp) {
                         addIcon(subApp, settings)
                     });
                     return;
@@ -3188,29 +3195,29 @@ GateOne.Base.update(GateOne.Visual, {
                 if (settings['hidden']) {
                     return; // Don't show this one
                 }
-                var name = settings['name'],
+                var name = settings.name,
                     combinedName,
                     appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application', 'data-appname': name}),
                     appIcon = u.createElement('div', {'class': '✈appicon'}),
                     appText = u.createElement('span', {'class': '✈application_text'});
                 appText.innerHTML = name;
-                appSquare.title = settings['description'] || "Opens the " + name + " application.";
+                appSquare.title = settings.description || "Opens the " + name + " application.";
                 if (parentApp !== undefined) {
-                    combinedName = parentApp['name'] + ": " + name;
+                    combinedName = parentApp.name + ": " + name;
                     appText.innerHTML = combinedName;
-                    appSquare.title = settings['description'] || "Opens the " + combinedName + " sub-application.";
-                    name = parentApp['name'];
+                    appSquare.title = settings.description || "Opens the " + combinedName + " sub-application.";
+                    name = parentApp.name;
                 }
                 if (spacer) {
                     appSquare.style.opacity = 0;
                     appSquare.setAttribute('data-spacer', true);
-                    appIcon.innerHTML = go.Icons['application'];
+                    appIcon.innerHTML = go.Icons.application;
                 } else {
                     if (u.isFunction(go.loadedApplications[name].__appinfo__.icon)) {
                         // Use whatever the function returns as the icon
                         appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon(settings);
                     } else {
-                        appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons['application'];
+                        appIcon.innerHTML = go.loadedApplications[name].__appinfo__.icon || go.Icons.application;
                     }
                     // Add a viewBox property to the SVG if missing.  This makes the icon appear centered and the right size (most of the time).
                     var svgElem = appIcon.querySelector('svg');
@@ -3257,29 +3264,29 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Remove any apps that are missing the __appinfo__ object
         apps.forEach(function(appObj) {
-            if (appObj['dependencies']) {
+            if (appObj.dependencies) {
                 // Check that the dependencies are loaded before we create the newWorkspaceWorkspace
-                if (!v.newWSWSRequirementsTimer[appObj['name']]) {
-                    v.newWSWSRequirementsTimer[appObj['name']] = 1;
+                if (!v.newWSWSRequirementsTimer[appObj.name]) {
+                    v.newWSWSRequirementsTimer[appObj.name] = 1;
                 }
-                if (v.newWSWSRequirementsTimer[appObj['name']] < GateOne.Base.dependencyTimeout) {
-                    for (var i=0; i < appObj['dependencies'].length; i++) {
-                        if (!(appObj['dependencies'][i] in go.Storage.loadedFiles)) {
-                            logDebug(appObj['name'] + " failed dependency check.  Will retry until " + appObj['dependencies'][i] + ' is loaded');
+                if (v.newWSWSRequirementsTimer[appObj.name] < GateOne.Base.dependencyTimeout) {
+                    for (var i=0; i < appObj.dependencies.length; i++) {
+                        if (!(appObj.dependencies[i] in go.Storage.loadedFiles)) {
+                            logDebug(appObj.name + " failed dependency check.  Will retry until " + appObj.dependencies[i] + ' is loaded');
                             // Retry in a moment or so
-                            v.newWSWSRequirementsTimer[appObj['name']] += 50;
+                            v.newWSWSRequirementsTimer[appObj.name] += 50;
                             v.debounceNewWSWS = setTimeout(v.newWorkspaceWorkspace, 50);
                             failedDepCheck = true;
                             break;
                         }
                     }
                 } else {
-                    logError(gettext("Skipping adding the icon for ") + appObj['name'] + gettext(".  Took too long to load dependencies."));
+                    logError(gettext("Skipping adding the icon for ") + appObj.name + gettext(".  Took too long to load dependencies."));
                     failedDepCheck = true;
                 }
             }
-            if (!failedDepCheck && !appObj['hidden']) {
-                var name = appObj['name'];
+            if (!failedDepCheck && !appObj.hidden) {
+                var name = appObj.name;
                 if (go.loadedApplications[name] && go.loadedApplications[name].__appinfo__) {
                     filteredApps.push(Object.create(appObj)); // Use a copy so we don't clobber the original when we make modifications
                 }
@@ -3292,8 +3299,8 @@ GateOne.Base.update(GateOne.Visual, {
 //             // No workspace created yet; check if we should launch the default app (if only one)
 //             // Check for sub-applications
 //             var subApps = [];
-//             if (filteredApps[0]['sub_applications']) {
-//                 filteredApps[0]['sub_applications'].forEach(function(settings) {
+//             if (filteredApps[0].sub_applications) {
+//                 filteredApps[0].sub_applications.forEach(function(settings) {
 //                     if (!settings['hidden']) {
 //                         subApps.push(settings);
 //                     }
@@ -3303,8 +3310,8 @@ GateOne.Base.update(GateOne.Visual, {
 //                 // If there's only one app don't bother making a listing; just launch the app
 //                 setTimeout(function() {
 //                     workspace = v.newWorkspace();
-//                     workspace.setAttribute('data-application', filteredApps[0]['name']);
-//                     go.loadedApplications[filteredApps[0]['name']].__new__(filteredApps[0], workspace);
+//                     workspace.setAttribute('data-application', filteredApps[0].name);
+//                     go.loadedApplications[filteredApps[0].name].__new__(filteredApps[0], workspace);
 //                 }, 5); // Need a tiny delay here so we don't end up in a new workspace/close workspace loop
 //                 return;
 //             } else if (subApps.length == 1){
@@ -3312,13 +3319,13 @@ GateOne.Base.update(GateOne.Visual, {
 //                 var settings = subApps[0];
 //                 setTimeout(function() {
 //                     workspace = v.newWorkspace();
-//                     workspace.setAttribute('data-application', filteredApps[0]['name']);
-//                     go.loadedApplications[filteredApps[0]['name']].__new__(settings, workspace);
+//                     workspace.setAttribute('data-application', filteredApps[0].name);
+//                     go.loadedApplications[filteredApps[0].name].__new__(settings, workspace);
 //                 }, 5);
 //                 return;
 //             }
 //         }
-        titleH2.innerHTML = "Gate One - Applications";
+        titleH2.innerHTML = gettext("Gate One - Applications");
         wsContainer.style.opacity = 0;
         wsContainer.appendChild(titleH2);
         wsContainer.appendChild(wsAppGrid);
@@ -3382,20 +3389,20 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }, true);
         filteredApps.forEach(function(appObj) {
-            if (appObj['sub_applications']) {
-                appObj['sub_applications'].sort();
+            if (appObj.sub_applications) {
+                appObj.sub_applications.sort();
             }
             addIcon(appObj);
         });
         workspace = v.newWorkspace();
         workspaceNum = workspace.getAttribute('data-workspace');
         currentApp = workspace.getAttribute('data-application');
-        workspace.setAttribute('data-application', "New Workspace Workspace");
+        workspace.setAttribute('data-application', gettext("New Workspace Workspace"));
         workspace.appendChild(wsContainer);
         appIcons = u.toArray(u.getNodes('.✈application'));
         selectedApp = appIcons[go.Visual.lastAppPosition];
         // Bring it back into view
-        if (currentApp == "New Workspace Workspace") { // Current workspace is already a New WS WS; just redraw it
+        if (currentApp == gettext("New Workspace Workspace")) { // Current workspace is already a New WS WS; just redraw it
             createAppGrid();
         } else {
             if (workspaceNum == 1) {
@@ -3405,7 +3412,7 @@ GateOne.Base.update(GateOne.Visual, {
                 E.once("go:ws_transitionend", createAppGrid);
             }
         }
-        v.setTitle("New Workspace - Applications");
+        v.setTitle(gettext("New Workspace - Applications"));
         v.switchWorkspace(workspaceNum)
         E.trigger('go:new_workspace_workspace', workspace);
     },
@@ -3700,11 +3707,11 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
                 E.trigger("go:panel_toggle:out", panels[i]);
-                if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
-                    for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
-                        if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
+                if (v.panelToggleCallbacks.out['#'+panels[i].id]) {
+                    for (var ref in v.panelToggleCallbacks.out['#'+panels[i].id]) {
+                        if (typeof(v.panelToggleCallbacks.out['#'+panels[i].id][ref]) == "function") {
                             deprecated("panelToggleCallbacks", deprecatedMsg);
-                            v.panelToggleCallbacks['out']['#'+panels[i].id][ref]();
+                            v.panelToggleCallbacks.out['#'+panels[i].id][ref]();
                         }
                     }
                 }
@@ -3733,10 +3740,10 @@ GateOne.Base.update(GateOne.Visual, {
             }, 10);
             // Call any registered 'in' callbacks for all of these panels
             E.trigger("go:panel_toggle:in", panel)
-            if (v.panelToggleCallbacks['in']['#'+panel.id]) {
-                for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
-                    if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
-                        v.panelToggleCallbacks['in']['#'+panel.id][ref]();
+            if (v.panelToggleCallbacks.in['#'+panel.id]) {
+                for (var ref in v.panelToggleCallbacks.in['#'+panel.id]) {
+                    if (typeof(v.panelToggleCallbacks.in['#'+panel.id][ref]) == "function") {
+                        v.panelToggleCallbacks.in['#'+panel.id][ref]();
                         deprecated("panelToggleCallbacks", deprecatedMsg);
                     }
                 }
@@ -3755,10 +3762,10 @@ GateOne.Base.update(GateOne.Visual, {
             v.applyTransform(panel, 'scale(0)');
             // Call any registered 'out' callbacks for all of these panels
             E.trigger("go:panel_toggle:out", panel);
-            if (v.panelToggleCallbacks['out']['#'+panel.id]) {
-                for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
-                    if (typeof(v.panelToggleCallbacks['out']['#'+panel.id][ref]) == "function") {
-                        v.panelToggleCallbacks['out']['#'+panel.id][ref]();
+            if (v.panelToggleCallbacks.out['#'+panel.id]) {
+                for (var ref in v.panelToggleCallbacks.out['#'+panel.id]) {
+                    if (typeof(v.panelToggleCallbacks.out['#'+panel.id][ref]) == "function") {
+                        v.panelToggleCallbacks.out['#'+panel.id][ref]();
                         deprecated("panelToggleCallbacks", deprecatedMsg);
                     }
                 }
@@ -3841,7 +3848,7 @@ GateOne.Base.update(GateOne.Visual, {
             return;
         }
         messageSpan.innerHTML = message;
-        closeX.innerHTML = go.Icons['close'].replace('closeGradient', 'miniClose'); // replace() here works around a browser bug where SVGs will disappear if you remove one that has the same gradient name as another.
+        closeX.innerHTML = go.Icons.close.replace('closeGradient', 'miniClose'); // replace() here works around a browser bug where SVGs will disappear if you remove one that has the same gradient name as another.
         closeX.onclick = function(e) {
             if (v.noticeTimers[unique]) {
                 clearTimeout(v.noticeTimers[unique]);
@@ -3902,11 +3909,11 @@ GateOne.Base.update(GateOne.Visual, {
         */
         if (!go.Utils.isPageHidden()) {
             // Page has become visibile again
-            logDebug("Ninja Mode disabled.");
+            logDebug(gettext("Ninja Mode disabled."));
             go.Visual.visible = true;
             go.Events.trigger("go:visible");
         } else {
-            logDebug("Ninja Mode!  Gate One has become hidden.");
+            logDebug(gettext("Ninja Mode!  Gate One has become hidden."));
             go.Visual.visible = false;
             go.Events.trigger("go:invisible");
         }
@@ -4433,14 +4440,18 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             justSwap,
             temp = u.createElement("div"),
-            ws1node = go.workspaces[ws1]['node'],
-            ws2node = go.workspaces[ws2]['node'],
+            ws1Obj = go.workspaces[ws1],
+            ws2Obj = go.workspaces[ws2],
+            ws1node = ws1Obj.node,
+            ws2node = ws2Obj.node,
             id1 = ws1node.id,
             id2 = ws2node.id,
             wsNum1 = ws1node.getAttribute('data-workspace'),
             wsNum2 = ws2node.getAttribute('data-workspace'),
             ws1transform = v.getTransform(ws1node),
-            ws2transform = v.getTransform(ws2node);
+            ws2transform = v.getTransform(ws2node),
+            ws1title = ws1node.getAttribute('data-title'),
+            ws2title = ws2node.getAttribute('data-title');
         // Fix their CSS3 transition positions
         v.disableTransitions(ws1node, ws2node);
         v.applyTransform(ws1node, ws2transform);
@@ -4459,8 +4470,10 @@ GateOne.Base.update(GateOne.Visual, {
         ws2node.id = id1;
         ws1node.setAttribute('data-workspace', wsNum2);
         ws2node.setAttribute('data-workspace', wsNum1);
-        go.workspaces[ws1]['node'] = ws2node;
-        go.workspaces[ws2]['node'] = ws1node;
+        go.workspaces[ws1].node = ws2node;
+        go.workspaces[ws2].node = ws1node;
+        ws1node.setAttribute('data-title', ws2title);
+        ws2node.setAttribute('data-title', ws1title);
         go.Events.trigger('go:swapped_workspaces', ws1, ws2);
     },
     _selectWorkspace: function(e) {
@@ -5032,11 +5045,11 @@ GateOne.Base.update(GateOne.Visual, {
             // This fades the dialog in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
             dialogContainer.style.opacity = dialogContainer.opacityTemp;
         }, 50);
-        minimize.innerHTML = go.Icons['minimize'];
+        minimize.innerHTML = go.Icons.minimize;
 //         minimize.onclick = minimizeDialog;
-        maximize.innerHTML = go.Icons['maximize'];
+        maximize.innerHTML = go.Icons.maximize;
         maximize.onclick = toggleMaximize;
-        close.innerHTML = go.Icons['panelclose'];
+        close.innerHTML = go.Icons.panelclose;
         close.onclick = closeDialog;
         dialogTitle.innerHTML = '<span class="✈titletext">' + title + '</span>';
         if (title) {
@@ -5067,9 +5080,9 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             }
         }
-        if (options && options['data']) {
-            for (var attr in options['data']) {
-                dialogContainer.setAttribute('data-'+attr, options['data'][attr]);
+        if (options && options.data) {
+            for (var attr in options.data) {
+                dialogContainer.setAttribute('data-'+attr, options.data[attr]);
             }
         }
         where.appendChild(dialogContainer);
@@ -5106,10 +5119,10 @@ GateOne.Base.update(GateOne.Visual, {
             }, 10);
         }, 1010);
         dialogToForeground();
-        if (options && options.events && options.events['opened']) {
-            options.events['opened'](dialogContainer);
+        if (options && options.events && options.events.opened) {
+            options.events.opened(dialogContainer);
         }
-        if (options && options['maximize']) {
+        if (options && options.maximize) {
             toggleMaximize(); // Open maximized
         }
         return closeDialog;
@@ -5346,7 +5359,7 @@ GateOne.Storage.dbObject = function(DB) {
                 var db = GateOne.Storage.databases[self.DB],
                     trans = db.transaction(storeName, 'readwrite').objectStore(storeName)["delete"](key);
             } catch (e) {
-                logDebug(key + " does not exist in " + storeName);
+                logDebug(key + gettext(" does not exist in: ") + storeName);
             }
         } else {
             var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]);
@@ -5423,7 +5436,7 @@ GateOne.Base.update(GateOne.Storage, {
             }, 10);
             return;
         }
-        logDebug('cacheJS caching ' + fileObj['filename']);
+        logDebug('cacheJS caching ' + fileObj.filename);
         var fileCache = GateOne.Storage.dbObject('fileCache');
         fileCache.put('js', fileObj);
     },
@@ -5442,7 +5455,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.del('js', fileObj['filename']);
+        fileCache.del('js', fileObj.filename);
     },
     cacheStyle: function(fileObj, kind) {
         /**:GateOne.Storage.cacheStyle(fileObj, kind)
@@ -5458,7 +5471,7 @@ GateOne.Base.update(GateOne.Storage, {
             }, 10);
             return;
         }
-        logDebug('cacheStyle caching ' + fileObj['filename']);
+        logDebug('cacheStyle caching ' + fileObj.filename);
         var fileCache = GateOne.Storage.dbObject('fileCache');
         fileCache.put(kind, fileObj);
     },
@@ -5477,7 +5490,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.del(kind, fileObj['filename']);
+        fileCache.del(kind, fileObj.filename);
     },
     cacheExpiredAction: function(message) {
         /**:GateOne.Storage.cacheExpiredAction(message)
@@ -5486,9 +5499,9 @@ GateOne.Base.update(GateOne.Storage, {
         */
         var fileCache = GateOne.Storage.dbObject('fileCache'),
             filenames = message['filenames'],
-            kind = message['kind'];
+            kind = message.kind;
         filenames.forEach(function(filename) {
-            logDebug("Deleting expired file: " + filename);
+            logDebug(gettext("Deleting expired file: ") + filename);
             fileCache.del(kind, filename);
         });
     },
@@ -5506,13 +5519,13 @@ GateOne.Base.update(GateOne.Storage, {
             u = go.Utils;
         if (!go.Storage.fileCacheReady) {
             // Database hasn't finished initializing yet.  Wait just a moment and retry...
-            if (S.deferLoadingTimers[message['files'][0]['filename']]) {
-                clearTimeout(S.deferLoadingTimers[message['files'][0]['filename']]);
-                S.deferLoadingTimers[message['files'][0]['filename']] = null;
+            if (S.deferLoadingTimers[message['files'][0].filename]) {
+                clearTimeout(S.deferLoadingTimers[message['files'][0].filename]);
+                S.deferLoadingTimers[message['files'][0].filename] = null;
             }
-            S.deferLoadingTimers[message['files'][0]['filename']] = setTimeout(function() {
+            S.deferLoadingTimers[message['files'][0].filename] = setTimeout(function() {
                 S.fileSyncAction(message);
-                S.deferLoadingTimers[message['files'][0]['filename']] = null;
+                S.deferLoadingTimers[message['files'][0].filename] = null;
             }, 10);
             return;
         }
@@ -5522,57 +5535,57 @@ GateOne.Base.update(GateOne.Storage, {
                 if (localFileObj) {
                     // NOTE:  Using "!=" below instead of ">" so that debugging works properly
                     if (remoteFileObj['mtime'] != localFileObj['mtime']) {
-                        logDebug(remoteFileObj['filename'] + " is cached but is older than what's on the server.  Requesting an updated version...");
+                        logDebug(remoteFileObj.filename + gettext(" is cached but is older than what's on the server.  Requesting an updated version..."));
                         go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['hash']}));
                         // Even though filenames are hashes they will always remain the same.  The new file will overwrite the old entry in the cache.
                     } else {
                         // Load the local copy
-                        logDebug("Loading " + remoteFileObj['filename'] + " from the cache...");
-                        if (remoteFileObj['kind'] == 'js') {
+                        logDebug("Loading " + remoteFileObj.filename + " from the cache...");
+                        if (remoteFileObj.kind == 'js') {
                             if (remoteFileObj['requires']) {
-                                logDebug("This file requires a certain script be loaded first: " + remoteFileObj['requires']);
-                                if (!S.failedRequirementsCounter[remoteFileObj['filename']]) {
-                                    S.failedRequirementsCounter[remoteFileObj['filename']] = 0;
+                                logDebug(gettext("This file requires a certain script be loaded first: ") + remoteFileObj['requires']);
+                                if (!S.failedRequirementsCounter[remoteFileObj.filename]) {
+                                    S.failedRequirementsCounter[remoteFileObj.filename] = 0;
                                 }
                                 if (!S.loadedFiles[remoteFileObj['requires']]) {
                                     setTimeout(function() {
-                                        if (S.failedRequirementsCounter[remoteFileObj['filename']] >= 50) { // ~5 seconds
+                                        if (S.failedRequirementsCounter[remoteFileObj.filename] >= 50) { // ~5 seconds
                                             // Give up
-                                            logError("Failed to load " + remoteFileObj['filename'] + ".  Took too long waiting for " + remoteFileObj['requires']);
+                                            logError(gettext("Failed to load ") + remoteFileObj.filename + gettext(".  Took too long waiting for: ") + remoteFileObj['requires']);
                                             return;
                                         }
                                         // Try again in a moment or so
                                         S.fileSyncAction(message);
-                                        S.failedRequirementsCounter[remoteFileObj['filename']] += 1;
+                                        S.failedRequirementsCounter[remoteFileObj.filename] += 1;
                                     }, 100);
                                     return;
                                 } else {
                                     logDebug("Dependency loaded!");
                                     // Emulate an incoming message from the server to load this JS
-                                    var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                                    var messageObj = {'result': 'Success', 'filename': localFileObj.filename, 'hash': localFileObj['hash'], 'data': localFileObj.data, 'element_id': remoteFileObj.element_id};
                                     u.loadJSAction(messageObj, true); // true here indicates "don't cache" (already cached)
                                 }
                             } else {
                                 // Emulate an incoming message from the server to load this JS
-                                var messageObj = {'result': 'Success', 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                                var messageObj = {'result': 'Success', 'filename': localFileObj.filename, 'hash': localFileObj['hash'], 'data': localFileObj.data, 'element_id': remoteFileObj.element_id};
                                 u.loadJSAction(messageObj, true); // true here indicates "don't cache" (already cached)
                             }
-                        } else if (remoteFileObj['kind'] == 'css') {
+                        } else if (remoteFileObj.kind == 'css') {
                             // Emulate an incoming message from the server to load this CSS
-                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'hash': localFileObj['hash'], 'data': localFileObj['data'],  'element_id': remoteFileObj['element_id'], 'media': localFileObj['media']};
+                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj.kind, 'filename': localFileObj.filename, 'hash': localFileObj['hash'], 'data': localFileObj.data,  'element_id': remoteFileObj.element_id, 'media': localFileObj.media};
                             u.loadStyleAction(messageObj, true); // true here indicates "don't cache" (already cached)
                         }
                     }
                 } else {
                     // File isn't cached; tell the server to send it
-                    logDebug(remoteFileObj['filename'] + " is not cached.  Requesting...");
+                    logDebug(remoteFileObj.filename + gettext(" is not cached.  Requesting..."));
                     go.ws.send(JSON.stringify({'go:file_request': remoteFileObj['hash']}));
                 }
             };
         remoteFiles.forEach(function(file) {
-            logDebug("fileSyncAction() checking: " + file['filename']);
+            logDebug("fileSyncAction() checking: " + file.filename);
             var callbackWrap = u.partial(callback, file);
-            fileCache.get(file['kind'], file['filename'], callbackWrap);
+            fileCache.get(file.kind, file.filename, callbackWrap);
         });
         // Now create a list of all our cached filenames and ask the server if any of these no longer exist so we can keep things neat & tidy
         // The server's response will be handled by :js:meth:`GateOne.Storage.cacheExpiredAction`.
@@ -5625,7 +5638,7 @@ GateOne.Base.update(GateOne.Storage, {
                 storeNames = {},
                 objectCreationMsg = "Creating new object store: ";
             if (!model) {
-                logError("You must create a database model before creating a new database.");
+                logError(gettext("You must create a database model before creating a new database."));
                 return false;
             }
             for (var storeName in model) {
@@ -5644,7 +5657,7 @@ GateOne.Base.update(GateOne.Storage, {
             for (var storeName in storeNames) {
                 if (!(storeName in model)) {
                     // Delete it (no longer part of the model)
-                    logInfo('Removing obsolete object store (self-cleanup): ' + storeName);
+                    logInfo(gettext('Removing obsolete object store (self-cleanup): ') + storeName);
                     S.databases[DB].deleteObjectStore(storeName);
                     storeNum -= 1; // The objectStoreNames will now have one less entry
                 }
@@ -5655,7 +5668,7 @@ GateOne.Base.update(GateOne.Storage, {
             S.onerror(e);
         }
         trans.oncomplete = function(e) {
-            logInfo(DB + " database creation/upgrade complete");
+            logInfo(DB + gettext(" database creation/upgrade complete"));
             if (callback) { callback(S.dbObject(DB)); }
         }
     },
@@ -5690,7 +5703,7 @@ GateOne.Base.update(GateOne.Storage, {
         if (indexedDB) {
             logDebug('GateOne.Storage.openDB(): Opening indexedDB: ' + DB);
             var openRequest,
-                upgradeMsg = "The " + DB + " database needs to be created or updated.  Creating/upgrading database...";
+                upgradeMsg = DB + gettext(": The database needs to be created or updated.  Creating/upgrading database...");
             if (version) {
                 openRequest = indexedDB.open(DB, version);
             } else {
@@ -5722,7 +5735,7 @@ GateOne.Base.update(GateOne.Storage, {
                     }
                 } else {
                     if (callback) {
-                        logDebug('GateOne.Storage.openDB(): No database upgrade necessary.  Calling callback...');
+                        logDebug(gettext('GateOne.Storage.openDB(): No database upgrade necessary.  Calling callback...'));
                         callback(S.dbObject(DB));
                     }
                 }
@@ -5735,7 +5748,7 @@ GateOne.Base.update(GateOne.Storage, {
             openRequest.onfailure = S.onerror; // Older version of IndexedDB (I think?  I can't remember)
             openRequest.onerror = S.onerror;
         } else { // Fallback to localStorage if the browser doesn't support IndexedDB
-            logDebug("GateOne.Storage.openDB(): IndexedDB is unavailable.  Falling back to localStorage...")
+            logDebug(gettext("GateOne.Storage.openDB(): IndexedDB is unavailable.  Falling back to localStorage..."));
             if (!localStorage[go.prefs.prefix+DB]) {
                 // Start out with an empty object
                 var o = {};
@@ -5758,19 +5771,19 @@ GateOne.Base.update(GateOne.Storage, {
         logDebug('clearDatabase()');
         if (indexedDB) {
             if (!storeName) {
-                logDebug('clearing entire indexedDB: ' + DB);
+                logDebug(gettext('Clearing entire indexedDB: ') + DB);
                 indexedDB.deleteDatabase(DB);
             } else {
-                logDebug('clearing indexedDB store: ' + DB + '[' + storeName + ']');
+                logDebug(gettext('Clearing indexedDB store: ') + DB + '[' + storeName + ']');
                 var db = GateOne.Storage.databases[DB],
                     trans = db.transaction(storeName, 'readwrite'),
                     store = trans.objectStore(storeName),
                     request = store.clear();
                 trans.oncomplete = function(e) {
-                    logDebug('store deleted');
+                    logDebug(gettext('store deleted'));
                     var dbreq = indexedDB.deleteDatabase(DB);
                     dbreq.onsuccess = function(e) {
-                        logDebug('database deleted');
+                        logDebug(gettext('database deleted'));
                     }
                     dbreq.onerror = GateOne.Storage.onerror;
                 }
@@ -5826,6 +5839,7 @@ The following WebSocket actions are attached to functions provided by `GateOne.U
     `go:user_list`       :js:func:`GateOne.User.userListAction`
     ===================  ==========================================
 */
+U.applications = [];
 U.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
 GateOne.Base.update(GateOne.User, {
     init: function() {
@@ -5876,7 +5890,7 @@ GateOne.Base.update(GateOne.User, {
 
         Sets :js:attr:`GateOne.User.activeApplication` the given *app*.
 
-        .. note:: The *app* argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside GateOne.User.applications).
+        .. note:: The *app* argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside `GateOne.User.applications`).
         */
         logDebug('setActiveApp(): ' + app);
         if (app) {
@@ -5906,7 +5920,7 @@ GateOne.Base.update(GateOne.User, {
             go.Events.trigger("go:user_login", username);
             if (go.User.userLoginCallbacks.length) {
                 // Call any registered callbacks
-                go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('go:user_login', func) instead.");
+                go.Logging.deprecated("userLoginCallbacks", gettext("Use GateOne.Events.on('go:user_login', func) instead."));
                 go.User.userLoginCallbacks.forEach(function(callback) {
                     callback(username);
                 });
@@ -5938,10 +5952,10 @@ GateOne.Base.update(GateOne.User, {
         go.Events.trigger("go:user_logout", go.User.username);
         // NOTE: This takes care of deleting the "user" cookie
         u.xhrGet(go.prefs.url+'auth?logout=True&redirect='+redirectURL, function(response) {
-            logDebug("Logout Response: " + response);
+            logDebug(gettext("Logout Response: ") + response);
             // Need to modify the URL to include a random username so that when a user logs out with PAM authentication enabled they will be asked for their username/password again
             var url = response.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
-            v.displayMessage("You have been logged out.  Redirecting to: " + url);
+            v.displayMessage(gettext("You have been logged out.  Redirecting to: ") + url);
             setTimeout(function() {
                 window.location.href = url;
             }, 2000);
@@ -6202,7 +6216,7 @@ GateOne.Base.update(GateOne.Events, {
                 // NOTE: This deprecated check will go away eventually!
                 if (callList) {
                     // Warn about this being deprecated
-                    go.Logging.deprecated("Event: " + event, "Events now use prefixes such as 'go:' or 'terminal:'.");
+                    go.Logging.deprecated("Event: " + event, gettext("Events now use prefixes such as 'go:' or 'terminal:'."));
                 }
             }
             if (callList) {
@@ -6224,15 +6238,15 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     }
 });
-go.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
-go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
-go.Icons['minimize'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 18 4.6829" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="minGradient" y2="245.02" gradientUnits="userSpaceOnUse" y1="241.02" gradientTransform="matrix(1.1707317,0,0,1.1707317,-337.25215,261.80107)" x2="611.33" x1="611.33"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-369.45535,-543.96497)"><rect height="4.6829" width="18" y="543.96" x="369.46" fill="url(#minGradient)"/></g></svg>';
-go.Icons['maximize'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" width="18" height="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 17.942 18" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="maxGradient" y2="293.03" gradientUnits="userSpaceOnUse" x2="133.21" y1="276.85" x1="133.21"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-358.77284,-570.86761)"><g fill="url(#maxGradient)" transform="matrix(0.61905467,0,0,0.61905467,133.52978,206.80145)"><polygon points="132.75,276.85,132.75,281.97,123.14,281.97,123.14,287.91,132.75,287.91,132.75,293.03,143.27,284.94" transform="matrix(0.70710678,-0.70710678,0.70710678,0.70710678,90.041125,487.92719)"/><polygon points="132.75,287.91,132.75,293.03,143.27,284.94,132.75,276.85,132.75,281.97,123.14,281.97,123.14,287.91" transform="matrix(-0.70710678,0.70710678,-0.70710678,-0.70710678,666.64163,717.34976)"/></g></g></svg>';
+go.Icons.grid = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
+go.Icons.close = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+go.Icons.minimize = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 18 4.6829" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="minGradient" y2="245.02" gradientUnits="userSpaceOnUse" y1="241.02" gradientTransform="matrix(1.1707317,0,0,1.1707317,-337.25215,261.80107)" x2="611.33" x1="611.33"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-369.45535,-543.96497)"><rect height="4.6829" width="18" y="543.96" x="369.46" fill="url(#minGradient)"/></g></svg>';
+go.Icons.maximize = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" width="18" height="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 17.942 18" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="maxGradient" y2="293.03" gradientUnits="userSpaceOnUse" x2="133.21" y1="276.85" x1="133.21"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-358.77284,-570.86761)"><g fill="url(#maxGradient)" transform="matrix(0.61905467,0,0,0.61905467,133.52978,206.80145)"><polygon points="132.75,276.85,132.75,281.97,123.14,281.97,123.14,287.91,132.75,287.91,132.75,293.03,143.27,284.94" transform="matrix(0.70710678,-0.70710678,0.70710678,0.70710678,90.041125,487.92719)"/><polygon points="132.75,287.91,132.75,293.03,143.27,284.94,132.75,276.85,132.75,281.97,123.14,281.97,123.14,287.91" transform="matrix(-0.70710678,0.70710678,-0.70710678,-0.70710678,666.64163,717.34976)"/></g></g></svg>';
 go.Icons['newWS'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newwsg" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newwsg)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newwsg)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newwsg)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newwsg)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newwsg)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newwsg)"/></g></g></svg>';
-go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+go.Icons.application = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
 GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="✈panelstop1" offset="0"/><stop class="✈panelstop2" offset="0.4944"/><stop class="✈panelstop3" offset="0.5"/><stop class="✈panelstop4" offset="1"/></linearGradient></defs><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
-GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+GateOne.Icons.panelclose = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 GateOne.Icons['locations'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" height="16.017" width="18" viewBox="0 0 18 16.017" xmlns:dc="http://purl.org/dc/elements/1.1/" class="✈svg"><defs><linearGradient id="locGradient1"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="1"/></linearGradient><linearGradient id="locGradient2" y2="27.906" xlink:href="#locGradient1" gradientUnits="userSpaceOnUse" x2="16.259" gradientTransform="scale(0.5625,0.57203391)" y1="0.091391" x1="16.259"/><linearGradient id="linearGradient4397" y2="69.636" xlink:href="#locGradient1" x2="121.74" y1="69.636" x1="19.989"/></defs><g transform="translate(0,-15.983051)"><rect height="32" width="32" y="0" x="0" fill="none"/></g><path fill="url(#locGradient2)" d="m0,0,0,16.017,17.999,0l0.001-16.017zm12.375,1.1441,0,1.1441-6.75,0,0-1.1441zm-7.875,0,0,1.1441-1.125,0,0-1.1441zm-3.375,0,1.125,0,0,1.1441-1.125,0zm15.749,13.729-15.749,0,0-11.441,15.749,0zm-17.998-28.602h-2.25v-1.1441h2.25z"/><g fill="url(#linearGradient4397)" transform="matrix(0.06546268,0,0,0.06546268,4.3485575,4.7137821)"><path fill="url(#linearGradient4397)" d="m95.35,50.645c0,13.98-11.389,25.322-25.438,25.322-14.051,0-25.438-11.342-25.438-25.322,0-13.984,11.389-25.322,25.438-25.322,14.052-0.001,25.438,11.337,25.438,25.322m26.393,0c0-27.971-22.774-50.645-50.874-50.645-28.098,0-50.877,22.674-50.877,50.645,0,12.298,4.408,23.574,11.733,32.345l39.188,56.283,39.761-57.104c1.428-1.779,2.736-3.654,3.916-5.625l0.402-0.574h-0.066c4.33-7.454,6.82-16.096,6.82-25.325"/></g></svg>';
 
 })(window);

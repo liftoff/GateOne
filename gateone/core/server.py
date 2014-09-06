@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140903221003" # Gets replaced by git (holds the date/time)
+__commit__ = "20140905091804" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -422,14 +422,14 @@ client_log = go_logger('gateone.client')
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
-user_locale = None # Replaced with the actual user locale object in __main__
+server_locale = None # Replaced with the actual server locale object in __main__
 def _(string):
     """
-    Wraps user_locale.translate so we don't get errors if loading a locale fails
-    (or we output a message before it is initialized).
+    Wraps server_locale.translate so we don't get errors if loading a locale
+    fails (or we output a message before it is initialized).
     """
-    if user_locale:
-        return user_locale.translate(string)
+    if server_locale:
+        return server_locale.translate(string)
     else:
         return string
 
@@ -1177,7 +1177,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:list_users': self.list_server_users,
             'go:get_locations': self.get_locations,
             'go:set_location': self.set_location,
-            'go:set_locale': self.set_locale,
+            'go:set_locales': self.set_locales,
             'go:set_dimensions': self.set_dimensions,
             'go:license_info': self.license_info,
             'go:debug': self.debug,
@@ -1191,6 +1191,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.auth_log = go_logger('gateone.auth')
         self.client_log = go_logger('gateone.client')
         self._events = {}
+        self.user_locales = []
         self.session = None # Just a placeholder; gets set in authenticate()
         self.locations = {} # Just a placeholder; gets set in authenticate()
         self.location = "default" # Just a placeholder; gets set in authenticate()
@@ -2799,7 +2800,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         requires = self.file_cache[filename_hash].get('requires', None)
         media = self.file_cache[filename_hash].get('media', 'screen')
         url_prefix = self.settings['url_prefix']
-        self.sync_log.info("Sending: {0}".format(filename))
+        self.sync_log.info(_("Sending: {0}").format(filename))
         out_dict = {
             'result': 'Success',
             'cache': use_client_cache,
@@ -2851,6 +2852,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 self.write_message(message)
             except (WebSocketClosedError, AttributeError):
                 pass # WebSocket closed before we got a chance to send this
+        logging.debug("file_request() for: %s" % filename)
         if self.settings['debug']:
             result = get_or_cache(cache_dir, path, minify=False)
             send_file(result)
@@ -3255,49 +3257,92 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
 
-    @require(authenticated())
-    def set_locale(self, message):
+    def set_locales(self, locales):
         """
-        Sets the client's locale to *message['locale']*.
+        Attached to the 'go:set_locales` WebSocket action; sets
+        ``self.user_locales`` to the given *locales* and calls
+        `ApplicationWebSocket.send_js_translation` to deliver the best-match
+        JSON-encoded translation to the client (if available).
+
+        The *locales* argument may be a string or a list.  If a string,
+        ``self.user_locales`` will be set to a list with the given locale as the
+        first (and only) item.  If *locales* is a list ``self.user_locales``
+        will simply be replaced.
         """
-        self.prefs['*']['gateone']['locale'] = message['locale']
+        if isinstance(locales, str):
+            locales = [locales]
+        self.user_locales = locales
         self.send_js_translation()
 
-    def send_js_translation(self, path=None):
+    def send_js_translation(self, package='gateone', path=None, locales=None):
         """
         Sends a message to the client containing a JSON-encoded table of strings
-        that have been translated to the user's locale.
+        that have been translated to the user's locale.  The translation file
+        will be retrieved via the `pkg_resources.resource_string` function using
+        the given *package* with a default path (if not given) of,
+        '/i18n/{locale}/LC_MESSAGES/gateone_js.json'.  For example::
 
-        If a *path* is given it will be used to send the client that file.  If
-        more than one JSON translation is sent to the client the new translation
-        will be merged into the existing one.
+            self.send_js_translation(package="gateone.plugins.myplugin")
+
+        Would result in the `pkg_resources.resource_string` function being
+        called like so::
+
+            path = '/i18n/{locale}/LC_MESSAGES/gateone_js.json'.format(
+                locale=locale)
+            translation = pkg_resources.resource_string(
+                "gateone.plugins.myplugin", path)
+
+        If providing a custom *path* be sure it includes the '{locale}' portion
+        so the correct translation will be chosen.  As an example, your plugin
+        might store locales inside a 'translations' directory with each locale
+        JSON translation file named, '<locale>/myplugin.json'.  The correct
+        *path* for that would be: '/translations/{locale}/myplugin.json'
+
+        If no *locales* (may be list or string) is given the
+        ``self.user_locales`` variable will be used.
+
+        This method will attempt to find the closest locale if no direct match
+        can be found.  For example, if ``locales=="fr"`` the 'fr_FR' locale
+        would be used.  If *locales* is a list, the first matching locale will
+        be used.
 
         .. note::
 
             Translation files must be the result of a
-            `pojson /path/to/translation.po` conversion.
+            ``pojson /path/to/translation.po`` conversion.
         """
-        chosen_locale = self.prefs['*']['gateone'].get('locale', 'en_US')
-        json_translation = os.path.join(
-            GATEONE_DIR,
-            'i18n',
-            chosen_locale,
-            'LC_MESSAGES',
-            'gateone_js.json')
-        if path:
-            if os.path.exists(path):
-                with io.open(path, 'r', encoding="utf-8") as f:
-                    decoded = json_decode(f.read())
-                    message = {'go:register_translation': decoded}
-                    self.write_message(message)
-            else:
-                self.logger.error(
-                    _("Translation file, %s could not be found") % path)
-        elif os.path.exists(json_translation):
-            with io.open(json_translation, 'r', encoding="utf-8") as f:
-                decoded = json_decode(f.read())
+        from gateone.core.locale import supported_locales
+        from pkg_resources import resource_exists, resource_string
+        from pkg_resources import resource_listdir, isdir
+        if not locales:
+            locales = self.user_locales
+        if not locales: # Use the server's locale
+            locales = [self.prefs['*']['gateone'].get('locale')]
+        logging.debug("send_js_translation() locales: %s" % locales)
+        for locale in locales:
+            locale = locale.replace('-', '_') # Example: Converts en-US to en_US
+            if locale.lower().startswith('en'):
+                return # Gate One strings are English by default
+            if not path:
+                path = '/i18n/{locale}/LC_MESSAGES/gateone_js.json'
+            if locale not in supported_locales: # Try next-closest match
+                first_part = locale.split('_')[0] # Try the first bit
+                for l in supported_locales:
+                    if l.lower().startswith(first_part.lower()):
+                        locale = l
+                        break
+            json_translation = path.format(locale=locale)
+            if resource_exists(package, json_translation):
+                decoded = json_decode(
+                    resource_string(package, json_translation))
                 message = {'go:register_translation': decoded}
                 self.write_message(message)
+                return
+            logging.debug(_(
+                "No matching translation found for locale: %s" % locale))
+        self.logger.error(
+            _("No translation file could not be found for the given "
+              "locales: %s") % locales)
 
 # NOTE: This is not meant to be a chat application.  That'll come later :)
 #       The real purpose of send_user_message() and broadcast() are for
@@ -4214,8 +4259,8 @@ def main(installed=True):
             logging.error(e)
             sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
-    user_locale = locale.get(go_settings['locale'])
-    _ = user_locale.translate # Also replaces our wrapper so no more .encode()
+    server_locale = locale.get(go_settings['locale'])
+    _ = server_locale.translate # Also replaces our wrapper so no more .encode()
     # Create the log dir if not already present (NOTE: Assumes we're root)
     log_dir = os.path.dirname(go_settings['log_file_prefix'])
     if options.logging.upper() != 'NONE':
