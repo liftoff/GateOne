@@ -920,10 +920,10 @@ def entry_point_files(ep_group, enabled=None):
     ...but this function can return the JS, CSS, and Python modules for any
     entry point that uses the same module_name/static/ layout.
     """
-    import pkg_resources
+    import pkg_resources, operator
     if not enabled:
         enabled = []
-    plugin_dict = {
+    ep_dict = {
         'py': [],
         'js': [],
         'css': []
@@ -931,7 +931,7 @@ def entry_point_files(ep_group, enabled=None):
     for plugin in pkg_resources.iter_entry_points(group=ep_group):
         if enabled and plugin.name not in enabled:
             continue # Not enabled, skip it
-        plugin_dict['py'].append(plugin.load())
+        ep_dict['py'].append(plugin.load())
         static_path = plugin.module_name.replace('.', '/') + '/static/'
         if pkg_resources.isdir(static_path):
             pkg_files = pkg_resources.resource_listdir(
@@ -939,15 +939,15 @@ def entry_point_files(ep_group, enabled=None):
             for f in pkg_files:
                 f_path = "%s/static/%s" % (plugin.name, f)
                 if f.endswith('.js'):
-                    plugin_dict['js'].append(f_path)
+                    ep_dict['js'].append(f_path)
                 elif f.endswith('.css'):
-                    plugin_dict['css'].append(f_path)
+                    ep_dict['css'].append(f_path)
     # Sort all plugins alphabetically so the order in which they're applied can
     # be controlled somewhat predictably
-    plugin_dict['py'].sort()
-    plugin_dict['js'].sort()
-    plugin_dict['css'].sort()
-    return plugin_dict
+    ep_dict['py'] = sorted(ep_dict['py'], key=operator.attrgetter('__name__'))
+    ep_dict['js'].sort()
+    ep_dict['css'].sort()
+    return ep_dict
 
 def load_modules(modules):
     """
@@ -1374,21 +1374,14 @@ def minify(path_or_fileobj, kind):
     `cssmin`, respectively.
     """
     out = None
-    # Optional:  If slimit is installed Gate One will use it to minify JS and CSS
     try:
         import slimit
     except ImportError:
         slimit = None
-        #logging.warning(_(
-            #"slimit module not found.  JavaScript will not be minified."))
-        #logging.info(_("To install slimit:  sudo pip install slimit"))
     try:
         import cssmin
     except ImportError:
         cssmin = None
-        #logging.warning(_(
-            #"cssmin module not found.  CSS will not be minified."))
-        #logging.info(_("To install cssmin:  sudo pip install cssmin"))
     if isinstance(path_or_fileobj, basestring):
         filename = os.path.split(path_or_fileobj)[1]
         with io.open(path_or_fileobj, mode='r', encoding='utf-8') as f:
@@ -1399,7 +1392,7 @@ def minify(path_or_fileobj, kind):
     out = data
     if slimit and kind == 'js':
         try:
-            out = slimit.minify(data)
+            out = slimit.minify(data, mangle=True)
             logging.debug(_(
                 "(saved ~%s bytes minifying %s)" % (
                     (len(data) - len(out), filename)

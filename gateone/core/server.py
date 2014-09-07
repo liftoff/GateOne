@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140906220756" # Gets replaced by git (holds the date/time)
+__commit__ = "20140907133038" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2178,7 +2178,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             u"User {upn} authenticated successfully via origin {origin} "
             u"(location {location}).").format(
                 upn=user['upn'],
-                origin=self.origin.decode('idna'),
+                origin=self.origin,
                 location=self.location)
         auth_log.info(log_msg)
         # This check is to make sure there's no existing session so we don't
