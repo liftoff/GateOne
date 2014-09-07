@@ -24,18 +24,18 @@ var document = window.document, // Have to do this because we're sandboxed
     logInfo = GateOne.Logging.logInfo,
     logDebug = GateOne.Logging.logDebug,
     months = {
-        '0': 'JAN',
-        '1': 'FEB',
-        '2': 'MAR',
-        '3': 'APR',
-        '4': 'MAY',
-        '5': 'JUN',
-        '6': 'JUL',
-        '7': 'AUG',
-        '8': 'SEP',
-        '9': 'OCT',
-        '10': 'NOV',
-        '11': 'DEC'
+        '0': gettext('JAN'),
+        '1': gettext('FEB'),
+        '2': gettext('MAR'),
+        '3': gettext('APR'),
+        '4': gettext('MAY'),
+        '5': gettext('JUN'),
+        '6': gettext('JUL'),
+        '7': gettext('AUG'),
+        '8': gettext('SEP'),
+        '9': gettext('OCT'),
+        '10': gettext('NOV'),
+        '11': gettext('DEC')
     };
 
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
@@ -89,7 +89,7 @@ go.Base.update(GateOne.Bookmarks, {
         */
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
-            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar_icon ✈icon_bookmarks', 'title': "Bookmarks"}),
+            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar_icon ✈icon_bookmarks', 'title': gettext("Bookmarks")}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar'),
             bookmarks = [], // Loaded and tested before we set GateOne.Bookmarks.bookmarks
             badBookmarks = [],
@@ -114,7 +114,7 @@ go.Base.update(GateOne.Bookmarks, {
         b.registerIconHandler('http', b.httpIconHandler);
         b.registerIconHandler('https', b.httpIconHandler);
         // Setup our toolbar icons and actions
-        toolbarBookmarks.innerHTML = go.Icons['bookmark'];
+        toolbarBookmarks.innerHTML = go.Icons.bookmark;
         toolbarBookmarks.addEventListener('click', toggleBookmarks, false);
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarBookmarks);
@@ -136,8 +136,8 @@ go.Base.update(GateOne.Bookmarks, {
                 }
             });
             b.bookmarks = bookmarks;
-            if (badBookmarks) {
-                logDebug("Bad bookmarks were encountered while loading: ", badBookmarks);
+            if (badBookmarks.length) {
+                logError(gettext("Bad bookmarks were encountered while loading: "), badBookmarks);
                 // Re-save the good bookmarks so we don't have this problem again
                 b.storeBookmarks(b.bookmarks);
             }
@@ -346,12 +346,12 @@ go.Base.update(GateOne.Bookmarks, {
                 b.storeBookmarks(responseObj['updates'], true, true);
             }
         } else {
-            go.Visual.displayMessage("Synchronization Complete (With Errors): " + (responseObj['count']) + " bookmarks were updated successfully.");
-            go.Visual.displayMessage("See the log (Options->View Log) for details.");
-            logError("Synchronization Errors: " + u.items(responseObj['errors'][0]));
+            go.Visual.displayMessage(gettext("Synchronization Complete (With Errors): ") + (responseObj['count']) + gettext(" bookmarks were updated successfully."));
+            go.Visual.displayMessage(gettext("See the JavaScript console for details."));
+            logError(gettext("Synchronization Errors: ") + u.items(responseObj['errors'][0]));
         }
         b.createPanel();
-        u.getNode('#'+prefix+'bm_sync').innerHTML = "Sync Bookmarks | ";
+        u.getNode('#'+prefix+'bm_sync').innerHTML = gettext("Sync Bookmarks") + " | ";
         b.toUpload = []; // Reset it
     },
     syncBookmarks: function(response) {
@@ -476,7 +476,7 @@ go.Base.update(GateOne.Bookmarks, {
                     b.createPanel();
                     localStorage[prefix+'USN'] = b.highestUSN();
                 }
-                u.getNode('#'+prefix+'bm_sync').innerHTML = "Sync Bookmarks | ";
+                u.getNode('#'+prefix+'bm_sync').innerHTML = gettext("Sync Bookmarks") + " | ";
             }
             // Process any pending tag renames
             if (localStorage[prefix+'renamedTags']) {
@@ -566,9 +566,9 @@ go.Base.update(GateOne.Bookmarks, {
         if (!bookmarks.length) { // No bookmarks == Likely new user.  Show a welcome message.
             var welcome = {
                     'url': "http://liftoffsoftware.com/",
-                    'name': "You don't have any bookmarks yet!",
+                    'name': gettext("You don't have any bookmarks yet!"),
                     'tags': [],
-                    'notes': 'A great way to get started is to import bookmarks or click Sync.',
+                    'notes': gettext('A great way to get started is to import bookmarks or click Sync.'),
                     'visits': 0,
                     'updated': new Date().getTime(),
                     'created': new Date().getTime(),
@@ -577,9 +577,9 @@ go.Base.update(GateOne.Bookmarks, {
             },
                 introVideo = {
                 'url': "http://vimeo.com/26357093",
-                'name': "A Quick Screencast Overview of Bookmarked",
+                'name': gettext("A Quick Screencast Overview of Bookmarked"),
                 'tags': ["Video", "Help"],
-                'notes': 'Want some help getting started?  Our short (3 minutes) overview screencast can be illuminating.',
+                'notes': gettext('Want some help getting started?  Our short (3 minutes) overview screencast can be illuminating.'),
                 'visits': 0,
                 'updated': new Date().getTime(),
                 'created': new Date().getTime(),
@@ -728,7 +728,7 @@ go.Base.update(GateOne.Bookmarks, {
             pageBookmarks.forEach(function(bookmark) {
                 if (bmCount < bmMax) {
                     if (!bookmark.images) {
-                        logDebug('bookmark missing images: ' + bookmark);
+                        logDebug(gettext('bookmark missing images: ') + bookmark);
                     }
                     b.createBookmark(bmContainer, bookmark, delay);
                 }
@@ -794,7 +794,7 @@ go.Base.update(GateOne.Bookmarks, {
                     b.flushProgress = setInterval(function() {
                         try {
                             var remaining = Math.abs((localStorage[prefix+'iconQueue'].split('\n').length-1) - iconQueue.length);
-                            u.updateProgress(prefix+'iconflush', iconQueue.length, remaining, 'Fetching Icons...');
+                            u.updateProgress(prefix+'iconflush', iconQueue.length, remaining, gettext('Fetching Icons...'));
                             if (localStorage[prefix+'iconQueue'].split('\n').length == 1) {
                                 clearInterval(b.flushProgress);
                             }
@@ -847,7 +847,7 @@ go.Base.update(GateOne.Bookmarks, {
         if (parsedURL.protocol in b.iconHandlers) {
             b.iconHandlers[parsedURL.protocol](bookmark);
         } else {
-            logDebug('No icon handler for protocol: ' + parsedURL.protocol);
+            logDebug(gettext('No icon handler for protocol: ') + parsedURL.protocol);
         }
     },
     storeFavicon: function(bookmark, dataURI) {
@@ -987,7 +987,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmElement.title = bookmark.url;
         if (bookmark.url.indexOf('%s') != -1) {
             // This is a keyword search URL.  Mark it as such.
-            bmLink.innerHTML = '<span class="✈search">Search:</span> ' + bookmark.name;
+            bmLink.innerHTML = '<span class="✈search">' + gettext('Search:') + '</span> ' + bookmark.name;
         } else {
             bmLink.innerHTML = bookmark.name;
         }
@@ -1151,7 +1151,7 @@ go.Base.update(GateOne.Bookmarks, {
             delay = 1000, // Pretty much everything has the 'sectrans' class for 1-second transition effects
             existingPanel = u.getNode('#'+prefix+'panel_bookmarks'),
             bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': '✈panel ✈sectrans ✈panel_bookmarks'}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': gettext("Close This Panel")}),
             bmHeader = u.createElement('div', {'id': 'bm_header', 'class': '✈sectrans'}),
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': '✈bm_container ✈sectrans'}),
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': '✈bm_pagination ✈sectrans'}),
@@ -1161,12 +1161,12 @@ go.Base.update(GateOne.Bookmarks, {
             bmDisplayOpts = u.createElement('div', {'id': 'bm_display_opts', 'class': '✈bm_display_opts ✈sectransform'}),
             bmSortOpts = b.createSortOpts(),
             bmOptions = u.createElement('div', {'id': 'bm_options', 'class': '✈bm_options'}),
-            bmExport = u.createElement('a', {'id': 'bm_export', 'title': 'Save your bookmarks to a file'}),
-            bmImport = u.createElement('a', {'id': 'bm_import', 'title': 'Import bookmarks from another application'}),
-            bmSync = u.createElement('a', {'id': 'bm_sync', 'title': 'Synchronize your bookmarks with the server.'}),
+            bmExport = u.createElement('a', {'id': 'bm_export', 'title': gettext('Save your bookmarks to a file')}),
+            bmImport = u.createElement('a', {'id': 'bm_import', 'title': gettext('Import bookmarks from another application')}),
+            bmSync = u.createElement('a', {'id': 'bm_sync', 'title': gettext('Synchronize your bookmarks with the server.')}),
             bmH2 = u.createElement('h2'),
             bmHeaderImage = u.createElement('span', {'id': 'bm_header_star'}),
-            bmSearch = u.createElement('input', {'id': 'bm_search', 'class': '✈bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': 'Search Bookmarks'}),
+            bmSearch = u.createElement('input', {'id': 'bm_search', 'class': '✈bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': gettext('Search Bookmarks')}),
             toggleSort = u.partial(b.toggleSortOrder, b.bookmarks);
         bmH2.innerHTML = 'Bookmarks';
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -1188,10 +1188,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
         bmHeader.appendChild(bmH2);
         bmHeader.appendChild(panelClose);
-        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label" class="✈bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
-        bmSync.innerHTML = 'Sync Bookmarks | ';
-        bmImport.innerHTML = 'Import | ';
-        bmExport.innerHTML = 'Export';
+        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label" class="✈bm_taglist_label">' + gettext('Tag Filter:') + '</span> <ul id="'+prefix+'bm_taglist"></ul> ';
+        bmSync.innerHTML = gettext('Sync Bookmarks') + ' | ';
+        bmImport.innerHTML = gettext('Import') + ' | ';
+        bmExport.innerHTML = gettext('Export');
         bmImport.onclick = function(e) {
             b.openImportDialog();
         }
@@ -1201,14 +1201,14 @@ go.Base.update(GateOne.Bookmarks, {
         bmSync.onclick = function(e) {
             e.preventDefault();
             var USN = localStorage[prefix+'USN'] || 0;
-            this.innerHTML = "Synchronizing... | ";
+            this.innerHTML = gettext("Synchronizing...") + " | ";
             if (!b.bookmarks.length) {
-                go.Visual.displayMessage("NOTE: Since this is your first sync it can take a few seconds.  Please be patient.");
+                go.Visual.displayMessage(gettext("NOTE: Since this is your first sync it can take a few seconds.  Please be patient."));
             } else {
-                go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
+                go.Visual.displayMessage(gettext("Please wait while we synchronize your bookmarks..."));
             }
             b.syncTimer = setInterval(function() {
-                go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
+                go.Visual.displayMessage(gettext("Please wait while we synchronize your bookmarks..."));
             }, 6000);
             go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
         }
@@ -1216,7 +1216,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmOptions.appendChild(bmImport);
         bmOptions.appendChild(bmExport);
         bmTags.appendChild(bmOptions);
-        bmNew.innerHTML = '+ New Bookmark';
+        bmNew.innerHTML = gettext('+ New Bookmark');
         bmNew.onclick = b.openNewBookmarkForm;
         bmNew.onkeyup = function(e) {
             if (e.keyCode == 13) { // Enter key
@@ -1350,14 +1350,14 @@ go.Base.update(GateOne.Bookmarks, {
             }, 1000);
         }, 30000);
         go.Visual.applyTransform(bmTagsHeader, 'translate(300%, 0)');
-        bmTagsHeaderAutotagsLink.innerHTML = "Autotags";
+        bmTagsHeaderAutotagsLink.innerHTML = gettext("Autotags");
         pipeSeparator.innerHTML = " | ";
-        bmTagsHeaderTagsLink.innerHTML = "Tags";
+        bmTagsHeaderTagsLink.innerHTML = gettext("Tags");
         bmTagsHeader.appendChild(bmTagsHeaderTagsLink);
         bmTagsHeader.appendChild(pipeSeparator);
         bmTagsHeader.appendChild(bmTagsHeaderAutotagsLink);
         bmTagCloudTip.style.opacity = 0;
-        bmTagCloudTip.innerHTML = "<br><b>Tip:</b> " + b.generateTip();
+        bmTagCloudTip.innerHTML = "<br><b>" + gettext("Tip:") + "</b> " + b.generateTip();
         if (existingTagCloud) {
             existingTagCloud.appendChild(bmTagCloudUL);
             existingTagCloud.appendChild(bmTagCloudTip);
@@ -1369,7 +1369,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         if (active == 'tags') {
             allTags.forEach(function(tag) {
-                var li = u.createElement('li', {'class': '✈bm_tag ✈sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
+                var li = u.createElement('li', {'class': '✈bm_tag ✈sectrans', 'title': gettext('Click to filter or drop on a bookmark to tag it.'), 'draggable': true});
                 li.innerHTML = tag;
                 li.addEventListener('dragstart', b.handleDragStart, false);
                 v.applyTransform(li, 'translateX(700px)');
@@ -1392,7 +1392,7 @@ go.Base.update(GateOne.Bookmarks, {
             });
         } else if (active == 'autotags') {
             allAutotags.forEach(function(tag) {
-                var li = u.createElement('li', {'title': 'Click to filter.'});
+                var li = u.createElement('li', {'title': gettext('Click to filter.')});
                 li.innerHTML = tag;
                 v.applyTransform(li, 'translateX(700px)');
                 if (u.startsWith('<', tag) || u.startsWith('>', tag)) { // Date tag
@@ -1688,8 +1688,8 @@ go.Base.update(GateOne.Bookmarks, {
             importLabel = u.createElement('label', {'style': {'text-align': 'center'}}),
             importFile = u.createElement('input', {'type': 'file', 'id': 'bookmarks_upload', 'class': '✈bookmarks_upload', 'name': prefix+'bookmarks_upload'}),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈bm_submit ✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈bm_submit ✈button ✈black'}),
             bmHelp = u.createElement('p');
         bmSubmit.innerHTML = gettext("Submit");
         bmCancel.innerHTML = gettext("Cancel");
@@ -1700,9 +1700,9 @@ go.Base.update(GateOne.Bookmarks, {
         buttonContainer.appendChild(bmSubmit);
         buttonContainer.appendChild(bmCancel);
         bmForm.appendChild(buttonContainer);
-        bmHelp.innerHTML = '<i>Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".</i>'
+        bmHelp.innerHTML = '<i>' + gettext('Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".') + '</i>'
         bmForm.appendChild(bmHelp);
-        var closeDialog = go.Visual.dialog("Import Bookmarks", bmForm, {'style': {'top': '15%'}}); // Looks better if a bit closer to the top of the page (as an initial location)
+        var closeDialog = go.Visual.dialog(gettext("Import Bookmarks"), bmForm, {'style': {'top': '15%'}}); // Looks better if a bit closer to the top of the page (as an initial location)
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -1721,8 +1721,8 @@ go.Base.update(GateOne.Bookmarks, {
                     if (e.target.readyState == 4 && status == 200 && e.target.responseText) {
                         var bookmarks = JSON.parse(e.target.responseText),
                             count = b.storeBookmarks(bookmarks, true);
-                        go.Visual.displayMessage(count+" bookmarks imported.");
-                        go.Visual.displayMessage("Bookmark icons will be retrieved in the background");
+                        go.Visual.displayMessage(count+gettext(" bookmarks imported."));
+                        go.Visual.displayMessage(gettext("Bookmark icons will be retrieved in the background"));
                         closeDialog();
                     }
                 };
@@ -1831,26 +1831,26 @@ go.Base.update(GateOne.Bookmarks, {
             bmForm = u.createElement('form', {'name': prefix+'bm_new_form', 'id': 'bm_new_form', 'class': '✈bm_new_form ✈sectrans'}),
             urlInput = u.createElement('input', {'type': 'url', 'id': 'bm_newurl', 'class': '✈bm_newurl', 'name': prefix+'bm_newurl', 'placeholder': 'ssh://user@host:22 or http://webhost/path', 'required': 'required'}),
             urlLabel = u.createElement('label'),
-            nameInput = u.createElement('input', {'type': 'text', 'id': 'bm_new_name', 'class': '✈bm_new_name', 'name': prefix+'bm_new_name', 'placeholder': 'Web App Server 2', 'required': 'required'}),
+            nameInput = u.createElement('input', {'type': 'text', 'id': 'bm_new_name', 'class': '✈bm_new_name', 'name': prefix+'bm_new_name', 'placeholder': gettext('Web App Server 2'), 'required': 'required'}),
             nameLabel = u.createElement('label'),
-            tagsInput = u.createElement('input', {'type': 'text', 'id': 'bm_newurl_tags', 'class': '✈bm_newurl_tags', 'name': prefix+'bm_newurl_tags', 'placeholder': 'Linux, New York, Production'}),
+            tagsInput = u.createElement('input', {'type': 'text', 'id': 'bm_newurl_tags', 'class': '✈bm_newurl_tags', 'name': prefix+'bm_newurl_tags', 'placeholder': gettext('Linux, New York, Production')}),
             tagsLabel = u.createElement('label'),
-            notesTextarea = u.createElement('textarea', {'id': 'bm_new_notes', 'name': prefix+'bm_new_notes', 'placeholder': 'e.g. Supported by Global Ops'}),
+            notesTextarea = u.createElement('textarea', {'id': 'bm_new_notes', 'name': prefix+'bm_new_notes', 'placeholder': gettext('e.g. Supported by Global Ops')}),
             notesLabel = u.createElement('label'),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈bm_submit ✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈bm_submit ✈button ✈black'}),
             bookmarks = JSON.parse(localStorage[prefix+'bookmarks']),
             index, bmName, bmTags, bmNotes;
         bmSubmit.innerHTML = gettext("Save");
         bmCancel.innerHTML = gettext("Cancel");
         urlLabel.innerHTML = "URL";
         urlLabel.htmlFor = prefix+'bm_newurl';
-        nameLabel.innerHTML = "Name";
+        nameLabel.innerHTML = gettext("Name");
         nameLabel.htmlFor = prefix+'bm_new_name';
-        tagsLabel.innerHTML = "Tags";
+        tagsLabel.innerHTML = gettext("Tags");
         tagsLabel.htmlFor = prefix+'bm_newurl_tags';
-        notesLabel.innerHTML = "Notes";
+        notesLabel.innerHTML = gettext("Notes");
         notesLabel.htmlFor = prefix+'bm_new_notes';
         if (typeof(URL) == "string") {
             // Editing an existing bookmark
@@ -1861,14 +1861,14 @@ go.Base.update(GateOne.Bookmarks, {
                     bmNotes = bookmark.notes;
                 }
             });
-            formTitle = "Edit Bookmark";
+            formTitle = gettext("Edit Bookmark");
             urlInput.value = URL;
             nameInput.value = bmName;
             tagsInput.value = bmTags;
             notesTextarea.value = bmNotes;
         } else {
             // Creating a new bookmark (blank form)
-            formTitle = "New Bookmark";
+            formTitle = gettext("New Bookmark");
         }
         bmForm.appendChild(urlLabel);
         bmForm.appendChild(urlInput);
@@ -1896,15 +1896,15 @@ go.Base.update(GateOne.Bookmarks, {
                 notes = u.getNode('#'+prefix+'bm_new_notes').value,
                 now = new Date();
             if (!url.length) {
-                v.displayMessage("Error: URL is missing");
+                v.displayMessage(gettext("Error: URL is missing"));
                 return false;
             }
             if (!parsed.protocol) {
-                v.displayMessage("Error: URL does not contain a valid protocol (e.g. ssh:// or http://)");
+                v.displayMessage(gettext("Error: URL does not contain a valid protocol (e.g. ssh:// or http://)"));
                 return false;
             }
             if (!name.length) {
-                v.displayMessage("Error: You must give this bookmark a name.");
+                v.displayMessage(gettext("Error: You must give this bookmark a name."));
                 return false;
             }
             // Fix any missing trailing slashes in the URL
@@ -1936,7 +1936,7 @@ go.Base.update(GateOne.Bookmarks, {
                 // Double-check there isn't already an existing bookmark with this URL
                 for (var i in b.bookmarks) {
                     if (b.bookmarks[i].url == url) {
-                        go.Visual.displayMessage('Error: Bookmark already exists with this URL.');
+                        go.Visual.displayMessage(gettext('Error: Bookmark already exists with this URL.'));
                         return;
                     }
                 }
@@ -2076,8 +2076,8 @@ go.Base.update(GateOne.Bookmarks, {
             // Assume this is an anchor tag from the onclick event
             url = obj.parentNode.parentNode.getElementsByClassName("✈bm_url")[0].href;
         }
-        yes.innerHTML = "Yes";
-        no.innerHTML = "No";
+        yes.innerHTML = gettext("Yes");
+        no.innerHTML = gettext("No");
         yes.onclick = function(e) {
             var USN = localStorage[prefix+'USN'] || 0;
             go.Visual.applyTransform(obj.parentNode.parentNode, 'translate(-200%, 0)');
@@ -2104,7 +2104,7 @@ go.Base.update(GateOne.Bookmarks, {
             }, 500);
         };
         // Confirm the user wants to delete the bookmark
-        confirmElement.innerHTML = "Are you sure you want to delete this bookmark?<br />";
+        confirmElement.innerHTML = gettext("Are you sure you want to delete this bookmark?") + "<br />";
         confirmElement.appendChild(no);
         confirmElement.appendChild(yes);
         obj.parentNode.parentNode.appendChild(confirmElement);
@@ -2383,7 +2383,7 @@ go.Base.update(GateOne.Bookmarks, {
             }
         });
         if (success) {
-            go.Visual.displayMessage(oldName + " has been renamed to " + newName);
+            go.Visual.displayMessage(oldName + gettext(" has been renamed to: ") + newName);
             // Mark down that we've renamed this tag so we can update Evernote at the next sync
             if (localStorage[prefix+'renamedTags']) {
                 var renamedTags = JSON.parse(localStorage[prefix+'renamedTags']);
@@ -2455,9 +2455,9 @@ go.Base.update(GateOne.Bookmarks, {
         var closeDialog,
             bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans ✈bm_dialog_form'}),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': 'Cancel', 'class': '✈button ✈black'});
-        bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">New Name</label><input type="text" class="✈bm_newtagname" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': gettext('Cancel'), 'class': '✈button ✈black'});
+        bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">' + gettext('New Name') + '</label><input type="text" class="✈bm_newtagname" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
         bmCancel.onclick = closeDialog;
         buttonContainer.appendChild(bmSubmit);
         buttonContainer.appendChild(bmCancel);
@@ -2492,18 +2492,18 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             bmForm = u.createElement('form', {'name': prefix+'bm_export_form', 'id': 'bm_export_form', 'class': '✈bm_export_form'}),
             buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
-            bmExportAll = u.createElement('button', {'id': 'bm_export_all', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),
-            bmExportFiltered = u.createElement('button', {'id': 'bm_export_filtered', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
-        bmForm.innerHTML = '<p>You can export all bookmarks or just bookmarks within the current filter/search</p>';
+            bmExportAll = u.createElement('button', {'id': 'bm_export_all', 'type': 'submit', 'value': gettext('all'), 'class': '✈button ✈black'}),
+            bmExportFiltered = u.createElement('button', {'id': 'bm_export_filtered', 'type': 'submit', 'value': gettext('all'), 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈button ✈black'});
+        bmForm.innerHTML = '<p>' + gettext('You can export all bookmarks or just bookmarks within the current filter/search') + '</p>';
         buttonContainer.appendChild(bmExportAll);
         buttonContainer.appendChild(bmExportFiltered);
         buttonContainer.appendChild(bmCancel);
-        bmExportAll.innerHTML = "All Bookmarks";
-        bmExportFiltered.innerHTML = "Filtered Bookmarks";
-        bmCancel.innerHTML = "Cancel";
+        bmExportAll.innerHTML = gettext("All Bookmarks");
+        bmExportFiltered.innerHTML = gettext("Filtered Bookmarks");
+        bmCancel.innerHTML = gettext("Cancel");
         bmForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog('Export Bookmarks', bmForm, {'style': {'top': '15%'}});
+        var closeDialog = go.Visual.dialog(gettext('Export Bookmarks'), bmForm, {'style': {'top': '15%'}});
         bmCancel.onclick = closeDialog;
         bmExportAll.onclick = function(e) {
             e.preventDefault();
@@ -2523,14 +2523,14 @@ go.Base.update(GateOne.Bookmarks, {
         */
         var closeDialog,
             bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans ✈bm_dialog_form'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
-        bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" class="✈bm_searchstring" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈button ✈black'});
+        bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">' + gettext('Search') + '</label><input type="text" class="✈bm_searchstring" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
         bmForm.appendChild(bmSubmit);
         bmForm.appendChild(bmCancel);
         bmSubmit.innerHTML = gettext("Go");
         bmCancel.innerHTML = gettext("Cancel");
-        closeDialog = go.Visual.dialog("Keyword Search: " + title, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
+        closeDialog = go.Visual.dialog(gettext("Keyword Search: ") + title, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
         setTimeout(function() {
             // Because of the way dialogs appear the autofocus attribute doesn't work...
             u.getNode('.✈bm_searchstring').focus();
@@ -2551,10 +2551,10 @@ go.Base.update(GateOne.Bookmarks, {
         Returns a random, helpful tip for using bookmarks (as a string).
         */
         var tips = [
-            "You can right-click on a tag to rename it.",
-            "You can drag & drop a tag onto a bookmark to tag it.",
-            "You can create bookmarks with any kind of URL. Even email address URLs: 'mailto:user@domain.com'.",
-            "The 'Filtered Bookmarks' option in the export dialog is a great way to share a subset of your bookmarks with friends and coworkers.",
+            gettext("You can right-click on a tag to rename it."),
+            gettext("You can drag & drop a tag onto a bookmark to tag it."),
+            gettext("You can create bookmarks with any kind of URL. Even email address URLs: 'mailto:user@domain.com'."),
+            gettext("The 'Filtered Bookmarks' option in the export dialog is a great way to share a subset of your bookmarks with friends and coworkers."),
         ];
         return tips[Math.floor(Math.random()*tips.length)];
     },
@@ -2667,6 +2667,6 @@ go.Base.update(go.Bookmarks, {
     }
 });
 // Our icons
-go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
+go.Icons.bookmark = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
 
 });

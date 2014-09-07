@@ -13,6 +13,7 @@ var document = window.document, // Have to do this because we're sandboxed
     v = go.Visual,
     E = go.Events,
     prefix = go.prefs.prefix,
+    gettext = go.i18n.gettext,
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
     logWarning = GateOne.Logging.logWarning,
@@ -40,9 +41,9 @@ go.Base.update(GateOne.TermLogging, {
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
             pTag = u.getNode('#'+prefix+'info_actions'),
-            infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
-        infoPanelViewLogs.innerHTML = "Log Viewer";
-        infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs.";
+            infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'});
+        infoPanelViewLogs.innerHTML = gettext("Log Viewer");
+        infoPanelViewLogs.title = gettext("Opens a panel where you can browse, preview, and open all of your server-side session logs.");
         infoPanelViewLogs.onclick = function() {
             l.loadLogs(true);
         }
@@ -79,7 +80,7 @@ go.Base.update(GateOne.TermLogging, {
             logHeader = u.createElement('div', {'id': 'log_view_header', 'class': '✈sectrans'}),
             logHeaderH2 = u.createElement('h2', {'id': 'logging_title'}),
             logHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': gettext("Close This Panel")}),
             logViewContent = u.createElement('div', {'id': 'logview_container', 'class': '✈sectrans'}),
             logPagination = u.createElement('div', {'id': 'log_pagination', 'class': '✈log_pagination ✈sectrans'}),
             logInfoContainer = u.createElement('div', {'id': 'log_info', 'class': '✈log_info'}),
@@ -93,7 +94,7 @@ go.Base.update(GateOne.TermLogging, {
             sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'✈table_cell ✈table_header_cell', 'style': {'white-space': 'normal'}}),
             sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
             logMetadataDiv = u.createElement('div', {'id': 'log_metadata', 'class': '✈log_metadata'});
-        logHeaderH2.innerHTML = 'Log Viewer: Loading...';
+        logHeaderH2.innerHTML = gettext('Log Viewer: Loading...');
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
             // Stop the playing iframe so it doesn't eat up cycles while no one is watching it
@@ -105,7 +106,7 @@ go.Base.update(GateOne.TermLogging, {
                 logMetadataDiv.removeChild(logMetadataDiv.firstChild);
             }
             iframeDoc.open();
-            iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
+            iframeDoc.write('<html><head><title>' + gettext('Preview Iframe') + '</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">' + gettext('Click on a log to view a preview and metadata.') + '</body></html>');
             iframeDoc.close();
             GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_logs'); // Scale away, scale away, scale away.
         }
@@ -245,7 +246,7 @@ go.Base.update(GateOne.TermLogging, {
         }
         var logPreviewIframeDoc = logPreviewIframe.contentWindow.document;
         logPreviewIframeDoc.open();
-        logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
+        logPreviewIframeDoc.write('<html><head><title>' + gettext('Preview Iframe') + '</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">' + gettext('Click on a log to view a preview and metadata.') + '</body></html>');
         logPreviewIframeDoc.close();
         E.on('go:panel_toggle:in', function(panel) {
             if (panel && panel.id == go.prefs.prefix+'panel_logs') {
@@ -403,7 +404,7 @@ go.Base.update(GateOne.TermLogging, {
                 l.loadLogs();
             }
         }
-        prev.innerHTML = '<a id="'+prefix+'log_prevpage" href="javascript:void(0)">« Previous</a>';
+        prev.innerHTML = '<a id="'+prefix+'log_prevpage" href="javascript:void(0)">« ' + gettext('Previous') + '</a>';
         logPaginationUL.appendChild(prev);
         if (logPages > 0) {
             for (var i=0; i<=(logPages-1); i++) {
@@ -452,26 +453,26 @@ go.Base.update(GateOne.TermLogging, {
             existingButtonRow = u.getNode('#'+prefix+'log_actions_row'),
             buttonRowTitle = u.createElement('div', {'class':'✈log_actions_title'}),
             buttonRow = u.createElement('div', {'id': 'log_actions_row', 'class': '✈metadata_row'}),
-            viewFlatButton = u.createElement('button', {'id': 'log_view_flat', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            viewPlaybackButton = u.createElement('button', {'id': 'log_view_playback', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
-            downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            viewFlatButton = u.createElement('button', {'id': 'log_view_flat', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
+            viewPlaybackButton = u.createElement('button', {'id': 'log_view_playback', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
+            downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
             logObj = null;
         if (existingButtonRow) {
             u.removeElement(existingButtonRow);
         }
-        buttonRowTitle.innerHTML = "Actions";
-        viewFlatButton.innerHTML = "Printable";
-        viewFlatButton.title = "Opens a new window with a traditional flat view of the log that can be printed.";
+        buttonRowTitle.innerHTML = gettext("Actions");
+        viewFlatButton.innerHTML = gettext("Printable");
+        viewFlatButton.title = gettext("Opens a new window with a traditional flat view of the log that can be printed.");
         viewFlatButton.onclick = function(e) {
             l.openLogFlat(logFile);
         }
-        viewPlaybackButton.innerHTML = "Open Playback";
-        viewPlaybackButton.title = "Opens a new window with a realtime playback of the log.";
+        viewPlaybackButton.innerHTML = gettext("Open Playback");
+        viewPlaybackButton.title = gettext("Opens a new window with a realtime playback of the log.");
         viewPlaybackButton.onclick = function(e) {
             l.openLogPlayback(logFile);
         }
-        downloadButton.innerHTML = "Save (HTML)";
-        downloadButton.title = "Save a pre-rendered, self-contained recording of this log to disk in HTML format.";
+        downloadButton.innerHTML = gettext("Save (HTML)");
+        downloadButton.title = gettext("Save a pre-rendered, self-contained recording of this log to disk in HTML format.");
         downloadButton.onclick = function(e) {
             l.saveRenderedLog(logFile);
         }
@@ -550,7 +551,7 @@ go.Base.update(GateOne.TermLogging, {
             });
             this.classList.add('✈active');
             iframeDoc.open();
-            iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
+            iframeDoc.write('<html><head><title>' + gettext('Preview Iframe') + '</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">' + gettext('Loading Preview...') + '</body></html');
             iframeDoc.close();
             l.displayMetadata(filename);
         }
@@ -590,7 +591,7 @@ go.Base.update(GateOne.TermLogging, {
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         if (message['log']) {
             if (!message['log']['connect_string']) {
-                message['log']['connect_string'] = "Title Unknown";
+                message['log']['connect_string'] = gettext("Title Unknown");
             }
             l.serverLogs.push(message['log']);
         }
@@ -623,8 +624,8 @@ go.Base.update(GateOne.TermLogging, {
         */
         var l = go.TermLogging,
             logViewHeader = u.getNode('#'+prefix+'logging_title');
-        go.Visual.displayMessage('<b>Log listing complete:</b> ' + l.serverLogs.length + ' logs representing ' + u.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
-        logViewHeader.innerHTML = 'Log Viewer';
+        go.Visual.displayMessage('<b>' + gettext('Log listing complete:') + '</b> ' + l.serverLogs.length + gettext(' logs representing ') + u.humanReadableBytes(message['total_bytes'], 1) + gettext(' of disk space.'));
+        logViewHeader.innerHTML = gettext('Log Viewer');
     },
     displayFlatLogAction: function(message) {
         /**:GateOne.TermLogging.displayFlatLogAction(message)
@@ -640,12 +641,12 @@ go.Base.update(GateOne.TermLogging, {
             logViewContent = u.createElement('div', {'id': 'logview_content'}),
             logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'height': 'auto', 'right': 0}});
         if (result != "Success") {
-            v.displayMessage("Could not retrieve log: " + result);
+            v.displayMessage(gettext("Could not retrieve log: ") + result);
         } else {
             newWindow = window.open('', '_newtab');
             goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true);
             css = u.getNodes('style'); // Grab em all
-            newContent = "<html><head><title>Gate One Log (Flat): " + metadata['filename'] + "</title></head><body></body></html>";
+            newContent = "<html><head><title>" + gettext("Gate One Log (Flat): ") + metadata['filename'] + "</title></head><body></body></html>";
             newWindow.focus();
             newWindow.document.write(newContent);
             newWindow.document.close();
@@ -675,7 +676,7 @@ go.Base.update(GateOne.TermLogging, {
             logViewContent = u.createElement('div', {'id': 'logview_container', 'class': '✈logview_container'}),
             logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'height': '100%'}});
         if (result != "Success") {
-            v.displayMessage("Could not retrieve log: " + result);
+            v.displayMessage(gettext("Could not retrieve log: ") + result);
         } else {
             if (where == 'preview') {
                 var previewIframe = u.getNode('#'+prefix+'log_preview'),
@@ -704,7 +705,7 @@ go.Base.update(GateOne.TermLogging, {
                 'colors_css': colors_css
             };
         go.ws.send(JSON.stringify({'terminal:logging_get_log_flat': message}));
-        go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
+        go.Visual.displayMessage(logFile + gettext(' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.'));
     },
     openLogPlayback: function(logFile, /*opt*/where) {
         /**:GateOne.TermLogging.openLogPlayback(logFile[, where])
@@ -723,7 +724,7 @@ go.Base.update(GateOne.TermLogging, {
         if (where) {
             message['where'] = where;
         } else {
-            go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
+            go.Visual.displayMessage(logFile + gettext(' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.'));
         }
         go.ws.send(JSON.stringify({'terminal:logging_get_log_playback': message}));
     },
@@ -740,7 +741,7 @@ go.Base.update(GateOne.TermLogging, {
                 'colors_css': colors_css
             };
         go.ws.send(JSON.stringify({'terminal:logging_get_log_file': message}));
-        go.Visual.displayMessage(logFile + ' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.');
+        go.Visual.displayMessage(logFile + gettext(' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.'));
     },
     sortFunctions: {
         /**:GateOne.TermLogging.sortFunctions

@@ -10,6 +10,7 @@ var document = window.document, // Have to do this because we're sandboxed
     t = go.Terminal,
     v = go.Visual,
     E = go.Events,
+    gettext = go.i18n.gettext,
     prefix = go.prefs.prefix;
 
 // Tunable prefs
@@ -75,27 +76,27 @@ GateOne.Base.update(GateOne.Convenience, {
             SyslogPrefs = u.createElement('input', {'id': 'prefs_disableSyslogtt', 'name': prefix+'prefs_disableSyslogtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'✈paneltablelabel'}),
             IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}});
-        LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
+        LSPrefsLabel.innerHTML = "<b>" + gettext("Disable 'ls -l' Convenience:") + "</b> ";
         LSPrefs.checked = go.prefs.disableLSConvenience;
         LSRow.appendChild(LSPrefsLabel);
         LSRow.appendChild(LSPrefs);
         tableDiv.appendChild(LSRow);
-        PSPrefsLabel.innerHTML = "<b>Disable 'ps' Convenience:</b> ";
+        PSPrefsLabel.innerHTML = "<b>" + gettext("Disable 'ps' Convenience:") + "</b> ";
         PSPrefs.checked = go.prefs.disablePSConvenience;
         PSRow.appendChild(PSPrefsLabel);
         PSRow.appendChild(PSPrefs);
         tableDiv.appendChild(PSRow);
-        SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
+        SyslogPrefsLabel.innerHTML = "<b>" + gettext("Disable Syslog Convenience:") + "</b> ";
         SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
         SyslogRow.appendChild(SyslogPrefsLabel);
         SyslogRow.appendChild(SyslogPrefs);
         tableDiv.appendChild(SyslogRow);
-        IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
+        IPPrefsLabel.innerHTML = "<b>" + gettext("Disable IP Address Convenience:") + "</b> ";
         IPPrefs.checked = go.prefs.disableIPConvenience;
         IPRow.appendChild(IPPrefsLabel);
         IPRow.appendChild(IPPrefs);
         tableDiv.appendChild(IPRow);
-        go.User.preference("Terminal:Convenience Plugin", tableDiv);
+        go.User.preference(gettext("Terminal:Convenience Plugin"), tableDiv);
         // This makes sure our prefs get saved along with everything else
         E.on('go:save_prefs', go.Convenience.savePrefsCallback);
     },
@@ -136,7 +137,7 @@ GateOne.Base.update(GateOne.Convenience, {
         Registers a number of text transforms to add conveniences to the output of 'ls -l'.
         */
         var bytesPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+[A-Za-z0-9\-._@]+\s+)([0-9]+(?![0-9,.KMGTP]))/g,
-            bytesReplacementString = "$1<span class='✈clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes is \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
+            bytesReplacementString = "$1<span class='✈clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes == \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
         t.registerTextTransform("ls-lbytes", bytesPattern, bytesReplacementString);
         if (go.SSH) {
             var groupPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
@@ -208,15 +209,15 @@ GateOne.Base.update(GateOne.Convenience, {
 
         Displays information about the 'ls -l' permissions contained within *elem*.  elem.innerHTMl **must** be something like 'drwxrwxr-x'.
         */
-        var message = " with permissions equivalent to 'chmod " + go.Convenience.permissionsBitmask(elem) + "'",
+        var message = gettext(" with permissions equivalent to ") + "'chmod " + go.Convenience.permissionsBitmask(elem) + "'",
             types = {
-                '-': "Regular File",
-                'd': "Directory",
-                'l': "Symbolic Link",
-                's': "Socket",
-                'p': "Named Pipe",
-                'c': "Character Device",
-                'b': "Block Device"
+                '-': gettext("Regular File"),
+                'd': gettext("Directory"),
+                'l': gettext("Symbolic Link"),
+                's': gettext("Socket"),
+                'p': gettext("Named Pipe"),
+                'c': gettext("Character Device"),
+                'b': gettext("Block Device")
             };
         if (elem.innerHTML[0] == 'l') {
             message = "(" + types[elem.innerHTML[0]] + ")";
@@ -224,7 +225,7 @@ GateOne.Base.update(GateOne.Convenience, {
             message = "(" + types[elem.innerHTML[0]] + ")" + message;
         }
         if (u.endsWith('+', elem.innerHTML)) {
-            message += " (ACLs Applied)";
+            message += gettext(" (ACLs Applied)");
         }
         v.displayMessage(message);
     },
@@ -272,7 +273,7 @@ GateOne.Base.update(GateOne.Convenience, {
             invalid = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
             user = elem.innerHTML;
         if (elem.innerHTML.search(invalid) == -1) {
-            v.displayMessage("Looking up info for user <i>" + user + "</i>...");
+            v.displayMessage(gettext("Looking up info for user: ") + "<i>" + user + "</i>...");
             go.SSH.execRemoteCmd(term, 'getent passwd ' + user, go.Convenience.displayUserInfo);
         }
     },
@@ -298,13 +299,13 @@ GateOne.Base.update(GateOne.Convenience, {
             gecosRow = u.createElement('tr'),
             homeDirRow = u.createElement('tr'),
             shellRow = u.createElement('tr');
-        userRow.innerHTML = '<td>Username</td><td>' + username + '</td>';
-        passwordRow.innerHTML = '<td>Password</td><td>' + password + '</td>';
+        userRow.innerHTML = '<td>' + gettext('Username') + '</td><td>' + username + '</td>';
+        passwordRow.innerHTML = '<td>' + gettext('Password') + '</td><td>' + password + '</td>';
         uidRow.innerHTML = '<td>UID</td><td>' + uid + '</td>';
         gidRow.innerHTML = '<td>GID</td><td>' + gid + '</td>';
         gecosRow.innerHTML = '<td>GECOS</td><td>' + gecos + '</td>';
-        homeDirRow.innerHTML = '<td>Home Directory&nbsp;&nbsp;&nbsp;</td><td>' + homeDir + '</td>';
-        shellRow.innerHTML = '<td>Shell</td><td>' + shell + '</td>';
+        homeDirRow.innerHTML = '<td>' + gettext('Home Directory') + '&nbsp;&nbsp;&nbsp;</td><td>' + homeDir + '</td>';
+        shellRow.innerHTML = '<td>Shell</td><td>' + shell + '</td>'; // 'Shell' is precisely what this is in all languages as I undertstand it (hence no gettext())
         table.appendChild(userRow);
         table.appendChild(passwordRow);
         table.appendChild(uidRow);
@@ -320,7 +321,7 @@ GateOne.Base.update(GateOne.Convenience, {
 
         Displays a message indicating there was an error getting info on the user.
         */
-        v.displayMessage("An error was encountered trying to get user info: " + result);
+        v.displayMessage(gettext("An error was encountered trying to get user info: ") + result);
     },
     groupInfo: function(elem) {
         /**:GateOne.Convenience.groupInfo(elem)
@@ -331,7 +332,7 @@ GateOne.Base.update(GateOne.Convenience, {
             invalid = /.*[;&$()\[\]\*].*/g, // Keep things safe just in case
             group = elem.innerHTML;
         if (elem.innerHTML.search(invalid) == -1) {
-            v.displayMessage("Looking up info for group <i>" + group + "</i>...");
+            v.displayMessage(gettext("Looking up info for group") + " <i>" + group + "</i>...");
             go.SSH.execRemoteCmd(term, 'getent group ' + group, go.Convenience.groupInfo2);
         }
     },
@@ -345,7 +346,7 @@ GateOne.Base.update(GateOne.Convenience, {
             return;
         }
         if (output.length == 0) {
-            v.displayMessage("Group not found");
+            v.displayMessage(gettext("Group not found"));
             return;
         }
         var fieldList = output.split(':'),
@@ -360,10 +361,10 @@ GateOne.Base.update(GateOne.Convenience, {
             gidRow = u.createElement('tr'),
             usersRow = u.createElement('tr', {'style': {'vertical-align': 'top'}}),
             term = localStorage[prefix+'selectedTerminal'];
-        nameRow.innerHTML = '<td>Name</td><td>' + groupname + '</td>';
-        passwordRow.innerHTML = '<td>Password</td><td>' + password + '</td>';
+        nameRow.innerHTML = '<td>' + gettext('Name') + '</td><td>' + groupname + '</td>';
+        passwordRow.innerHTML = '<td>' + gettext('Password') + '</td><td>' + password + '</td>';
         gidRow.innerHTML = '<td>GID</td><td>' + gid + '</td>';
-        usersRow.innerHTML = '<td>Users</td><td>' + users + '</td>';
+        usersRow.innerHTML = '<td>' + gettext('Users') + '</td><td>' + users + '</td>';
         table.appendChild(nameRow);
         table.appendChild(passwordRow);
         table.appendChild(gidRow);
@@ -377,7 +378,7 @@ GateOne.Base.update(GateOne.Convenience, {
 
         Displays a message indicating there was an error getting info on the group.
         */
-        v.displayMessage("An error was encountered trying to get group info: " + result);
+        v.displayMessage(gettext("An error was encountered trying to get group info: ") + result);
     },
     displayGroupInfo: function(output) {
         /**:GateOne.Convenience.displayGroupInfo(output)
@@ -390,11 +391,11 @@ GateOne.Base.update(GateOne.Convenience, {
             table = go.Convenience.groupTemp[groupname],
             titleDiv = u.createElement('div', {'style': {'text-align': 'center', 'text-decoration': 'underline'}}),
             container = u.createElement('p');
-        gidUsersRow.innerHTML = '<td nowrap="nowrap">Users via GID&nbsp;&nbsp;&nbsp;</td><td style="max-width: 20em;">' + usersViaGID + '</td>';
-        titleDiv.innerHTML = "Group Info";
+        gidUsersRow.innerHTML = '<td nowrap="nowrap">' + gettext('Users via GID') + '&nbsp;&nbsp;&nbsp;</td><td style="max-width: 20em;">' + usersViaGID + '</td>';
+        titleDiv.innerHTML = gettext("Group Info");
         if (!table) {
             // Something went wrong trying to split() the output
-            go.Convenience.groupInfoError("Likely too much output so it got truncated... " + output);
+            go.Convenience.groupInfoError(gettext("Likely too much output so it got truncated... ") + output);
         }
         table.appendChild(gidUsersRow);
         container.appendChild(titleDiv);
@@ -427,7 +428,7 @@ GateOne.Base.update(GateOne.Convenience, {
             psRootPattern = /\n(root)(\s+[0-9]+)/g, // Highlights the word 'root'
             psRootReplacementString = "\n<span class='✈highlight_root'>$1</span>$2", // Default theme has this as a red color
             kernelModulePattern = /([0-9] )(\[.+?\]\n)/g, // Kernel/system processes show up in brackets
-            kernelModuleReplacementString = "$1<span title='Kernel or System Process' class='✈dim'>$2</span>";
+            kernelModuleReplacementString = "$1<span title='" + gettext("Kernel or System Process") + "' class='✈dim'>$2</span>";
         t.registerTextTransform("psroot", psRootPattern, psRootReplacementString);
         t.registerTextTransform("psheading", headingPattern, headingReplacementString);
         t.registerTextTransform("pskernelmodule", kernelModulePattern, kernelModuleReplacementString);

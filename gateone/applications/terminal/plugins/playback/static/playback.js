@@ -11,6 +11,7 @@ var document = window.document, // Have to do this because we're sandboxed
     t = go.Terminal,
     prefix = go.prefs.prefix,
     noop = u.noop,
+    gettext = go.i18n.gettext,
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
     logWarning = GateOne.Logging.logWarning,
@@ -62,15 +63,15 @@ go.Base.update(GateOne.Playback, {
             prefsPanelRow = u.createElement('div', {'class':'✈paneltablerow'}),
             prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class': '✈paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': 'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'});
         if (prefsTableDiv2) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
-            prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
+            prefsPanelPlaybackLabel.innerHTML = "<b>" + gettext("Playback Frames:") + "</b> ";
             prefsPanelPlayback.value = go.prefs.playbackFrames;
             prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
             prefsPanelRow.appendChild(prefsPanelPlayback);
             prefsTableDiv2.appendChild(prefsPanelRow);
-            infoPanelSaveRecording.innerHTML = "Export Current Session";
-            infoPanelSaveRecording.title = "Open the current terminal's playback history in a new window (which you can save to a file)."
+            infoPanelSaveRecording.innerHTML = gettext("Export Current Session");
+            infoPanelSaveRecording.title = gettext("Open the current terminal's playback history in a new window (which you can save to a file).");
             infoPanelSaveRecording.onclick = function() {
                 p.saveRecording(localStorage[prefix+'selectedTerminal']);
             }

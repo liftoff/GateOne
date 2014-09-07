@@ -25,12 +25,12 @@ var go = GateOne,
     mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 
 // Icons used in this application:
-go.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
+go.Icons.terminal = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = go.prefs['webWorker'] || null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
-go.prefs['rows'] = go.prefs['rows'] || null; // Override the automatically calculated value (null means fill the window)
-go.prefs['columns'] = go.prefs['columns'] || null; // Ditto
+go.prefs.rows = go.prefs.rows || null; // Override the automatically calculated value (null means fill the window)
+go.prefs.columns = go.prefs.columns || null; // Ditto
 go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If false selecting text will not result in other occurences of that text being highlighted
 go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
 go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
@@ -42,8 +42,8 @@ go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false
 go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
                             // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
 go.prefs['colAdjust'] = go.prefs['colAdjust'] || 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
-if(isNaN(go.prefs['scrollback'])) {
-    go.prefs['scrollback'] = 500;
+if(isNaN(go.prefs.scrollback)) {
+    go.prefs.scrollback = 500;
 }
 // This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
 go.noSavePrefs['webWorker'] = null;
@@ -54,8 +54,8 @@ t = go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
 t.terminals = { // For keeping track of running terminals
     count: function() { // A useful function (terminals can be differentiated because they'll always be integers)
         // Returns the number of open terminals
-        var counter = 0;
-        for (var term in t.terminals) {
+        var counter = 0, term;
+        for (term in t.terminals) {
             if (term % 1 === 0) {
                 counter += 1;
             }
@@ -95,7 +95,7 @@ go.Base.update(GateOne.Terminal, {
             if (settings['icon']) {
                 return settings['icon'];
             } else {
-                return go.Icons['terminal'];
+                return go.Icons.terminal;
             }
         },
         'relocatable': true
@@ -123,7 +123,7 @@ go.Base.update(GateOne.Terminal, {
             if (!go.Terminal.warnedAboutVoiceExt) {
                 if (GateOne.Terminal.hasVoiceExt()) {
                     v.alert(gettext("WARNING: Problematic Browser Extension Detected"),
-                            gettext("<p><b>Warning:</b> An extension was detected that can result in a severe negative impact on terminal performance (Google Voice). The extension is modifying the web page every time there's a screen update (what it thinks are phone numbers are being converted into clickable links).  Please disable the 'Clickable Links' feature of the extension, turn it off for this web site (if possible), or disable it entirely.</p>"));
+                            "<p><b>"+gettext("Warning:")+"</b>"+gettext(" An extension was detected that can result in a severe negative impact on terminal performance (Google Voice). The extension is modifying the web page every time there's a screen update (what it thinks are phone numbers are being converted into clickable links).  Please disable the 'Clickable Links' feature of the extension, turn it off for this web site (if possible), or disable it entirely.")+"</p>");
                 }
                 go.Terminal.warnedAboutVoiceExt = true;
             }
@@ -142,7 +142,7 @@ go.Base.update(GateOne.Terminal, {
             tableDiv = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': '✈panel'}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': gettext("Close This Panel")}),
             infoPanelRow1 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow1'}),
             infoPanelRow2 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow2'}),
             infoPanelRow3 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow3'}),
@@ -165,7 +165,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelEncoding = u.createElement('input', {'type': 'text', 'id': 'encoding', 'name': 'encoding', 'value': 'utf-8', 'style': {'display': 'table-cell'}}),
             infoPanelKeyboardLabel = u.createElement('span', {'id': 'keyboard_label', 'class':'✈paneltablelabel'}),
             infoPanelKeyboard = u.createElement('select', {'id': 'keyboard', 'name':'keyboard', 'style': {'display': 'table-cell'}}),
-            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black'}),
             infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
             infoPanelMonitorInactivity = u.createElement('input', {'id': 'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
@@ -173,8 +173,8 @@ go.Base.update(GateOne.Terminal, {
             infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'type': 'number', 'step': 'any', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
-            termSharingButton = u.createElement('button', {'id': 'term_sharing', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
-            resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
+            termSharingButton = u.createElement('button', {'id': 'term_sharing', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black ✈tooltip'}),
+            resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black ✈tooltip'}),
             cmdQueryString = u.getQueryVariable('terminal_cmd'),
             switchTerm = function() {
                 if (localStorage[prefix+'selectedTerminal']) {
@@ -204,12 +204,12 @@ go.Base.update(GateOne.Terminal, {
         panelClose.onclick = function(e) {
             v.togglePanel('#'+prefix+'panel_info'); // Scale away, scale away, scale away.
         }
-        infoPanelTimeLabel.innerHTML = gettext("<b>Connected Since:</b> ");
-        infoPanelRowsLabel.innerHTML = gettext("<b>Rows:</b> ");
+        infoPanelTimeLabel.innerHTML = "<b>"+gettext("Connected Since:")+"</b> ";
+        infoPanelRowsLabel.innerHTML = "<b>"+gettext("Rows:")+"</b> ";
         infoPanelRows.innerHTML = go.prefs.rows; // Will be replaced
-        infoPanelColsLabel.innerHTML = gettext("<b>Columns:</b> ");
+        infoPanelColsLabel.innerHTML = "<b>"+gettext("Columns:")+"</b> ";
         infoPanelCols.innerHTML = go.prefs.columns; // Will be replaced
-        infoPanelBackspaceLabel.innerHTML = gettext("<b>Backspace Key:</b> ");
+        infoPanelBackspaceLabel.innerHTML = "<b>"+gettext("Backspace Key:")+"</b> ";
         infoPanelBackspaceCheckQ.checked = true;
         infoPanelBackspaceCheckQ.onclick = function(e) {
             var term = localStorage[prefix+'selectedTerminal'];
@@ -221,14 +221,14 @@ go.Base.update(GateOne.Terminal, {
         }
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckH);
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckQ);
-        infoPanelEncodingLabel.innerHTML = gettext("<b>Encoding:</b> ");
+        infoPanelEncodingLabel.innerHTML = "<b>"+gettext("Encoding:")+"</b> ";
         infoPanelEncoding.onblur = function(e) {
             // When the user is done editing their encoding make the change immediately
             var term = localStorage[prefix+'selectedTerminal'];
             go.Terminal.terminals[term]['encoding'] = this.value;
             go.ws.send(JSON.stringify({'terminal:set_encoding': {'term': term, 'encoding': this.value}}));
         }
-        infoPanelKeyboardLabel.innerHTML = gettext("<b>Keyboard Mode</b>");
+        infoPanelKeyboardLabel.innerHTML = "<b>"+gettext("Keyboard Mode")+"</b>";
         // TODO: Move these keyboard modes to a global somewhere so we can stay better organized.
         infoPanelKeyboard.add(new Option("default", "default"), null);
         infoPanelKeyboard.add(new Option("xterm", "xterm"), null);
@@ -264,7 +264,7 @@ go.Base.update(GateOne.Terminal, {
         tableDiv.appendChild(infoPanelRow4);
         tableDiv.appendChild(infoPanelRow5);
         tableDiv.appendChild(infoPanelRow6);
-        infoPanelMonitorActivityLabel.innerHTML = gettext("Monitor for Activity<br />");
+        infoPanelMonitorActivityLabel.innerHTML = gettext("Monitor for Activity")+"<br />";
         infoPanelMonitorInactivityLabel.innerHTML = gettext("Monitor for ");
         infoPanelInactivityIntervalLabel.innerHTML = gettext("Seconds of Inactivity");
         infoPanelInactivityInterval.value = "10";
@@ -283,25 +283,25 @@ go.Base.update(GateOne.Terminal, {
             var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = go.Terminal.terminals[term]['title'];
+                termTitle = go.Terminal.terminals[term].title;
             if (monitorInactivity.checked) {
                 var inactivity = function() {
                     go.Terminal.notifyInactivity(term + ': ' + termTitle);
                     // Restart the timer
-                    go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
+                    go.Terminal.terminals[term].inactivityTimer = setTimeout(inactivity, go.Terminal.terminals[term].inactivityTimeout);
                 }
-                go.Terminal.terminals[term]['inactivityTimeout'] = parseInt(infoPanelInactivityInterval.value) * 1000 || 10000; // Ten second default
-                go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
+                go.Terminal.terminals[term].inactivityTimeout = parseInt(infoPanelInactivityInterval.value) * 1000 || 10000; // Ten second default
+                go.Terminal.terminals[term].inactivityTimer = setTimeout(inactivity, go.Terminal.terminals[term].inactivityTimeout);
                 go.Visual.displayMessage(gettext("Now monitoring for inactivity in terminal: ") + term);
-                if (go.Terminal.terminals[term]['activityNotify']) {
+                if (go.Terminal.terminals[term].activityNotify) {
                     // Turn off monitoring for activity if we're now going to monitor for inactivity
-                    go.Terminal.terminals[term]['activityNotify'] = false;
+                    go.Terminal.terminals[term].activityNotify = false;
                     monitorActivity.checked = false;
                 }
             } else {
                 monitorInactivity.checked = false;
-                clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
-                go.Terminal.terminals[term]['inactivityTimer'] = false;
+                clearTimeout(go.Terminal.terminals[term].inactivityTimer);
+                go.Terminal.terminals[term].inactivityTimer = false;
             }
         }
         infoPanelMonitorActivity.onclick = function() {
@@ -310,27 +310,27 @@ go.Base.update(GateOne.Terminal, {
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity');
             if (monitorActivity.checked) {
-                go.Terminal.terminals[term]['activityNotify'] = true;
-                go.Visual.displayMessage("Now monitoring terminal " + term + " for activity.");
-                if (go.Terminal.terminals[term]['inactivityTimer']) {
+                go.Terminal.terminals[term].activityNotify = true;
+                go.Visual.displayMessage(gettext("Now monitoring for activity in terminal: ") + term);
+                if (go.Terminal.terminals[term].inactivityTimer) {
                     // Turn off monitoring for activity if we're now going to monitor for inactivity
-                    clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
-                    go.Terminal.terminals[term]['inactivityTimer'] = false;
+                    clearTimeout(go.Terminal.terminals[term].inactivityTimer);
+                    go.Terminal.terminals[term].inactivityTimer = false;
                     monitorInactivity.checked = false;
                 }
             } else {
                 monitorActivity.checked = false;
-                go.Terminal.terminals[term]['activityNotify'] = false;
+                go.Terminal.terminals[term].activityNotify = false;
             }
         }
         infoPanelInactivityInterval.onblur = function(e) {
-            // Update go.Terminal.terminals[term]['inactivityTimeout'] with the this.value
+            // Update go.Terminal.terminals[term].inactivityTimeout with the this.value
             var term = localStorage[prefix+'selectedTerminal'];
-            go.Terminal.terminals[term]['inactivityTimeout'] = parseInt(this.value) * 1000;
+            go.Terminal.terminals[term].inactivityTimeout = parseInt(this.value) * 1000;
         }
         var editTitle =  function(e) {
             var term = localStorage[prefix+'selectedTerminal'],
-                title = go.Terminal.terminals[term]['title'],
+                title = go.Terminal.terminals[term].title,
                 titleEdit = u.createElement('input', {'type': 'text', 'name': 'title', 'value': title, 'id': go.prefs.prefix + 'title_edit'}),
                 finishEditing = function(e) {
                     var newTitle = titleEdit.value,
@@ -435,9 +435,9 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:restore_defaults", function() {
             go.prefs['colors'] = "default";
             go.prefs['disableTermTransitions'] = false;
-            go.prefs['scrollback'] = 500;
-            go.prefs['rows'] = null;
-            go.prefs['columns'] = null;
+            go.prefs.scrollback = 500;
+            go.prefs.rows = null;
+            go.prefs.columns = null;
             go.prefs['highlightSelection'] = true;
             go.prefs['audibleBell'] = true;
             go.prefs['bellSound'] = '';
@@ -492,8 +492,8 @@ go.Base.update(GateOne.Terminal, {
                 // Popup terminals need a moment so they can finish being drawn
                 var options = {};
                 if (termObj['metadata']) {
-                    if (termObj['metadata']['where']) {
-                        options['where'] = u.getNode('#' + termObj['metadata']['where']) || u.getNode('.' + termObj['metadata']['where']);
+                    if (termObj['metadata'].where) {
+                        options.where = u.getNode('#' + termObj['metadata'].where) || u.getNode('.' + termObj['metadata'].where);
                     }
                 }
                 go.Terminal.popupTerm(term, options);
@@ -610,7 +610,7 @@ go.Base.update(GateOne.Terminal, {
                         go.Terminal.colAdjust = 4;
                         terms.forEach(function(termObj) {
                             var term = termObj.id.split('term')[1],
-                                termPre = GateOne.Terminal.terminals[term]['node'];
+                                termPre = GateOne.Terminal.terminals[term].node;
                             termPre.style['overflow-y'] = 'auto';
                         });
                     }
@@ -641,13 +641,13 @@ go.Base.update(GateOne.Terminal, {
             e.preventDefault(); // Just in case
             go.Terminal.uploadBellDialog();
         }
-        prefsPanelFontLabel.innerHTML = gettext("<b>Font:</b> ");
-        prefsPanelFontSizeLabel.innerHTML = gettext("<b>Font Size:</b> ");
-        prefsPanelColorsLabel.innerHTML = gettext("<b>Color Scheme:</b> ");
-        prefsPanelDisableHighlightLabel.innerHTML = gettext("<b>Disable Selected Text Highlighting:</b> ");
-        prefsPanelDisableAudibleBellLabel.innerHTML = gettext("<b>Disable Bell Sound:</b> ");
+        prefsPanelFontLabel.innerHTML = "<b>"+gettext("Font:")+"</b> ";
+        prefsPanelFontSizeLabel.innerHTML = "<b>"+gettext("Font Size:")+"</b> ";
+        prefsPanelColorsLabel.innerHTML = "<b>"+gettext("Color Scheme:")+"</b> ";
+        prefsPanelDisableHighlightLabel.innerHTML = "<b>"+gettext("Disable Selected Text Highlighting:")+"</b> ";
+        prefsPanelDisableAudibleBellLabel.innerHTML = "<b>"+gettext("Disable Bell Sound:")+"</b> ";
         prefsPanelBell.innerHTML = gettext("Configure");
-        prefsPanelBellLabel.innerHTML = gettext("<b>Bell Sound:</b> ");
+        prefsPanelBellLabel.innerHTML = "<b>"+gettext("Bell Sound:")+"</b> ";
         prefsPanelStyleRow1.appendChild(prefsPanelFontLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelFont);
         prefsPanelStyleRow1b.appendChild(prefsPanelFontSizeLabel);
@@ -666,11 +666,11 @@ go.Base.update(GateOne.Terminal, {
         tableDiv.appendChild(prefsPanelStyleRow4);
         tableDiv.appendChild(prefsPanelStyleRow5);
         tableDiv.appendChild(prefsPanelStyleRow6);
-        prefsPanelScrollbackLabel.innerHTML = gettext("<b>Scrollback Buffer Lines:</b> ");
+        prefsPanelScrollbackLabel.innerHTML = "<b>"+gettext("Scrollback Buffer Lines:")+"</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
-        prefsPanelRowsLabel.innerHTML = gettext("<b>Terminal Rows:</b> ");
+        prefsPanelRowsLabel.innerHTML = "<b>"+gettext("Terminal Rows:")+"</b> ";
         prefsPanelRows.value = go.prefs.rows || "";
-        prefsPanelColsLabel.innerHTML = gettext("<b>Terminal Columns:</b> ");
+        prefsPanelColsLabel.innerHTML = "<b>"+gettext("Terminal Columns:")+"</b> ";
         prefsPanelCols.value = go.prefs.columns || "";
         prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
         prefsPanelRow1.appendChild(prefsPanelScrollback);
@@ -684,14 +684,14 @@ go.Base.update(GateOne.Terminal, {
         tableDiv2.appendChild(prefsPanelRow5);
         contentContainer.appendChild(tableDiv);
         contentContainer.appendChild(tableDiv2);
-        go.User.preference("Terminal", contentContainer, savePrefsCallback);
+        go.User.preference(gettext("Terminal"), contentContainer, savePrefsCallback);
     },
     enumerateCommandsAction: function(messageObj) {
         /**:GateOne.Terminal.enumerateCommandsAction(messageObj)
 
         Attached to the 'terminal:commands_list' WebSocket action; stores *messageObj['commands']* in `GateOne.Terminal.commandsList`.
         */
-        var commandsList = messageObj['commands'];
+        var commandsList = messageObj.commands;
         // Save the fonts list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
         go.Terminal.commandsList = commandsList;
     },
@@ -700,7 +700,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server and stores the list in `GateOne.Terminal.fontsList`.
         */
-        var fontsList = messageObj['fonts'],
+        var fontsList = messageObj.fonts,
             prefsFontSelect = u.getNode('#'+prefix+'prefs_font'),
             prefsFontSize = u.getNode('#'+prefix+'prefs_font_size'),
             count = 1; // Start at 1 since we always add monospace
@@ -723,7 +723,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the 'terminal:colors_list' WebSocket action; updates the preferences panel with the list of text color schemes stored on the server.
         */
-        var colorsList = messageObj['colors'],
+        var colorsList = messageObj.colors,
             prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors'),
             count = 0;
         // Save the colors list so other things (plugins, embedded situations, etc) can reference it without having to examine the select tag
@@ -751,13 +751,13 @@ go.Base.update(GateOne.Terminal, {
         }
         for (shareID in go.Terminal.sharedTerminals) {
             // Check if this terminal belongs to someone else so we can skip telling the server to resize it (only the owner can resize a terminal)
-            if (term == go.Terminal.sharedTerminals[shareID]['term']) {
-                if (go.Terminal.sharedTerminals[shareID]['owner'] != go.User.username) {
+            if (term == go.Terminal.sharedTerminals[shareID].term) {
+                if (go.Terminal.sharedTerminals[shareID].owner != go.User.username) {
                     return; // We're not the owner so nothing to do
                 }
             }
         }
-        termPre = terminalObj['node'];
+        termPre = terminalObj.node;
         if (u.isVisible(termPre)) { // Only if terminal is visible
             go.Terminal.sendDimensions();
             if (go.prefs.scrollback != 0) {
@@ -873,9 +873,9 @@ go.Base.update(GateOne.Terminal, {
         if (!termObj) {
             return;
         }
-        var displayText = termObj.id.split('term')[1] + ": " + go.Terminal.terminals[term]['title'],
+        var displayText = termObj.id.split('term')[1] + ": " + go.Terminal.terminals[term].title,
             termInfoDiv = u.createElement('div', {'id': 'terminfo', 'class': '✈terminfo'}),
-            marginFix = Math.round(go.Terminal.terminals[term]['title'].length/2),
+            marginFix = Math.round(go.Terminal.terminals[term].title.length/2),
             infoContainer = u.createElement('div', {'id': 'infocontainer', 'class': '✈term_infocontainer ✈halfsectrans'});
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
@@ -919,8 +919,8 @@ go.Base.update(GateOne.Terminal, {
         if (!termObj) {
             return; // Nothing to do (terminal has not been created yet or was just closed)
         }
-        var termNode = termObj['terminal'],
-            where = termObj['where'],
+        var termNode = termObj.terminal,
+            where = termObj.where,
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             emDimensions = u.getEmDimensions(termNode, where),
@@ -933,7 +933,7 @@ go.Base.update(GateOne.Terminal, {
                 'columns': colsValue,
                 'em_dimensions': emDimensions
             };
-        if (go.Terminal.terminals[term]['noAdjust']) {
+        if (go.Terminal.terminals[term].noAdjust) {
             rowsValue = dimensions.rows; // Don't bother with the usual rowAdjust for popup terminals
         }
         // Explanation of below:  If the difference between the calculated value and the floor() of that value is greater than 0.8
@@ -943,9 +943,9 @@ go.Base.update(GateOne.Terminal, {
         // > 20% of a character (height-wise) of "wiggle room" between what is *supposed* to fit in the element and what the
         // browser tells us will fit (it lies--the top gets cut off!).
         if ((rowsValue - Math.floor(rowsValue)) > 0.8) {
-            prefs['rows'] = Math.ceil(rowsValue);
+            prefs.rows = Math.ceil(rowsValue);
         } else {
-            prefs['rows'] = Math.floor(rowsValue);
+            prefs.rows = Math.floor(rowsValue);
         }
         if (!emDimensions.h || !emDimensions.w) {
             return; // Nothing to do
@@ -966,11 +966,11 @@ go.Base.update(GateOne.Terminal, {
             for (var term in go.Terminal.terminals) {
                 // Only want terminals which are integers; not the 'count()' function
                 if (term % 1 === 0) {
-                    var where = go.Terminal.terminals[term]['where'];
+                    var where = go.Terminal.terminals[term].where;
                     if (where && where.classList.contains('✈termdialog')) {
                         ;; // Popup terminals need to be resized individually
                     } else {
-                        prefs['term'] = term;
+                        prefs.term = term;
                         go.ws.send(JSON.stringify({'terminal:resize': prefs}));
                     }
                 }
@@ -979,12 +979,12 @@ go.Base.update(GateOne.Terminal, {
             // Tell the server the new dimensions
             go.ws.send(JSON.stringify({'terminal:resize': prefs}));
         }
-        go.Terminal.prevCols = prefs['columns'];
-        go.Terminal.prevRows = prefs['rows'];
+        go.Terminal.prevCols = prefs.columns;
+        go.Terminal.prevRows = prefs.rows;
         // Execute any sendDimensionsCallbacks
         E.trigger("terminal:send_dimensions", term);
         if (GateOne.Net.sendDimensionsCallbacks.length) {
-            go.Logging.deprecated("sendDimensionsCallbacks", gettext("Use GateOne.Events.on('terminal:send_dimensions', func) instead."));
+            go.Logging.deprecated("sendDimensionsCallbacks", gettext("Use ")+"GateOne.Events.on('terminal:send_dimensions', func) "+gettext("instead."));
             for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
                 GateOne.Net.sendDimensionsCallbacks[i](term);
             }
@@ -1002,7 +1002,7 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return; // Nothing to do
         }
-        where = go.Terminal.terminals[term]['where'];
+        where = go.Terminal.terminals[term].where;
         if (where && where.classList.contains('✈termdialog')) {
             // This is a popup terminal; set the title of the dialog
             u.toArray(u.getNodes('.✈popupterm')).forEach(function(dialog) {
@@ -1017,10 +1017,10 @@ go.Base.update(GateOne.Terminal, {
     setTitleAction: function(titleObj) {
         /**:GateOne.Terminal.setTitleAction(titleObj)
 
-        Sets the title of *titleObj['term']* to *titleObj['title']*.
+        Sets the title of *titleObj.term* to *titleObj.title*.
         */
-        var term = titleObj['term'],
-            title = titleObj['title'],
+        var term = titleObj.term,
+            title = titleObj.title,
             termObj = go.Terminal.terminals[term],
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
             termTitle = u.getNode('#'+prefix+'termtitle'),
@@ -1033,11 +1033,11 @@ go.Base.update(GateOne.Terminal, {
             return; // Terminal was just closed
         }
         termObj['X11Title'] = title;
-        termObj['title'] = title;
+        termObj.title = title;
         go.Terminal.setTitle(term, term + ": " + title);
-        if (termObj['workspace']) {
+        if (termObj.workspace) {
             // Set the title of the workspace too so it shows up in the locations panel
-            go.workspaces[termObj['workspace']]['node'].setAttribute('data-title', term + ": " + title);
+            go.workspaces[termObj.workspace].node.setAttribute('data-title', term + ": " + title);
         }
         // Also update the info panel
         if (termTitle) {
@@ -1048,15 +1048,15 @@ go.Base.update(GateOne.Terminal, {
     resizeAction: function(message) {
         /**:GateOne.Terminal.resizeAction(message)
 
-        Called when the server sends the `terminal:resize` WebSocket action.  Sets the 'rows' and 'columns' values inside `GateOne.Terminal.terminals[message['term']]` and sets the same values inside the Info & Tools panel.
+        Called when the server sends the `terminal:resize` WebSocket action.  Sets the 'rows' and 'columns' values inside `GateOne.Terminal.terminals[message.term]` and sets the same values inside the Info & Tools panel.
         */
-        var term = message['term'],
-            rows = message['rows'],
-            columns = message['columns'],
+        var term = message.term,
+            rows = message.rows,
+            columns = message.columns,
             infoPanelRows = u.getNode('#'+prefix+'rows'),
             infoPanelCols = u.getNode('#'+prefix+'columns');
-        go.Terminal.terminals[term]['rows'] = rows;
-        go.Terminal.terminals[term]['columns'] = columns;
+        go.Terminal.terminals[term].rows = rows;
+        go.Terminal.terminals[term].columns = columns;
         infoPanelRows.innerHTML = rows + "<br />";
         infoPanelCols.innerHTML = columns + "<br />";
         E.trigger("terminal:resize", term, rows, columns);
@@ -1125,7 +1125,7 @@ go.Base.update(GateOne.Terminal, {
         .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
         */
         var termObj = go.Terminal.terminals[term],
-            screenNode = termObj['screenNode'],
+            screenNode = termObj.screenNode,
             existingScreen = termObj['screen'],
             i, existingLine, classes, lineSpan,
             dirtyLines = go.Terminal._dirtyLines,
@@ -1175,15 +1175,15 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             return; // Don't bother if scrollback has been disabled
         }
-        var termPre = go.Terminal.terminals[term]['node'],
-            screenSpan = go.Terminal.terminals[term]['screenNode'],
-            terminalNode = go.Terminal.terminals[term]['terminal'],
-            where = go.Terminal.terminals[term]['where'],
+        var termPre = go.Terminal.terminals[term].node,
+            screenSpan = go.Terminal.terminals[term].screenNode,
+            terminalNode = go.Terminal.terminals[term].terminal,
+            where = go.Terminal.terminals[term].where,
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust;
         if (!termPre) {
             return; // Can happen for the same reason as above
         }
-        if (go.Terminal.terminals[term]['noAdjust']) {
+        if (go.Terminal.terminals[term].noAdjust) {
             rowAdjust = go.prefs.rowAdjust; // Don't bother with the usual rowAdjust for popup terminals
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
@@ -1244,10 +1244,10 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return; // Nothing to do
         }
-        existingPre = go.Terminal.terminals[term]['node'];
-        existingScreen = go.Terminal.terminals[term]['screenNode']
+        existingPre = go.Terminal.terminals[term].node;
+        existingScreen = go.Terminal.terminals[term].screenNode
         if (term && go.Terminal.terminals[term]) {
-            termTitle = go.Terminal.terminals[term]['title'];
+            termTitle = go.Terminal.terminals[term].title;
         } else {
             // Terminal was likely just closed.
             return;
@@ -1309,9 +1309,9 @@ go.Base.update(GateOne.Terminal, {
                 u.scrollToBottom(existingPre);
             }
             screenUpdate = true;
-            go.Terminal.terminals[term]['scrollbackVisible'] = false;
+            go.Terminal.terminals[term].scrollbackVisible = false;
             // This is a convenience for plugin authors:  Execute any incoming <script> tags automatically
-            scriptElements = go.Terminal.terminals[term]['node'].querySelectorAll('script');
+            scriptElements = go.Terminal.terminals[term].node.querySelectorAll('script');
             if (scriptElements.length) {
                 u.toArray(scriptElements).forEach(function(tag) {
                     eval(tag.innerHTML);
@@ -1321,14 +1321,14 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.scrollback == 0) {
             scrollback = []; // Empty it out since the user has disabled the scrollback buffer
         }
-        if (scrollback.length && go.Terminal.terminals[term]['scrollback'].toString() != scrollback.toString()) {
+        if (scrollback.length && go.Terminal.terminals[term].scrollback.toString() != scrollback.toString()) {
             reScrollback = u.partial(go.Terminal.enableScrollback, term);
-            go.Terminal.terminals[term]['scrollback'] = scrollback;
+            go.Terminal.terminals[term].scrollback = scrollback;
             go.Terminal.writeScrollback(term, scrollback); // Uses IndexedDB so it should be nice and async
             // This updates the scrollback buffer in the DOM
-            clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
+            clearTimeout(go.Terminal.terminals[term].scrollbackTimer);
             // This timeout re-adds the scrollback buffer after 1 second.  If we don't do this it can slow down the responsiveness quite a bit
-            go.Terminal.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
+            go.Terminal.terminals[term].scrollbackTimer = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
             // This is only used when debugging the Web Worker
@@ -1336,12 +1336,12 @@ go.Base.update(GateOne.Terminal, {
         }
         if (screenUpdate) {
             // Take care of the activity/inactivity notifications
-            if (go.Terminal.terminals[term]['inactivityTimer']) {
-                clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
+            if (go.Terminal.terminals[term].inactivityTimer) {
+                clearTimeout(go.Terminal.terminals[term].inactivityTimer);
                 inactivity = u.partial(go.Terminal.notifyInactivity, term + ': ' + termTitle);
-                go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
+                go.Terminal.terminals[term].inactivityTimer = setTimeout(inactivity, go.Terminal.terminals[term].inactivityTimeout);
             }
-            if (go.Terminal.terminals[term]['activityNotify']) {
+            if (go.Terminal.terminals[term].activityNotify) {
                 if (!go.Terminal.terminals[term]['lastNotifyTime']) {
                     // Setup a minimum delay between activity notifications so we're not spamming the user
                     go.Terminal.terminals[term]['lastNotifyTime'] = new Date();
@@ -1407,7 +1407,7 @@ go.Base.update(GateOne.Terminal, {
             .. note:: The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
         */
         var t = go.Terminal,
-            term = termUpdateObj['term'],
+            term = termUpdateObj.term,
             ratelimiter = termUpdateObj['ratelimiter'],
             scrollback,
             textTransforms = go.Terminal.textTransforms,
@@ -1418,7 +1418,7 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return; // Terminal was just closed
         }
-        scrollback = go.Terminal.terminals[term]['scrollback'];
+        scrollback = go.Terminal.terminals[term].scrollback;
         if (ratelimiter) {
             v.displayMessage(gettext("WARNING: The rate limiter was engaged on terminal: ") + term + gettext(".  Output will be severely slowed until you press a key (e.g. Ctrl-C)."));
         }
@@ -1452,7 +1452,7 @@ go.Base.update(GateOne.Terminal, {
 
             Notifies the user of inactivity in *term*.
         */
-        var message = "Inactivity in terminal " + term;
+        var message = gettext("Inactivity in terminal: ") + term;
         go.Terminal.playBell();
         v.displayMessage(message);
     },
@@ -1461,7 +1461,7 @@ go.Base.update(GateOne.Terminal, {
 
             Notifies the user of activity in *term*.
         */
-        var message = "Activity in terminal " + term;
+        var message = gettext("Activity in terminal: ") + term;
         go.Terminal.playBell();
         v.displayMessage(message);
     },
@@ -1615,8 +1615,8 @@ go.Base.update(GateOne.Terminal, {
                 }
                 // Don't add the scrollback if the user is highlighting text--it will mess it up
                 if (go.Terminal.terminals[selectedTerm]) {
-                    if (go.Terminal.terminals[selectedTerm]['scrollbackTimer']) {
-                        clearTimeout(go.Terminal.terminals[selectedTerm]['scrollbackTimer']);
+                    if (go.Terminal.terminals[selectedTerm].scrollbackTimer) {
+                        clearTimeout(go.Terminal.terminals[selectedTerm].scrollbackTimer);
                     }
                 }
                 go.Terminal.Input.mouseDown = true;
@@ -1674,7 +1674,7 @@ go.Base.update(GateOne.Terminal, {
                     if (go.Terminal.terminals[term]) {
                         var term = localStorage[prefix+'selectedTerminal'],
                             terminalObj = go.Terminal.terminals[term];
-                        if (!terminalObj['scrollbackVisible']) {
+                        if (!terminalObj.scrollbackVisible) {
                             // Immediately re-enable the scrollback buffer
                             go.Terminal.enableScrollback(term);
                         }
@@ -1739,7 +1739,7 @@ go.Base.update(GateOne.Terminal, {
         // Retrieve any previous scrollback buffer for this terminal
         terminalDB.get('scrollback', term, function(obj) {
             if (obj) {
-                go.Terminal.terminals[term]['scrollback'] = obj['scrollback'];
+                go.Terminal.terminals[term].scrollback = obj.scrollback;
             }
         });
         terminal = u.createElement('div', {'id': currentTerm, 'class': '✈terminal'});
@@ -1761,7 +1761,7 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre', 'class': '✈terminal_pre'});
         terminal.appendChild(termPre);
-        go.Terminal.terminals[term]['node'] = termPre; // For faster access
+        go.Terminal.terminals[term].node = termPre; // For faster access
         if (settings && settings['style']) {
             v.applyStyle(terminal, settings['style']);
         }
@@ -1772,8 +1772,8 @@ go.Base.update(GateOne.Terminal, {
             u.getNode(where).appendChild(terminal);
         }
         dimensions = u.getRowsAndColumns(terminal, where);
-        if (settings && settings['noAdjust']) {
-            go.Terminal.terminals[term]['noAdjust'] = true;
+        if (settings && settings.noAdjust) {
+            go.Terminal.terminals[term].noAdjust = true;
             rows = dimensions.rows;
             columns = Math.ceil(dimensions.columns);
         } else {
@@ -1785,9 +1785,9 @@ go.Base.update(GateOne.Terminal, {
         } else {
             rows = Math.floor(rows);
         }
-        go.Terminal.terminals[term]['rows'] = rows;
-        go.Terminal.terminals[term]['columns'] = columns;
-        go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
+        go.Terminal.terminals[term].rows = rows;
+        go.Terminal.terminals[term].columns = columns;
+        go.Terminal.terminals[term].terminal = terminal; // Cache it for quicker access later
         go.Terminal.prevCols = columns; // So sendDimensions() will know if we are already set to this size
         go.Terminal.prevRows = rows;    // Ditto
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
@@ -1830,14 +1830,14 @@ go.Base.update(GateOne.Terminal, {
             // Update the lineCache too
             go.Terminal.terminals[term]['lineCache'][i] = lineSpan;
         }
-        go.Terminal.terminals[term]['screenNode'] = screenSpan;
+        go.Terminal.terminals[term].screenNode = screenSpan;
         if (go.prefs.scrollback == 0) {
             // This ensures the scrollback buffer stays hidden if scrollback is 0
             termPre.style['overflow-y'] = 'hidden';
         } else {
             // Pre-fill the scrollback buffer so terminals stay bottom-aligned when scaled (hard-set rows/columns)
             for (var i=0; i<go.prefs.scrollback; i++) {
-                go.Terminal.terminals[term]['scrollback'][i] = ' \n';
+                go.Terminal.terminals[term].scrollback[i] = ' \n';
             }
         }
         termPre.appendChild(screenSpan);
@@ -1872,7 +1872,7 @@ go.Base.update(GateOne.Terminal, {
         }
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
-            go.Logging.deprecated("newTermCallbacks", gettext("Use GateOne.Events.on('terminal:new_terminal', func) instead."));
+            go.Logging.deprecated("newTermCallbacks", gettext("Use ")+"GateOne.Events.on('terminal:new_terminal', func) "+gettext("instead."));
             go.Terminal.newTermCallbacks.forEach(function(callback) {
                 callback(term);
             });
@@ -1903,19 +1903,19 @@ go.Base.update(GateOne.Terminal, {
         if (!termObj) {
             return; // Nothing to do
         }
-        termNode = go.Terminal.terminals[term]['terminal'];
+        termNode = go.Terminal.terminals[term].terminal;
         if (!termNode) {
             return; // Nothing to do
         }
         if (message === undefined) {
-            message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
+            message = "Closed term " + term + ": " + go.Terminal.terminals[term].title;
         }
         // Tell the server to kill the terminal
         if (sendKill === undefined || sendKill) {
-            if (termObj['shareID']) {
+            if (termObj.shareID) {
                 // Check if we're the owner and if so, kill it.  Otherwise detach it.
-                shareID = termObj['shareID'];
-                if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID]['owner'] == go.User.username) {
+                shareID = termObj.shareID;
+                if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID].owner == go.User.username) {
                      // We're the owner of this shared terminal; kill it
                     go.Terminal.killTerminal(term);
                 } else {
@@ -1949,7 +1949,7 @@ go.Base.update(GateOne.Terminal, {
         E.trigger('go:cleanup_workspaces');
         if (go.Terminal.closeTermCallbacks.length) {
             go.Terminal.closeTermCallbacks.forEach(function(callback) {
-                go.Logging.deprecated("closeTermCallbacks", gettext("Use GateOne.Events.on('terminal:term_closed', func) instead."));
+                go.Logging.deprecated("closeTermCallbacks", gettext("Use ")+"GateOne.Events.on('terminal:term_closed', func) "+gettext("instead."));
                 callback(term);
             });
         }
@@ -2024,7 +2024,7 @@ go.Base.update(GateOne.Terminal, {
         This function triggers the 'terminal:set_terminal' event passing the terminal number as the only argument.
         */
         if (!term) {
-            logError(gettext("GateOne.Terminal.setTerminal() got an invalid term number: ") + term);
+            logError("GateOne.Terminal.setTerminal() " + gettext("got an invalid term number: ") + term);
             return;
         }
         var term = parseInt(term); // Sometimes it will be a string
@@ -2044,7 +2044,7 @@ go.Base.update(GateOne.Terminal, {
             return true; // This can happen if the user clicks on a terminal in the moments before it has completed initializing.
         }
         var selectedTerm = localStorage[prefix+'selectedTerminal'],
-            displayText = term + ": " + go.Terminal.terminals[term]['title'];
+            displayText = term + ": " + go.Terminal.terminals[term].title;
         // Always call capture()
         go.Terminal.Input.capture();
         // Always run setActive()
@@ -2068,8 +2068,8 @@ go.Base.update(GateOne.Terminal, {
         term = term || localStorage[prefix+'selectedTerminal'];
         var terms = u.toArray(u.getNodes('.✈terminal')),
             termNode;
-        if (go.Terminal.terminals[term] && go.Terminal.terminals[term]['terminal']) {
-            termNode = go.Terminal.terminals[term]['terminal'];
+        if (go.Terminal.terminals[term] && go.Terminal.terminals[term].terminal) {
+            termNode = go.Terminal.terminals[term].terminal;
             terms.forEach(function(terminalNode) {
                 if (terminalNode == termNode) {
                     terminalNode.classList.remove('✈inactive');
@@ -2090,9 +2090,9 @@ go.Base.update(GateOne.Terminal, {
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == currentWorkspace) {
+                if (go.Terminal.terminals[term].workspace == currentWorkspace) {
                     // At least one terminal is on this workspace; check if it is active
-                    if (!go.Terminal.terminals[term]['node'].classList.contains('✈inactive')) {
+                    if (!go.Terminal.terminals[term].node.classList.contains('✈inactive')) {
                         termFound = term; // Terminals that don't contain '✈inactive' are active
                     }
                 }
@@ -2113,10 +2113,10 @@ go.Base.update(GateOne.Terminal, {
                 var monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                     monitorActivity = u.getNode('#'+prefix+'monitor_activity');
                 if (monitorInactivity) {
-                    monitorInactivity.checked = go.Terminal.terminals[term]['inactivityTimer'];
+                    monitorInactivity.checked = go.Terminal.terminals[term].inactivityTimer;
                 }
                 if (monitorActivity) {
-                    monitorActivity.checked = go.Terminal.terminals[term]['activityNotify'];
+                    monitorActivity.checked = go.Terminal.terminals[term].activityNotify;
                 }
             },
             setEncodingValue = function(term) {
@@ -2134,16 +2134,16 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return;
         }
-        termNode = go.Terminal.terminals[term]['terminal'];
+        termNode = go.Terminal.terminals[term].terminal;
         if (termNode) {
-            displayText = term + ": " + go.Terminal.terminals[term]['title'];
+            displayText = term + ": " + go.Terminal.terminals[term].title;
             termTitleH2.innerHTML = displayText;
             setActivityCheckboxes(term);
             setEncodingValue(term);
             setKeyboardValue(term);
             // Wrapping this in a timeout seems to resolve the issue where sometimes it isn't scrolled to the bottom when you switch
             setTimeout(function() {
-                u.scrollToBottom(go.Terminal.terminals[term]['node']);
+                u.scrollToBottom(go.Terminal.terminals[term].node);
             }, 50);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
@@ -2163,7 +2163,7 @@ go.Base.update(GateOne.Terminal, {
             for (var term in go.Terminal.terminals) {
                 // Only want terminals which are integers; not the 'count()' function
                 if (term % 1 === 0) {
-                    if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                    if (go.Terminal.terminals[term].workspace == workspace) {
                         // At least one terminal is on this workspace
                         go.Terminal.switchTerminal(term);
                         termFound = term;
@@ -2190,7 +2190,7 @@ go.Base.update(GateOne.Terminal, {
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                if (go.Terminal.terminals[term].workspace == workspace) {
                     // At least one terminal is on this workspace
                     go.Terminal.closeTerminal(term);
                 }
@@ -2206,23 +2206,23 @@ go.Base.update(GateOne.Terminal, {
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == ws1) {
+                if (go.Terminal.terminals[term].workspace == ws1) {
                     // This is now ws2
                     term1 = term;
-                } else if (go.Terminal.terminals[term]['workspace'] == ws2) {
+                } else if (go.Terminal.terminals[term].workspace == ws2) {
                     // This is now ws1
                     term2 = term;
                 }
             }
         };
-        go.Terminal.terminals[term1]['workspace'] = ws2;
-        go.Terminal.terminals[term2]['workspace'] = ws1;
+        go.Terminal.terminals[term1].workspace = ws2;
+        go.Terminal.terminals[term2].workspace = ws1;
         // Now swap the terminal numbers as well
         temp = go.Terminal.terminals[term1];
         go.Terminal.terminals[term1] = go.Terminal.terminals[term2];
         go.Terminal.terminals[term2] = temp;
-        u.scrollToBottom(go.Terminal.terminals[term1]['node']);
-        u.scrollToBottom(go.Terminal.terminals[term2]['node']);
+        u.scrollToBottom(go.Terminal.terminals[term1].node);
+        u.scrollToBottom(go.Terminal.terminals[term2].node);
         // Lastly we tell the server about this change so if the user resumes their session the ordering will remain
         go.ws.send(JSON.stringify({'terminal:swap_terminals': {'term1': term1, 'term2': term2}}));
         // Force input events to be re-attached
@@ -2236,7 +2236,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var term = term || localStorage[prefix+'selectedTerminal'],
             scrollbackHTML = "",
-            scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'];
+            scrollbackNode = go.Terminal.terminals[term].scrollbackNode;
         if (scrollbackNode) {
             scrollbackHTML = scrollbackNode.innerHTML;
             scrollbackNode.innerHTML = ""; // Empty it out
@@ -2273,12 +2273,12 @@ go.Base.update(GateOne.Terminal, {
                 var term = localStorage[prefix+'selectedTerminal'],
                     termObj = go.Terminal.terminals[term];
                 u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
-                u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
-                u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
+                u.getNode('#'+prefix+'rows').innerHTML = termObj.rows + "<br />";
+                u.getNode('#'+prefix+'columns').innerHTML = termObj.columns + "<br />";
                 v.togglePanel('#'+prefix+'panel_info');
             };
         if (!existing) {
-            toolbarInfo.innerHTML = go.Icons['terminal'];
+            toolbarInfo.innerHTML = go.Icons.terminal;
             toolbarInfo.onclick = showInfo;
             go.toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         }
@@ -2310,17 +2310,17 @@ go.Base.update(GateOne.Terminal, {
             bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
             bellFileLabel = u.createElement('label'),
             row1 = u.createElement('div', {'style': {'margin-top': '0.5em'}}), row2 = row1.cloneNode(false), row3 = row1.cloneNode(false),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black', 'style': {'float': 'right'}}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right'}});
-        submit.innerHTML = "Submit";
-        cancel.innerHTML = "Cancel";
-        defaultBell.innerHTML = "Reset Bell to Default";
-        playBell.innerHTML = "Play Current Bell";
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black', 'style': {'float': 'right'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈button ✈black', 'style': {'float': 'right'}});
+        submit.innerHTML = gettext("Submit");
+        cancel.innerHTML = gettext("Cancel");
+        defaultBell.innerHTML = gettext("Reset Bell to Default");
+        playBell.innerHTML = gettext("Play Current Bell");
         playBell.onclick = function(e) {
             e.preventDefault();
             go.Terminal.playBell();
         }
-        bellFileLabel.innerHTML = "Select a Sound File";
+        bellFileLabel.innerHTML = gettext("Select a Sound File");
         bellFileLabel.htmlFor = prefix+'upload_bell';
         row1.appendChild(playBell);
         row1.appendChild(defaultBell);
@@ -2362,9 +2362,9 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the 'terminal:bell' WebSocket action; plays a bell sound and pops up a message indiciating which terminal issued a bell.
         */
-        var term = bellObj['term'];
+        var term = bellObj.term;
         go.Terminal.playBell();
-        v.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
+        v.displayMessage(gettext("Bell in: ") + term + ": " + go.Terminal.terminals[term].title);
     },
     playBell: function() {
         /**:GateOne.Terminal.playBell()
@@ -2407,8 +2407,8 @@ go.Base.update(GateOne.Terminal, {
         if (u.getSelText()) {
             // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
             // Retry again in a bit
-            clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
-            go.Terminal.terminals[term]['scrollbackTimer'] = setTimeout(function() {
+            clearTimeout(go.Terminal.terminals[term].scrollbackTimer);
+            go.Terminal.terminals[term].scrollbackTimer = setTimeout(function() {
                 go.Terminal.enableScrollback(term);
             }, 500);
             return;
@@ -2417,9 +2417,9 @@ go.Base.update(GateOne.Terminal, {
             if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
                 return; // We're done here
             }
-            var termPre = go.Terminal.terminals[termNum]['node'],
-                termScreen = go.Terminal.terminals[termNum]['screenNode'],
-                termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
+            var termPre = go.Terminal.terminals[termNum].node,
+                termScreen = go.Terminal.terminals[termNum].screenNode,
+                termScrollback = go.Terminal.terminals[termNum].scrollbackNode,
                 parentHeight;
             if (termPre) {
                 parentHeight = termPre.parentNode.clientHeight;
@@ -2430,7 +2430,7 @@ go.Base.update(GateOne.Terminal, {
 //             }
             termPre.style['overflow-y'] = ""; // Allow the class to control this (will be auto)
             if (termScrollback) {
-                var scrollbackHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
+                var scrollbackHTML = go.Terminal.terminals[termNum].scrollback.join('\n') + '\n';
                 if (termScrollback.innerHTML != scrollbackHTML) {
                     termScrollback.innerHTML = scrollbackHTML;
                 }
@@ -2438,19 +2438,19 @@ go.Base.update(GateOne.Terminal, {
             } else {
                 // Create the span that holds the scrollback buffer
                 termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': '✈scrollback'});
-                termScrollback.innerHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
+                termScrollback.innerHTML = go.Terminal.terminals[termNum].scrollback.join('\n') + '\n';
                 termPre.insertBefore(termScrollback, termScreen);
-                go.Terminal.terminals[termNum]['scrollbackNode'] = termScrollback;
+                go.Terminal.terminals[termNum].scrollbackNode = termScrollback;
             }
             u.scrollToBottom(termPre);
-            if (go.Terminal.terminals[termNum]['scrollbackTimer']) {
-                clearTimeout(go.Terminal.terminals[termNum]['scrollbackTimer']);
+            if (go.Terminal.terminals[termNum].scrollbackTimer) {
+                clearTimeout(go.Terminal.terminals[termNum].scrollbackTimer);
             }
-            go.Terminal.terminals[termNum]['scrollbackVisible'] = true;
+            go.Terminal.terminals[termNum].scrollbackVisible = true;
         };
         if (term && term in GateOne.Terminal.terminals) {
             // If there's a terminal node ready-to-go for scrollback...
-            if (go.Terminal.terminals[term]['node']) {
+            if (go.Terminal.terminals[term].node) {
                 enableSB(term); // Have it create/add the scrollback buffer
             }
         } else {
@@ -2471,22 +2471,22 @@ go.Base.update(GateOne.Terminal, {
         // Replaces the contents of the selected terminal with just the screen (i.e. no scrollback)
         // If *term* is given, only disable scrollback for that terminal
         if (term) {
-            var termPre = GateOne.Terminal.terminals[term]['node'],
-                termScrollback = go.Terminal.terminals[term]['scrollbackNode'];
+            var termPre = GateOne.Terminal.terminals[term].node,
+                termScrollback = go.Terminal.terminals[term].scrollbackNode;
             if (termScrollback) {
                 termScrollback.style.display = "none";
             }
             termPre.style['overflow-y'] = "hidden";
-            go.Terminal.terminals[term]['scrollbackVisible'] = false;
+            go.Terminal.terminals[term].scrollbackVisible = false;
         } else {
             var terms = u.toArray(u.getNodes('.✈terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    termScrollback = go.Terminal.terminals[termID]['scrollbackNode'];
+                    termScrollback = go.Terminal.terminals[termID].scrollbackNode;
                 if (termScrollback) {
                     termScrollback.style.display = "none";
                 }
-                go.Terminal.terminals[termID]['scrollbackVisible'] = false;
+                go.Terminal.terminals[termID].scrollbackVisible = false;
             });
         }
         go.Terminal.scrollbackToggle = false;
@@ -2513,9 +2513,9 @@ go.Base.update(GateOne.Terminal, {
 
         Empties the scrollback buffer for the given *term* in memory, in localStorage, and in the DOM.
         */
-        var scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'],
+        var scrollbackNode = go.Terminal.terminals[term].scrollbackNode,
             terminalDB = S.dbObject('terminal');
-        go.Terminal.terminals[term]['scrollback'] = [];
+        go.Terminal.terminals[term].scrollback = [];
         terminalDB.del('scrollback', term);
         if (scrollbackNode) {
             scrollbackNode.innerHTML = '';
@@ -2530,7 +2530,7 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('clearScreen('+term+')');
         var screenLength = go.Terminal.terminals[term]['screen'].length,
-            screenNode = go.Terminal.terminals[term]['screenNode'],
+            screenNode = go.Terminal.terminals[term].screenNode,
             emptyScreen = [];
         for (var i=0; i < screenLength; i++) {
             emptyScreen[i] = ' '; // Using a space so that applyScreen doesn't ignore these lines
@@ -2561,7 +2561,7 @@ go.Base.update(GateOne.Terminal, {
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
-                if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                if (go.Terminal.terminals[term].workspace == workspace) {
                     // At least one terminal is on this workspace
                     go.Terminal.relocateTerminal(term, location);
                     termFound = true;
@@ -2608,7 +2608,7 @@ go.Base.update(GateOne.Terminal, {
         */
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(): ', message);
-        var term = message['term'],
+        var term = message.term,
             shareID = message.share_id;
         // This gets called when a terminal is moved from one 'location' to another.  When that happens we need to open it up like it's new...
         if (!go.prefs.embedded) {
@@ -2619,8 +2619,8 @@ go.Base.update(GateOne.Terminal, {
             }
         }
         E.trigger("terminal:reconnect_terminal", message);
-        if (shareID && go.Terminal.terminals[term] && !go.Terminal.terminals[term]['shareID']) {
-            go.Terminal.terminals[term]['shareID'] = shareID;
+        if (shareID && go.Terminal.terminals[term] && !go.Terminal.terminals[term].shareID) {
+            go.Terminal.terminals[term].shareID = shareID;
         }
     },
     moveTerminalAction: function(obj) {
@@ -2628,7 +2628,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the `terminal:term_moved` WebSocket Action, closes the given *term* with a slightly different message than closeTerminal().
         */
-        var term = obj['term'],
+        var term = obj.term,
             location = obj['location'],
             message = gettext("Terminal: ") + term + gettext(" has been relocated to location: ") + location;
         go.Terminal.closeTerminal(term, false, message, false); // Close the terminal with our special message and don't kill its process
@@ -2662,9 +2662,9 @@ go.Base.update(GateOne.Terminal, {
         // Clean up the terminal DB
         terminalDB.dump('scrollback', function(objs) {
             for (var i=0; i<objs.length; i++) {
-                var termNum = objs[i]['term'];
+                var termNum = objs[i].term;
                 if (termNumbers.indexOf(termNum) == -1) { // Terminal for this buffer no longer exists
-                    logDebug(gettext("Deleting scollback buffer for non-existent terminal: ") + termNum);
+                    logDebug("Deleting scollback buffer for non-existent terminal: " + termNum);
                     terminalDB.del('scrollback', termNum);
                 }
             }
@@ -2681,22 +2681,22 @@ go.Base.update(GateOne.Terminal, {
                         var shareID = terminals[termNum].share_id;
                         if (!go.Terminal.terminals[termNum]) {
                             metadata = terminals[termNum]['metadata'] || {};
-                            if (metadata['resumeEvent']) {
-                                E.trigger(metadata['resumeEvent'], termNum, terminals[termNum]);
+                            if (metadata.resumeEvent) {
+                                E.trigger(metadata.resumeEvent, termNum, terminals[termNum]);
                             } else {
                                 go.Terminal.newTerminal(termNum, {'metadata': metadata});
                             }
                             go.Terminal.lastTermNumber = termNum;
                         }
-                        if (terminals[termNum].share_id && !go.Terminal.terminals[termNum]['shareID']) {
-                            go.Terminal.terminals[termNum]['shareID'] = shareID;
+                        if (terminals[termNum].share_id && !go.Terminal.terminals[termNum].shareID) {
+                            go.Terminal.terminals[termNum].shareID = shareID;
                         }
                     });
                 }
             }
             E.trigger("terminal:term_reattach", termNumbers, terminals); // termNumbers first to maintain backwards compatibility
             if (go.Terminal.reattachTerminalsCallbacks.length) {
-                go.Logging.deprecated("reattachTerminalsCallbacks", gettext("Use GateOne.Events.on('terminal:term_reattach', func) instead."));
+                go.Logging.deprecated("reattachTerminalsCallbacks", gettext("Use ") + "GateOne.Events.on('terminal:term_reattach', func) " + gettext("instead."));
                 // Call any registered callbacks
                 go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
                     callback(termNumbers);
@@ -2723,10 +2723,10 @@ go.Base.update(GateOne.Terminal, {
             logDebug("Setting Button Motion Event Mouse Tracking Mode to: " + bool + " on term: " + term);
             if (bool) {
                 // Turn on Button Event Mouse Tracking
-                go.Terminal.terminals[term]['mouse'] = 'mouse_button';
+                go.Terminal.terminals[term].mouse = 'mouse_button';
             } else {
                 // Turn off Button Event Mouse Tracking
-                go.Terminal.terminals[term]['mouse'] = false;
+                go.Terminal.terminals[term].mouse = false;
             }
         },
         '1002': function(term, bool) {
@@ -2734,10 +2734,10 @@ go.Base.update(GateOne.Terminal, {
             logDebug("Setting Button Motion Event Mouse Tracking Mode to: " + bool + " on term: " + term);
             if (bool) {
                 // Turn on Button Motion Event Mouse Tracking
-                go.Terminal.terminals[term]['mouse'] = 'mouse_button_motion';
+                go.Terminal.terminals[term].mouse = 'mouse_button_motion';
             } else {
                 // Turn off Button Motion Event Mouse Tracking
-                go.Terminal.terminals[term]['mouse'] = false;
+                go.Terminal.terminals[term].mouse = false;
             }
         }
     },
@@ -2810,13 +2810,13 @@ go.Base.update(GateOne.Terminal, {
 
         Handles the 'terminal:encoding' WebSocket action that tells us the encoding that is set for a given terminal.  The expected message format:
 
-        :param string message['term']: The terminal in question.
+        :param string message.term: The terminal in question.
         :param string message['encoding']: The encoding to set on the given terminal.
 
         .. note:: The encoding value here is only used for informational purposes.  No encoding/decoding happens at the client.
         */
         //console.log('termEncodingAction: ', message);
-        var term = message['term'],
+        var term = message.term,
             encoding = message['encoding'],
             infoPanelEncoding = u.getNode('#'+prefix+'encoding');
         if (!go.Terminal.terminals[term]) {
@@ -2830,13 +2830,13 @@ go.Base.update(GateOne.Terminal, {
 
         Handles the 'terminal:keyboard_mode' WebSocket action that tells us the keyboard mode that is set for a given terminal.  The expected message format:
 
-        :param string message['term']: The terminal in question.
+        :param string message.term: The terminal in question.
         :param string message['mode']: The keyboard mode to set on the given terminal.  E.g. 'default', 'sco', 'xterm', 'linux', etc
 
         .. note:: The keyboard mode value is only used by the client.  There's no server-side functionality related to keyboard modes other than the fact that it remembers the setting.
         */
         //console.log('termKeyboardModeAction: ', message);
-        var term = message['term'],
+        var term = message.term,
             mode = message['mode'],
             infoPanelKeyboard = u.getNode('#'+prefix+'keyboard');
         go.Terminal.terminals[term]['keyboard'] = mode;
@@ -2867,7 +2867,7 @@ go.Base.update(GateOne.Terminal, {
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
-        var termNode = go.Terminal.terminals[term]['node'],
+        var termNode = go.Terminal.terminals[term].node,
             regexText = text.replace(/([.?*+^$[\]\\(){}|\-])/g, "\\$1"),
             pattern = new RegExp(regexText, 'g'),
             repl = '<span class="✈highlight">' + text + '</span>',
@@ -2934,29 +2934,29 @@ go.Base.update(GateOne.Terminal, {
         Opens a dialog where users can add/remove text they would like to be highlighted on a semi-permanent basis (e.g. even after a screen update).
         */
         var closeDialog, // Filled out below
-            highlightDesc = gettext('<p style="width: 18em;">Words or phrases you would like to remain persistently highlighted in terminals</p>'),
+            highlightDesc = '<p style="width: 18em;">'+gettext('Words or phrases you would like to remain persistently highlighted in terminals')+'</p>',
             tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
             td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
             container = u.createElement('div', {'class': '✈highlight_dialog'}),
             tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight/3) + 'px'}}),
             highlightTable = u.createElement('table', {'class': '✈highlight_words'}),
             tbody = u.createElement('tbody'),
-            save = u.createElement('button', {'id': 'save', 'type': 'submit', 'value': 'Save', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            save = u.createElement('button', {'id': 'save', 'type': 'submit', 'value': gettext('Save'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': gettext('Cancel'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             addWords = function(highlightObj) {
                 for (var word in highlightObj) {
-                    var term = highlightObj[word]['term'],
+                    var term = highlightObj[word].term,
                         globalVal = highlightObj[word]['global'],
                         row = tr(),
                         textTD = u.createElement('td', {'class': '✈table_cell ✈highlight_word'}),
                         termTD = td(),
-                        termInput = u.createElement('input', {'type': 'text', 'name': 'term'});
+                        termInput = u.createElement('input', {'type': 'text', 'name': 'term'}),
                         globalTD = td(),
                         deleteTD = td(),
                         globalCheck = u.createElement('input', {'type': 'checkbox', 'name': 'global'});
                     textTD.innerHTML = upn;
                     termInput.value = term;
-                    deleteTD.innerHTML = gettext('<a onclick="GateOne.Terminal.unhighlightWord();">Remove</a>')
+                    deleteTD.innerHTML = '<a onclick="GateOne.Terminal.unhighlightWord();">'+gettext('Remove')+'</a>';
                     row.appendChild(textTD);
                     row.appendChild(termTD);
                     globalTD.appendChild(globalCheck);
@@ -2964,7 +2964,7 @@ go.Base.update(GateOne.Terminal, {
                     row.appendChild(deleteTD);
                     tbody.appendChild(row);
                 }
-                closeDialog = v.dialog(gettext("Word Highlighting ") + "(Terminal " + term + ")", container);
+                closeDialog = v.dialog(gettext("Word Highlighting in Terminal: ") + term, container);
                 cancel.onclick = closeDialog;
             },
             saveFunc = function() {
@@ -2985,10 +2985,10 @@ go.Base.update(GateOne.Terminal, {
                     }
                 });
             };
-        save.innerHTML = "Save";
-        cancel.innerHTML = "Cancel";
+        save.innerHTML = gettext("Save");
+        cancel.innerHTML = gettext("Cancel");
         save.addEventListener('click', saveFunc, false);
-        highlightTable.innerHTML = gettext("<thead><tr class='✈table_row'><th>Word</th><th>Global</th><th>Remove</th></tr></thead>");
+        highlightTable.innerHTML = "<thead><tr class='✈table_row'><th>"+gettext("Word")+"</th><th>"+gettext("Global")+"</th><th>"+gettext("Remove")+"</th></tr></thead>";
         highlightTable.appendChild(tbody);
         container.innerHTML = highlightDesc;
         tableContainer.appendChild(highlightTable);
@@ -3013,8 +3013,8 @@ go.Base.update(GateOne.Terminal, {
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
-        var termNode = go.Terminal.terminals[term]['node'],
-            lines = parseInt(go.Terminal.terminals[term]['rows']);
+        var termNode = go.Terminal.terminals[term].node,
+            lines = parseInt(go.Terminal.terminals[term].rows);
         u.scrollLines(termNode, -lines);
     },
     scrollPageDown: function(term) {
@@ -3025,8 +3025,8 @@ go.Base.update(GateOne.Terminal, {
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
-        var termNode = go.Terminal.terminals[term]['node'],
-            lines = parseInt(go.Terminal.terminals[term]['rows']);
+        var termNode = go.Terminal.terminals[term].node,
+            lines = parseInt(go.Terminal.terminals[term].rows);
         u.scrollLines(termNode, lines);
     },
     // NOTE:  Everything below this point is a work in progress.
@@ -3055,9 +3055,9 @@ go.Base.update(GateOne.Terminal, {
         .. note:: If a user is granted write permission to a terminal they will automatically be granted read permission.
         */
         logDebug('GateOne.Terminal.sharePermissions(): ', permissions);
-        var settings = {'term': term, 'read': permissions.read, 'write': permissions['write'], 'password': permissions['password']};
+        var settings = {'term': term, 'read': permissions.read, 'write': permissions.write, 'password': permissions['password']};
         if (permissions.broadcast !== undefined) {
-            settings['broadcast'] = permissions.broadcast;
+            settings.broadcast = permissions.broadcast;
         }
         go.ws.send(JSON.stringify({"terminal:permissions": settings}));
         E.trigger("terminal:permissions", settings);
@@ -3074,15 +3074,15 @@ go.Base.update(GateOne.Terminal, {
             tableContainer = u.createElement('div', {'style': {'overflow': 'auto', 'height': (go.node.clientHeight / 3) + 'px'}}),
             shareIDExplanation = gettext("The Share ID is used to generate the broadcast URL."),
             shareIDLabel = u.createElement('label'),
-            shareIDInput = u.createElement('input', {'type': 'text', 'id': 'share_id', 'class': '✈share_id', 'placeholder': 'Auto'}),
+            shareIDInput = u.createElement('input', {'type': 'text', 'id': 'share_id', 'class': '✈share_id', 'placeholder': gettext('Auto')}),
             broadcastURLLabel = u.createElement('label'),
-            broadcastURLInput = u.createElement('input', {'type': 'text', 'id': 'broadcast_url', 'class': '✈broadcast_url', 'placeholder': 'Broadcast disabled'}),
+            broadcastURLInput = u.createElement('input', {'type': 'text', 'id': 'broadcast_url', 'class': '✈broadcast_url', 'placeholder': gettext('Broadcast disabled')}),
             passwordLabel = u.createElement('label'),
-            password = u.createElement('input', {'type': 'text', 'id': 'share_password', 'class': '✈share_password', 'placeholder': 'Optional: Password-protect this shared terminal'}),
+            password = u.createElement('input', {'type': 'text', 'id': 'share_password', 'class': '✈share_password', 'placeholder': gettext('Optional: Password-protect this shared terminal')}),
             buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
-            apply = u.createElement('button', {'id': 'apply', 'type': 'submit', 'value': 'Apply', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
-            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
-            newShareID = u.createElement('button', {'id': 'new_share_id', 'type': 'submit', 'value': 'New Sharing ID', 'title': gettext("Generate a new share ID (the last part of the broadcast URL)"), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            apply = u.createElement('button', {'id': 'apply', 'type': 'submit', 'value': gettext('Apply'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': gettext('Done'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            newShareID = u.createElement('button', {'id': 'new_share_id', 'type': 'submit', 'value': gettext('New Sharing ID'), 'title': gettext("Generate a new share ID (the last part of the broadcast URL)"), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             shareObj = go.Terminal.sharedTermObj(term),
             writeCheckFunc = function() {
                 var read = this.parentNode.parentNode.querySelector('input[name="read"]');
@@ -3346,38 +3346,38 @@ go.Base.update(GateOne.Terminal, {
             shareWidgets = u.toArray(u.getNodes('.✈share_widget')),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             term, shareID, shareObj, widgetExists, closeFunc, dialogTerm, toolbarSharing, existing, nonOwnerShared;
-        for (shareID in message['terminals']) {
+        for (shareID in message.terminals) {
             if (go.Terminal.sharedTerminals[shareID] && go.Terminal.sharedTerminals[shareID].closeFunc) {
                 // Preserve the existing widget closeFunc (if any)
                 closeFunc = go.Terminal.sharedTerminals[shareID].closeFunc;
-                message['terminals'][shareID].closeFunc = closeFunc;
+                message.terminals[shareID].closeFunc = closeFunc;
             }
         }
-        go.Terminal.sharedTerminals = message['terminals'];
+        go.Terminal.sharedTerminals = message.terminals;
         if (broadcastURLInput) {
             dialogTerm = broadcastURLInput.getAttribute('data-term');
             // The share dialog is open; update the broadcast URL
-            for (shareID in message['terminals']) {
-                term = message['terminals'][shareID]['term'];
-                if (message['terminals'][shareID]['owner'] == go.User.username) { // One of ours
-                    go.Terminal.terminals[term]['shareID'] = shareID; // This is important (so other functions can know the terminal is shared)
-                    if (message['terminals'][shareID]['term'] == dialogTerm) {
+            for (shareID in message.terminals) {
+                term = message.terminals[shareID].term;
+                if (message.terminals[shareID].owner == go.User.username) { // One of ours
+                    go.Terminal.terminals[term].shareID = shareID; // This is important (so other functions can know the terminal is shared)
+                    if (message.terminals[shareID].term == dialogTerm) {
                         shareIDInput.value = shareID;
-                        if (message['terminals'][shareID]['broadcast']) {
-                            broadcastURLInput.value = message['terminals'][shareID]['broadcast'];
+                        if (message.terminals[shareID].broadcast) {
+                            broadcastURLInput.value = message.terminals[shareID].broadcast;
                         }
                     }
                 }
             }
         }
-        for (shareID in message['terminals']) {
-            if (message['terminals'][shareID]['owner'] == go.User.username) { // One of ours
-                term = message['terminals'][shareID]['term'];
+        for (shareID in message.terminals) {
+            if (message.terminals[shareID].owner == go.User.username) { // One of ours
+                term = message.terminals[shareID].term;
                 widgetExists = false;
                 shareWidgets.forEach(function(widget) {
                     if (widget.getAttribute('data-term') == term) {
                         widgetExists = widget;
-                        widget.querySelector('.✈share_widget_viewers').innerHTML = message['terminals'][shareID]['viewers'].length;
+                        widget.querySelector('.✈share_widget_viewers').innerHTML = message.terminals[shareID].viewers.length;
                     }
                 });
                 if (!widgetExists) {
@@ -3398,7 +3398,7 @@ go.Base.update(GateOne.Terminal, {
         if (nonOwnerShared) {
             // There's at least one shared terminal that we can view where we're not the owner; display the shared terminals icon.
             if (go.prefs.showToolbar) {
-                toolbarSharing = u.createElement('div', {'id': 'icon_term_sharing', 'class': '✈toolbar_icon', 'title': "Shared Terminals"});
+                toolbarSharing = u.createElement('div', {'id': 'icon_term_sharing', 'class': '✈toolbar_icon', 'title': gettext("Shared Terminals")});
                 existing = u.getNode('#'+prefix+'icon_term_sharing');
                 if (!existing) {
                     v.displayMessage(gettext("Shared terminals are available (click the magnifying glass icon)."));
@@ -3408,7 +3408,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-        E.trigger("terminal:shared_terminals", message['terminals']);
+        E.trigger("terminal:shared_terminals", message.terminals);
     },
     sharedTerminalsDialog: function() {
         /**:GateOne.Terminal.sharedTerminalsDialog()
@@ -3416,6 +3416,7 @@ go.Base.update(GateOne.Terminal, {
         Opens up a dialog where the user can open terminals that have been shared with them.
         */
         var closeDialog, // Filled out below
+            view,
             tr = u.partial(u.createElement, 'tr', {'class': '✈table_row ✈pointer'}),
             td = u.partial(u.createElement, 'td', {'class': '✈table_cell'}),
             container = u.createElement('div', {'class': '✈shared_terminals_dialog'}),
@@ -3424,7 +3425,7 @@ go.Base.update(GateOne.Terminal, {
             tbody = u.createElement('tbody'),
             sharedTerms = go.Terminal.sharedTerminals,
             buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
-            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': gettext('Done'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             tableSettings = {
                 'id': "share_viewers_table",
                 'header': [
@@ -3439,10 +3440,10 @@ go.Base.update(GateOne.Terminal, {
             tableData = [],
             table, owner, ownerSpan, writeCheck, title, passwordInput, shareID;
         for (shareID in sharedTerms) {
-            var view = u.createElement('button', {'id': 'view', 'type': 'submit', 'value': 'view', 'class': '✈button ✈black ✈view_shared_term', 'style': {'margin-top': '0.5em'}}),
-            owner = sharedTerms[shareID]['owner'];
+            view = u.createElement('button', {'id': 'view', 'type': 'submit', 'value': gettext('View'), 'class': '✈button ✈black ✈view_shared_term', 'style': {'margin-top': '0.5em'}}),
+            owner = sharedTerms[shareID].owner;
             ownerSpan = u.createElement('span', {'class': '✈share_owner'});
-            title = sharedTerms[shareID]['title'] || 'No Title';
+            title = sharedTerms[shareID].title || gettext('No Title');
             passwordInput = u.createElement('input', {'type': 'password', 'name': 'password'});
             writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
             passwordInput.setAttribute('data-shareid', shareID);
@@ -3454,11 +3455,11 @@ go.Base.update(GateOne.Terminal, {
                 if (owner != 'ANONYMOUS') {
                     continue; // Skip ourselves
                 }
-            } else if (sharedTerms[shareID]['write'].indexOf(go.User.username) != -1) {
+            } else if (sharedTerms[shareID].write.indexOf(go.User.username) != -1) {
                 writeCheck.checked = true;
             }
             if (sharedTerms[shareID]['password_protected']) {
-                passwordInput.placeholder = "Required";
+                passwordInput.placeholder = gettext("Required");
             } else {
                 passwordInput.disabled = true;
             }
@@ -3486,7 +3487,7 @@ go.Base.update(GateOne.Terminal, {
         tableContainer.appendChild(table);
         closeDialog = v.dialog(gettext("Shared Terminals"), container);
         done.onclick = closeDialog;
-        done.innerHTML = "Done";
+        done.innerHTML = gettext("Done");
         container.appendChild(tableContainer);
         buttonContainer.appendChild(done);
         container.appendChild(buttonContainer);
@@ -3504,7 +3505,7 @@ go.Base.update(GateOne.Terminal, {
             users = u.createElement('table', {'class': '✈share_users'}),
             tbody = u.createElement('tbody'),
             buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
-            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': 'Done', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
+            done = u.createElement('button', {'id': 'done', 'type': 'reset', 'value': gettext('Done'), 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-top': '0.5em'}}),
             shareObj = go.Terminal.sharedTermObj(term),
             viewers = shareObj['viewers'],
             tableSettings = {
@@ -3518,24 +3519,25 @@ go.Base.update(GateOne.Terminal, {
                 'table_attrs': {'class': '✈sharing_table'}
             },
             tableData = [],
+            user, upn, upnSpan, ip, authenticatedCheck, writeCheck, anon,
             table; // Assigned below
-        for (var user in viewers) {
-            var upn = viewers[user]['upn'],
-                upnSpan = u.createElement('span', {'class': '✈user_upn'}),
-                ip = viewers[user].ip_address || '',
-                authenticatedCheck = u.createElement('input', {'type': 'checkbox', 'name': 'authenticated'}),
-                writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'}),
-                anon = false;
+        for (user in viewers) {
+            upn = viewers[user]['upn'];
+            upnSpan = u.createElement('span', {'class': '✈user_upn'});
+            ip = viewers[user].ip_address || '';
+            authenticatedCheck = u.createElement('input', {'type': 'checkbox', 'name': 'authenticated'});
+            writeCheck = u.createElement('input', {'type': 'checkbox', 'name': 'write'});
+            anon = false;
             upnSpan.innerHTML = upn;
             writeCheck.disabled = true;
             if (upn == go.User.username) {
                 if (upn != 'ANONYMOUS') {
                     continue; // Skip ourselves
                 }
-            } else if (shareObj['write'].indexOf(upn) != -1) {
+            } else if (shareObj.write.indexOf(upn) != -1) {
                 writeCheck.checked = true;
             }
-            if (!viewers[user]['broadcast']) {
+            if (!viewers[user].broadcast) {
                 authenticatedCheck.checked = true;
             }
             authenticatedCheck.disabled = true;
@@ -3546,7 +3548,7 @@ go.Base.update(GateOne.Terminal, {
         tableContainer.appendChild(table);
         closeDialog = v.dialog(gettext("Terminal Viewers: ") + term, container);
         done.onclick = closeDialog;
-        done.innerHTML = "Done";
+        done.innerHTML = gettext("Done");
         container.appendChild(tableContainer);
         buttonContainer.appendChild(done);
         container.appendChild(buttonContainer);
@@ -3561,7 +3563,7 @@ go.Base.update(GateOne.Terminal, {
             sharingTitle = u.createElement('h4', {'class': '✈share_widget_title'}),
             viewers = u.createElement('span', {'class': '✈share_widget_text'}),
             viewersVal = u.createElement('span', {'class': '✈share_widget_viewers'}),
-            settings = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈share_widget_button'}),
+            settings = u.createElement('button', {'type': 'submit', 'value': gettext('Submit'), 'class': '✈button ✈black ✈share_widget_button'}),
             shareObj = go.Terminal.sharedTermObj(term),
             closeFunc,
             endSharing = function() {
@@ -3580,7 +3582,7 @@ go.Base.update(GateOne.Terminal, {
         widgetContent.appendChild(viewers);
         widgetContent.appendChild(viewersVal);
         widgetContent.appendChild(settings);
-        closeFunc = v.widget('Terminal Sharing', widgetContent, {'onclose': endSharing, 'top': '0px', 'left': '85%', 'where': go.Terminal.terminals[term]['where']});
+        closeFunc = v.widget(gettext('Terminal Sharing'), widgetContent, {'onclose': endSharing, 'top': '0px', 'left': '85%', 'where': go.Terminal.terminals[term].where});
         shareObj.closeFunc = closeFunc;
     },
     sharedTermObj: function(term) {
@@ -3588,9 +3590,9 @@ go.Base.update(GateOne.Terminal, {
 
         Returns the object matching the given *term* from `GateOne.Terminal.sharedTerminals`.
         */
-        var sharedTerms = go.Terminal.sharedTerminals;
-        for (var shareID in sharedTerms) {
-            if (sharedTerms[shareID]['term'] == term) {
+        var sharedTerms = go.Terminal.sharedTerminals, shareID;
+        for (shareID in sharedTerms) {
+            if (sharedTerms[shareID].term == term) {
                 return sharedTerms[shareID];
             }
         }
@@ -3600,9 +3602,9 @@ go.Base.update(GateOne.Terminal, {
 
         Returns the share ID for the given *term* (if any).
         */
-        var sharedTerms = go.Terminal.sharedTerminals;
-        for (var shareID in sharedTerms) {
-            if (sharedTerms[shareID]['term'] == term) {
+        var sharedTerms = go.Terminal.sharedTerminals, shareID;
+        for (shareID in sharedTerms) {
+            if (sharedTerms[shareID].term == term) {
                 return shareID;
             }
         }
@@ -3614,8 +3616,8 @@ go.Base.update(GateOne.Terminal, {
         */
         var shareObj = go.Terminal.sharedTermObj(term);
         if (shareObj) {
-            if (shareObj['broadcast']) {
-                return shareObj['broadcast'];
+            if (shareObj.broadcast) {
+                return shareObj.broadcast;
             }
         }
     },
@@ -3624,8 +3626,8 @@ go.Base.update(GateOne.Terminal, {
 
         Returns *screen* with all trailing empty lines removed.
         */
-        var lastLine = 0;
-        for (var i=0; i <= screen.length-1; i++) {
+        var lastLine = 0, i;
+        for (i=0; i <= screen.length-1; i++) {
             if (screen[i].length && screen[i].trim().length) {
                 lastLine = i;
             }
@@ -3640,11 +3642,11 @@ go.Base.update(GateOne.Terminal, {
         If *term* is not given the ``localStorage[prefix+'selectedTerminal']`` will be used.
         */
         term = term || localStorage[prefix+'selectedTerminal'];
-        var lastLine,
+        var lastLine, i,
             nonblankLines,
             screen = go.Terminal.terminals[term].screen;
         // Walk the screen to find the last non-blank line
-        for (var i=0; i <= screen.length-1; i++) {
+        for (i=0; i <= screen.length-1; i++) {
             if (screen[i].length && screen[i].trim().length) {
                 lastLine = i;
             }
