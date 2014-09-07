@@ -216,13 +216,13 @@
 <dl class="function">
 <dt id="GateOne.Terminal.setTitleAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setTitleAction</tt><big>(</big><em>titleObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setTitleAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the title of <em>titleObj['term']</em> to <em>titleObj['title']</em>.</p>
+<dd><p>Sets the title of <em>titleObj.term</em> to <em>titleObj.title</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.resizeAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resizeAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resizeAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the server sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:resize</span></tt> WebSocket action.  Sets the 'rows' and 'columns' values inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message['term']]</span></tt> and sets the same values inside the Info &amp; Tools panel.</p>
+<dd><p>Called when the server sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:resize</span></tt> WebSocket action.  Sets the 'rows' and 'columns' values inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message.term]</span></tt> and sets the same values inside the Info &amp; Tools panel.</p>
 </dd></dl>
 
 <dl class="function">
@@ -590,7 +590,7 @@ the appropriate message to the Gate One server.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>message['term']</strong> (<em>string</em>) -- The terminal in question.</li>
+<li><strong>message.term</strong> (<em>string</em>) -- The terminal in question.</li>
 <li><strong>message['encoding']</strong> (<em>string</em>) -- The encoding to set on the given terminal.</li>
 </ul>
 </td>
@@ -612,7 +612,7 @@ the appropriate message to the Gate One server.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>message['term']</strong> (<em>string</em>) -- The terminal in question.</li>
+<li><strong>message.term</strong> (<em>string</em>) -- The terminal in question.</li>
 <li><strong>message['mode']</strong> (<em>string</em>) -- The keyboard mode to set on the given terminal.  E.g. 'default', 'sco', 'xterm', 'linux', etc</li>
 </ul>
 </td>

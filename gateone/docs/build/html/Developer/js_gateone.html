@@ -212,11 +212,15 @@
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.i18n.setLocale">
-<tt class="descclassname">GateOne.i18n.</tt><tt class="descname">setLocale</tt><big>(</big><em>locale</em><big>)</big><a class="headerlink" href="#GateOne.i18n.setLocale" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.i18n.setLocales">
+<tt class="descclassname">GateOne.i18n.</tt><tt class="descname">setLocales</tt><big>(</big><em>locales</em><big>)</big><a class="headerlink" href="#GateOne.i18n.setLocales" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the Gate One server to set the user's locale to <em>locale</em>.  Example:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">i18n</span><span class="p">.</span><span class="nx">setLocale</span><span class="p">(</span><span class="s1">&#39;fr_FR&#39;</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">i18n</span><span class="p">.</span><span class="nx">setLocales</span><span class="p">([</span><span class="s1">&#39;fr_FR&#39;</span><span class="p">,</span> <span class="s1">&#39;en-US&#39;</span><span class="p">,</span> <span class="s1">&#39;en&#39;</span><span class="p">]);</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Typically you'd pass <tt class="xref py py-obj docutils literal"><span class="pre">navigator.languages</span></tt> to this function.</p>
 </div>
 </dd></dl>
 
@@ -844,7 +848,7 @@
 <span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Plugin .js files take precedence.</span>
 </pre></div>
 </div>
-<p>If <em>message['cache']</em> is <tt class="xref py py-obj docutils literal"><span class="pre">false</span></tt> or <em>noCache</em> is true, will not update the fileCache database with this incoming file.</p>
+<p>If <em>message.cache</em> is <tt class="xref py py-obj docutils literal"><span class="pre">false</span></tt> or <em>noCache</em> is true, will not update the fileCache database with this incoming file.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2542,7 +2546,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dd><p>Sets <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.activeApplication</span></tt> the given <em>app</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <em>app</em> argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside GateOne.User.applications).</p>
+<p class="last">The <em>app</em> argument is case-insensitive.  For example, if you pass 'terminal' it will set the active application to 'Terminal' (which is the name inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.User.applications</span></tt>).</p>
 </div>
 </dd></dl>
 
@@ -2748,6 +2752,48 @@ Why is this mechanism the opposite of everything else where you call the functio
 <dt id="GateOne.Input.init">
 <tt class="descclassname">GateOne.Input.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Input.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attaches our global keydown/keyup events and touch events</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.modifiers">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">modifiers</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.modifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an event object, returns an object representing the state of all modifier keys that were held during the event:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">altgr</span><span class="o">:</span> <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">shift</span><span class="o">:</span> <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">alt</span><span class="o">:</span>   <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">ctrl</span><span class="o">:</span>  <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">meta</span><span class="o">:</span>  <span class="kr">boolean</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.key">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">key</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an event object, returns an object:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">type</span><span class="o">:</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="c1">// Just preserves it</span>
+    <span class="nx">code</span><span class="o">:</span> <span class="nx">key_code</span><span class="p">,</span> <span class="c1">// Tries event.code before falling back to event.keyCode</span>
+    <span class="nx">string</span><span class="o">:</span> <span class="s1">&#39;KEY_&lt;key string&gt;&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Input.kmouseey">
+<tt class="descclassname">GateOne.Input.</tt><tt class="descname">kmouseey</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Input.kmouseey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an event object, returns an object:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">type</span><span class="o">:</span>   <span class="nx">e</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="c1">// Just preserves it</span>
+    <span class="nx">left</span><span class="o">:</span>   <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">right</span><span class="o">:</span>  <span class="kr">boolean</span><span class="p">,</span>
+    <span class="nx">middle</span><span class="o">:</span> <span class="kr">boolean</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">

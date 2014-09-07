@@ -66,7 +66,20 @@ GateOne.Base.update(GateOne.Input, {
 //         }
     },
     modifiers: function(e) {
-        // Given an event object, returns an object with booleans for each modifier key (shift, alt, ctrl, meta)
+        /**:GateOne.Input.modifiers(e)
+
+        Given an event object, returns an object representing the state of all modifier keys that were held during the event:
+
+        .. code-block:: javascript
+
+            {
+                altgr: boolean,
+                shift: boolean,
+                alt:   boolean,
+                ctrl:  boolean,
+                meta:  boolean
+            }
+        */
         var out = {
             altgr: false,
             shift: false,
@@ -190,19 +203,25 @@ GateOne.Base.update(GateOne.Input, {
         63272: 'KEY_DELETE'
     },
     key: function(e) {
-        // Given an event object, returns an object:
-        // {
-        //    type: <event type>, // Just preserves it
-        //    code: <the key code>,
-        //    string: 'KEY_<key string>'
-        // }
+        /**:GateOne.Input.key(e)
+
+        Given an event object, returns an object:
+
+        .. code-block:: javascript
+
+            {
+                type: e.type, // Just preserves it
+                code: key_code, // Tries event.code before falling back to event.keyCode
+                string: 'KEY_<key string>'
+            }
+        */
         var specialKeys,
             k = {
                 type: e.type,
                 location: (e.location || e.keyLocation || 0)
             };
         if (e.type == 'keydown' || e.type == 'keyup') {
-            k.code = e.keyCode;
+            k.code = e.code || e.keyCode;
             // Try the location-specific key string first, then the default location (0), then the Mac version, then finally give up
             specialKeys = I.specialKeys[k.location] || I.specialKeys[0];
             k.string = specialKeys[k.code] || I.specialMacKeys[k.code] || 'KEY_UNKNOWN';
@@ -212,20 +231,26 @@ GateOne.Base.update(GateOne.Input, {
             k.string = String.fromCharCode(k.code);
             return k;
         } else if (e.keyCode && typeof(e.charCode) == 'undefined') { // IE
-            k.code = e.keyCode;
+            k.code = e.code || e.keyCode;
             k.string = String.fromCharCode(k.code);
             return k;
         }
         return undefined;
     },
     mouse: function(e) {
-        // Given an event object, returns an object:
-        // {
-        //    type:   <event type>, // Just preserves it
-        //    left:   <true/false>,
-        //    right:  <true/false>,
-        //    middle: <true/false>,
-        // }
+        /**:GateOne.Input.kmouseey(e)
+
+        Given an event object, returns an object:
+
+        .. code-block:: javascript
+
+            {
+                type:   e.type, // Just preserves it
+                left:   boolean,
+                right:  boolean,
+                middle: boolean,
+            }
+        */
         // Note: Based on functions from MochiKit.Signal
         var m = { type: e.type, button: {} };
         if (e.type != 'mousemove' && e.type != 'mousewheel') {

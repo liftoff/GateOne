@@ -951,138 +951,65 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;kill_session_processes cmd: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">)</span>
     <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="get_applications"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.get_applications">[docs]</a><span class="k">def</span> <span class="nf">get_applications</span><span class="p">(</span><span class="n">application_dir</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="entry_point_files"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.entry_point_files">[docs]</a><span class="k">def</span> <span class="nf">entry_point_files</span><span class="p">(</span><span class="n">ep_group</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds applications&#39; Python files to `sys.path` (if necessary) and returns a</span>
-<span class="sd">    list containing the name of each application.  If given, only applications</span>
-<span class="sd">    in the *enabled* list will be returned.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">application_dir</span><span class="p">):</span>
-        <span class="n">application</span> <span class="o">=</span> <span class="n">directory</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">application_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
-        <span class="n">module_path</span> <span class="o">=</span> <span class="s">&#39;gateone.applications.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">application</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">application</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">application_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s">&quot;__init__.py&quot;</span> <span class="ow">in</span> <span class="n">application_files</span><span class="p">:</span>
-            <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span> <span class="c"># Just need the base</span>
-        <span class="k">else</span><span class="p">:</span> <span class="c"># Look for .py files</span>
-            <span class="k">for</span> <span class="n">app_file</span> <span class="ow">in</span> <span class="n">application_files</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">app_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
-                    <span class="n">app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">app_file</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
-                    <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">app_path</span><span class="p">)</span>
-                    <span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">module_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
-                    <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span>
-    <span class="c"># Sort alphabetically so the order in which they&#39;re applied can</span>
-    <span class="c"># be controlled somewhat predictably</span>
-    <span class="n">out_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out_list</span>
-</div>
-<div class="viewcode-block" id="get_plugins"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.get_plugins">[docs]</a><span class="k">def</span> <span class="nf">get_plugins</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">basepath</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds plugins&#39; Python files to `sys.path` and returns a dictionary of</span>
-<span class="sd">    JavaScript, CSS, and Python files contained in *plugin_dir* like so::</span>
+<span class="sd">    Given an entry point group name (*ep_group*), returns a dict of available</span>
+<span class="sd">    Python, JS, and CSS plugins for Gate One::</span>
 
 <span class="sd">        {</span>
-<span class="sd">            &#39;js&#39;: [ // NOTE: These would be be inside *plugin_dir*/static</span>
-<span class="sd">                &#39;happy_plugin/static/whatever.js&#39;,</span>
-<span class="sd">                &#39;ssh/static/ssh.js&#39;,</span>
-<span class="sd">            ],</span>
-<span class="sd">            &#39;css&#39;: [</span>
-<span class="sd">                &#39;bookmarks/static/bookmarks.css&#39;,</span>
-<span class="sd">                &#39;ssh/templates/ssh.css&#39;</span>
-<span class="sd">            ],</span>
-<span class="sd">            // NOTE: CSS URLs will require &#39;&amp;container=&lt;container&gt;&#39; and &#39;&amp;prefix=&lt;prefix&gt;&#39; to load.</span>
-<span class="sd">            &#39;py&#39;: [ // NOTE: These will get added to sys.path</span>
-<span class="sd">                &#39;happy_plugin&#39;,</span>
-<span class="sd">                &#39;ssh&#39;</span>
-<span class="sd">            ],</span>
+<span class="sd">            &#39;css&#39;: [&#39;editor/static/codemirror.css&#39;],</span>
+<span class="sd">            &#39;js&#39;: [&#39;editor/static/codemirror.js&#39;, &#39;editor/static/editor.js&#39;],</span>
+<span class="sd">            &#39;py&#39;: [&lt;module &#39;gateone.plugins.editor&#39; from &#39;gateone/plugins/editor/__init__.pyc&#39;&gt;]</span>
 <span class="sd">        }</span>
 
-<span class="sd">    \*.js files inside of *plugin_dir*/&lt;the plugin&gt;/static will get automatically</span>
-<span class="sd">    added to Gate One&#39;s index.html like so:</span>
+<span class="sd">    Optionally, the returned dict will include only those modules and files for</span>
+<span class="sd">    plugins in the *enabled* list (if given).</span>
 
-<span class="sd">    .. code-block:: html</span>
+<span class="sd">    .. note::</span>
 
-<span class="sd">        {% for jsplugin in jsplugins %}</span>
-<span class="sd">            &lt;script type=&quot;text/javascript&quot; src=&quot;{{jsplugin}}&quot;&gt;&lt;/script&gt;</span>
-<span class="sd">        {% end %}</span>
+<span class="sd">        Python plugins will be imported automatically as part of the</span>
+<span class="sd">        discovery process.</span>
 
-<span class="sd">    \*.css files will get imported automatically by GateOne.init()</span>
+<span class="sd">    To do this it uses the `pkg_resources` module from setuptools.  For plugins</span>
+<span class="sd">    to be imported correctly they need to register themselves using the given</span>
+<span class="sd">    `entry_point` group (*ep_group*) in their setup.py.  Gate One (currently)</span>
+<span class="sd">    uses the following entry point group names:</span>
 
-<span class="sd">    Optionally, a list of *enabled* (Python) plugins may be provided and only</span>
-<span class="sd">    those plugins will be added to the &#39;py&#39; portion of the returned dict.</span>
+<span class="sd">        * go_plugins</span>
+<span class="sd">        * go_applications</span>
+<span class="sd">        * go_applications_plugins</span>
 
-<span class="sd">    Optionally, if a *basepath* is given imported plugin modules will be</span>
-<span class="sd">    imported like so:</span>
-
-<span class="sd">        &lt;basepath&gt;.plugin_module_name</span>
-
-<span class="sd">    For example::</span>
-
-<span class="sd">        get_plugins(</span>
-<span class="sd">            &quot;/path/to/gateone/applications/terminal/plugins&quot;,</span>
-<span class="sd">            basepath=&quot;gateone.application.terminal.plugins&quot;)</span>
+<span class="sd">    ...but this function can return the JS, CSS, and Python modules for any</span>
+<span class="sd">    entry point that uses the same module_name/static/ layout.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[]}</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">out_dict</span>
-    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="n">directory</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">directory</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">plugin</span> <span class="o">=</span> <span class="n">directory</span>
-        <span class="n">module_path_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-        <span class="c"># Find the *last* directory named &#39;gateone&#39;</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">module_path_list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">_dir</span> <span class="o">==</span> <span class="s">&#39;gateone&#39;</span><span class="p">:</span> <span class="c"># If we ever change the name... Fix this</span>
-                <span class="n">go_index</span> <span class="o">=</span> <span class="n">i</span>
-        <span class="n">module_base</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path_list</span><span class="p">[</span><span class="n">go_index</span><span class="p">:])</span>
-        <span class="n">module_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_base</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
-        <span class="n">http_static_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/static&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
-        <span class="n">http_template_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/templates&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
-            <span class="k">continue</span> <span class="c"># This is not a plugin</span>
-        <span class="n">plugin_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s">&quot;__init__.py&quot;</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
-            <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span> <span class="c"># Just need the base</span>
-        <span class="k">else</span><span class="p">:</span> <span class="c"># Look for .py files</span>
-            <span class="k">for</span> <span class="n">plugin_file</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">plugin_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
-                    <span class="n">plugin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">plugin_file</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
-                    <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">)</span>
-                    <span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">plugin_file</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">plugin_file</span> <span class="o">==</span> <span class="s">&#39;static&#39;</span><span class="p">:</span>
-                <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">plugin_file</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">static_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">static_dir</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">static_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-                        <span class="n">http_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">http_static_path</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
-                        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">http_path</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="n">static_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
-                        <span class="n">http_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">http_static_path</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
-                        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">http_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">plugin_file</span> <span class="o">==</span> <span class="s">&#39;templates&#39;</span><span class="p">:</span>
-                <span class="n">templates_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">plugin_file</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">template_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">templates_dir</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">template_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
-                        <span class="n">http_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                            <span class="n">http_template_path</span><span class="p">,</span> <span class="n">template_file</span><span class="p">)</span>
-                        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">http_path</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">pkg_resources</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled</span><span class="p">:</span>
+        <span class="n">enabled</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">plugin_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">iter_entry_points</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="n">ep_group</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled</span><span class="p">:</span>
+            <span class="k">continue</span> <span class="c"># Not enabled, skip it</span>
+        <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+        <span class="n">static_path</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/static/&#39;</span>
+        <span class="k">if</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">static_path</span><span class="p">):</span>
+            <span class="n">pkg_files</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_listdir</span><span class="p">(</span>
+                <span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">,</span> <span class="s">&#39;/static/&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">pkg_files</span><span class="p">:</span>
+                <span class="n">f_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/static/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
+                    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
+                    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
     <span class="c"># Sort all plugins alphabetically so the order in which they&#39;re applied can</span>
     <span class="c"># be controlled somewhat predictably</span>
-    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out_dict</span>
+    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">plugin_dict</span>
 </div>
 <div class="viewcode-block" id="load_modules"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.load_modules">[docs]</a><span class="k">def</span> <span class="nf">load_modules</span><span class="p">(</span><span class="n">modules</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>

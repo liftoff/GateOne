@@ -6,7 +6,7 @@ GateOne.Base.superSandbox("GateOne.Terminal.Input", ["GateOne.Terminal", "GateOn
 var go = GateOne,
     prefix = go.prefs.prefix,
     t = go.Terminal,
-    i = go.Input, // Not the same as GateOne.Terminal.Input!
+    I = go.Input, // Not the same as GateOne.Terminal.Input!
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
@@ -115,7 +115,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         */
         var selectedTerm = localStorage[prefix+'selectedTerminal'],
             m = go.Input.mouse(e),
-            modifiers = i.modifiers(e),
+            modifiers = I.modifiers(e),
             button,
             termObj = go.Terminal.terminals[selectedTerm],
             termNode = termObj['node'],
@@ -154,7 +154,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         If the ``Alt`` key is held while right-clicking the normal context menu will appear.
         */
         var selectedTerm = localStorage[prefix+'selectedTerminal'],
-            modifiers = i.modifiers(e);
+            modifiers = I.modifiers(e);
         if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
             if (!modifiers.alt) {
                 e.preventDefault();
@@ -198,7 +198,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
         logDebug("GateOne.Terminal.Input.onMouseDown() button: " + e.button + ", which: " + e.which);
         var m = go.Input.mouse(e),
-            modifiers = i.modifiers(e),
+            modifiers = I.modifiers(e),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
@@ -306,7 +306,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedText = u.getSelText(),
             m = go.Input.mouse(e),
-            modifiers = i.modifiers(e),
+            modifiers = I.modifiers(e),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             elementUnder = document.elementFromPoint(e.clientX, e.clientY);
         logDebug("GateOne.Terminal.Input.onMouseUp: e.button: " + e.button + ", e.which: " + e.which);
@@ -501,7 +501,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         });
         t.Input.addedEventListeners = false;
         // TODO: Check to see if this should stay in GateOne.Input:
-        i.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
+        I.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
     },
     onPaste: function(e) {
         /**:GateOne.Terminal.Input.onPaste(e)
@@ -610,7 +610,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Called when the terminal encounters a `keyup` event; just ensures that `GateOne.Terminal.Input.inputNode` is emptied so we don't accidentally send characters we shouldn't.
         */
         // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
-        var modifiers = i.modifiers(e);
+        var key = I.key(e),
+            modifiers = I.modifiers(e);
         logDebug('GateOne.Terminal.Input.onKeyUp()');
         if (!t.Input.composition) {
             // If a non-shift modifier was depressed, emulate the given keystroke:
@@ -620,7 +621,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.inputNode.value = ""; // Keep it empty until needed
             }
         }
-        E.trigger("terminal:onkeyup", e);
+        E.trigger("terminal:onkeyup:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
     },
     onInput: function(e) {
         /**:GateOne.Terminal.Input.onInput(e)
@@ -643,15 +644,15 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
         */
         // NOTE:  In order for e.preventDefault() to work in canceling browser keystrokes like Ctrl-C it must be called before keyup.
-        var key = i.key(e),
-            modifiers = i.modifiers(e),
-            term = localStorage[go.prefs.prefix+'selectedTerminal'];
-        logDebug("GateOne.Terminal.Input.onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        if (i.handledGlobal) {
+        var key = I.key(e),
+            modifiers = I.modifiers(e),
+            term = localStorage[prefix+'selectedTerminal'];
+        logDebug("GateOne.Terminal.Input.onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
+        if (I.handledGlobal) {
             // Global shortcuts take precedence
             return;
         }
-        E.trigger("terminal:onkeydown", e); // Placed before the execKeystroke() call below so the event can be manipulated beforehand.
+        E.trigger("terminal:onkeydown:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {
@@ -660,10 +661,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         For the Terminal application, executes the keystroke or shortcut associated with the given keydown event (*e*).
         */
         logDebug('GateOne.Terminal.Input.execKeystroke()');
-        var key = i.key(e),
-            modifiers = i.modifiers(e);
+        var key = I.key(e),
+            modifiers = I.modifiers(e);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
-            i.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
+            I.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
         }
         if (t.Input.composition) {
@@ -686,8 +687,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         .. note:: :kbd:`Shift+key` also winds up being handled by this function.
         */
-        var key = i.key(e),
-            modifiers = i.modifiers(e),
+        var key = I.key(e),
+            modifiers = I.modifiers(e),
             buffer = t.Input.bufferEscSeq,
             q = function(c) {
                 e.preventDefault();
@@ -783,8 +784,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         This method translates ctrl/alt/meta key combos such as :kbd:`Ctrl-c` into their string equivalents using `GateOne.Terminal.Input.keyTable` and sends them to the server.
         */
-        var key = i.key(e),
-            modifiers = i.modifiers(e),
+        var key = I.key(e),
+            modifiers = I.modifiers(e),
             term = localStorage[prefix+'selectedTerminal'],
             keyboard = t.terminals[term]['keyboard'],
             buffer = t.Input.bufferEscSeq,

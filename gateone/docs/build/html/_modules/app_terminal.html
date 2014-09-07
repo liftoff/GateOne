@@ -89,9 +89,9 @@
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span><span class="p">,</span> <span class="n">policies</span>
 <span class="kn">from</span> <span class="nn">gateone.core.configuration</span> <span class="kn">import</span> <span class="n">get_settings</span><span class="p">,</span> <span class="n">RUDict</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">json_encode</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">get_plugins</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">entry_point_files</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">bind</span><span class="p">,</span> <span class="n">MimeTypeFail</span>
-<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">short_hash</span><span class="p">,</span> <span class="n">load_modules</span><span class="p">,</span> <span class="n">create_data_uri</span><span class="p">,</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">short_hash</span><span class="p">,</span> <span class="n">create_data_uri</span><span class="p">,</span> <span class="n">which</span>
 <span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span>
 <span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">logviewer_main</span>
@@ -305,12 +305,10 @@
         <span class="c"># load new plugins with a simple page reload)</span>
         <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">),</span> <span class="n">enabled_plugins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_terminal_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
         <span class="n">py_plugins</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">module_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">module_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">py_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
+            <span class="n">py_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
         <span class="n">js_plugins</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">js_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">js_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -330,8 +328,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># TODO: Keep track of plugins and hooks to determine when they&#39;ve</span>
         <span class="c">#       changed so we can tell clients to pull updates and whatnot</span>
-        <span class="n">imported</span> <span class="o">=</span> <span class="n">load_modules</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">imported</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="s">&#39;initialize&#39;</span><span class="p">):</span>
@@ -2797,11 +2794,10 @@
     <span class="c"># Initialize plugins so we can add their &#39;Web&#39; handlers</span>
     <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
     <span class="n">plugins_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">)</span>
-    <span class="n">plugins</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span><span class="n">plugins_path</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
+    <span class="n">plugins</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_applications_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
     <span class="c"># Attach plugin hooks</span>
     <span class="n">plugin_hooks</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">imported</span> <span class="o">=</span> <span class="n">load_modules</span><span class="p">(</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">imported</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">plugin_hooks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>

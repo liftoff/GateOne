@@ -36,7 +36,7 @@ var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozB
 // Set the indexedDB variable as a global (within this sandbox) attached to the proper indexedDB implementation
 // var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
 var indexedDB = null;
-if ('webkitIndexedDB' in window) {
+if (!'IDBTransaction' in window && 'webkitIndexedDB' in window) {
     window.IDBTransaction = window.webkitIDBTransaction;
     window.IDBKeyRange = window.webkitIDBKeyRange;
 }
@@ -81,7 +81,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140906155355";
+GateOne.__commit__ = "20140906220756";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -6203,8 +6203,8 @@ GateOne.Base.update(GateOne.Events, {
             >>> // The '1' below will be passed to each callback as the only argument
             >>> GateOne.Events.trigger("new_terminal", 1);
         */
-        logDebug("Triggering " + events);
         var args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
+        logDebug("Triggering: " + events, args);
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event];
             if (!callList) {

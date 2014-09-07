@@ -81,7 +81,7 @@
     <span class="p">}</span>
 <span class="p">}</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
-<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20140901214636&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
+<span class="n">__commit__</span> <span class="o">=</span> <span class="s">&quot;20140906220756&quot;</span> <span class="c"># Gets replaced by git (holds the date/time)</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
@@ -416,6 +416,8 @@
 
 <span class="n">tornado_version</span> <span class="o">=</span> <span class="s">&quot;&quot;</span> <span class="c"># Placeholder in case Tornado import fails below</span>
 
+<span class="c"># 3rd party modules</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span> <span class="c"># Technically setuptools isn&#39;t part of Python&#39;s stdlib</span>
 <span class="c"># Tornado modules (yeah, we use all this stuff)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
@@ -463,11 +465,11 @@
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span>
 <span class="kn">from</span> <span class="nn">gateone.async</span> <span class="kn">import</span> <span class="n">MultiprocessRunner</span><span class="p">,</span> <span class="n">ThreadedRunner</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">touch</span><span class="p">,</span> <span class="n">noop</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">gen_self_signed_ssl</span><span class="p">,</span> <span class="n">get_plugins</span><span class="p">,</span> <span class="n">load_modules</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">gen_self_signed_ssl</span><span class="p">,</span> <span class="n">entry_point_files</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">merge_handlers</span><span class="p">,</span> <span class="n">none_fix</span><span class="p">,</span> <span class="n">convert_to_timedelta</span><span class="p">,</span> <span class="n">short_hash</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">recursive_chown</span><span class="p">,</span> <span class="n">ChownError</span><span class="p">,</span> <span class="n">get_or_cache</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">write_pid</span><span class="p">,</span> <span class="n">read_pid</span><span class="p">,</span> <span class="n">remove_pid</span><span class="p">,</span> <span class="n">drop_privileges</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_write_permissions</span><span class="p">,</span> <span class="n">get_applications</span><span class="p">,</span> <span class="n">valid_hostname</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_write_permissions</span><span class="p">,</span> <span class="n">valid_hostname</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">total_seconds</span><span class="p">,</span> <span class="n">MEMO</span><span class="p">,</span> <span class="n">bind</span>
 <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">apply_cli_overrides</span><span class="p">,</span> <span class="n">define_options</span><span class="p">,</span> <span class="n">SettingsError</span>
 <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">get_settings</span>
@@ -482,14 +484,14 @@
 
 <span class="c"># Setup the locale functions before anything else</span>
 <span class="n">locale</span><span class="o">.</span><span class="n">set_default_locale</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span>
-<span class="n">user_locale</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Replaced with the actual user locale object in __main__</span>
+<span class="n">server_locale</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Replaced with the actual server locale object in __main__</span>
 <div class="viewcode-block" id="_"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server._">[docs]</a><span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Wraps user_locale.translate so we don&#39;t get errors if loading a locale fails</span>
-<span class="sd">    (or we output a message before it is initialized).</span>
+<span class="sd">    Wraps server_locale.translate so we don&#39;t get errors if loading a locale</span>
+<span class="sd">    fails (or we output a message before it is initialized).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">user_locale</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">user_locale</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">server_locale</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">server_locale</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">string</span>
 
@@ -1237,7 +1239,7 @@
             <span class="s">&#39;go:list_users&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_server_users</span><span class="p">,</span>
             <span class="s">&#39;go:get_locations&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_locations</span><span class="p">,</span>
             <span class="s">&#39;go:set_location&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_location</span><span class="p">,</span>
-            <span class="s">&#39;go:set_locale&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_locale</span><span class="p">,</span>
+            <span class="s">&#39;go:set_locales&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_locales</span><span class="p">,</span>
             <span class="s">&#39;go:set_dimensions&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_dimensions</span><span class="p">,</span>
             <span class="s">&#39;go:license_info&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">license_info</span><span class="p">,</span>
             <span class="s">&#39;go:debug&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
@@ -1251,6 +1253,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_locales</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s">&quot;default&quot;</span> <span class="c"># Just a placeholder; gets set in authenticate()</span>
@@ -1452,9 +1455,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">bind</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
             <span class="k">if</span> <span class="s">&#39;WebSocket&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
                 <span class="c"># Apply the plugin&#39;s WebSocket commands</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Applying WebSocket hooks for </span><span class="si">%s</span><span class="s">...&quot;</span> <span class="o">%</span> <span class="n">plugin_name</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">ws_action</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">[</span><span class="s">&#39;WebSocket&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;WebSocket action: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ws_action</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">ws_action</span><span class="p">:</span> <span class="n">bind</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">)})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&quot;go:authenticate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_extra</span><span class="p">)</span>
         <span class="c"># Setup some actions to take place after the user authenticates</span>
@@ -2235,10 +2236,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">client_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.client&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">)</span>
         <span class="c"># NOTE: NOT using self.auth_log() here on purpose (this log message</span>
         <span class="c"># should stay consistent for easier auditing):</span>
-        <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="n">_</span><span class="p">(</span><span class="s">u&quot;User {upn} authenticated successfully via origin {origin}&quot;</span>
-              <span class="s">u&quot; (location: {location}).&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                  <span class="n">upn</span><span class="o">=</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">origin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">))</span>
+        <span class="n">log_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
+            <span class="s">u&quot;User {upn} authenticated successfully via origin {origin} &quot;</span>
+            <span class="s">u&quot;(location {location}).&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">upn</span><span class="o">=</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span>
+                <span class="n">origin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;idna&#39;</span><span class="p">),</span>
+                <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+        <span class="n">auth_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">log_msg</span><span class="p">)</span>
         <span class="c"># This check is to make sure there&#39;s no existing session so we don&#39;t</span>
         <span class="c"># accidentally clobber it.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">:</span>
@@ -2685,9 +2689,6 @@
             <span class="c"># This wierd little bit empties Tornado&#39;s template cache:</span>
             <span class="k">for</span> <span class="n">web_template_path</span> <span class="ow">in</span> <span class="n">template_loaders</span><span class="p">:</span>
                 <span class="n">template_loaders</span><span class="p">[</span><span class="n">web_template_path</span><span class="p">]</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-            <span class="c">#rendered_path = self.render_style(</span>
-                <span class="c">#theme_path, **template_args)</span>
-            <span class="c">#rendered_theme_files.append(rendered_path)</span>
             <span class="k">for</span> <span class="n">template_file</span> <span class="ow">in</span> <span class="n">theme_files</span><span class="p">:</span>
                 <span class="n">rendered_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_style</span><span class="p">(</span>
                     <span class="n">template_file</span><span class="p">,</span> <span class="o">**</span><span class="n">template_args</span><span class="p">)</span>
@@ -2861,7 +2862,7 @@
         <span class="n">requires</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;requires&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_cache</span><span class="p">[</span><span class="n">filename_hash</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;media&#39;</span><span class="p">,</span> <span class="s">&#39;screen&#39;</span><span class="p">)</span>
         <span class="n">url_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sync_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Sending: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sync_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Sending: {0}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">,</span>
             <span class="s">&#39;cache&#39;</span><span class="p">:</span> <span class="n">use_client_cache</span><span class="p">,</span>
@@ -2913,6 +2914,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">WebSocketClosedError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
                 <span class="k">pass</span> <span class="c"># WebSocket closed before we got a chance to send this</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;file_request() for: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">get_or_cache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">minify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">send_file</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -3317,49 +3319,92 @@
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:themes_list&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;themes&#39;</span><span class="p">:</span> <span class="n">themes</span><span class="p">,</span> <span class="s">&#39;colors&#39;</span><span class="p">:</span> <span class="n">colors</span><span class="p">}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-    <span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">())</span>
-    <span class="k">def</span> <span class="nf">set_locale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="ApplicationWebSocket.set_locales"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server.ApplicationWebSocket.set_locales">[docs]</a>    <span class="k">def</span> <span class="nf">set_locales</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">locales</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the client&#39;s locale to *message[&#39;locale&#39;]*.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">][</span><span class="s">&#39;locale&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;locale&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_translation</span><span class="p">()</span>
+<span class="sd">        Attached to the &#39;go:set_locales` WebSocket action; sets</span>
+<span class="sd">        ``self.user_locales`` to the given *locales* and calls</span>
+<span class="sd">        `ApplicationWebSocket.send_js_translation` to deliver the best-match</span>
+<span class="sd">        JSON-encoded translation to the client (if available).</span>
 
-<div class="viewcode-block" id="ApplicationWebSocket.send_js_translation"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server.ApplicationWebSocket.send_js_translation">[docs]</a>    <span class="k">def</span> <span class="nf">send_js_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="sd">        The *locales* argument may be a string or a list.  If a string,</span>
+<span class="sd">        ``self.user_locales`` will be set to a list with the given locale as the</span>
+<span class="sd">        first (and only) item.  If *locales* is a list ``self.user_locales``</span>
+<span class="sd">        will simply be replaced.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">locales</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">locales</span> <span class="o">=</span> <span class="p">[</span><span class="n">locales</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_locales</span> <span class="o">=</span> <span class="n">locales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_js_translation</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ApplicationWebSocket.send_js_translation"><a class="viewcode-back" href="../../../Developer/server.html#gateone.core.server.ApplicationWebSocket.send_js_translation">[docs]</a>    <span class="k">def</span> <span class="nf">send_js_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">locales</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a message to the client containing a JSON-encoded table of strings</span>
-<span class="sd">        that have been translated to the user&#39;s locale.</span>
+<span class="sd">        that have been translated to the user&#39;s locale.  The translation file</span>
+<span class="sd">        will be retrieved via the `pkg_resources.resource_string` function using</span>
+<span class="sd">        the given *package* with a default path (if not given) of,</span>
+<span class="sd">        &#39;/i18n/{locale}/LC_MESSAGES/gateone_js.json&#39;.  For example::</span>
 
-<span class="sd">        If a *path* is given it will be used to send the client that file.  If</span>
-<span class="sd">        more than one JSON translation is sent to the client the new translation</span>
-<span class="sd">        will be merged into the existing one.</span>
+<span class="sd">            self.send_js_translation(package=&quot;gateone.plugins.myplugin&quot;)</span>
+
+<span class="sd">        Would result in the `pkg_resources.resource_string` function being</span>
+<span class="sd">        called like so::</span>
+
+<span class="sd">            path = &#39;/i18n/{locale}/LC_MESSAGES/gateone_js.json&#39;.format(</span>
+<span class="sd">                locale=locale)</span>
+<span class="sd">            translation = pkg_resources.resource_string(</span>
+<span class="sd">                &quot;gateone.plugins.myplugin&quot;, path)</span>
+
+<span class="sd">        If providing a custom *path* be sure it includes the &#39;{locale}&#39; portion</span>
+<span class="sd">        so the correct translation will be chosen.  As an example, your plugin</span>
+<span class="sd">        might store locales inside a &#39;translations&#39; directory with each locale</span>
+<span class="sd">        JSON translation file named, &#39;&lt;locale&gt;/myplugin.json&#39;.  The correct</span>
+<span class="sd">        *path* for that would be: &#39;/translations/{locale}/myplugin.json&#39;</span>
+
+<span class="sd">        If no *locales* (may be list or string) is given the</span>
+<span class="sd">        ``self.user_locales`` variable will be used.</span>
+
+<span class="sd">        This method will attempt to find the closest locale if no direct match</span>
+<span class="sd">        can be found.  For example, if ``locales==&quot;fr&quot;`` the &#39;fr_FR&#39; locale</span>
+<span class="sd">        would be used.  If *locales* is a list, the first matching locale will</span>
+<span class="sd">        be used.</span>
 
 <span class="sd">        .. note::</span>
 
 <span class="sd">            Translation files must be the result of a</span>
-<span class="sd">            `pojson /path/to/translation.po` conversion.</span>
+<span class="sd">            ``pojson /path/to/translation.po`` conversion.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">chosen_locale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;locale&#39;</span><span class="p">,</span> <span class="s">&#39;en_US&#39;</span><span class="p">)</span>
-        <span class="n">json_translation</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">GATEONE_DIR</span><span class="p">,</span>
-            <span class="s">&#39;i18n&#39;</span><span class="p">,</span>
-            <span class="n">chosen_locale</span><span class="p">,</span>
-            <span class="s">&#39;LC_MESSAGES&#39;</span><span class="p">,</span>
-            <span class="s">&#39;gateone_js.json&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">decoded</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-                    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:register_translation&#39;</span><span class="p">:</span> <span class="n">decoded</span><span class="p">}</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;Translation file, </span><span class="si">%s</span><span class="s"> could not be found&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_translation</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">json_translation</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">decoded</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">supported_locales</span>
+        <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_exists</span><span class="p">,</span> <span class="n">resource_string</span>
+        <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_listdir</span><span class="p">,</span> <span class="n">isdir</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">locales</span><span class="p">:</span>
+            <span class="n">locales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_locales</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">locales</span><span class="p">:</span> <span class="c"># Use the server&#39;s locale</span>
+            <span class="n">locales</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;locale&#39;</span><span class="p">)]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;send_js_translation() locales: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">locales</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">locale</span> <span class="ow">in</span> <span class="n">locales</span><span class="p">:</span>
+            <span class="n">locale</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="c"># Example: Converts en-US to en_US</span>
+            <span class="k">if</span> <span class="n">locale</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;en&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="c"># Gate One strings are English by default</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/i18n/{locale}/LC_MESSAGES/gateone_js.json&#39;</span>
+            <span class="k">if</span> <span class="n">locale</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_locales</span><span class="p">:</span> <span class="c"># Try next-closest match</span>
+                <span class="n">first_part</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Try the first bit</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">supported_locales</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">first_part</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                        <span class="n">locale</span> <span class="o">=</span> <span class="n">l</span>
+                        <span class="k">break</span>
+            <span class="n">json_translation</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">locale</span><span class="o">=</span><span class="n">locale</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resource_exists</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">json_translation</span><span class="p">):</span>
+                <span class="n">decoded</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span>
+                    <span class="n">resource_string</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">json_translation</span><span class="p">))</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:register_translation&#39;</span><span class="p">:</span> <span class="n">decoded</span><span class="p">}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;No matching translation found for locale: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">locale</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;No translation file could not be found for the given &quot;</span>
+              <span class="s">&quot;locales: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">locales</span><span class="p">)</span>
 
 <span class="c"># NOTE: This is not meant to be a chat application.  That&#39;ll come later :)</span>
 <span class="c">#       The real purpose of send_user_message() and broadcast() are for</span>
@@ -3764,7 +3809,10 @@
             <span class="n">name</span> <span class="o">=</span> <span class="n">css_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">css_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
+        <span class="n">py_plugins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
+            <span class="n">py_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">py_plugins</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
         <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Loaded global plugins: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">))</span>
         <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">tornado_settings</span><span class="p">)</span>
@@ -4037,22 +4085,21 @@
             <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not create log directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">log_dir</span><span class="p">))</span>
             <span class="k">print</span><span class="p">(</span><span class="n">log_fail_msg</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">PLUGINS</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">),</span> <span class="n">enabled_plugins</span><span class="p">)</span>
-    <span class="n">imported</span> <span class="o">=</span> <span class="n">load_modules</span><span class="p">(</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">imported</span><span class="p">:</span>
+    <span class="n">PLUGINS</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">PLUGIN_HOOKS</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
-            <span class="k">if</span> <span class="s">&#39;commands&#39;</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">:</span>
-                <span class="n">cli_commands</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;gateone&#39;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">[</span><span class="s">&#39;commands&#39;</span><span class="p">]})</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="s">&#39;commands&#39;</span><span class="p">):</span>
+                <span class="n">cli_commands</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;gateone&#39;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">commands</span><span class="p">})</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># No hooks--probably just a supporting .py file.</span>
-    <span class="n">APPLICATIONS</span> <span class="o">=</span> <span class="n">get_applications</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;applications&#39;</span><span class="p">),</span> <span class="n">enabled_applications</span><span class="p">)</span>
-    <span class="c"># NOTE: load_modules() imports all the .py files in applications.  This</span>
+    <span class="c"># NOTE: entry_point_files() imports all the .py files in applications.  This</span>
     <span class="c"># means that applications can place calls to tornado.options.define()</span>
     <span class="c"># anywhere in their .py files and they should automatically be usable by the</span>
     <span class="c"># user at this point in the startup process.</span>
-    <span class="n">app_modules</span> <span class="o">=</span> <span class="n">load_modules</span><span class="p">(</span><span class="n">APPLICATIONS</span><span class="p">)</span>
+    <span class="n">app_modules</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span>
+        <span class="s">&#39;go_applications&#39;</span><span class="p">,</span> <span class="n">enabled_applications</span><span class="p">)[</span><span class="s">&#39;py&#39;</span><span class="p">]</span>
+    <span class="n">APPLICATIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">__name__</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">app_modules</span><span class="p">]</span>
     <span class="c"># Check if the user is running a command as opposed to passing arguments</span>
     <span class="c"># so we can set the log_file_prefix to something innocuous so as to prevent</span>
     <span class="c"># IOError exceptions from Tornado&#39;s parse_command_line() below...</span>
@@ -4274,8 +4321,8 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="c"># Re-do the locale in case the user supplied something as --locale</span>
-    <span class="n">user_locale</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;locale&#39;</span><span class="p">])</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">user_locale</span><span class="o">.</span><span class="n">translate</span> <span class="c"># Also replaces our wrapper so no more .encode()</span>
+    <span class="n">server_locale</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;locale&#39;</span><span class="p">])</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">server_locale</span><span class="o">.</span><span class="n">translate</span> <span class="c"># Also replaces our wrapper so no more .encode()</span>
     <span class="c"># Create the log dir if not already present (NOTE: Assumes we&#39;re root)</span>
     <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">go_settings</span><span class="p">[</span><span class="s">&#39;log_file_prefix&#39;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>

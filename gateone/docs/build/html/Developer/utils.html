@@ -466,55 +466,37 @@ compatibility with <a class="reference internal" href="#gateone.core.utils.killa
 </dd></dl>
 
 <dl class="function">
-<dt id="gateone.core.utils.get_applications">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_applications" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds applications' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> (if necessary) and returns a
-list containing the name of each application.  If given, only applications
-in the <em>enabled</em> list will be returned.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.core.utils.get_plugins">
-<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em>, <em>basepath=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.get_plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds plugins' Python files to <tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt> and returns a dictionary of
-JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
+<dt id="gateone.core.utils.entry_point_files">
+<tt class="descclassname">gateone.core.utils.</tt><tt class="descname">entry_point_files</tt><big>(</big><em>ep_group</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/utils.html#entry_point_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.utils.entry_point_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an entry point group name (<em>ep_group</em>), returns a dict of available
+Python, JS, and CSS plugins for Gate One:</p>
 <div class="highlight-python"><div class="highlight"><pre>{
-    &#39;js&#39;: [ // NOTE: These would be be inside *plugin_dir*/static
-        &#39;happy_plugin/static/whatever.js&#39;,
-        &#39;ssh/static/ssh.js&#39;,
-    ],
-    &#39;css&#39;: [
-        &#39;bookmarks/static/bookmarks.css&#39;,
-        &#39;ssh/templates/ssh.css&#39;
-    ],
-    // NOTE: CSS URLs will require &#39;&amp;container=&lt;container&gt;&#39; and &#39;&amp;prefix=&lt;prefix&gt;&#39; to load.
-    &#39;py&#39;: [ // NOTE: These will get added to sys.path
-        &#39;happy_plugin&#39;,
-        &#39;ssh&#39;
-    ],
+    &#39;css&#39;: [&#39;editor/static/codemirror.css&#39;],
+    &#39;js&#39;: [&#39;editor/static/codemirror.js&#39;, &#39;editor/static/editor.js&#39;],
+    &#39;py&#39;: [&lt;module &#39;gateone.plugins.editor&#39; from &#39;gateone/plugins/editor/__init__.pyc&#39;&gt;]
 }
 </pre></div>
 </div>
-<p>*.js files inside of <em>plugin_dir</em>/&lt;the plugin&gt;/static will get automatically
-added to Gate One's index.html like so:</p>
-<div class="highlight-html"><div class="highlight"><pre>{% for jsplugin in jsplugins %}
-    <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;{{jsplugin}}&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
-{% end %}
-</pre></div>
+<p>Optionally, the returned dict will include only those modules and files for
+plugins in the <em>enabled</em> list (if given).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Python plugins will be imported automatically as part of the
+discovery process.</p>
 </div>
-<p>*.css files will get imported automatically by GateOne.init()</p>
-<p>Optionally, a list of <em>enabled</em> (Python) plugins may be provided and only
-those plugins will be added to the 'py' portion of the returned dict.</p>
-<p>Optionally, if a <em>basepath</em> is given imported plugin modules will be
-imported like so:</p>
+<p>To do this it uses the <tt class="xref py py-obj docutils literal"><span class="pre">pkg_resources</span></tt> module from setuptools.  For plugins
+to be imported correctly they need to register themselves using the given
+<tt class="xref py py-obj docutils literal"><span class="pre">entry_point</span></tt> group (<em>ep_group</em>) in their setup.py.  Gate One (currently)
+uses the following entry point group names:</p>
 <blockquote>
-<div>&lt;basepath&gt;.plugin_module_name</div></blockquote>
-<p>For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">get_plugins</span><span class="p">(</span>
-    <span class="s">&quot;/path/to/gateone/applications/terminal/plugins&quot;</span><span class="p">,</span>
-    <span class="n">basepath</span><span class="o">=</span><span class="s">&quot;gateone.application.terminal.plugins&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<div><ul class="simple">
+<li>go_plugins</li>
+<li>go_applications</li>
+<li>go_applications_plugins</li>
+</ul>
+</div></blockquote>
+<p>...but this function can return the JS, CSS, and Python modules for any
+entry point that uses the same module_name/static/ layout.</p>
 </dd></dl>
 
 <dl class="function">
