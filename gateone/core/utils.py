@@ -1402,7 +1402,6 @@ def minify(path_or_fileobj, kind):
             logging.error(_("slimit failed trying to minify %s") % filename)
             import traceback
             traceback.print_exc(file=sys.stdout)
-        del slimit # Don't need this anymore
     elif cssmin and kind == 'css':
         out = cssmin.cssmin(data)
         logging.debug(_(
@@ -1410,7 +1409,6 @@ def minify(path_or_fileobj, kind):
                 (len(data) - len(out), filename)
             )
         ))
-        del cssmin # Don't need this anymore
     return out
 
 # This is so we can have the argument below be 'minify' (user friendly)

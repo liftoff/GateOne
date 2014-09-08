@@ -34,10 +34,11 @@ var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozB
     urlObj = (window.URL || window.webkitURL);
 
 // Set the indexedDB variable as a global (within this sandbox) attached to the proper indexedDB implementation
-// var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
-var indexedDB = null;
-if (!'IDBTransaction' in window && 'webkitIndexedDB' in window) {
+var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+if (!window.IDBTransaction && window.webkitIDBTransaction) {
     window.IDBTransaction = window.webkitIDBTransaction;
+}
+if (!window.IDBKeyRange && window.webkitIDBKeyRange) {
     window.IDBKeyRange = window.webkitIDBKeyRange;
 }
 
@@ -81,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140907133038";
+GateOne.__commit__ = "20140907144438";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -1442,6 +1443,23 @@ GateOne.Base.update(GateOne.Utils, {
             });
             go.Events.trigger("go:js_loaded");
         }, 250); // postInit() functions need to de-bounced separately from init() functions
+    },
+    cacheFileAction: function(fileObj, /*opt*/callback) {
+        /**:GateOne.Utils.cacheFileAction(fileObj[, callback])
+
+        Attached to the 'go:cache_file' WebSocket action; stores the given *fileObj* in the 'fileCache' database and calls *callback* when complete.
+
+        If *fileObj['kind']* is 'html' the file will be stored in the 'html' table otherwise the file will be stored in the 'other' table.
+        */
+        var fileCache = go.Storage.dbObject('fileCache');
+        if (!fileObj.filename) {
+            logError(gettext("Could not cache file due to missing 'filename' attribute: "), fileObj);
+        }
+        if (fileObj.html) {
+            fileCache.put('html', fileObj, callback);
+        } else {
+            fileCache.put('misc', fileObj, callback);
+        }
     },
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)
@@ -5399,10 +5417,12 @@ GateOne.Storage.dbObject = function(DB) {
     }
     return self;
 }
-GateOne.Storage.dbVersion = 2; // NOTE: Must be an integer (no floats!)
+GateOne.Storage.dbVersion = 4; // NOTE: Must be an integer (no floats!)
 GateOne.Storage.fileCacheModel = {
     'js': {keyPath: 'filename'},
-    'css': {keyPath: 'filename'}
+    'css': {keyPath: 'filename'},
+    'html': {keyPath: 'filename'}, // NOTE: Mainly for templates
+    'misc': {keyPath: 'filename'} // For other odds & ends where it may be a good idea to keep them cached at the client
 }
 GateOne.Storage.deferLoadingTimers = {}; // Used to make sure we don't duplicate our efforts in retries
 GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files to ensure they load in the proper order.
@@ -5516,7 +5536,8 @@ GateOne.Base.update(GateOne.Storage, {
         // Example incoming message:
         //  {'files': [{'filename': 'foo.js', 'mtime': 1234567890123}]}
         var S = go.Storage,
-            u = go.Utils;
+            u = go.Utils,
+            fileCache = S.dbObject('fileCache');
         if (!go.Storage.fileCacheReady) {
             // Database hasn't finished initializing yet.  Wait just a moment and retry...
             if (S.deferLoadingTimers[message['files'][0].filename]) {
@@ -5574,6 +5595,8 @@ GateOne.Base.update(GateOne.Storage, {
                             // Emulate an incoming message from the server to load this CSS
                             var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj.kind, 'filename': localFileObj.filename, 'hash': localFileObj['hash'], 'data': localFileObj.data,  'element_id': remoteFileObj.element_id, 'media': localFileObj.media};
                             u.loadStyleAction(messageObj, true); // true here indicates "don't cache" (already cached)
+                        } else if (remoteFileObj.kind == 'html') {
+                            // Nothing to do; HTML templates are loaded on-demand
                         }
                     }
                 } else {
@@ -5797,6 +5820,7 @@ GateOne.Base.update(GateOne.Storage, {
 // Load some early-stage required WebSocket actions
 go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
 go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
+go.Net.addAction('go:cache_file', go.Utils.cacheFileAction);
 go.Net.addAction('go:load_style', go.Utils.loadStyleAction);
 go.Net.addAction('go:load_js', go.Utils.loadJSAction);
 

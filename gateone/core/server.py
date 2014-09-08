@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140907133038" # Gets replaced by git (holds the date/time)
+__commit__ = "20140907144438" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1643,7 +1643,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'gateone_utils_extra.js',
             'gateone_visual_extra.js',
             'gateone_input.js',
-            'gateone_misc.js'
+            'gateone_misc.js',
+            'doT.js' # For simple HTML templates
         ]
         for js_file in additional_files:
             self.send_js(os.path.join(GATEONE_DIR, 'static', js_file))
@@ -2792,31 +2793,19 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.write_message({'go:load_js': out_dict})
             return
         # Get the file info out of the file_cache so we can send it
-        element_id = self.file_cache[filename_hash].get('element_id', None)
         path = self.file_cache[filename_hash]['path']
         filename = self.file_cache[filename_hash]['filename']
         kind = self.file_cache[filename_hash]['kind']
-        mtime = self.file_cache[filename_hash]['mtime']
-        requires = self.file_cache[filename_hash].get('requires', None)
-        media = self.file_cache[filename_hash].get('media', 'screen')
+        out_dict = {'result': 'Success'}
+        out_dict.update(self.file_cache[filename_hash])
+        del out_dict['path'] # Don't want the client knowing this
         url_prefix = self.settings['url_prefix']
         self.sync_log.info(_("Sending: {0}").format(filename))
-        out_dict = {
-            'result': 'Success',
-            'cache': use_client_cache,
-            'mtime': mtime,
-            'filename': filename,
-            'hash': filename_hash,
-            'kind': kind,
-            'element_id': element_id,
-            'requires': requires,
-            'media': media
-        }
         cache_dir = self.settings['cache_dir']
         def send_file(result):
             """
             Adds our minified data to the out_dict and sends it to the
-            client.
+            client.  Also adds sourceURL comments if possible.
             """
             out_dict['data'] = result
             if kind == 'js':
@@ -2825,7 +2814,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     application = path.split('applications/')[1].split('/')[0]
                     if 'plugins' in path:
                         static_path = path.split("%s/plugins/" % application)[1]
-                        # /terminal/ssh/static/
+                        # e.g. /terminal/ssh/static/
                         source_url = "%s%s/%s" % (
                             url_prefix, application, static_path)
                     else:
@@ -2848,6 +2837,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             elif kind == 'theme':
                 out_dict['theme'] = True
                 message = {'go:load_theme': out_dict}
+            elif kind == 'html':
+                out_dict['html'] = True
+                message = {'go:cache_file': out_dict}
+            else:
+                message = {'go:cache_file': out_dict}
             try:
                 self.write_message(message)
             except (WebSocketClosedError, AttributeError):
@@ -2861,6 +2855,44 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # own check to see if processing the file is necessary.
             CPU_ASYNC.call(get_or_cache, cache_dir, path,
                            minify=True, callback=send_file, memoize=False)
+
+    def send_file(self, filepath, kind='misc', **metadata):
+        """
+        Tells the client to perform a sync of the file at the given *filepath*.
+        The *kind* should only be one of 'html' or 'misc' for HTML templates
+        and everything else, respectively.
+
+        Any additional keyword arguments provided via *metadata* will be
+        stored in the client-side fileCache database.
+
+        .. note:: This kind of file sending *always* uses the client-side cache.
+        """
+        if not os.path.exists(filepath):
+            self.sync_log.error(_("File does not exist: {0}").format(filepath))
+            return
+        cache_dir = self.settings['cache_dir']
+        mtime = os.stat(filepath).st_mtime
+        filename = os.path.split(filepath)[1]
+        filepath_hash = hashlib.md5(filepath.encode('utf-8')).hexdigest()[:10]
+        # Store the file info in the file_cache just in case we need to
+        # reference the original (non-rendered) path later:
+        self.file_cache[filepath_hash] = {
+            'filename': filename,
+            'kind': kind,
+            'path': filepath,
+            'mtime': mtime
+        }
+        if metadata:
+            self.file_cache[filepath_hash].update(**metadata)
+        file_dict = {
+            'filename': filename,
+            'hash': filepath_hash,
+            'mtime': mtime,
+            'kind': kind
+        }
+        out_dict = {'files': [file_dict]}
+        message = {'go:file_sync': out_dict}
+        self.write_message(message)
 
     def send_js_or_css(self, paths_or_fileobj, kind,
             element_id=None, requires=None, media="screen", filename=None):
