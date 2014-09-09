@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140907144438" # Gets replaced by git (holds the date/time)
+__commit__ = "20140907212840" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3573,9 +3573,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         pprint(gc.garbage)
         debug_logger.info("Debug: gc.collect(): %s" % gc.collect())
         pprint(gc.garbage)
-        print("SESSIONS:")
+        logging.info("SESSIONS:")
         pprint(SESSIONS)
-        print("PERSIST:")
+        logging.info("PERSIST:")
         pprint(PERSIST)
         try:
             from pympler import asizeof
@@ -3590,9 +3590,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if not hasattr(self, 'hp'):
                 self.hp = hpy()
                 self.hp.setrelheap() # We only want to track NEW stuff
-            print("Heap:")
+            logging.info("Heap:")
             h = self.hp.heap()
-            print(h)
+            logging.info(h)
             # Uncomment this to troubleshoot memory leaks.  If any exist this
             # loop will shine a light on them:
             #print("Heap Details (up to top 10):")

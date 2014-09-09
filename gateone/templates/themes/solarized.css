@@ -27,6 +27,11 @@
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
+#{{container}} input, select {
+    background-color: #002b36;
+    color: #fff;
+    border: 1px #fff solid;
+}
 .✈centered_text {
     text-align: center;
 }
@@ -438,7 +443,7 @@ potential conflicts with other classes that may be on the page.
     background: #002b36;
     color: #839496;
     font-family: sans-serif;
-    z-index: 800; /* Same as toolbar */
+    z-index: 400; /* Same as toolbar */
     overflow-x: hidden;
     overflow-y: auto;
     padding-right: .4em;
@@ -465,7 +470,7 @@ potential conflicts with other classes that may be on the page.
     transition: all 0.5s ease-in-out;
     box-shadow: 0.2em 0.2em 0.5em #000;
     border: 0.1em #fff outset;
-    border-radius: 0.3em;
+    border-radius: 0.15em;
 }
 .✈panel h2 {
     width: 100%;
@@ -495,7 +500,7 @@ potential conflicts with other classes that may be on the page.
 }
 .✈paneltable {
     position: relative;
-    width: 100%;
+    width: 96.8%;
     padding-bottom: 0.5em;
     margin-bottom: 0.2em;
     border: 0.1em #fff solid;
@@ -591,35 +596,22 @@ potential conflicts with other classes that may be on the page.
     text-decoration: none;
     padding: .2em 0.5em .25em;
     margin-right: 0.25em;
-    border-radius: .5em;
-    box-shadow: 1px 1px 2px rgba(0,0,0,.2);
+    border-radius: .15em;
     font-weight: bold;
     font-size: 0.9em;
+    background-color: #002b36;
+    border: 0;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.2s;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.6);
+    color: white;
 }
 .✈button:hover {
     text-decoration: none;
+    background-color: #00151A;
 }
 .✈button:active {
     position: relative;
-}
-/* black buttons */
-.✈black {
-    color: #FFF;
-    border: solid 1px #333;
-    background: #333;
-    background: linear-gradient(to bottom,  #666,  #000);
-}
-.✈black:hover {
-    background: #000;
-    background: linear-gradient(to bottom,  #444,  #000);
-}
-.✈black:active {
-    color: #666;
-    background: linear-gradient(to bottom,  #000,  #444);
-}
-.✈black:focus {
-    color: #fff;
-    box-shadow: 0em 0em 1em #000;
 }
 .✈user_info {
     font-size: 0.8em;
@@ -639,7 +631,7 @@ potential conflicts with other classes that may be on the page.
     background-color: #CCC;
     z-index: 850;
     color: #000;
-    border-radius: 0.5em;
+    border-radius: 0.15em;
     box-shadow: 0.2em 0.2em 0.5em #000;
     background-image: linear-gradient(#eee, #aaa);
 }
@@ -657,7 +649,8 @@ potential conflicts with other classes that may be on the page.
     padding-bottom: 1px; /* To ensure the text doesn't touch the bottom */
     text-align: center;
     font-size: 0.9em;
-    border-radius: 0.25em 0.25em 0 0;
+    border-radius: 0.15em 0.15em 0 0;
+    line-height: 1.5;
 }
 .✈dialogcontainer p {
     padding: 0.5em;
@@ -715,7 +708,8 @@ potential conflicts with other classes that may be on the page.
 }
 .✈dialog_icon {
     margin-top: 0.2em;
-    margin-right: 0.3em;
+    margin-right: 0.1em;
+    margin-left: 0.1em;
     cursor: pointer;
     opacity: .75;
     float: right;

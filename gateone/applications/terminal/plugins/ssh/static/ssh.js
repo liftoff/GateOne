@@ -1112,8 +1112,7 @@ go.Base.update(go.SSH, {
             };
         sshKHTextArea.value = known_hosts;
         // Now show the panel
-//         v.togglePanel('#'+prefix+'panel_known_hosts', enableEditor);
-        v.togglePanel('#'+prefix+'panel_known_hosts');
+        v.togglePanel('#'+prefix+'panel_known_hosts', enableEditor);
     },
     createKHPanel: function() {
         /**:GateOne.SSH.createKHPanel()
@@ -1180,17 +1179,12 @@ go.Base.update(go.SSH, {
         form.appendChild(save);
         form.appendChild(cancel);
         if (existingPanel) {
-            // Remove everything first
-            while (existingPanel.childNodes.length >= 1 ) {
-                existingPanel.removeChild(existingPanel.firstChild);
-            }
-            sshHeader.style.opacity = 0;
-            existingPanel.appendChild(form);
-        } else {
-            sshPanel.appendChild(form);
-            u.hideElement(sshPanel);
-            u.getNode(go.prefs.goDiv).appendChild(sshPanel);
+            // Remove everything
+            u.removeElement(existingPanel);
         }
+        sshPanel.appendChild(form);
+        u.hideElement(sshPanel);
+        u.getNode(go.prefs.goDiv).appendChild(sshPanel);
     },
     displayHostFingerprint: function(message) {
         /**:GateOne.SSH.displayHostFingerprint(message)

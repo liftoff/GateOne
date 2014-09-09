@@ -21,10 +21,10 @@
     padding-left: 0.5em;
 }
 .✈logitems_header {
-    color: #1F5470;
+    color: #000;
 }
 .✈logitem_header_cell {
-    color: #1F5470;
+    color: #000;
     background-image: none;
     background: none;
 }
@@ -103,7 +103,7 @@
     margin-right: 0.1em;
 }
 .✈log_pagination a {
-    border: solid 1px #9aafe5;
+    border: solid 1px #000;
     margin-right: 0.1em;
 }
 .✈log_pagination .✈previous-off,
@@ -125,10 +125,10 @@
     float: left;
 }
 .✈log_pagination a:hover{
-    border: solid 1px #1F5470;
+    border: solid 1px #333;
 }
 .✈log_pagination .✈active {
-    background: #1F5470;
+    background: #333;
     color: #FFF;
 }
 .✈log_pagination .✈inactive a {

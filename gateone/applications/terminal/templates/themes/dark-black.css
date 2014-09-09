@@ -157,7 +157,6 @@ span.✈cursor { color: #000; background-color: #ccc; }
     right: 0px;
     width: 100%;
     height: 100%;
-    background-color: #222;
 }
 @media only screen and (max-width: 800px) {
     .✈terminal_pre {

@@ -43,7 +43,7 @@ __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, re
+import os, re, io
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -426,9 +426,8 @@ class KnownHostsHandler(BaseHandler):
         users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')
         # Letting Tornado's exception handler deal with errors here
-        f = open(kh_path, 'w')
-        f.write(known_hosts)
-        f.close()
+        with io.open(kh_path, 'wb') as f:
+            f.write(known_hosts)
         self.write("success")
 
 """

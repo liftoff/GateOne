@@ -62,27 +62,31 @@ GateOne.Base.update(GateOne.Editor, {
                 Editor._requestedModes[mode] = true;
             }
         } else {
-            callback(CodeMirror(place, options));
+            if (callback) {
+                callback(CodeMirror(place, options));
+            } else {
+                CodeMirror(place, options);
+            }
             return;
         }
         clearTimeout(Editor._pending);
         if (CodeMirror[mode]) {
             cm = CodeMirror(place, options);
             Editor._retryCount = 0;
-            callback(cm);
+            if (callback) { callback(cm); }
         } else if (Editor.invalidModes[mode]) {
             logError(gettext("Specified CodeMirror mode is invalid: ") + mode);
             options.mode = null;
             cm = CodeMirror(place, options); // Load it anyway--just without that mode enabled
             Editor._retryCount = 0;
-            callback(cm);
+            if (callback) { callback(cm); }
         } else {
             if (Editor._retryCount > maxRetries) {
                 logError(gettext("Took too long waiting for the given CodeMirror mode."));
                 options.mode = null;
                 cm = CodeMirror(place, options);
                 Editor._retryCount = 0;
-                callback(cm);
+                if (callback) { callback(cm); }
             } else {
                 Editor._pending = setTimeout(function() {
                     Editor._retryCount += 1;
@@ -108,27 +112,31 @@ GateOne.Base.update(GateOne.Editor, {
                 Editor._requestedModes[mode] = true;
             }
         } else {
-            callback(CodeMirror.fromTextArea(textarea, options));
+            if (callback) {
+                callback(CodeMirror.fromTextArea(textarea, options));
+            } else {
+                CodeMirror.fromTextArea(textarea, options);
+            }
             return;
         }
         clearTimeout(Editor._pending);
         if (CodeMirror[mode]) {
             cm = CodeMirror.fromTextArea(textarea, options);
             Editor._retryCount = 0;
-            callback(cm);
+            if (callback) { callback(cm); }
         } else if (Editor.invalidModes[mode]) {
             logError(gettext("Specified CodeMirror mode is invalid: ") + mode);
             options.mode = null;
             cm = CodeMirror.fromTextArea(textarea, options); // Load it anyway--just without that mode enabled
             Editor._retryCount = 0;
-            callback(cm);
+            if (callback) { callback(cm); }
         } else {
             if (Editor._retryCount > maxRetries) {
                 logError(gettext("Took too long waiting for the given CodeMirror mode."));
                 options.mode = null;
                 cm = CodeMirror.fromTextArea(textarea, options);
                 Editor._retryCount = 0;
-                callback(cm);
+                if (callback) { callback(cm); }
             } else {
                 Editor._pending = setTimeout(function() {
                     Editor._retryCount += 1;

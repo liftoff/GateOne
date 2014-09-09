@@ -435,7 +435,7 @@ potential conflicts with other classes that may be on the page.
     background: #ccc;
     color: #000;
     font-family: sans-serif;
-    z-index: 800; /* Same as toolbar */
+    z-index: 400;
     overflow-x: hidden;
     overflow-y: auto;
     padding-right: .4em;
@@ -460,10 +460,10 @@ potential conflicts with other classes that may be on the page.
     transform: scale(0);
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
-    box-shadow: 0.2em 0.2em 0.5em #000;
-    background-image: linear-gradient(#eee, #999);
+    box-shadow: .2em .6em .9em rgba(0, 0, 0, 0.55);
+    background-image: linear-gradient(#eee, #888);
     border: 0.1em #fff outset;
-    border-radius: 0.3em;
+    border-radius: .15em;
 }
 .✈panel h2 {
     width: 100%;
@@ -493,7 +493,7 @@ potential conflicts with other classes that may be on the page.
 }
 .✈paneltable {
     position: relative;
-    width: 100%;
+    width: 96.8%;
     background-color: #222;
     color: #000;
     padding-bottom: 0.5em;
@@ -594,39 +594,29 @@ potential conflicts with other classes that may be on the page.
     display: inline-block;
     outline: none;
     cursor: pointer;
+    position: relative;
+    border-radius: 2px;
+    font-size: 0.9em;
+    background-color: #333;
+    color: #fff;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.2s;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    border: 0;
     text-align: center;
     text-decoration: none;
     padding: .2em 0.5em .25em;
-    margin-right: 0.25em;
-    border-radius: .5em;
-    box-shadow: 1px 1px 2px rgba(0,0,0,.2);
-    font-weight: bold;
-    font-size: 0.9em;
+    margin: .25em;
 }
 .✈button:hover {
     text-decoration: none;
-}
-.✈button:active {
-    position: relative;
-}
-/* black buttons */
-.✈black {
-    color: #FFF;
-    border: solid 1px #333;
-    background: #333;
-    background: linear-gradient(to bottom,  #666,  #000);
-}
-.✈black:hover {
-    background: #000;
-    background: linear-gradient(to bottom,  #444,  #000);
-}
-.✈black:active {
-    color: #666;
-    background: linear-gradient(to bottom,  #000,  #444);
-}
-.✈black:focus {
+    cursor: pointer;
     color: #fff;
-    box-shadow: 0em 0em 1em #000;
+    background-color: #397CBD;
+}
+.✈button:focus {
+    color: #333;
+    background-color: #ccc;
 }
 .✈user_info {
     font-size: 0.8em;
@@ -643,13 +633,10 @@ potential conflicts with other classes that may be on the page.
     overflow-x: hidden;
     top: 0; /* GateOne.Visual.dialog() will take care of placement */
     left: 0;
-    background-color: #CCC;
     z-index: 850;
-/*     border: solid 1px #000; */
     color: #000;
-    border-radius: 0.5em;
-    box-shadow: 0.2em 0.2em 0.5em #000;
-    background-image: linear-gradient(#eee, #aaa);
+    border-radius: .15em;
+    box-shadow: .2em .6em .9em rgba(0, 0, 0, 0.55);
     -webkit-transition: opacity 0.5s ease-in-out;
     -moz-transition: opacity 0.5s ease-in-out;
     -o-transition-property: opacity;
@@ -672,7 +659,8 @@ potential conflicts with other classes that may be on the page.
     padding-bottom: 1px; /* To ensure the text doesn't touch the bottom */
     text-align: center;
     font-size: 0.9em;
-    border-radius: 0.25em 0.25em 0 0;
+    border-radius: 0.15em 0.15em 0 0;
+    line-height: 1.5;
 }
 .✈dialogcontainer p {
     margin: 0;
@@ -691,7 +679,7 @@ potential conflicts with other classes that may be on the page.
     font-family: sans-serif;
 }
 .✈dialogactive h3 {
-    background-color: #1F5470;
+    background-color: #1D3A67;
 }
 .✈dialogtitle:hover {
     cursor: move;
@@ -724,7 +712,8 @@ potential conflicts with other classes that may be on the page.
 }
 .✈dialog_icon {
     margin-top: 0.1em;
-    margin-right: 0.3em;
+    margin-right: 0.1em;
+    margin-left: 0.1em;
     cursor: pointer;
     opacity: .75;
     float: right;

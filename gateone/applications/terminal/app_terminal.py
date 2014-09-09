@@ -996,10 +996,14 @@ class TerminalApplication(GOApplication):
         without having to worry about figuring out if a new terminal already
         exists or not).
         """
-        term = int(settings['term'])
+        term = int(settings.get('term', self.highest_term_num() + 1))
         # TODO: Make these specific to each terminal:
-        rows = settings['rows']
-        cols = settings['columns']
+        rows = settings.get('rows', 24)
+        if not isinstance(rows, int):
+            rows = 24
+        cols = settings.get('columns', 80)
+        if not isinstance(cols, int):
+            cols = 80
         if rows < 2 or cols < 2: # Something went wrong calculating term size
             # Fall back to a standard default
             rows = 24
@@ -2576,13 +2580,14 @@ class TerminalApplication(GOApplication):
         for i, line in enumerate(screen):
             # This gets rid of images:
             line = [a for a in line if len(a) == 1]
-            print("%s:%s" % (i, "".join(line)))
-            print(renditions[i])
+            logging.info("%s:%s" % (i, "".join(line)))
+            logging.info(renditions[i])
         try:
             from pympler import asizeof
-            print("screen size: %s" % asizeof.asizeof(screen))
-            print("renditions size: %s" % asizeof.asizeof(renditions))
-            print("Total term object size: %s" % asizeof.asizeof(term_obj))
+            logging.info("screen size: %s" % asizeof.asizeof(screen))
+            logging.info("renditions size: %s" % asizeof.asizeof(renditions))
+            logging.info(
+                "Total term object size: %s" % asizeof.asizeof(term_obj))
         except ImportError:
             pass # No biggie
         self.ws.debug() # Do regular debugging as well
@@ -2732,7 +2737,7 @@ def init(settings):
     # Initialize plugins so we can add their 'Web' handlers
     enabled_plugins = settings['*']['terminal'].get('enabled_plugins', [])
     plugins_path = os.path.join(APPLICATION_PATH, 'plugins')
-    plugins = entry_point_files('go_applications_plugins', enabled_plugins)
+    plugins = entry_point_files('go_terminal_plugins', enabled_plugins)
     # Attach plugin hooks
     plugin_hooks = {}
     for plugin in plugins['py']:

@@ -438,7 +438,7 @@ potential conflicts with other classes that may be on the page.
     background: #000;
     color: #fff;
     font-family: sans-serif;
-    z-index: 800; /* Same as toolbar */
+    z-index: 400;
     overflow-x: hidden;
     overflow-y: auto;
     padding-right: .4em;
@@ -493,7 +493,7 @@ potential conflicts with other classes that may be on the page.
 }
 .✈paneltable {
     position: relative;
-    width: 100%;
+    width: 96.8%;
     background-color: #000;
     color: #fff;
     padding-bottom: 0.5em;
@@ -591,38 +591,26 @@ potential conflicts with other classes that may be on the page.
     display: inline-block;
     outline: none;
     cursor: pointer;
+    position: relative;
+    border-radius: 2px;
+    font-size: 0.9em;
+    background-color: #000;
+    color: #fff;
+    border: 1px #fff solid;
     text-align: center;
     text-decoration: none;
     padding: .2em 0.5em .25em;
-    margin-right: 0.25em;
-    border-radius: .5em;
-    font-weight: bold;
-    font-size: 0.9em;
+    margin: .25em;
 }
 .✈button:hover {
     text-decoration: none;
+    cursor: pointer;
+    color: #fff;
+    background-color: #397CBD;
 }
-.✈button:active {
-    position: relative;
-}
-/* black buttons */
-.✈black {
-    color: #FFF;
-    border: solid 1px #000;
-    background: #000;
-    background: linear-gradient(to bottom,  #222,  #000);
-}
-.✈black:hover {
-    background: #222;
-    background: linear-gradient(to bottom,  #444,  #000);
-}
-.✈black:active {
-    color: #666;
-    background: linear-gradient(to bottom,  #000,  #444);
-}
-.✈black:focus {
-    color: #FFF;
-    box-shadow: 0em 0em 1em #000;
+.✈button:focus {
+    color: #333;
+    background-color: #ccc;
 }
 .✈user_info {
     font-size: 0.8em;
@@ -642,7 +630,7 @@ potential conflicts with other classes that may be on the page.
     background-color: #000;
     z-index: 850;
     color: #FFF;
-    border-radius: 0.5em;
+    border-radius: 0.15em;
 }
 .✈dialogcontainer h3 {
     position: relative;
@@ -658,7 +646,8 @@ potential conflicts with other classes that may be on the page.
     padding-bottom: 1px; /* To ensure the text doesn't touch the bottom */
     text-align: center;
     font-size: 0.9em;
-    border-radius: 0.25em 0.25em 0 0;
+    border-radius: 0.15em 0.15em 0 0;
+    line-height: 1.5;
 }
 .✈dialogcontainer p {
     padding: 0.5em;
@@ -718,7 +707,8 @@ potential conflicts with other classes that may be on the page.
 }
 .✈dialog_icon {
     margin-top: 0.2em;
-    margin-right: 0.3em;
+    margin-right: 0.1em;
+    margin-left: 0.1em;
     cursor: pointer;
     opacity: .75;
     float: right;
@@ -877,6 +867,7 @@ potential conflicts with other classes that may be on the page.
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
+    color: #fff;
     background-image: linear-gradient(to bottom,  #000, rgba(120, 120, 120, 0.5));
     overflow: hidden;
     white-space: nowrap;

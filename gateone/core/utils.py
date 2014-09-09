@@ -1391,24 +1391,26 @@ def minify(path_or_fileobj, kind):
         data = path_or_fileobj.read()
     out = data
     if slimit and kind == 'js':
-        try:
-            out = slimit.minify(data, mangle=True)
+        if not filename.endswith('min.js'):
+            try:
+                out = slimit.minify(data, mangle=True)
+                logging.debug(_(
+                    "(saved ~%s bytes minifying %s)" % (
+                        (len(data) - len(out), filename)
+                    )
+                ))
+            except Exception:
+                logging.error(_("slimit failed trying to minify %s") % filename)
+                import traceback
+                traceback.print_exc(file=sys.stdout)
+    elif cssmin and kind == 'css':
+        if not filename.endswith('min.css'):
+            out = cssmin.cssmin(data)
             logging.debug(_(
                 "(saved ~%s bytes minifying %s)" % (
                     (len(data) - len(out), filename)
                 )
             ))
-        except Exception:
-            logging.error(_("slimit failed trying to minify %s") % filename)
-            import traceback
-            traceback.print_exc(file=sys.stdout)
-    elif cssmin and kind == 'css':
-        out = cssmin.cssmin(data)
-        logging.debug(_(
-            "(saved ~%s bytes minifying %s)" % (
-                (len(data) - len(out), filename)
-            )
-        ))
     return out
 
 # This is so we can have the argument below be 'minify' (user friendly)

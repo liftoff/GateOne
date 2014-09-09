@@ -644,9 +644,9 @@ go.Base.update(GateOne.TermLogging, {
             v.displayMessage(gettext("Could not retrieve log: ") + result);
         } else {
             newWindow = window.open('', '_newtab');
-            goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true);
+            goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1], 'style': {'width': '100%', 'height': '100%'}}, true);
             css = u.getNodes('style'); // Grab em all
-            newContent = "<html><head><title>" + gettext("Gate One Log (Flat): ") + metadata['filename'] + "</title></head><body></body></html>";
+            newContent = "<html><head><title>" + gettext("Gate One Log (Flat): ") + metadata['filename'] + "</title></head><body style='margin: 0;'></body></html>";
             newWindow.focus();
             newWindow.document.write(newContent);
             newWindow.document.close();
