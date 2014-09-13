@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140907212840" # Gets replaced by git (holds the date/time)
+__commit__ = "20140909104441" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -355,7 +355,9 @@ from gateone import GATEONE_DIR
 tornado_version = "" # Placeholder in case Tornado import fails below
 
 # 3rd party modules
-import pkg_resources # Technically setuptools isn't part of Python's stdlib
+# Technically setuptools isn't part of Python's stdlib:
+from pkg_resources import resource_filename, resource_string, resource_exists
+from pkg_resources import resource_listdir, iter_entry_points
 # Tornado modules (yeah, we use all this stuff)
 try:
     import tornado.httpserver
@@ -447,7 +449,7 @@ PLUGINS = {}
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
 
 # Secondary locale setup
-locale_dir = os.path.join(GATEONE_DIR, 'i18n')
+locale_dir = resource_filename('gateone', '/i18n')
 locale.load_gettext_translations(locale_dir, 'gateone')
 # NOTE: The locale gets set in __main__
 
@@ -737,8 +739,18 @@ class StaticHandler(tornado.web.StaticFileHandler):
         Gate One performs its own origin checking so header-based access
         controls at the client are unnecessary.
     """
-    # This is the only function we need to override thanks to the thoughtfulness
-    # of the Tornado devs.
+    def initialize(self, path, default_filename=None, use_pkg=None):
+        """
+        Called automatically by the Tornado framework when the `StaticHandler`
+        class is instantiated; handles the usual arguments with the addition
+        of *use_pkg* which indicates that the static file should attempt to be
+        retrieved from that package via the `pkg_resources` module instead of
+        directly via the filesystem.
+        """
+        self.root = path
+        self.default_filename = default_filename
+        self.use_pkg = use_pkg
+
     def set_extra_headers(self, path):
         """
         Adds the Access-Control-Allow-Origin header to allow cross-origin
@@ -766,6 +778,25 @@ class StaticHandler(tornado.web.StaticFileHandler):
         self.set_header('Allow', 'HEAD,GET,POST,OPTIONS')
         self.set_header('Server', 'GateOne')
         self.set_header('License', __license__)
+
+    def validate_absolute_path(self, root, absolute_path):
+        """
+        An override of
+        :meth:`tornado.web.StaticFileHandler.validate_absolute_path`;
+
+        Validate and returns the given *absolute_path* using `pkg_resources`
+        if ``self.use_pkg`` is set otherwise performs a normal filesystem
+        validation.
+        """
+        # We have to generate the real absolute path in this method since the
+        # Tornado devs--for whatever reason--decided that get_absolute_path()
+        # must be a classmethod (we need access to self.use_pkg).
+        if self.use_pkg:
+            if not resource_exists(self.use_pkg, absolute_path):
+                raise HTTPError(404)
+            return resource_filename(self.use_pkg, absolute_path)
+        return super(
+            StaticHandler, self).validate_absolute_path(root, absolute_path)
 
 class BaseHandler(tornado.web.RequestHandler):
     """
@@ -973,17 +1004,15 @@ class MainHandler(BaseHandler):
         location = self.get_argument("location", "default")
         prefs = self.get_argument("prefs", None)
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
-        minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
-        minified_js_abspath = os.path.join(
-            minified_js_abspath, 'gateone.min.js')
+        minified_js_abspath = resource_filename(
+            'gateone', '/static/gateone.min.js')
         js_init = self.settings['js_init']
-        # Use the minified version if it exists
+        # Use the minified version if it exists and we're not debugging
         if options.logging.lower() != 'debug':
             if os.path.exists(minified_js_abspath):
                 gateone_js = (
                     "%sstatic/gateone.min.js" % self.settings['url_prefix'])
-        template_path = os.path.join(GATEONE_DIR, 'templates')
-        index_path = os.path.join(template_path, 'index.html')
+        index_path = resource_filename('gateone', 'templates/index.html')
         head_html = ""
         body_html = ""
         for plugin, hooks in PLUGIN_HOOKS.items():
@@ -1168,7 +1197,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:log': self.log_message,
             'go:authenticate': self.authenticate,
             'go:get_theme': self.get_theme,
-            'go:get_js': self.get_js,
             'go:enumerate_themes': self.enumerate_themes,
             'go:file_request': self.file_request,
             'go:cache_cleanup': self.cache_cleanup,
@@ -1399,7 +1427,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Setup some actions to take place after the user authenticates
         # Send our plugin .js and .css files to the client
         send_plugin_static_files = partial(
-            self.send_plugin_static_files, os.path.join(GATEONE_DIR, 'plugins'))
+            self.send_plugin_static_files, 'go_plugins')
         self.on("go:authenticate", send_plugin_static_files)
         # Tell the client about any existing locations where applications may be
         # storing things like terminal instances and whatnot:
@@ -1437,14 +1465,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             You may have to create the 'static/extra' directory before putting
             files in there.
         """
-        extra_path = os.path.join(GATEONE_DIR, 'static', 'extra')
-        if not os.path.isdir(extra_path):
+        extra_path = resource_filename('gateone', 'static/extra')
+        if not resource_exists('gateone', '/static/extra'):
             return # Nothing to do
-        for filename in os.listdir(extra_path):
-            filepath = os.path.join(extra_path, filename)
-            if filename.endswith('.js'):
+        for f in resource_listdir('gateone', '/static/extra'):
+            filepath = resource_filename('gateone', '/static/extra/%s' % f)
+            if filepath.endswith('.js'):
                 self.send_js(filepath)
-            elif filename.endswith('.css'):
+            elif filepath.endswith('.css'):
                 self.send_css(filepath)
 
     def allow_draft76(self):
@@ -1647,7 +1675,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'doT.js' # For simple HTML templates
         ]
         for js_file in additional_files:
-            self.send_js(os.path.join(GATEONE_DIR, 'static', js_file))
+            path = resource_filename('gateone', '/static/%s' % js_file)
+            self.send_js(path)
         for app in self.apps:
             if hasattr(app, 'open'):
                 app.open() # Call applications' open() functions (if any)
@@ -1939,7 +1968,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 'event has been logged.')}
             self.write_message(json_encode(message))
             return
-        window = self.settings['api_timestamp_window']
+        window = self.settings.get('api_timestamp_window',timedelta(seconds=30))
         then = datetime.fromtimestamp(int(timestamp)/1000)
         time_diff = datetime.now() - then
         if time_diff > window:
@@ -2542,8 +2571,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.sync_log.info('Sync Theme: %s' % settings['theme'])
         use_client_cache = self.prefs['*']['gateone'].get(
             'use_client_cache', True)
-        templates_path = os.path.join(GATEONE_DIR, 'templates')
-        themes_path = os.path.join(templates_path, 'themes')
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'
@@ -2559,11 +2586,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         out_dict = {'files': []}
         theme_mtimes = self.persist['theme_mtimes']
         cache_dir = self.settings['cache_dir']
-        theme_filename = "%s.css" % theme
-        theme_path = os.path.join(themes_path, theme_filename)
-        cached_theme_path = os.path.join(cache_dir, theme_filename)
-        filename_hash = hashlib.md5(
-            theme_filename.encode('utf-8')).hexdigest()[:10]
+        theme_file = "%s.css" % theme
+        theme_relpath = '/templates/themes/%s' % theme_file
+        theme_path = resource_filename('gateone', theme_relpath)
+        cached_theme_path = os.path.join(cache_dir, theme_file)
+        filename_hash = hashlib.md5(theme_file.encode('utf-8')).hexdigest()[:10]
         theme_files = []
         theme_files.append(theme_path)
         mtime = os.stat(theme_path).st_mtime
@@ -2572,51 +2599,39 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             theme_mtimes[theme_path] = mtime
             modifications = True
         # Now enumerate all applications/plugins looking for their own
-        # implementations of this theme (must have same name).
-        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-        # Find plugin's theme-specific CSS files
-        for plugin in os.listdir(plugins_dir):
-            plugin_dir = os.path.join(plugins_dir, plugin)
-            themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
-            theme_css_file = os.path.join(themes_dir, theme_filename)
-            if not os.path.exists(theme_css_file):
-                continue
-            theme_files.append(theme_css_file)
-            mtime = os.stat(theme_css_file).st_mtime
-            if (theme_css_file not in theme_mtimes
-            or mtime != theme_mtimes[theme_css_file]):
-                theme_mtimes[theme_css_file] = mtime
-                modifications = True
-        # Find application's theme-specific CSS files
-        applications_dir = os.path.join(GATEONE_DIR, 'applications')
-        for app in os.listdir(applications_dir):
-            app_dir = os.path.join(applications_dir, app)
-            themes_dir = os.path.join(app_dir, 'templates', 'themes')
-            theme_css_file = os.path.join(themes_dir, theme_filename)
-            if not os.path.exists(theme_css_file):
-                continue
-            theme_files.append(theme_css_file)
-            mtime = os.stat(theme_css_file).st_mtime
-            if (theme_css_file not in theme_mtimes
-            or mtime != theme_mtimes[theme_css_file]):
-                theme_mtimes[theme_css_file] = mtime
-                modifications = True
-            # Find application plugin's theme-specific CSS files
-            plugins_dir = os.path.join(app_dir, 'plugins')
-            if not os.path.exists(plugins_dir):
-                continue
-            for plugin in os.listdir(plugins_dir):
-                plugin_dir = os.path.join(plugins_dir, plugin)
-                themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
-                theme_css_file = os.path.join(themes_dir, theme_filename)
-                if not os.path.exists(theme_css_file):
-                    continue
-                theme_files.append(theme_css_file)
-                mtime = os.stat(theme_css_file).st_mtime
-                if (theme_css_file not in theme_mtimes
-                or mtime != theme_mtimes[theme_css_file]):
-                    theme_mtimes[theme_css_file] = mtime
+        # implementations of this theme (must have same name)...
+        # Find plugin's theme-specific CSS files:
+        for ep in iter_entry_points(group='go_plugins'):
+            if resource_exists(ep.module_name, theme_relpath):
+                theme_path = resource_filename(ep.module_name, theme_relpath)
+                theme_files.append(theme_path)
+                mtime = os.stat(theme_path).st_mtime
+                if (theme_path not in theme_mtimes
+                    or mtime != theme_mtimes[theme_path]):
+                    theme_mtimes[theme_path] = mtime
                     modifications = True
+        # Find application's theme-specific CSS files:
+        for ep in iter_entry_points(group='go_applications'):
+            if resource_exists(ep.module_name, theme_relpath):
+                theme_path = resource_filename(ep.module_name, theme_relpath)
+                theme_files.append(theme_path)
+                mtime = os.stat(theme_path).st_mtime
+                if (theme_path not in theme_mtimes
+                    or mtime != theme_mtimes[theme_path]):
+                    theme_mtimes[theme_path] = mtime
+                    modifications = True
+            # Find application plugin's theme-specific CSS files
+            entry_point = 'go_%s_plugins' % ep.name
+            for plugin_ep in iter_entry_points(group=entry_point):
+                if resource_exists(plugin_ep.module_name, theme_relpath):
+                    theme_path = resource_filename(
+                        plugin_ep.module_name, theme_relpath)
+                    theme_files.append(theme_path)
+                    mtime = os.stat(theme_path).st_mtime
+                    if (theme_path not in theme_mtimes
+                        or mtime != theme_mtimes[theme_path]):
+                        theme_mtimes[theme_path] = mtime
+                        modifications = True
         # Grab the modification times for each theme file
         if modifications:
             logging.debug(_(
@@ -2632,7 +2647,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 rendered_path = self.render_style(
                     template_file, **template_args)
                 rendered_theme_files.append(rendered_path)
-            new_theme_path = os.path.join(cache_dir, theme_filename+'.new')
+            new_theme_path = os.path.join(cache_dir, theme_file+'.new')
             with io.open(new_theme_path, 'wb') as f:
                 for path in rendered_theme_files:
                     f.write(io.open(path, 'rb').read())
@@ -2643,14 +2658,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             mtime = time.time()
         kind = 'css'
         out_dict['files'].append({
-            'filename': theme_filename,
+            'filename': theme_file,
             'hash': filename_hash,
             'mtime': mtime,
             'kind': kind,
             'element_id': 'theme'
         })
         self.file_cache[filename_hash] = {
-            'filename': theme_filename,
+            'filename': theme_file,
             'kind': kind,
             'path': cached_theme_path,
             'mtime': mtime,
@@ -2662,50 +2677,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         else:
             self.file_request(
                 filename_hash, use_client_cache=use_client_cache)
-
-    @require(authenticated())
-    def get_js(self, filename):
-        """
-        Attempts to find the specified *filename* file in Gate One's static
-        directories (GATEONE_DIR/static/ and each plugin's respective 'static'
-        dir).
-
-        In the event that a plugin's JavaScript file has the same name as a file
-        in GATEONE_DIR/static/ the plugin's copy of the file will take
-        precedence.  This is to allow plugins to override defaults.
-
-        .. note::
-
-            This will alow authenticated clients to download whatever file they
-            want that ends in .js inside of /static/ directories.
-        """
-        self.logger.info('get_js(%s)' % filename)
-        out_dict = {'result': 'Success', 'filename': filename, 'data': None}
-        js_files = {} # Key:value == 'somefile.js': '/full/path/to/somefile.js'
-        static_dir = os.path.join(GATEONE_DIR, 'static')
-        for f in os.listdir(static_dir):
-            if f.endswith('.js'):
-                js_file_path = os.path.join(static_dir, f)
-                js_files.update({f: js_file_path})
-        # Build a list of plugins
-        plugins = []
-        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-        for f in os.listdir(plugins_dir):
-            if os.path.isdir(os.path.join(plugins_dir, f)):
-                plugins.append(f)
-        # Add each found JS file to the respective dict
-        for plugin in plugins:
-            plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
-            if os.path.exists(plugin_static_path):
-                for f in os.listdir(plugin_static_path):
-                    if f.endswith('.js'):
-                        js_file_path = os.path.join(plugin_static_path, f)
-                        js_files.update({f: js_file_path})
-        if filename in list(js_files.keys()):
-            with io.open(js_files[filename], encoding='utf-8') as f:
-                out_dict['data'] = f.read()
-        message = {'go:load_js': out_dict}
-        self.write_message(message)
 
     def cache_cleanup(self, message):
         """
@@ -2796,7 +2767,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         path = self.file_cache[filename_hash]['path']
         filename = self.file_cache[filename_hash]['filename']
         kind = self.file_cache[filename_hash]['kind']
-        out_dict = {'result': 'Success'}
+        out_dict = {'result': 'Success', 'hash': filename_hash}
         out_dict.update(self.file_cache[filename_hash])
         del out_dict['path'] # Don't want the client knowing this
         url_prefix = self.settings['url_prefix']
@@ -2957,7 +2928,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     if not filename:
                         filename = os.path.split(file_obj.name)[1]
                 self.sync_log.info(
-                    "Sync check: {filename}".format(filename=filename))
+                    "Sync Check: {filename}".format(filename=filename))
                 mtime = os.stat(path).st_mtime
                 filename_hash = hashlib.md5(
                     filename.encode('utf-8')).hexdigest()[:10]
@@ -3210,13 +3181,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
-    def send_plugin_static_files(self,
-        plugins_dir, application=None, requires=None):
+    def send_plugin_static_files(self, entry_point, requires=None):
         """
-        Sends all plugin .js and .css files to the client that exist inside
-        *plugins_dir*.  Optionally, if *application* is given the policies that
-        apply to the current user for that application will be used to determine
-        whether or not a given plugin's static files will be sent.
+        Sends all plugin .js and .css files to the client that exist inside the
+        /static/ directory for given *entry_point*.  The policies that apply to
+        the current user will be used to determine whether and which static
+        files will be sent.
 
         If *requires* is given it will be passed along to `self.send_js()`.
 
@@ -3226,7 +3196,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             (e.g. nginx) this functionality can be completely disabled by adding
             `"send_js": false` to gateone/settings/10server.conf
         """
-        logging.debug('send_plugin_static_files(%s)' % plugins_dir)
+        logging.debug('send_plugin_static_files(%s)' % entry_point)
         send_js = self.prefs['*']['gateone'].get('send_js', True)
         if not send_js:
             if not hasattr('logged_js_message', self):
@@ -3234,42 +3204,44 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     "send_js is false; will not send JavaScript."))
             # So we don't repeat this message a zillion times in the logs:
             self.logged_js_message = True
-            return
+        send_css = self.prefs['*']['gateone'].get('send_css', True)
+        if not send_css:
+            if not hasattr('logged_css_message', self):
+                self.logger.info(_(
+                    "send_css is false; will not send JavaScript."))
+            # So we don't repeat this message a zillion times in the logs:
+            self.logged_css_message = True
+        application = None
+        if entry_point == 'go_plugins':
+            application = 'gateone'
+        else: # Find the application that this belongs to
+            for ep in iter_entry_points(group=entry_point):
+                if ep.module_name.startswith('gateone.applications'):
+                    application = ep.module_name.split('.')[2]
+                    break
         policy = applicable_policies(application, self.current_user, self.prefs)
         globally_enabled_plugins = policy.get('enabled_plugins', [])
         # This controls the client-side plugins that will be sent
         allowed_client_side_plugins = policy.get('user_plugins', [])
         # Remove non-globally-enabled plugins from user_plugins (if set)
-        if globally_enabled_plugins and list(allowed_client_side_plugins):
-            for p in allowed_client_side_plugins:
+        if globally_enabled_plugins and allowed_client_side_plugins:
+            for p in list(allowed_client_side_plugins):
                 if p not in globally_enabled_plugins:
                     del allowed_client_side_plugins[p]
         elif globally_enabled_plugins and not allowed_client_side_plugins:
             allowed_client_side_plugins = globally_enabled_plugins
-        # Build a list of plugins
-        plugins = []
-        if not os.path.exists(plugins_dir):
-            return # Nothing to do
-        for f in os.listdir(plugins_dir):
-            if os.path.isdir(os.path.join(plugins_dir, f)):
-                if allowed_client_side_plugins:
-                    if f in allowed_client_side_plugins:
-                        plugins.append(f)
-                else:
-                    plugins.append(f)
-        # Add each found JS file to the respective dict
-        for plugin in plugins:
-            plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
-            if os.path.exists(plugin_static_path):
-                static_files = os.listdir(plugin_static_path)
-                static_files.sort()
-                for f in static_files:
-                    if f.endswith('.js'):
-                        js_file_path = os.path.join(plugin_static_path, f)
-                        self.send_js(js_file_path, requires=requires)
-                    elif f.endswith('.css'):
-                        css_file_path = os.path.join(plugin_static_path, f)
-                        self.send_css(css_file_path, filename=f)
+        # Get the list of plugins
+        plugins = entry_point_files(entry_point, allowed_client_side_plugins)
+        if send_js:
+            for plugin, asset_list in plugins['js'].items():
+                for asset in asset_list:
+                    js_file_path = resource_filename(plugin, asset)
+                    self.send_js(js_file_path, requires=requires)
+        if send_css:
+            for plugin, asset_list in plugins['css'].items():
+                for asset in asset_list:
+                    css_file_path = resource_filename(plugin, asset)
+                    self.send_css(css_file_path, requires=requires)
 
 # TODO:  Add support for a setting that can control which themes are visible to users.
     def enumerate_themes(self):
@@ -3344,8 +3316,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             ``pojson /path/to/translation.po`` conversion.
         """
         from gateone.core.locale import supported_locales
-        from pkg_resources import resource_exists, resource_string
-        from pkg_resources import resource_listdir, isdir
         if not locales:
             locales = self.user_locales
         if not locales: # Use the server's locale
@@ -3759,32 +3729,21 @@ class GateOneApp(tornado.web.Application):
                 # Call the plugin's initialization functions
                 hooks['Init'](tornado_settings)
         # Include JS-only and CSS-only plugins (for logging purposes)
-        js_plugins = [a.split(os.path.sep)[2] for a in PLUGINS['js']]
+        plugins = set(
+            PLUGINS['py'].keys() + PLUGINS['js'].keys() + PLUGINS['css'].keys())
         # NOTE: JS and CSS files are normally sent after the user authenticates
         #       via ApplicationWebSocket.send_plugin_static_files()
         # Add static handlers for all the JS plugins (primarily for source URLs)
-        for js_plugin in js_plugins:
-            js_plugin_path = os.path.join(
-                GATEONE_DIR, 'plugins', js_plugin, 'static')
-            handlers.append((
-                r"%splugins/%s/static/(.*)" % (url_prefix, js_plugin),
-                StaticHandler,
-                {"path": js_plugin_path}
+        for plugin in plugins:
+            name = plugin.split('.')[-1]
+            url_path = r"%splugins/%s/static/(.*)" % (url_prefix, name)
+            handlers.append((url_path, StaticHandler,
+                {"path": '/static/', 'use_pkg': plugin}
             ))
         # This removes duplicate handlers for the same regex, allowing plugins
         # to override defaults:
         handlers = merge_handlers(handlers)
-        css_plugins = []
-        for css_path in css_plugins:
-            name = css_path.split(os.path.sep)[-1].split('.')[0]
-            name = os.path.splitext(name)[0]
-            css_plugins.append(name)
-        py_plugins = []
-        for module in PLUGINS['py']:
-            py_plugins.append(module.__name__)
-        plugin_list = list(set(py_plugins + js_plugins + css_plugins))
-        plugin_list.sort() # So there's consistent ordering
-        logger.info(_("Loaded global plugins: %s") % ", ".join(plugin_list))
+        logger.info(_("Loaded global plugins: %s") % ", ".join(plugins))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
 def validate_authobj(args=sys.argv):
@@ -4056,11 +4015,11 @@ def main(installed=True):
             print(log_fail_msg)
             sys.exit(1)
     PLUGINS = entry_point_files('go_plugins', enabled_plugins)
-    for plugin in PLUGINS['py']:
+    for plugin, module in PLUGINS['py'].items():
         try:
-            PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
-            if hasattr(plugin, 'commands'):
-                cli_commands.update({'gateone': plugin.commands})
+            PLUGIN_HOOKS.update({module.__name__: module.hooks})
+            if hasattr(module, 'commands'):
+                cli_commands.update({'gateone': module.commands})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
     # NOTE: entry_point_files() imports all the .py files in applications.  This
@@ -4069,7 +4028,6 @@ def main(installed=True):
     # user at this point in the startup process.
     app_modules = entry_point_files(
         'go_applications', enabled_applications)['py']
-    APPLICATIONS = [a.__name__ for a in app_modules]
     # Check if the user is running a command as opposed to passing arguments
     # so we can set the log_file_prefix to something innocuous so as to prevent
     # IOError exceptions from Tornado's parse_command_line() below...
@@ -4117,7 +4075,7 @@ def main(installed=True):
         print("\x1b[1mGate One:\x1b[0m")
         print("\tVersion: %s (%s)" % (__version__, __commit__))
         print("\x1b[1mInstalled Applications:\x1b[0m")
-        for app in app_modules:
+        for name, app in app_modules.items():
             if hasattr(app, 'apps'):
                 for _app in app.apps:
                     if hasattr(_app, 'info'):
@@ -4168,7 +4126,7 @@ def main(installed=True):
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
-    for module in app_modules:
+    for name, module in app_modules.items():
         try:
             if hasattr(module, 'apps'):
                 APPLICATIONS.extend(module.apps)

@@ -593,6 +593,34 @@ GateOne.Base.update(GateOne.Utils, {
         Returns *string* with the first letter capitalized.
         */
         return string.charAt(0).toUpperCase() + string.slice(1);
+    },
+    Interval: function(fn, time) {
+        /**:GateOne.Utils.Interval(fn, time)
+
+        Returns an instance of an `Interval` object which is a slightly more intelligent way to handle interval-based callbacks than JavaScript's built-in `setInterval()` and `clearInterval()`.  Example usage:
+
+            >>> var clockUpdater = GateOne.Utils.Interval(updateFunc, 1000); // Start the Interval
+            >>> clockUpdater.start();
+            >>> // Some time goes by...
+            >>> clockUpdater.isRunning();
+            true
+            >>> clockUpdater.stop();
+            >>> clockUpdater.isRunning();
+            false
+        */
+        if (!(this instanceof Interval)) {return new Interval();}
+        var self = this; // Explicit is better than implicit
+        self.timer = false;
+        self.start = function () {
+            if (!self.isRunning()) { timer = setInterval(fn, time); }
+        };
+        self.stop = function () {
+            clearInterval(timer);
+            timer = false;
+        };
+        self.isRunning = function () {
+            return timer !== false;
+        };
     }
 });
 

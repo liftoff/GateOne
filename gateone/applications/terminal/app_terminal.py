@@ -244,19 +244,15 @@ class TerminalApplication(GOApplication):
         enabled_plugins = self.ws.prefs['*']['terminal'].get(
             'enabled_plugins', [])
         self.plugins = entry_point_files('go_terminal_plugins', enabled_plugins)
-        py_plugins = []
-        for module in self.plugins['py']:
-            py_plugins.append(module.__name__)
-        js_plugins = []
-        for js_path in self.plugins['js']:
-            name = js_path.split(os.path.sep)[0]
-            js_plugins.append(name)
-        css_plugins = []
-        for css_path in css_plugins:
-            name = css_path.split(os.path.sep)[-2]
-            css_plugins.append(name)
-        plugin_list = list(set(py_plugins + js_plugins + css_plugins))
-        plugin_list.sort() # So there's consistent ordering
+        plugin_list = set()
+        for plugin in list(
+            self.plugins['py'].keys() +
+            self.plugins['js'].keys() +
+            self.plugins['css'].keys()):
+            if '.' in plugin:
+                plugin = plugin.split('.')[-1]
+            plugin_list.add(plugin)
+        plugin_list = sorted(plugin_list) # So there's consistent ordering
         self.term_log.info(_(
             "Active Terminal Plugins: %s" % ", ".join(plugin_list)))
         # Setup some events
@@ -266,7 +262,7 @@ class TerminalApplication(GOApplication):
         self.plugin_hooks = {}
         # TODO: Keep track of plugins and hooks to determine when they've
         #       changed so we can tell clients to pull updates and whatnot
-        for plugin in self.plugins['py']:
+        for name, plugin in self.plugins['py'].items():
             try:
                 self.plugin_hooks.update({plugin.__name__: plugin.hooks})
                 if hasattr(plugin, 'initialize'):
@@ -357,15 +353,13 @@ class TerminalApplication(GOApplication):
             if fname.endswith('.js'):
                 js_file_path = os.path.join(static_dir, fname)
                 if fname == 'terminal.js':
-                    self.ws.send_js(js_file_path,
-                    requires=["terminal.css"])
+                    self.ws.send_js(js_file_path, requires=["terminal.css"])
                 elif fname == 'terminal_input.js':
                     self.ws.send_js(js_file_path, requires="terminal.js")
                 else:
                     self.ws.send_js(js_file_path, requires='terminal_input.js')
         self.ws.send_plugin_static_files(
-            os.path.join(APPLICATION_PATH, 'plugins'),
-            application="terminal",
+            'go_terminal_plugins',
             requires=["terminal_input.js"])
         # Send the client the 256-color style information and our printing CSS
         self.send_256_colors()
@@ -2736,36 +2730,29 @@ def init(settings):
             term_settings['commands'][name] = command.replace('/ssh/', '/.ssh/')
     # Initialize plugins so we can add their 'Web' handlers
     enabled_plugins = settings['*']['terminal'].get('enabled_plugins', [])
-    plugins_path = os.path.join(APPLICATION_PATH, 'plugins')
     plugins = entry_point_files('go_terminal_plugins', enabled_plugins)
     # Attach plugin hooks
     plugin_hooks = {}
-    for plugin in plugins['py']:
+    for name, plugin in plugins['py'].items():
         try:
             plugin_hooks.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks, no problem
     # Add static handlers for all the JS plugins (primarily for source maps)
     url_prefix = settings['*']['gateone']['url_prefix']
-    plugin_dirs = os.listdir(plugins_path)
-    # Remove anything that isn't a directory (just in case)
-    plugin_dirs = [
-        a for a in plugin_dirs
-            if os.path.isdir(os.path.join(plugins_path, a))
-    ]
-    if not enabled_plugins: # Use all of them
-        enabled_plugins = plugin_dirs
-    for plugin_name in enabled_plugins:
+    plugins = set(
+        plugins['py'].keys() + plugins['js'].keys() + plugins['css'].keys())
+    for plugin in plugins:
+        name = plugin.split('.')[-1]
         plugin_static_url = r"{prefix}terminal/{name}/static/(.*)".format(
-            prefix=url_prefix, name=plugin_name)
-        static_path = os.path.join(
-            APPLICATION_PATH, 'plugins', plugin_name, 'static')
-        if os.path.exists(static_path):
-            handler = (
-                plugin_static_url, StaticHandler, {"path": static_path})
-            if handler not in REGISTERED_HANDLERS:
-                REGISTERED_HANDLERS.append(handler)
-                web_handlers.append(handler)
+            prefix=url_prefix, name=name)
+        handler = (plugin_static_url, StaticHandler, {
+            "path": '/static/',
+            'use_pkg': plugin
+        })
+        if handler not in REGISTERED_HANDLERS:
+            REGISTERED_HANDLERS.append(handler)
+            web_handlers.append(handler)
     # Hook up the 'Web' handlers so those URLs are immediately available
     for hooks in plugin_hooks.values():
         if 'Web' in hooks:

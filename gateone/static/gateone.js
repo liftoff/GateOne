@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140907212840";
+GateOne.__commit__ = "20140909104441";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -783,7 +783,7 @@ var go = GateOne.Base.update(GateOne, {
         var showPrefs = function() {
             v.togglePanel('#'+prefix+'panel_prefs');
         }
-        toolbarIconNewWorkspace.onclick = v.newWorkspaceWorkspace;
+        toolbarIconNewWorkspace.onclick = v.appChooser;
         toolbarIconClose.onclick = function(e) {
             var workspace = localStorage[prefix+'selectedWorkspace'];
             v.closeWorkspace(workspace);
@@ -836,15 +836,15 @@ var go = GateOne.Base.update(GateOne, {
         if (!go.prefs.embedded) {
             E.on("go:connection_established", function() {
                 // This is really for reconnect events
-                // If there's no workspaces make the new workspace workspace
+                // If there's no workspaces make the application chooser
                 if (!u.getNodes('.✈workspace').length) {
-                    v.newWorkspaceWorkspace();
+                    v.appChooser();
                 }
                 v.updateDimensions();
             });
             E.on("go:js_loaded", function(apps) {
                 if (!u.getNodes('.✈workspace').length) {
-                    v.newWorkspaceWorkspace();
+                    v.appChooser();
                     v.updateDimensions();
                 }
             });
@@ -1178,6 +1178,7 @@ GateOne.Base.update(GateOne.Utils, {
         if (node && node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
             node.parentNode.removeChild(node);
         }
+        return node;
     },
     createElement: function(tagname, properties, noprefix) {
         /**:GateOne.Utils.createElement(tagname, [, properties[, noprefix]])
@@ -1464,11 +1465,7 @@ GateOne.Base.update(GateOne.Utils, {
     loadJSAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadJSAction(message)
 
-        Loads a JavaScript file sent via the `go:load_js` WebSocket action into a <script> tag inside of ``GateOne.prefs.goDiv`` (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following:
-
-            >>> GateOne.ws.send(JSON.stringify({'go:get_js': 'some_script.js'}));
-            >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
-            >>> // Plugin .js files take precedence.
+        Loads a JavaScript file sent via the `go:load_js` WebSocket action into a <script> tag inside of ``GateOne.prefs.goDiv`` (not that it matters where it goes).
 
         If *message.cache* is `false` or *noCache* is true, will not update the fileCache database with this incoming file.
         */
@@ -3019,7 +3016,7 @@ GateOne.Base.update(GateOne.Visual, {
     postInit: function() {
         /**:GateOne.Visual.postInit()
 
-        Sets up our default keyboard shortcuts and opens the New Workspace Workspace if no other applications have opened themselves after a short timeout (500ms).
+        Sets up our default keyboard shortcuts and opens the application chooser if no other applications have opened themselves after a short timeout (500ms).
 
         Registers the following keyboard shortcuts:
 
@@ -3041,7 +3038,7 @@ GateOne.Base.update(GateOne.Visual, {
                 go.Input.registerShortcut('KEY_N',
                     {'modifiers': {
                         'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                        'action': 'GateOne.Visual.newWorkspaceWorkspace()'
+                        'action': 'GateOne.Visual.appChooser()'
                     });
                 go.Input.registerShortcut('KEY_W',
                     {'modifiers': {
@@ -3145,13 +3142,12 @@ GateOne.Base.update(GateOne.Visual, {
             u.removeElement(existing);
         }
     },
-    locationsCheck: function(workspace) {
-        /**:GateOne.Visual.locationsCheck(workspace)
+    locationsCheck: function(workspaceNum) {
+        /**:GateOne.Visual.locationsCheck(workspaceNum)
 
         Will add or remove the locations panel icon to/from the toolbar if the application residing in the current workspace supports locations.
         */
-        var workspaceNode = go.Utils.getNode('#'+go.prefs.prefix+'workspace'+workspace),
-            app = workspaceNode.getAttribute('data-application');
+        var app = go.User.activeApplication;
         if (app && go.loadedApplications[app] && go.loadedApplications[app].__appinfo__.relocatable) {
             // Temporarily disabled while I complete the locations panel
             go.Visual.showLocationsIcon();
@@ -3159,14 +3155,16 @@ GateOne.Base.update(GateOne.Visual, {
             go.Visual.hideLocationsIcon();
         }
     },
-    lastAppPosition: 0, // Used by newWorkspaceWorkspace() below
-    newWSWSRequirementsTimer: {}, // Ditto
-    newWorkspaceWorkspace: function() {
-        /**:GateOne.Visual.newWorkspaceWorkspace()
+    lastAppPosition: 0, // Used by appChooser() below
+    appChooserRequirementsTimer: {}, // Ditto
+    appChooser: function(/*opt*/where) {
+        /**:GateOne.Visual.appChooser([where])
 
-        Creates the new workspace workspace (akin to a browser's "new tab tab") that allows users to open applications (and possibly other things in the future).
+        Creates a new application chooser (akin to a browser's "new tab tab") that displays the application selection screen (and possibly other things in the future).
+
+        If *where* is undefined a new workspace will be created and the application chooser will be placed there.  If *where* is ``false`` the new application chooser element will be returned without placing it anywhere.
         */
-        logDebug("GateOne.Visual.newWorkspaceWorkspace()");
+        logDebug("GateOne.Visual.appChooser()");
         var u = go.Utils,
             v = go.Visual,
             E = go.Events,
@@ -3178,9 +3176,9 @@ GateOne.Base.update(GateOne.Visual, {
             failedDepCheck,
             numWorkspaces = 0,
             appIcons,
-            titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
-            wsContainer = u.createElement('div', {'class': '✈centertrans ✈halfsectrans ✈new_workspace_workspace'}),
-            wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
+            titleH2 = u.createElement('h2', {'class': '✈appchooser_title'}),
+            acContainer = u.createElement('div', {'class': '✈centertrans ✈halfsectrans ✈appchooser'}),
+            acAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace, // Set below
             workspaceNum, // Ditto
             currentApp,
@@ -3191,17 +3189,12 @@ GateOne.Base.update(GateOne.Visual, {
                     settings = parentApp;
                     settings.sub_application = subAppName;
                 }
-                workspace.setAttribute('data-application', name);
-                if (go.loadedApplications[name] && go.loadedApplications[name].__new__) {
-                    wsContainer.style.opacity = 0;
-                    setTimeout(function() {
-                        // Remove the New Workspace Workspace container but not the workspace itself
-                        u.removeElement(wsContainer);
-                        go.loadedApplications[name].__new__(settings, workspace);
-                    }, 500);
-                } else {
-                    v.displayMessage("Error: Application has no __new__() function.");
+                if (!where) {
+                    where = acContainer.parentNode;
                 }
+                u.removeElement(acContainer);
+                where.setAttribute('data-application', name);
+                go.openApplication(name, settings, where);
             },
             addIcon = function(settings, parentApp, spacer) {
                 if (settings.sub_applications) {
@@ -3247,14 +3240,14 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 appSquare.appendChild(appIcon);
                 appSquare.appendChild(appText);
-                wsAppGrid.appendChild(appSquare);
+                acAppGrid.appendChild(appSquare);
             },
             createAppGrid = function() {
                 var appIcons = u.toArray(u.getNodes('.✈application')),
                     appTops = [],
                     rows = 0,
                     rowLength = 0;
-                wsContainer.style.opacity = 1;
+                acContainer.style.opacity = 1;
                 // Figure out how many spacers we need and add them
                 for (var i=0; i<appIcons.length; i++) {
                     var top = appIcons[i].offsetTop;
@@ -3283,17 +3276,17 @@ GateOne.Base.update(GateOne.Visual, {
         // Remove any apps that are missing the __appinfo__ object
         apps.forEach(function(appObj) {
             if (appObj.dependencies) {
-                // Check that the dependencies are loaded before we create the newWorkspaceWorkspace
-                if (!v.newWSWSRequirementsTimer[appObj.name]) {
-                    v.newWSWSRequirementsTimer[appObj.name] = 1;
+                // Check that the dependencies are loaded before we create the appChooser
+                if (!v.appChooserRequirementsTimer[appObj.name]) {
+                    v.appChooserRequirementsTimer[appObj.name] = 1;
                 }
-                if (v.newWSWSRequirementsTimer[appObj.name] < GateOne.Base.dependencyTimeout) {
+                if (v.appChooserRequirementsTimer[appObj.name] < GateOne.Base.dependencyTimeout) {
                     for (var i=0; i < appObj.dependencies.length; i++) {
                         if (!(appObj.dependencies[i] in go.Storage.loadedFiles)) {
                             logDebug(appObj.name + " failed dependency check.  Will retry until " + appObj.dependencies[i] + ' is loaded');
                             // Retry in a moment or so
-                            v.newWSWSRequirementsTimer[appObj.name] += 50;
-                            v.debounceNewWSWS = setTimeout(v.newWorkspaceWorkspace, 50);
+                            v.appChooserRequirementsTimer[appObj.name] += 50;
+                            v.debounceNewWSWS = setTimeout(v.appChooser, 50);
                             failedDepCheck = true;
                             break;
                         }
@@ -3313,6 +3306,7 @@ GateOne.Base.update(GateOne.Visual, {
         if (failedDepCheck) {
             return; // Don't do anything more
         }
+        where = u.getNode(where);
 //         if (filteredApps.length == 1) {
 //             // No workspace created yet; check if we should launch the default app (if only one)
 //             // Check for sub-applications
@@ -3344,11 +3338,11 @@ GateOne.Base.update(GateOne.Visual, {
 //             }
 //         }
         titleH2.innerHTML = gettext("Gate One - Applications");
-        wsContainer.style.opacity = 0;
-        wsContainer.appendChild(titleH2);
-        wsContainer.appendChild(wsAppGrid);
+        acContainer.style.opacity = 0;
+        acContainer.appendChild(titleH2);
+        acContainer.appendChild(acAppGrid);
         // Enable using the keyboard to navigate the application icons:
-        wsContainer.addEventListener('keyup', function(e) {
+        acContainer.addEventListener('keyup', function(e) {
             var key = go.Input.key(e),
                 modifiers = go.Input.modifiers(e),
                 numIcons = appIcons.length - spacers,
@@ -3412,15 +3406,21 @@ GateOne.Base.update(GateOne.Visual, {
             }
             addIcon(appObj);
         });
-        workspace = v.newWorkspace();
-        workspaceNum = workspace.getAttribute('data-workspace');
-        currentApp = workspace.getAttribute('data-application');
-        workspace.setAttribute('data-application', gettext("New Workspace Workspace"));
-        workspace.appendChild(wsContainer);
+        if (where !== false) {
+            if (where === undefined || !u.isElement(where)) {
+                where = v.newWorkspace();
+                workspaceNum = where.getAttribute('data-workspace');
+                currentApp = where.getAttribute('data-application');
+                where.setAttribute('data-application', gettext("Application Chooser"));
+            }
+            where.appendChild(acContainer);
+        } else {
+            acContainer.style.opacity = 1;
+        }
         appIcons = u.toArray(u.getNodes('.✈application'));
         selectedApp = appIcons[go.Visual.lastAppPosition];
         // Bring it back into view
-        if (currentApp == gettext("New Workspace Workspace")) { // Current workspace is already a New WS WS; just redraw it
+        if (currentApp == gettext("Application Chooser")) { // Current workspace is already an app chooser; just redraw it
             createAppGrid();
         } else {
             if (workspaceNum == 1) {
@@ -3430,9 +3430,12 @@ GateOne.Base.update(GateOne.Visual, {
                 E.once("go:ws_transitionend", createAppGrid);
             }
         }
-        v.setTitle(gettext("New Workspace - Applications"));
-        v.switchWorkspace(workspaceNum)
-        E.trigger('go:new_workspace_workspace', workspace);
+        v.setTitle(gettext("Applications Chooser"));
+        if (workspaceNum) {
+            v.switchWorkspace(workspaceNum);
+        }
+        E.trigger('go:app_chooser', where);
+        return acContainer;
     },
     setTitle: function(title) {
         /**:GateOne.Visual.setTitle(title)
@@ -3941,7 +3944,7 @@ GateOne.Base.update(GateOne.Visual, {
 
         Creates a new workspace on the grid and returns the DOM node that is the new workspace.
 
-        If the currently-selected workspace happens to be the New Workspace Workspace it will be emptied and returned instead of creating a new one.
+        If the currently-selected workspace happens to be the application chooser it will be emptied and returned instead of creating a new one.
         */
         var u = go.Utils,
             v = go.Visual,
@@ -3949,14 +3952,14 @@ GateOne.Base.update(GateOne.Visual, {
             workspaceNum = 0,
             workspaceNode,
             sidebarWidth,
-            newWSWS,
+            appChooser,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
             existingWorkspace = u.getNode('#'+prefix+'workspace'+currentWorkspace),
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             workspaceObj = {created: new Date()};
         if (existingWorkspace) {
-            newWSWS = existingWorkspace.querySelector('.✈new_workspace_workspace');
-            if (newWSWS) {
+            appChooser = existingWorkspace.querySelector('.✈appchooser');
+            if (appChooser) {
                 existingWorkspace.innerHTML = ''; // Empty it out
                 return existingWorkspace; // Use it
             }
@@ -4017,7 +4020,7 @@ GateOne.Base.update(GateOne.Visual, {
             if (go.ws.readyState == 1) {
                 if (u.getNodes('.✈workspace').length < 1) {
                     // There are no other workspaces and we're still connected.  Open a new one...
-                    v.newWorkspaceWorkspace();
+                    v.appChooser();
                 }
             }
         }
@@ -4108,11 +4111,11 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             wPX = 0,
             hPX = 0,
+            animation = go.prefs.wsAnimation,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             rightAdjust = 0,
             bottomAdjust = 0,
-            timeToSwitch = 1000,
-            transitionEnd = v.transitionEndName;
+            timeToSwitch = 1000;
         // Reset the grid so that all workspace are in their default positions before we do the switch
         if (!v.noReset) {
             v.resetGrid(true);
@@ -4136,12 +4139,12 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             });
             workspaces.forEach(function(wsNode) {
-                wsNode.removeEventListener(transitionEnd, v._slideEndBackground, false); // In case already attached
-                wsNode.removeEventListener(transitionEnd, v._slideEndForeground, false); // In case already attached
+                wsNode.removeEventListener(v.transitionEndName, v._slideEndBackground, false); // In case already attached
+                wsNode.removeEventListener(v.transitionEndName, v._slideEndForeground, false); // In case already attached
                 // Move each workspace into position
                 if (wsNode.id == prefix + 'workspace' + workspace) { // Apply to the workspace we're switching to
                     if (!go.prefs.disableTransitions) {
-                        wsNode.addEventListener(transitionEnd, v._slideEndForeground, false);
+                        wsNode.addEventListener(v.transitionEndName, v._slideEndForeground, false);
                     }
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
                     if (go.prefs.disableTransitions) {
@@ -4149,15 +4152,15 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 } else {
                     if (!go.prefs.disableTransitions) {
-                        wsNode.addEventListener(transitionEnd, v._slideEndBackground, false);
+                        wsNode.addEventListener(v.transitionEndName, v._slideEndBackground, false);
                     }
-                    v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
+                    v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.9)');
                     if (go.prefs.disableTransitions) {
                         v._slideEndBackground({'target': wsNode});
                     }
                 }
             });
-        }, 1);
+        }, 10);
     },
     stopIndicator: function(direction) {
         /**:GateOne.Visual.stopIndicator(direction)
@@ -5999,12 +6002,12 @@ GateOne.Base.update(GateOne.User, {
 
         Sets `GateOne.User.applications` to the given list of *apps* (which is the list of applications the user is allowed to run).
         */
-        var newWSWS = u.getNode('.✈new_workspace_workspace');
+        var newWSWS = u.getNode('.✈appchooser');
         // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
         if (!GateOne.prefs.embedded && newWSWS) {
-            // Reload the New Workspace Workspace with this new list of apps
-            v.newWorkspaceWorkspace();
+            // Reload the application chooser with this new list of apps
+            v.appChooser();
         }
         // NOTE: In most cases applications' JavaScript will not be sent to the user if that user is not allowed to run it but this does not cover all use case scenarios.  For example, a user that has access to an application only if certain conditions are met (e.g. during a specific time window).  In those instances we don't want to force the user to reload the page...  We'll just send a new applications list when it changes (which is a feature that's on the way).
         GateOne.Events.trigger("go:applications", apps);

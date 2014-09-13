@@ -28,27 +28,27 @@ var go = GateOne,
 go.Icons.terminal = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
 
 // Setup some defaults for our terminal-specific prefs
-go.prefs['webWorker'] = go.prefs['webWorker'] || null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
+go.prefs.webWorker = go.prefs.webWorker || null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
 go.prefs.rows = go.prefs.rows || null; // Override the automatically calculated value (null means fill the window)
 go.prefs.columns = go.prefs.columns || null; // Ditto
-go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If false selecting text will not result in other occurences of that text being highlighted
-go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
-go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
-go.prefs['bellSoundType'] = go.prefs['bellSoundType'] || ''; // Stores the mimetype of the bell sound.
-go.prefs['terminalFont'] = go.prefs['terminalFont'] || 'Ubuntu Mono'; // The font-family to use inside of terminals (e.g. 'monospace', 'Ubuntu Mono', etc)
-go.prefs['terminalFontSize'] = go.prefs['terminalFontSize'] || '90%'; // The font-size to use inside of terminals (e.g. '90%', '0.9em', '12pt', etc)
-go.prefs['colors'] = go.prefs['colors'] || 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
-go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false; // Disabled the sliding animation on terminals to make switching faster
-go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
-                            // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
-go.prefs['colAdjust'] = go.prefs['colAdjust'] || 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
+go.prefs.highlightSelection = go.prefs.highlightSelection || true; // If false selecting text will not result in other occurences of that text being highlighted
+go.prefs.audibleBell = go.prefs.audibleBell || true; // If false, the bell sound will not be played (visual notification will still occur),
+go.prefs.bellSound = go.prefs.bellSound || ''; // Stores the bell sound data::URI (cached).
+go.prefs.bellSoundType = go.prefs.bellSoundType || ''; // Stores the mimetype of the bell sound.
+go.prefs.terminalFont = go.prefs.terminalFont || 'Ubuntu Mono'; // The font-family to use inside of terminals (e.g. 'monospace', 'Ubuntu Mono', etc)
+go.prefs.terminalFontSize = go.prefs.terminalFontSize || '90%'; // The font-size to use inside of terminals (e.g. '90%', '0.9em', '12pt', etc)
+go.prefs.colors = go.prefs.colors || 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
+go.prefs.disableTermTransitions = go.prefs.disableTermTransitions || false; // Disabled the sliding animation on terminals to make switching faster
+go.prefs.rowAdjust = go.prefs.rowAdjust || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
+// rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
+go.prefs.colAdjust = go.prefs.colAdjust || 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
 if(isNaN(go.prefs.scrollback)) {
     go.prefs.scrollback = 500;
 }
 // This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
-go.noSavePrefs['webWorker'] = null;
-go.noSavePrefs['rowAdjust'] = null;
-go.noSavePrefs['colAdjust'] = null;
+go.noSavePrefs.webWorker = null;
+go.noSavePrefs.rowAdjust = null;
+go.noSavePrefs.colAdjust = null;
 
 t = go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
 t.terminals = { // For keeping track of running terminals
@@ -131,7 +131,7 @@ go.Base.update(GateOne.Terminal, {
         } else {
             v.closeWorkspace(workspace);
             v.displayMessage(gettex("Please wait until Gate One is reconnected."));
-            v.newWorkspaceWorkspace();
+            v.appChooser();
         }
     },
     init: function() {
@@ -468,6 +468,10 @@ go.Base.update(GateOne.Terminal, {
             if (!go.Terminal.loadEventsAttached) {
                 // This ensures that whatever effects are applied to a terminal applied when resized too:
                 E.on("go:update_dimensions", go.Terminal.onResizeEvent);
+                E.on("go:pane_split", function(pane) {
+                    go.Terminal.onResizeEvent();
+                    go.Terminal.recordPanePositions(pane);
+                });
                 E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
                 if (!go.prefs.broadcastTerminal) {
                     go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
@@ -743,35 +747,35 @@ go.Base.update(GateOne.Terminal, {
         Attached to the `go:update_dimensions` event; calls :js:meth:`GateOne.Terminal.sendDimensions` for all terminals to ensure the new dimensions get applied.
         */
         logDebug('GateOne.Terminal.onResizeEvent()');
-        var term = localStorage[prefix+'selectedTerminal'],
-            terminalObj = go.Terminal.terminals[term],
-            parentHeight, termPre, shareID;
-        if (!terminalObj) {
-            return; // Nothing to do (terminal not open yet or was already removed)
-        }
-        for (shareID in go.Terminal.sharedTerminals) {
-            // Check if this terminal belongs to someone else so we can skip telling the server to resize it (only the owner can resize a terminal)
-            if (term == go.Terminal.sharedTerminals[shareID].term) {
-                if (go.Terminal.sharedTerminals[shareID].owner != go.User.username) {
-                    return; // We're not the owner so nothing to do
+        var termNum, parentHeight, termPre, shareID;
+        for (termNum in go.Terminal.terminals) {
+            // Only want terminals which are integers; not the 'count()' function
+            if (termNum % 1 === 0) {
+                termPre = go.Terminal.terminals[termNum].node;
+                for (shareID in go.Terminal.sharedTerminals) {
+                    // Check if this terminal belongs to someone else so we can skip telling the server to resize it (only the owner can resize a terminal)
+                    if (termNum == go.Terminal.sharedTerminals[shareID].term) {
+                        if (go.Terminal.sharedTerminals[shareID].owner != go.User.username) {
+                            return; // We're not the owner so nothing to do
+                        }
+                    }
+                }
+                if (u.isVisible(termPre)) { // Only if terminal is visible
+                    go.Terminal.sendDimensions(termNum);
+                    if (go.prefs.scrollback != 0) {
+                        parentHeight = termPre.parentNode.clientHeight;
+                        if (parentHeight) {
+                            termPre.style.height = parentHeight + 'px';
+                        }
+                    }
+                    // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+                    u.scrollToBottom(termPre);
+                    // Make sure the terminal is in alignment
+                    E.once("terminal:term_updated", function() {
+                        go.Terminal.alignTerminal(termNum);
+                    });
                 }
             }
-        }
-        termPre = terminalObj.node;
-        if (u.isVisible(termPre)) { // Only if terminal is visible
-            go.Terminal.sendDimensions();
-            if (go.prefs.scrollback != 0) {
-                parentHeight = termPre.parentNode.clientHeight;
-                if (parentHeight) {
-                    termPre.style.height = parentHeight + 'px';
-                }
-            }
-            // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
-            u.scrollToBottom(termPre);
-            // Make sure the terminal is in alignment
-            E.once("terminal:term_updated", function() {
-                go.Terminal.alignTerminal(term);
-            });
         }
     },
     reconnectEvent: function() {
@@ -880,6 +884,11 @@ go.Base.update(GateOne.Terminal, {
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer'); }
         infoContainer.appendChild(termInfoDiv);
+        infoContainer.addEventListener('mousemove', function(e) {
+            clearTimeout(v.infoTimer);
+            u.removeElement(infoContainer);
+            go.Terminal.Input.capture();
+        }, false);
         go.node.appendChild(infoContainer);
         if (v.infoTimer) {
             clearTimeout(v.infoTimer);
@@ -905,89 +914,79 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.broadcastTerminal) {
             return; // Clients of broadcast terminals don't get to resize them
         }
-        var prevRows = go.Terminal.prevRows,
-            prevCols = go.Terminal.prevCols,
-            noTerm, termObj, termNode, termNum, where, rowAdjust, colAdjust, emDimensions, dimensions, rowsValue, colsValue, prefs;
-        if (!term) {
-            noTerm = true;
-            term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
-        }
-        if (typeof(ctrl_l) == 'undefined') {
-            ctrl_l = true;
-        }
-        termObj = go.Terminal.terminals[term];
-        if (!termObj) {
-            return; // Nothing to do (terminal has not been created yet or was just closed)
-        }
-        termNode = termObj.terminal;
-        where = termObj.where;
-        rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust;
-        colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust;
-        emDimensions = u.getEmDimensions(termNode, where);
-        dimensions = u.getRowsAndColumns(termNode, where);
-        rowsValue = (dimensions.rows - rowAdjust);
-        colsValue = Math.ceil(dimensions.columns - colAdjust);
-        prefs = {
-            'term': term,
-            // rows are set below...
-            'columns': colsValue,
-            'em_dimensions': emDimensions
-        };
-        if (go.Terminal.terminals[term].noAdjust) {
-            rowsValue = dimensions.rows; // Don't bother with the usual rowAdjust for popup terminals
-        }
         // Explanation of below:  If the difference between the calculated value and the floor() of that value is greater than 0.8
         // it means that the 'fit' of the total rows--if we round() them--will be awfully tight.  Too tight, in fact.  I know this
         // because even though the math adds up the browsers pull crap like, "the child <pre> offsetHeight is greater than it's
         // parent's clientHeight" which is supposed to be impossible.  So I've defined the 'fit' to be 'too tight' if the there's
         // > 20% of a character (height-wise) of "wiggle room" between what is *supposed* to fit in the element and what the
         // browser tells us will fit (it lies--the top gets cut off!).
-        if ((rowsValue - Math.floor(rowsValue)) > 0.8) {
-            prefs.rows = Math.ceil(rowsValue);
-        } else {
-            prefs.rows = Math.floor(rowsValue);
-        }
-        if (!emDimensions.h || !emDimensions.w) {
-            return; // Nothing to do
-        }
-        if (!prefs.rows || !prefs.columns) {
-            return; // Something went wrong
-        }
-        if (prefs.rows < 2 || prefs.columns < 2) {
-            return; // Something went wrong; ignore
-        }
-        if (prevRows == prefs.rows && prevCols == prefs.columns) {
-            return; // Nothing to do
-        }
-        // Apply user-defined rows and columns (if set)
-        if (go.prefs.columns) { prefs.columns = go.prefs.columns };
-        if (go.prefs.rows) { prefs.rows = go.prefs.rows };
-        if (noTerm) {
-            for (termNum in go.Terminal.terminals) {
-                // Only want terminals which are integers; not the 'count()' function
-                if (termNum % 1 === 0) {
-                    where = go.Terminal.terminals[termNum].where;
-                    if (where && where.classList.contains('✈termdialog')) {
-                        ;; // Popup terminals need to be resized individually
-                    } else {
-                        prefs.term = termNum;
-                        go.ws.send(JSON.stringify({'terminal:resize': prefs}));
+        var termObj, prevRows, prevCols, noTerm, termNode, termNum, where, rowAdjust, colAdjust, emDimensions, dimensions, rowsValue, colsValue, prefs,
+            getAndSend = function(term) {
+                var termObj = go.Terminal.terminals[term],
+                    prevRows = termObj.prevRows,
+                    prevCols = termObj.prevCols,
+                    where = termObj.where,
+                    termNode = termObj.terminal,
+                    rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
+                    colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+                    emDimensions = u.getEmDimensions(termNode, where),
+                    dimensions = u.getRowsAndColumns(termNode, where),
+                    rowsValue = (dimensions.rows - rowAdjust),
+                    colsValue = Math.ceil(dimensions.columns - colAdjust),
+                    prefs = {
+                        'term': term,
+                        // rows are set below...
+                        'columns': colsValue,
+                        'em_dimensions': emDimensions
+                    };
+                if (termObj.noAdjust) {
+                    rowsValue = dimensions.rows; // Don't bother with the usual rowAdjust for popup terminals and similar
+                }
+                if ((rowsValue - Math.floor(rowsValue)) > 0.8) {
+                    prefs.rows = Math.ceil(rowsValue);
+                } else {
+                    prefs.rows = Math.floor(rowsValue);
+                }
+                if (!emDimensions.h || !emDimensions.w) {
+                    return; // Nothing to do
+                }
+                if (!prefs.rows || !prefs.columns) {
+                    return; // Something went wrong
+                }
+                if (prefs.rows < 2 || prefs.columns < 2) {
+                    return; // Something went wrong; ignore
+                }
+                if (prevRows == prefs.rows && prevCols == prefs.columns) {
+                    return; // Nothing to do
+                }
+                // Apply user-defined rows and columns (if set)
+                if (go.prefs.columns) { prefs.columns = go.prefs.columns };
+                if (go.prefs.rows) { prefs.rows = go.prefs.rows };
+                // Save the rows/columns for comparison next time
+                termObj.prevCols = prefs.columns;
+                termObj.prevRows = prefs.rows;
+                go.ws.send(JSON.stringify({'terminal:resize': prefs}));
+                E.trigger("terminal:send_dimensions", term);
+                // Execute any sendDimensionsCallbacks
+                if (GateOne.Net.sendDimensionsCallbacks.length) {
+                    go.Logging.deprecated("sendDimensionsCallbacks", gettext("Use ")+"GateOne.Events.on('terminal:send_dimensions', func) "+gettext("instead."));
+                    for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
+                        GateOne.Net.sendDimensionsCallbacks[i](term);
                     }
                 }
             };
-        } else {
-            // Tell the server the new dimensions
-            go.ws.send(JSON.stringify({'terminal:resize': prefs}));
+        if (typeof(ctrl_l) == 'undefined') {
+            ctrl_l = true;
         }
-        go.Terminal.prevCols = prefs.columns;
-        go.Terminal.prevRows = prefs.rows;
-        // Execute any sendDimensionsCallbacks
-        E.trigger("terminal:send_dimensions", term);
-        if (GateOne.Net.sendDimensionsCallbacks.length) {
-            go.Logging.deprecated("sendDimensionsCallbacks", gettext("Use ")+"GateOne.Events.on('terminal:send_dimensions', func) "+gettext("instead."));
-            for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
-                GateOne.Net.sendDimensionsCallbacks[i](term);
-            }
+        if (!term) {
+            for (termNum in go.Terminal.terminals) {
+                // Only want terminals which are integers; not the 'count()' function
+                if (termNum % 1 === 0) {
+                    getAndSend(termNum);
+                }
+            };
+        } else {
+            getAndSend(term);
         }
     },
     setTitle: function(term, text) {
@@ -1757,6 +1756,7 @@ go.Base.update(GateOne.Terminal, {
             }
         }
         pastearea = go.Terminal.newPastearea(term);
+        terminal.setAttribute('data-term', term);
         terminal.appendChild(pastearea);
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre', 'class': '✈terminal_pre'});
@@ -2703,6 +2703,45 @@ go.Base.update(GateOne.Terminal, {
                 });
             }
         }, 1050);
+    },
+    recordPanePositions: function() {
+        /**:GateOne.Terminal.recordPanePositions()
+
+        Records the position of each terminal in each :js:meth:`GateOne.Visual.Pane` that exists on the page (so they can be resumed properly).
+        */
+        var rowCount = 0, cellCount = 0;
+        u.toArray(u.getNodes('.✈pane')).forEach(function(paneNode) {
+            var name = paneNode.getAttribute('data-pane'),
+                pane = v.panes[name];
+            u.toArray(pane.node.querySelectorAll('.✈pane_row')).forEach(function(row) {
+                rowCount += 1;
+                u.toArray(pane.node.querySelectorAll('.✈pane_cell')).forEach(function(cell) {
+                    cellCount += 1;
+                    var terminal = cell.querySelector('.✈terminal'),
+                        term, termObj;
+                    if (terminal) {
+                        term = terminal.getAttribute('data-term');
+                        if (term) {
+                            termObj = go.Terminal.terminals[term];
+                            termObj.metadata.resumeEvent = "terminal:resume_split_pane";
+                            termObj.metadata.pane = pane.name;
+                            termObj.metadata.panePosition = [rowCount, cellCount];
+                        }
+                    }
+                });
+            });
+        });
+    },
+    resumePanePosition: function(term) {
+        /**:GateOne.Terminal.resumePanePosition(term)
+
+        Uses ``GateOne.Terminal.terminals[term].metadata.panePosition`` to create a new terminal in that exact spot.  New :js:meth`GateOne.Visual.Pane` objects will be created as necessary to ensure the terminal winds up where it was previously.
+        */
+        var termObj = go.Terminal.terminals[term],
+            name = termObj.metadata.pane,
+            row = termObj.metadata.panePosition[0],
+            column = termObj.metadata.panePosition[1];
+
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

@@ -924,29 +924,28 @@ def entry_point_files(ep_group, enabled=None):
     if not enabled:
         enabled = []
     ep_dict = {
-        'py': [],
-        'js': [],
-        'css': []
+        'py': {},
+        'js': {},
+        'css': {}
     }
     for plugin in pkg_resources.iter_entry_points(group=ep_group):
         if enabled and plugin.name not in enabled:
             continue # Not enabled, skip it
-        ep_dict['py'].append(plugin.load())
+        ep_dict['py'][plugin.module_name] = plugin.load()
         static_path = plugin.module_name.replace('.', '/') + '/static/'
-        if pkg_resources.isdir(static_path):
+        try:
             pkg_files = pkg_resources.resource_listdir(
                 plugin.module_name, '/static/')
-            for f in pkg_files:
-                f_path = "%s/static/%s" % (plugin.name, f)
-                if f.endswith('.js'):
-                    ep_dict['js'].append(f_path)
-                elif f.endswith('.css'):
-                    ep_dict['css'].append(f_path)
-    # Sort all plugins alphabetically so the order in which they're applied can
-    # be controlled somewhat predictably
-    ep_dict['py'] = sorted(ep_dict['py'], key=operator.attrgetter('__name__'))
-    ep_dict['js'].sort()
-    ep_dict['css'].sort()
+        except OSError:
+            continue
+        ep_dict['js'][plugin.module_name] = []
+        ep_dict['css'][plugin.module_name] = []
+        for f in pkg_files:
+            f_path = "/static/%s" % f
+            if f.endswith('.js'):
+                ep_dict['js'][plugin.module_name].append(f_path)
+            elif f.endswith('.css'):
+                ep_dict['css'][plugin.module_name].append(f_path)
     return ep_dict
 
 def load_modules(modules):

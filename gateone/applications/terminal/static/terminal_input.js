@@ -422,8 +422,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
             t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
             t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
-            E.on('go:new_workspace_workspace', function(workspace) {
-                t.Input.disableCapture(null, true); // Force capture off when bringing up the New Workspace Workspace
+            E.on('go:app_chooser', function(workspace) {
+                t.Input.disableCapture(null, true); // Force capture off when bringing up the application chooser
             });
         }
         u.showElement(t.Input.inputNode);
@@ -937,22 +937,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     }
                 }
             }
-        }
-    },
-    handleVisibility: function(e) {
-        /**:GateOne.Terminal.handleVisibility(e)
-
-        Calls GateOne.Terminal.Input.capture() when the page becomes visible again *if* a terminal had focus before the document went invisible.
-        */
-        if (!u.isPageHidden()) {
-            // Page has become visibile again
-            logDebug(gettext("Ninja Mode disabled."));
-            if (document.activeElement.classList.contains('✈terminal')) {
-                // Gate One was active when the page became hidden
-                t.Input.capture(); // Resume keyboard input
-            }
-        } else {
-            logDebug(gettext("Ninja Mode!  Gate One has become hidden."));
         }
     },
     // TODO: Add a GUI for configuring the keyboard.

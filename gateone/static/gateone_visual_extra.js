@@ -305,15 +305,15 @@ GateOne.Base.update(GateOne.Visual, {
         go.Events.trigger('go:confirm', title, question, closeDialog);
     },
     // Example pane usage scenarios:
-    //   var testPane = GateOne.Visual.Pane();
+    //   var testPane = GateOne.Visual.Pane(someNode),
     //   testPane.innerHTML = "<p>Test pane</p>";
     //   testPane.appendChild('#some_element');
 
     //   var term1Pane = GateOne.Visual.Pane('#go_default_term1_pre'); <-- Creates a new Pane from term1_pre.  Doesn't make any changes to term1_pre unless specified in options.
     //   term1Pane.vsplit(); <-- Splits into two panes 50/50 left-and-right with the existing pane winding up on the left (default).
     //   term1Pane = term1Pane.hsplit(); <-- Splits into two panes 50/50 top-and-bottom with the existing pane winding up on the top (default).
-    //   term1Pane.relocate('#some_id'); <-- Removes term1Pane from its existing location and places it into #some_id.  If #some_id is also a Pane it will be split.
-    // NOTE:  I had to remove the (elem, options) part of the docstring below because sphinxcontrib-autojs doesn't like methods that also contain their own methods.  I'm still working on fixing it.
+    //   term1Pane.relocate('#some_id'); <-- Removes term1Pane from its existing location and places it into #some_id.
+    panes: {}, // Tracks open Pane instances
     Pane: function(elem, options) {
         /**:GateOne.Visual.Pane
 
@@ -327,20 +327,42 @@ GateOne.Base.update(GateOne.Visual, {
         Options:
 
             :name: What to call this Pane so you can reference it later.
-            :scroll: A boolean value representing whether or not this Pane will be scrollable.
+            :scroll: A boolean value representing whether or not this Pane will be scrollable (default is ``true``).
         */
         // Enforce 'new' to ensure unique instances
-        if (!(this instanceof GateOne.Visual.Pane)) {return new GateOne.Visual.Pane(elem, options);}
+        if (!(this instanceof v.Pane)) {return new v.Pane(elem, options);}
         options = (options || {});
         var self = this,
-            u = GateOne.Utils;
-        self.node = u.getNode(elem);
+            nodeContainer = u.createElement('div', {'class': '✈pane_cell'}),
+            paneRow = u.createElement('div', {'class': '✈pane_row'});
+        self.node = u.createElement('div', {'class': '✈pane'});
+        if (options.name === undefined) {
+            options.name = 'pane_' + u.randomString(8, 'abcdefghijklmnopqrstuvwxyz');
+        }
+        self.name = options.name;
+        self.node.setAttribute('data-pane', self.name);
+        self.elem = u.getNode(elem);
+        self.parent = elem.parentNode;
+        // Immediately wrap the given *elem* in our ✈pane container
+        self.parent.appendChild(self.node);
+        self.node.appendChild(paneRow); // Inside a row
+        paneRow.appendChild(nodeContainer); // Inside a cell
+        nodeContainer.appendChild(self.elem);
+        self.metadata = {
+            'grid': []
+        };
         self.scroll = (options['scroll'] || false);
 //         if (!('✈pane' in self.node.classList)) {
 //             // Converting existing element into a Pane.
 //             self.node.classList.add('✈pane');
 //             // TODO: Probably need to add more stuff here
 //         }
+        // Scroll the element to the bottom since we just moved it all around
+        setTimeout(function() {
+            u.scrollToBottom(self.elem);
+        }, 100);
+        v.panes[self.name] = self;
+        E.trigger("go:new_pane", self);
         self.split = function(axis, way, /*opt*/newNode) {
             /**:GateOne.Visual.Pane.split(axis, way[, newNode])
 
@@ -348,76 +370,127 @@ GateOne.Base.update(GateOne.Visual, {
 
             The *way* argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.
 
-            If provided, the given *newNode* will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using `cloneNode(false)`).
+            If provided, the given *newNode* will be placed in the new container that results from the split.  Otherwise a new application chooser will be placed there.  Note that if an existing node is given as *newNode* it will be moved into the panel.
 
             .. note:: If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.
             */
-            var barWidth = 6, // TODO: Change this to figure out what the width of the splitbar is based on the theme
-                node = self.node,
-                paneContainer = u.createElement('div', {'class': '✈pane'}),
-                newWidth = parseInt(node.clientWidth/2) - parseInt(barWidth/2),
-                newHeight = parseInt(node.clientHeight/2) - parseInt(barWidth/2),
-                bar = u.createElement('div');
-            node.style.position = 'absolute';
-            node.style.top = 0;
-            node.style.left = 0;
+            var paneRow, newPane, barWidth,
+                rowCount = 0, cellCount = 0,
+                rows = u.toArray(self.node.querySelectorAll('.✈pane_row')),
+                bars, newWidth,
+//                 newHeight = parseInt(node.clientHeight/2) - parseInt(barWidth/2),
+                newBar = u.createElement('div');
             if (axis == 'vertical') {
-                bar.className = '✈vsplitbar';
+                newBar.className = '✈vsplitbar';
                 way = way || 'left';
-                node.style.width = newWidth + 'px';
+                rows.forEach(function(row) {
+                    var cells = u.toArray(row.querySelectorAll('.✈pane_cell')),
+                        barCount = 0;
+                    bars = u.toArray(row.querySelectorAll('.✈vsplitbar'));
+                    rowCount += 1;
+                    row.appendChild(newBar); // So we can see how wide it is
+                    barWidth = newBar.clientWidth;
+                    newWidth = parseInt(self.node.clientWidth/(cells.length+1)) - barWidth;
+                    cells.forEach(function(cell) {
+                        if (cellCount == 0) {
+                            cell.style.left = 0;
+                        } else {
+                            cell.style.left = ((newWidth * cellCount) + barWidth) + 'px';
+                        }
+                        cell.style.width = newWidth + 'px';
+                        cell.style.height = '100%';
+                        cellCount += 1;
+                    });
+                    bars.forEach(function(bar) {
+                        barCount += 1;
+                        console.log("Setting bar:", bar, " left to:", (newWidth * barCount) + 'px');
+                        bar.style.left = ((newWidth * barCount) + barWidth) + 'px';
+                    });
+                    newPane = u.createElement('div', {'class': '✈pane_cell', 'style': {'width': newWidth + 'px', 'height': '100%', 'left': ((newWidth * cellCount) + (barWidth * barCount) + barWidth) + 'px'}});
+                    if (barCount === 0) {
+                        newBar.style.left = newWidth + 'px';
+                    } else {
+                        newBar.style.left = ((newWidth * cellCount) + barWidth) + 'px';
+                    }
+                });
+                if (way == 'left') {
+                    rows[rows.length-1].appendChild(newPane);
+                }
+                /* else {
+                    newPane.style.top = (newHeight + barWidth) + 'px';
+                    newBar.style.top = newHeight + 'px';
+                }*/
             } else {
-                bar.className = '✈hsplitbar';
+                newBar.className = '✈hsplitbar';
                 way = way || 'top';
-                node.style.height = newHeight + 'px';
+                paneRow = u.createElement('div', {'class': '✈pane_row'}); // Where this goes depends on 'top'
+//                 nodeContainer.style.height = newHeight + 'px';
+//                 nodeContainer.style.width = '100%';
+                newPane = u.createElement('div', {'class': '✈pane_cell', 'style': {'width': '100%', 'height': newHeight + 'px'}});
             }
             if (!newNode) {
-                newNode = node.cloneNode(false);
+                newNode = v.appChooser(false);
             }
-            if (way == 'left') {
-                newNode.style.left = (newWidth + barWidth) + 'px';
-                bar.style.left = newWidth + 'px';
-            } else {
-                newNode.style.top = (newHeight + barWidth) + 'px';
-                bar.style.left = newHeight + 'px';
-            }
-            node.parentNode.appendChild(paneContainer);
-//             u.removeElement(node);
-            if (way == 'left' || way == 'top') {
-                paneContainer.appendChild(node);
-                paneContainer.appendChild(bar);
-                paneContainer.appendChild(newNode);
-            } else {
-                paneContainer.appendChild(newNode);
-                paneContainer.appendChild(bar);
-                paneContainer.appendChild(node);
-            }
-            // NOTE: TEMP:
-//             duplicated.innerHTML = "This is the duplicated container";
+            newPane.appendChild(newNode);
+//             if (way == 'left' || way == 'top') {
+//                 if (paneRow) {
+//                     paneRow.appendChild(newPane);
+//                     self.node.appendChild(newBar);
+//                     self.node.appendChild(paneRow);
+//                 }
+//             } else {
+//                 if (paneRow) {
+//                     paneRow.appendChild(newPane);
+//                     self.node.insertBefore(rows[0], paneRow);
+//                     self.node.appendChild(newBar);
+//                     self.node.appendChild(paneRow);
+//                 }
+//                 rows[0].appendChild(newPane);
+//                 rows[0].appendChild(newBar);
+//             }
             setTimeout(function() {
-                u.scrollToBottom(node);
+                u.scrollToBottom(self.elem);
                 u.scrollToBottom(newNode);
-            }, 10);
-            return newNode;
+            }, 100);
+            E.trigger("go:pane_split", self);
+            return self;
         }
         self.vsplit = function(/*opt*/newNode) {
             /**:GateOne.Visual.Pane.vsplit([newNode])
 
             A shortcut for `GateOne.Visual.Pane.split('vertical')`
             */
-            go.Visual.Pane.split('vertical', null, newNode);
+            self.split('vertical', null, newNode);
         }
         self.hsplit = function(/*opt*/newNode) {
             /**:GateOne.Visual.Pane.hsplit([newNode])
 
             A shortcut for `GateOne.Visual.Pane.split('horizontal')`
             */
-            go.Visual.Pane.split('horizontal', null, newNode);
+            self.split('horizontal', null, newNode);
         }
         self.relocate = function(where, /*opt*/splitAxis) {
             /**:GateOne.Visual.Pane.relocate(where)
 
             Moves the Pane from wherever it currently resides into the element at *where*.  The *splitAxis* argument will be used to determine how to split *where* to accomodate this Pane.
             */
+        }
+        self.save = function() {
+            /**:GateOne.Visual.Pane.save()
+
+            Saves the state of this pane in `localStorage` so that it may be restored later via :js:meth:`GateOne.Visual.Pane.restore`.
+            */
+            localStorage[prefix+'pane_'+self.name] = self.metadata;
+        }
+        self.restore = function(name) {
+            /**:GateOne.Visual.Pane.restore(name)
+
+            Restores the state of a :js:meth:`GateOne.Visual.Pane` of the given *name*.
+            */
+            var metadata = localStorage[prefix+'pane_'+name];
+            if (metadata) {
+                // Do the restore
+            }
         }
         self.minimize = function(way) {
             /**:GateOne.Visual.Pane.minimize()
@@ -431,6 +504,7 @@ GateOne.Base.update(GateOne.Visual, {
             Removes the Pane from the page.
             */
             u.removeElement(self.node);
+            delete v._panes[self.name];
             // TODO: Add logic here to remove the splitbar(s)
         }
         return self;

@@ -8,6 +8,7 @@
 	var doT = {
 		version: '1.0.1',
 		templateSettings: {
+			comment:     /\{\{\/\/([\s\S]+?)\}\}/g,
 			evaluate:    /\{\{([\s\S]+?(\}?)+)\}\}/g,
 			interpolate: /\{\{=([\s\S]+?)\}\}/g,
 			encode:      /\{\{!([\s\S]+?)\}\}/g,
@@ -44,6 +45,7 @@
 
 	function resolveDefs(c, block, def) {
 		return ((typeof block === 'string') ? block : block.toString())
+		.replace(c.comment || skip, '')
 		.replace(c.define || skip, function(m, code, assign, value) {
 			if (code.indexOf('def.') === 0) {
 				code = code.substring(4);
