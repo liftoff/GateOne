@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140909104441" # Gets replaced by git (holds the date/time)
+__commit__ = "20140912215623" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -3083,13 +3083,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if os.path.exists(rendered_path):
             self.send_js(rendered_path, filename=filename, **kwargs)
             return
-        libwrapper = os.path.join(GATEONE_DIR, 'templates', 'libwrapper.js')
-        with io.open(js_path, 'rb') as f:
-            script['source'] = f.read()
-        template_loaders = tornado.web.RequestHandler._template_loaders
-        # This wierd little bit empties Tornado's template cache:
-        for web_template_path in template_loaders:
-            template_loaders[web_template_path].reset()
+        script['source'] = resource_string('gateone', 'templates/libwrapper.js')
         rendered = self.render_string(
             libwrapper,
             script=script,
@@ -3249,16 +3243,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Returns a JSON-encoded object containing the installed themes and text
         color schemes.
         """
-        templates_path = os.path.join(GATEONE_DIR, 'templates')
-        themes_path = os.path.join(templates_path, 'themes')
-        # NOTE: This is temporary until this logic is moved to the terminal app:
-        colors_path = os.path.join(GATEONE_DIR,
-            'applications', 'terminal', 'templates', 'term_colors')
-        themes = os.listdir(themes_path)
-        themes = [a.replace('.css', '') for a in themes]
-        colors = os.listdir(colors_path)
-        colors = [a.replace('.css', '') for a in colors]
-        message = {'go:themes_list': {'themes': themes, 'colors': colors}}
+        themes = resource_listdir('gateone', '/templates/themes')
+        # Just in case other junk wound up in that directory:
+        themes = [a for a in themes if a.endswith('.css')]
+        themes = [a.replace('.css', '') for a in themes] # Just need the names
+        message = {'go:themes_list': {'themes': themes}}
         self.write_message(message)
 
     def set_locales(self, locales):
