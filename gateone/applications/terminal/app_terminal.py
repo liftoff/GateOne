@@ -2479,6 +2479,8 @@ class TerminalApplication(GOApplication):
         term_obj = self.loc_terms[term]
         multiplex = term_obj['multiplex']
         shared_terms = self.ws.persist['terminal'].get('shared', {})
+        if not shared_terms:
+            return # Nothing to do
         share_obj = []
         for share_id, share_dict in shared_terms.items():
             if term_obj == share_dict['term_obj']:
