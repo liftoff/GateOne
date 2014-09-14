@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140913214110";
+GateOne.__commit__ = "20140913214757";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2614,6 +2614,7 @@ GateOne.Base.update(GateOne.Net, {
             go.Net.onOpen(callback);
         }
         go.ws.onclose = go.Net.onClose;
+        // TODO: Get this figuring out if the origin was denied and displaying a helpful error message if that's the case.
         go.ws.onerror = function(evt) {
             // Something went wrong with the WebSocket (who knows?)
             go.Net.connectionProblem = true;
@@ -2962,7 +2963,6 @@ GateOne.Visual.goDimensions = {};
         `go:user_message`    :js:meth:`GateOne.Visual.userMessageAction`
         ===================  ==============================================
 */
-GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}}; // DEPRECATED
 GateOne.Visual.lastMessage = '';
 GateOne.Visual.sinceLastMessage = new Date();
 GateOne.Visual.hidePanelsTimeout = {}; // Used by togglePanel() to keep track of which panels have timeouts
@@ -3728,14 +3728,6 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
                 E.trigger("go:panel_toggle:out", panels[i]);
-                if (v.panelToggleCallbacks.out['#'+panels[i].id]) {
-                    for (var ref in v.panelToggleCallbacks.out['#'+panels[i].id]) {
-                        if (typeof(v.panelToggleCallbacks.out['#'+panels[i].id][ref]) == "function") {
-                            deprecated("panelToggleCallbacks", deprecatedMsg);
-                            v.panelToggleCallbacks.out['#'+panels[i].id][ref]();
-                        }
-                    }
-                }
                 // Set the panels to display:none after they scale out to make sure they don't mess with user's tabbing (tabIndex)
                 setHideTimeout(panels[i]);
             }
@@ -3761,14 +3753,6 @@ GateOne.Base.update(GateOne.Visual, {
             }, 10);
             // Call any registered 'in' callbacks for all of these panels
             E.trigger("go:panel_toggle:in", panel)
-            if (v.panelToggleCallbacks.in['#'+panel.id]) {
-                for (var ref in v.panelToggleCallbacks.in['#'+panel.id]) {
-                    if (typeof(v.panelToggleCallbacks.in['#'+panel.id][ref]) == "function") {
-                        v.panelToggleCallbacks.in['#'+panel.id][ref]();
-                        deprecated("panelToggleCallbacks", deprecatedMsg);
-                    }
-                }
-            }
             // Make it so the user can press the ESC key to close the panel
             panel.onkeyup = function(e) {
                 if (e.keyCode == 27) { // ESC key
@@ -3783,14 +3767,6 @@ GateOne.Base.update(GateOne.Visual, {
             v.applyTransform(panel, 'scale(0)');
             // Call any registered 'out' callbacks for all of these panels
             E.trigger("go:panel_toggle:out", panel);
-            if (v.panelToggleCallbacks.out['#'+panel.id]) {
-                for (var ref in v.panelToggleCallbacks.out['#'+panel.id]) {
-                    if (typeof(v.panelToggleCallbacks.out['#'+panel.id][ref]) == "function") {
-                        v.panelToggleCallbacks.out['#'+panel.id][ref]();
-                        deprecated("panelToggleCallbacks", deprecatedMsg);
-                    }
-                }
-            }
             setTimeout(function() {
                 // Hide the panel completely now that it has been scaled out to avoid tabIndex issues
                 u.hideElement(panel);
