@@ -15,7 +15,6 @@ This module contains functions that deal with Gate One's options/settings
 
 import os, sys, io, re, socket, tempfile, logging
 from pkg_resources import resource_filename, resource_listdir, resource_string
-from gateone import GATEONE_DIR
 from .log import FACILITIES
 from gateone.core.log import go_logger
 from tornado import locale
@@ -500,7 +499,7 @@ def define_options(installed=True, cli_commands=None):
         "Default: hostname.  "
         "Only relevant if PAM authentication is enabled."),
         # NOTE: This is only used to show the user a REALM at the basic auth
-        #       prompt and as the name in the GATEONE_DIR+'/users' directory
+        #       prompt and as the name in the 'user_dir/<user>' directory
         type=basestring
     )
     define(

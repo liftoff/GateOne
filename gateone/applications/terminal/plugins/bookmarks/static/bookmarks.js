@@ -1702,7 +1702,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.appendChild(buttonContainer);
         bmHelp.innerHTML = '<i>' + gettext('Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".') + '</i>'
         bmForm.appendChild(bmHelp);
-        var closeDialog = go.Visual.dialog(gettext("Import Bookmarks"), bmForm, {'style': {'top': '15%'}}); // Looks better if a bit closer to the top of the page (as an initial location)
+        var closeDialog = go.Visual.dialog(gettext("Import Bookmarks"), bmForm, {'class': '✈prefsdialog', 'style': {'top': '15%'}}); // Looks better if a bit closer to the top of the page (as an initial location)
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -1884,7 +1884,7 @@ go.Base.update(GateOne.Bookmarks, {
         setTimeout(function() {
             u.getNode('#'+prefix+'bm_newurl').focus();
         }, 1000);
-        var closeDialog = go.Visual.dialog(formTitle, bmForm, {'style': {'top': '15%'}});
+        var closeDialog = go.Visual.dialog(formTitle, bmForm, {'class': '✈prefsdialog', 'style': {'top': '15%'}});
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();
@@ -2464,7 +2464,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.appendChild(buttonContainer);
         bmSubmit.innerHTML = gettext("Save");
         bmCancel.innerHTML = gettext("Cancel");
-        closeDialog = go.Visual.dialog("Rename Tag: " + tagName, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
+        closeDialog = go.Visual.dialog("Rename Tag: " + tagName, bmForm, {'resizable': false, 'minimizable': false, 'class': '✈prefsdialog', 'style': {'top': '15%'}});
         setTimeout(function() {
             // Because of the way dialogs appear the autofocus attribute doesn't work...
             u.getNode('.✈bm_newtagname').focus();
@@ -2503,7 +2503,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmExportFiltered.innerHTML = gettext("Filtered Bookmarks");
         bmCancel.innerHTML = gettext("Cancel");
         bmForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog(gettext('Export Bookmarks'), bmForm, {'style': {'top': '15%'}});
+        var closeDialog = go.Visual.dialog(gettext('Export Bookmarks'), bmForm, {'class': '✈prefsdialog', 'style': {'top': '15%'}});
         bmCancel.onclick = closeDialog;
         bmExportAll.onclick = function(e) {
             e.preventDefault();
@@ -2530,7 +2530,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.appendChild(bmCancel);
         bmSubmit.innerHTML = gettext("Go");
         bmCancel.innerHTML = gettext("Cancel");
-        closeDialog = go.Visual.dialog(gettext("Keyword Search: ") + title, bmForm, {'resizable': false, 'minimizable': false, 'style': {'top': '15%'}});
+        closeDialog = go.Visual.dialog(gettext("Keyword Search: ") + title, bmForm, {'resizable': false, 'minimizable': false, 'class': '✈prefsdialog', 'style': {'top': '15%'}});
         setTimeout(function() {
             // Because of the way dialogs appear the autofocus attribute doesn't work...
             u.getNode('.✈bm_searchstring').focus();

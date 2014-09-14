@@ -787,7 +787,7 @@ go.Base.update(go.SSH, {
         buttonContainer.appendChild(submit);
         buttonContainer.appendChild(cancel);
         identityForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog(gettext('New SSH Identity'), identityForm, {'style': {'width': '20em'}}); // Just an initial width
+        var closeDialog = go.Visual.dialog(gettext('New SSH Identity'), identityForm, {'class': '✈prefsdialog', 'style': {'width': '20em'}}); // Just an initial width
         cancel.onclick = closeDialog;
         setTimeout(function() {
             setTimeout(function() {
@@ -853,7 +853,7 @@ go.Base.update(go.SSH, {
         buttonContainer.appendChild(submit);
         buttonContainer.appendChild(cancel);
         uploadIDForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog(gettext('Upload SSH Identity'), uploadIDForm, {'style': {'width': '20em'}});
+        var closeDialog = go.Visual.dialog(gettext('Upload SSH Identity'), uploadIDForm, {'class': '✈prefsdialog', 'style': {'width': '20em'}});
         cancel.onclick = closeDialog;
         uploadIDForm.onsubmit = function(e) {
             // Don't actually submit it
@@ -942,7 +942,7 @@ go.Base.update(go.SSH, {
         buttonContainer.appendChild(submit);
         buttonContainer.appendChild(cancel);
         uploadCertForm.appendChild(buttonContainer);
-        closeDialog = go.Visual.dialog(gettext('Upload X.509 Certificate'), uploadCertForm, {'style': {'width': '20em'}});
+        closeDialog = go.Visual.dialog(gettext('Upload X.509 Certificate'), uploadCertForm, {'class': '✈prefsdialog', 'style': {'width': '20em'}});
         cancel.onclick = closeDialog;
         uploadCertForm.onsubmit = function(e) {
             // Don't actually submit it
@@ -993,7 +993,7 @@ go.Base.update(go.SSH, {
         buttonContainer.appendChild(submit);
         buttonContainer.appendChild(cancel);
         passphraseForm.appendChild(buttonContainer);
-        var closeDialog = go.Visual.dialog(gettext('Passphrase for') + '"' + settings['name'] + '"', passphraseForm, {'style': {'width': '23em'}});
+        var closeDialog = go.Visual.dialog(gettext('Passphrase for') + '"' + settings['name'] + '"', passphraseForm, {'class': '✈prefsdialog', 'style': {'width': '23em'}});
         // TODO: Make it so that the identity in question gets deleted if the user cancels out trying to enter the correct passphrase
         // TODO: Alternatively, hang on to the identity but provide a button to re-try the passphrase (will require some server-side detection too I think)
         if (settings['bad']) {

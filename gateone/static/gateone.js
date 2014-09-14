@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140912222919";
+GateOne.__commit__ = "20140913203132";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -5169,7 +5169,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = GateOne.Utils,
             v = GateOne.Visual,
             centeringDiv = u.createElement('div', {'class': '✈centered_text'}),
-            OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': '✈button ✈black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
+            OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': '✈button', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
             messageContainer = u.createElement('p', {'id': 'ok_message'});
         OKButton.innerHTML = "OK";
         if (message instanceof HTMLElement) {
@@ -5179,7 +5179,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         centeringDiv.appendChild(OKButton);
         messageContainer.appendChild(centeringDiv);
-        var closeDialog = go.Visual.dialog(title, messageContainer);
+        var closeDialog = go.Visual.dialog(title, messageContainer, {'class': '✈alertdialog'});
         OKButton.tabIndex = 1;
         OKButton.onclick = function(e) {
             e.preventDefault();

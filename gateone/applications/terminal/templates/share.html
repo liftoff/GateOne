@@ -93,7 +93,7 @@ window.onload = function() {
             E.on('go:js_loaded', function() {
                 if (!loaded) {
                     loaded = true;
-                    closeDialog = v.dialog('Join Shared Terminal', entryDialogContainer);
+                    closeDialog = v.dialog('Join Shared Terminal', entryDialogContainer, {'class': '✈prefsdialog'});
                 }
             });
         };

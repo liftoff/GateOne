@@ -270,7 +270,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = GateOne.Utils,
             v = GateOne.Visual,
             closeDialog,
-            options = {'maximizable': false, 'minimizable': false},
+            options = {'maximizable': false, 'minimizable': false, 'class': '✈confirmdialog'},
             centeringDiv = u.createElement('div', {'class': '✈centered_text'}),
             yes = u.createElement('button', {'type': 'submit', 'value': 'OK', 'class': '✈button ✈black ✈yes'}),
             no = u.createElement('button', {'type': 'reset', 'value': 'OK', 'class': '✈button ✈black ✈no'}),

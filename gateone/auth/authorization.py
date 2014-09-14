@@ -32,8 +32,6 @@ from gateone.core.log import go_logger
 _ = get_translation()
 
 # Globals
-GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 auth_log = go_logger('gateone.auth')
 
 # Authorization stuff

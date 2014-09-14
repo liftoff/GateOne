@@ -92,12 +92,12 @@ import tornado.auth
 import tornado.escape
 import tornado.httpclient
 import tornado.gen
+from tornado.options import options
 
 # Localization support
 _ = get_translation()
 
 # Globals
-GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_CACHE = {} # Lists of settings files and their modification times
 # The security stuff below is a work-in-progress.  Likely to change all around.
 
@@ -116,7 +116,7 @@ def additional_attributes(user, settings_dir=None):
     """
     # Doesn't do anything yet
     if not settings_dir:
-        settings_dir = os.path.join(GATEONE_DIR, 'settings')
+        settings_dir = options.settings_dir
     return user
 
 

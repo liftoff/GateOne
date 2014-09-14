@@ -651,7 +651,7 @@ potential conflicts with other classes that may be on the page.
     line-height: 1.5;
 }
 .✈dialogcontainer p {
-    padding: 0.5em;
+    margin: 0;
 }
 .✈dialogcontainer textarea {
     padding: 0.2em 0.2em;
@@ -726,6 +726,23 @@ potential conflicts with other classes that may be on the page.
     margin-right: 0.4em;
 }
 .✈dialog_close {
+}
+.✈prefsdialog {
+    background: #002b36;
+}
+.✈alertdialog {
+    background: #002b36;
+    color: white;
+    text-align: center;
+    min-width: 25em;
+    min-height: 7em;
+}
+.✈confirmdialog {
+    background: #002b36;
+    color: white;
+    text-align: center;
+    min-width: 25em;
+    min-height: 7em;
 }
 .✈draghandle {
     background-color: transparent;

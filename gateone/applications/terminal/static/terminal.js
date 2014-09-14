@@ -2333,7 +2333,7 @@ go.Base.update(GateOne.Terminal, {
         row3.appendChild(submit);
         row3.appendChild(cancel);
         uploadBellForm.appendChild(row3);
-        var closeDialog = go.Visual.dialog(gettext('Upload Bell Sound'), uploadBellForm, {'style': {'width': '25em'}});
+        var closeDialog = go.Visual.dialog(gettext('Upload Bell Sound'), uploadBellForm, {'class': '✈prefsdialog', 'style': {'width': '25em'}});
         cancel.onclick = closeDialog;
         defaultBell.onclick = function(e) {
             e.preventDefault();
@@ -3003,7 +3003,7 @@ go.Base.update(GateOne.Terminal, {
                     row.appendChild(deleteTD);
                     tbody.appendChild(row);
                 }
-                closeDialog = v.dialog(gettext("Word Highlighting in Terminal: ") + term, container);
+                closeDialog = v.dialog(gettext("Word Highlighting in Terminal: ") + term, container, {'class': '✈prefsdialog'});
                 cancel.onclick = closeDialog;
             },
             saveFunc = function() {
@@ -3204,7 +3204,7 @@ go.Base.update(GateOne.Terminal, {
                 }
                 table = v.table(tableSettings, tableData);
                 tableContainer.appendChild(table);
-                closeDialog = v.dialog(gettext("Terminal Sharing: ") + term, container);
+                closeDialog = v.dialog(gettext("Terminal Sharing: ") + term, container, {'class': '✈prefsdialog'});
                 done.onclick = closeDialog;
             },
             saveFunc = function() {
@@ -3524,7 +3524,7 @@ go.Base.update(GateOne.Terminal, {
         }
         table = v.table(tableSettings, tableData);
         tableContainer.appendChild(table);
-        closeDialog = v.dialog(gettext("Shared Terminals"), container);
+        closeDialog = v.dialog(gettext("Shared Terminals"), container, {'class': '✈prefsdialog'});
         done.onclick = closeDialog;
         done.innerHTML = gettext("Done");
         container.appendChild(tableContainer);
@@ -3585,7 +3585,7 @@ go.Base.update(GateOne.Terminal, {
         }
         table = v.table(tableSettings, tableData);
         tableContainer.appendChild(table);
-        closeDialog = v.dialog(gettext("Terminal Viewers: ") + term, container);
+        closeDialog = v.dialog(gettext("Terminal Viewers: ") + term, container, {'class': '✈prefsdialog'});
         done.onclick = closeDialog;
         done.innerHTML = gettext("Done");
         container.appendChild(tableContainer);
