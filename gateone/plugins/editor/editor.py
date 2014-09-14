@@ -45,7 +45,7 @@ def get_editor_mode(self, mode):
     mode_file = '%s.js' % mode
     mode_path = os.path.join(plugin_path, 'static', 'mode', mode, mode_file)
     if os.path.exists(mode_path):
-        self.send_js(mode_path)
+        self.send_js(mode_path, force=True)
     else:
         self.write_message({"go:editor_invalid_mode": mode})
 

@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140912215623" # Gets replaced by git (holds the date/time)
+__commit__ = "20140912222919" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -349,8 +349,6 @@ except ImportError: # Python 3.X
 # This is used as a way to ensure users get a friendly message about missing
 # dependencies:
 MISSING_DEPS = []
-# This is needed before other globals for certain checks:
-from gateone import GATEONE_DIR
 
 tornado_version = "" # Placeholder in case Tornado import fails below
 
@@ -1471,9 +1469,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for f in resource_listdir('gateone', '/static/extra'):
             filepath = resource_filename('gateone', '/static/extra/%s' % f)
             if filepath.endswith('.js'):
-                self.send_js(filepath)
+                self.send_js(filepath, force=True)
             elif filepath.endswith('.css'):
-                self.send_css(filepath)
+                self.send_css(filepath, force=True)
 
     def allow_draft76(self):
         """
@@ -2865,8 +2863,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:file_sync': out_dict}
         self.write_message(message)
 
-    def send_js_or_css(self, paths_or_fileobj, kind,
-            element_id=None, requires=None, media="screen", filename=None):
+    def send_js_or_css(self, paths_or_fileobj, kind, element_id=None,
+            requires=None, media="screen", filename=None, force=False):
         """
         Initiates a file synchronization of the given *paths_or_fileobj* with
         the client to ensure it has the latest version of the file(s).
@@ -2890,12 +2888,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         where you wish to preserve the original filename.  Just be aware that
         if you do this the given *filename* must be unique.
 
+        If *force* is ``True`` the file will be synchronized regardless of the
+        'send_js' or 'send_css' settings in your global Gate One settings.
+
         .. note:
 
             If the slimit module is installed it will be used to minify the JS
             before being sent to the client.
         """
-        if kind == 'js':
+        if kind == 'js' and not force:
             send_js = self.prefs['*']['gateone'].get('send_js', True)
             if not send_js:
                 if not hasattr('logged_js_message', self):
@@ -2904,7 +2905,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 # So we don't repeat this message a zillion times in the logs:
                 self.logged_js_message = True
                 return
-        elif kind == 'css':
+        elif kind == 'css' and not force:
             send_css = self.prefs['*']['gateone'].get('send_css', True)
             if not send_css:
                 if not hasattr('logged_css_message', self):
@@ -3081,7 +3082,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         rendered_filename = 'rendered_%s_%s' % (filepath_hash, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if os.path.exists(rendered_path):
-            self.send_js(rendered_path, filename=filename, **kwargs)
+            self.send_js(rendered_path, filename=filename, force=True, **kwargs)
             return
         script['source'] = resource_string('gateone', 'templates/libwrapper.js')
         rendered = self.render_string(
@@ -3091,7 +3092,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         )
         with io.open(rendered_path, 'wb') as f:
             f.write(rendered)
-        self.send_js(rendered_path, filename=filename, **kwargs)
+        self.send_js(rendered_path, filename=filename, force=True, **kwargs)
         # Remove older versions of the rendered template if present
         for fname in os.listdir(cache_dir):
             if fname == rendered_filename:
@@ -3599,7 +3600,7 @@ class GateOneApp(tornado.web.Application):
         in the Tornado settings dict so as to be accessible under self.settings.
         """
         # Base settings for our Tornado app
-        static_url = os.path.join(GATEONE_DIR, "static")
+        static_url = resource_filename('gateone', '/static')
         tornado_settings = dict(
             cookie_secret=settings['cookie_secret'],
             static_url=static_url,
@@ -3651,9 +3652,7 @@ class GateOneApp(tornado.web.Application):
             auth_log.info(_(
                 "No authentication method configured. All users will be "
                 "ANONYMOUS"))
-        docs_path = os.path.join(GATEONE_DIR, 'docs')
-        docs_path = os.path.join(docs_path, 'build')
-        docs_path = os.path.join(docs_path, 'html')
+        docs_path = resource_filename('gateone', '/docs/build/html')
         url_prefix = settings['url_prefix']
         if not url_prefix.endswith('/'):
             # Make sure there's a trailing slash

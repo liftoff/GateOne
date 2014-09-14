@@ -264,7 +264,8 @@ class TerminalApplication(GOApplication):
         #       changed so we can tell clients to pull updates and whatnot
         for name, plugin in self.plugins['py'].items():
             try:
-                self.plugin_hooks.update({plugin.__name__: plugin.hooks})
+                if hasattr(plugin, 'hooks'):
+                    self.plugin_hooks.update({plugin.__name__: plugin.hooks})
                 if hasattr(plugin, 'initialize'):
                     plugin.initialize(self)
             except AttributeError as e:
@@ -2527,10 +2528,10 @@ class TerminalApplication(GOApplication):
             bg = "#%s span.✈bx%s {background-color: #%s;} " % (
                 self.ws.container, i, color_map[i])
             fg_rev =(
-                "#%s span.✈reverse.fx%s {background-color: #%s; color: "
+                "#%s span.✈reverse.✈fx%s {background-color: #%s; color: "
                 "inherit;}" % (self.ws.container, i, color_map[i]))
             bg_rev =(
-                "#%s span.✈reverse.bx%s {color: #%s; background-color: "
+                "#%s span.✈reverse.✈bx%s {color: #%s; background-color: "
                 "inherit;} " % (self.ws.container, i, color_map[i]))
             colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
         with io.open(cached_256_colors, 'w', encoding="utf-8") as f:
