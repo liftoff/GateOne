@@ -117,6 +117,11 @@ def timeout_session(session):
 @atexit.register
 def quit():
     from gateone.core.utils import killall
+    commands = options.parse_command_line()
+    if commands or options.help:
+        # Don't call killall() if the user is invoking gateone --help or a
+        # CLI command like 'broadcast' or 'termlog'
+        return
     if not options.dtach:
         # If we're not using dtach play it safe by cleaning up any leftover
         # processes.  When passwords are used with the ssh_conenct.py script
