@@ -74,6 +74,7 @@ if '--skip_init_scripts' in sys.argv:
 init_script = []
 conf_file = [] # Only used on Gentoo
 upstart_file = [] # Only used on Ubuntu (I think)
+systemd_file = [] # Only used on systems with systemd
 debian_script = os.path.join(setup_dir, 'scripts/init/gateone-debian.sh')
 redhat_script = os.path.join(setup_dir, 'scripts/init/gateone-redhat.sh')
 freebsd_script = os.path.join(setup_dir, 'scripts/init/gateone-freebsd.sh')
@@ -114,7 +115,7 @@ if not skip_init:
         # This pkg-config command tells us where to put systemd .service files:
         retcode, systemd_system_unit_dir = getstatusoutput(
             'pkg-config systemd --variable=systemdsystemunitdir')
-        upstart_file = [systemd_system_unit_dir, [systemd_temp_path]]
+        systemd_file = [systemd_system_unit_dir, [systemd_temp_path]]
     # Handle FreeBSD and regular init.d scripts
     if os.path.exists(bsd_temp_script):
         init_script = ['/usr/local/etc/rc.d', [bsd_temp_script]]
@@ -215,6 +216,8 @@ if os.getuid() == 0 and not skip_init:
         data_files.append(conf_file)
     if upstart_file:
         data_files.append(upstart_file)
+    if systemd_file:
+        data_files.append(systemd_file)
 else:
     print("You are not root; skipping installation of init scripts.")
 

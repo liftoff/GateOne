@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140914132648" # Gets replaced by git (holds the date/time)
+__commit__ = "20140914141029" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2631,7 +2631,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         theme_mtimes[theme_path] = mtime
                         modifications = True
         # Grab the modification times for each theme file
-        if modifications:
+        if modifications or not os.path.exists(cached_theme_path):
             logging.debug(_(
                 "Modification to theme file detected.  "
                 "Theme will be recreated."))

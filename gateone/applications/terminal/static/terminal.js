@@ -1700,7 +1700,7 @@ go.Base.update(GateOne.Terminal, {
                 where = v.newWorkspace(); // Use the gridwrapper (grid) by default
                 where.innerHTML = ""; // Empty it out before we use it
                 where.setAttribute('data-application', 'Terminal'); // Hint for relocateWorkspace()
-                workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
+                workspaceNum = parseInt(where.getAttribute('data-workspace'));
             } else {
                 where = go.node;
             }
@@ -1708,7 +1708,7 @@ go.Base.update(GateOne.Terminal, {
             where = u.getNode(where);
             if (where.id.indexOf(prefix+'workspace') != -1) {
                 // This is a workspace, grab the number
-                workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
+                workspaceNum = parseInt(where.getAttribute('data-workspace'));
             }
         }
         // Create the terminal record scaffold

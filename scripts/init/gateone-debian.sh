@@ -4,7 +4,7 @@
 # Provides:          gateone
 # Required-Start:    $network $local_fs $remote_fs
 # Required-Stop:     $network $local_fs $remote_fs
-# Default-Start:     3 4 5
+# Default-Start:     2 3 4 5
 # Default-Stop:      0 1 2 6
 # Short-Description: Starts and stops Gate One
 ### END INIT INFO
