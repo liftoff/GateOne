@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140914141029" # Gets replaced by git (holds the date/time)
+__commit__ = "20140917085042" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2600,7 +2600,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # implementations of this theme (must have same name)...
         # Find plugin's theme-specific CSS files:
         for ep in iter_entry_points(group='go_plugins'):
-            if resource_exists(ep.module_name, theme_relpath):
+            try:
+                exists = resource_exists(ep.module_name, theme_relpath)
+            except ImportError: # Plugin has an issue or has been removed
+                continue
+            if exists:
                 theme_path = resource_filename(ep.module_name, theme_relpath)
                 theme_files.append(theme_path)
                 mtime = os.stat(theme_path).st_mtime
@@ -2610,7 +2614,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     modifications = True
         # Find application's theme-specific CSS files:
         for ep in iter_entry_points(group='go_applications'):
-            if resource_exists(ep.module_name, theme_relpath):
+            try:
+                exists = resource_exists(ep.module_name, theme_relpath)
+            except ImportError: # Plugin has an issue or has been removed
+                continue
+            if exists:
                 theme_path = resource_filename(ep.module_name, theme_relpath)
                 theme_files.append(theme_path)
                 mtime = os.stat(theme_path).st_mtime
@@ -2621,7 +2629,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # Find application plugin's theme-specific CSS files
             entry_point = 'go_%s_plugins' % ep.name
             for plugin_ep in iter_entry_points(group=entry_point):
-                if resource_exists(plugin_ep.module_name, theme_relpath):
+                try:
+                    exists = resource_exists(
+                        plugin_ep.module_name, theme_relpath)
+                except ImportError: # Plugin has an issue or has been removed
+                    continue
+                if exists:
                     theme_path = resource_filename(
                         plugin_ep.module_name, theme_relpath)
                     theme_files.append(theme_path)

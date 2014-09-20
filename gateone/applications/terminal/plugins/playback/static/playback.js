@@ -114,8 +114,10 @@ go.Base.update(GateOne.Playback, {
         Shows the playback controls again after they've been hidden via :js:meth:`GateOne.Playback.hideControls`.
         */
         logDebug("GateOne.Playback.showsControls()");
-        u.showElement('#'+prefix+'controlsContainer');
-        P.clockUpdater = setInterval(P.updateClock, 1000);
+        if (go.User.activeApplication == 'Terminal') {
+            u.showElement('#'+prefix+'controlsContainer');
+            P.clockUpdater = setInterval(P.updateClock, 1000);
+        }
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Playback.switchWorkspaceEvent(workspace)

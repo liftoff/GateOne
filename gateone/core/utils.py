@@ -932,7 +932,14 @@ def entry_point_files(ep_group, enabled=None):
     for plugin in pkg_resources.iter_entry_points(group=ep_group):
         if enabled and plugin.name not in enabled:
             continue # Not enabled, skip it
-        ep_dict['py'][plugin.module_name] = plugin.load()
+        try:
+            module = plugin.load()
+        except ImportError:
+            logging.warning(
+                _("Could not import entry point module: {0}").format(
+                    plugin.module_name))
+            continue
+        ep_dict['py'][plugin.module_name] = module
         static_path = plugin.module_name.replace('.', '/') + '/static/'
         try:
             pkg_files = pkg_resources.resource_listdir(

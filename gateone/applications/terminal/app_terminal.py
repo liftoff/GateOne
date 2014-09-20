@@ -2689,10 +2689,10 @@ def init(settings):
                 'gateone.applications.terminal',
                 '/applications/terminal/plugins/ssh/scripts/ssh_connect.py')
             default_command = (
-              "%s -S "
+              "{0} -S "
               r"'%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%' --sshfp "
               r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'"
-            ) % ssh_connect_path
+            ).format(ssh_connect_path)
             settings['*']['terminal'].update({
                 'dtach': True,
                 'session_logging': True,
