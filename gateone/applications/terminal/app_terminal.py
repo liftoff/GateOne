@@ -2687,7 +2687,7 @@ def init(settings):
             # Update the settings with defaults
             ssh_connect_path = resource_filename(
                 'gateone.applications.terminal',
-                '/applications/terminal/plugins/ssh/scripts/ssh_connect.py')
+                '/plugins/ssh/scripts/ssh_connect.py')
             default_command = (
               "{0} -S "
               r"'%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%' --sshfp "
