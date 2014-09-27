@@ -360,6 +360,12 @@ def define_options(installed=True, cli_commands=None):
         group='gateone',
         help=_("Path to the Unix socket (if --enable_unix_socket=True)."),
         type=basestring)
+    define(
+        "unix_socket_mode",
+        default="0600",
+        group='gateone',
+        help=_("Unix socket mode (if --enable_unix_socket=True)."),
+        type=basestring)
     # Please only use this if Gate One is running behind something with SSL:
     define(
         "disable_ssl",
