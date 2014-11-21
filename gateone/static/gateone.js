@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20140920142503";
+GateOne.__commit__ = "20140920142541";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -287,7 +287,9 @@ GateOne.Base.update = function(self, obj/*, ... */) {
                 self[k] = o[k];
                 if (self[k]) {
                     if (!self[k].__name__) {
-                        self[k].__name__ = k
+                        try {
+                            self[k].__name__ = k;
+                        } catch (e) {}; // Just ignore these errors
                     }
                 }
             }

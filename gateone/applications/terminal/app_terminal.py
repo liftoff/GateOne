@@ -447,9 +447,10 @@ class TerminalApplication(GOApplication):
                 icon_path = resource_filename(
                     'gateone.applications.terminal',
                     '/templates/command_icon.svg')
-                sub_app['icon'] = resource_string(
+                sub_app_icon = resource_string(
                     'gateone.applications.terminal',
-                    '/templates/command_icon.svg').format(cmd=sub_app['name'])
+                    '/templates/command_icon.svg').decode('utf-8')
+                sub_app['icon'] = sub_app_icon.format(cmd=sub_app['name'])
             sub_apps.append(sub_app)
         self.info['sub_applications'] = sorted(
             sub_apps, key=lambda k: k['name'])
@@ -1845,7 +1846,7 @@ class TerminalApplication(GOApplication):
         """
         go_process = resource_string(
             'gateone.applications.terminal', '/static/webworkers/term_ww.js')
-        message = {'terminal:load_webworker': go_process}
+        message = {'terminal:load_webworker': go_process.decode('utf-8')}
         self.write_message(json_encode(message))
 
     def get_colors(self, settings):

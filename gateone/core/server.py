@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20140920142503" # Gets replaced by git (holds the date/time)
+__commit__ = "20140920142541" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2427,7 +2427,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 info_dict = app.info.copy() # Make a copy so we can change it
                 if info_dict['name'].lower() in enabled_applications:
                     applications.append(info_dict)
-        applications.sort()
+        applications = sorted(applications, key=lambda k: k['name'])
         message = {'go:applications': applications}
         self.write_message(json_encode(message))
 

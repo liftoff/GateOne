@@ -37,8 +37,7 @@ ENV GATEONE_REPO_URL https://github.com/liftoff/GateOne.git
 
 # Ensure everything is up-to-date
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update --fix-missing
-RUN apt-get -y upgrade
+RUN apt-get update --fix-missing && apt-get -y upgrade
 
 # Install dependencies
 RUN apt-get -y \
@@ -49,11 +48,10 @@ RUN apt-get -y \
     python-pam \
     python-dev \
     git \
-    openssh-client
-RUN pip install --upgrade futures tornado cssmin slimit psutil ujson
-
-# Free up some space:
-RUN apt-get -q -y autoremove
+    openssh-client && \
+    apt-get -y clean && \
+    apt-get -q -y autoremove
+RUN pip install --upgrade futures tornado cssmin slimit psutil
 
 # Create the necessary directories, clone the repo, and install everything
 RUN mkdir -p /gateone/logs && \

@@ -153,8 +153,13 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         user.update(additional_attributes(user))
         # Make a directory to store this user's settings/files/logs/etc
         try:
-            user_dir = os.path.join(self.settings['user_dir'], user['upn'])
-            if not os.path.exists(user_dir):
+            # NOTE: These bytes checks are for Python 2 (not needed in Python 3)
+            if isinstance(user['upn'], bytes):
+                upn = user['upn'].decode('utf-8')
+            user_dir = os.path.join(self.settings['user_dir'], upn)
+            if isinstance(user_dir, bytes):
+                user_dir = user_dir.decode('utf-8')
+            if not os.path.exists(user_dir.encode('utf-8')):
                 logging.info(_("Creating user directory: %s" % user_dir))
                 mkdir_p(user_dir)
                 os.chmod(user_dir, 0o700)
@@ -165,7 +170,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
                 "your system's locale to something that supports Unicode "
                 "characters. "))
             return
-        session_file = os.path.join(user_dir, 'session')
+        session_file = os.path.join(user_dir.encode('utf-8'), 'session')
         session_file_exists = os.path.exists(session_file)
         if session_file_exists:
             session_data = open(session_file).read()
