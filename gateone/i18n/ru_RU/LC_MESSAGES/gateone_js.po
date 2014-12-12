@@ -295,7 +295,7 @@ msgstr "Подсветка слов "
 #: gateone/applications/terminal/static/terminal.js:2992
 msgid ""
 "<thead><tr "
-"class='вњ€table_row'><th>Word</th><th>Global</th><th>Remove</th></tr></thead>"
+"class='✈table_row'><th>Word</th><th>Global</th><th>Remove</th></tr></thead>"
 msgstr "<thead><tr class='table_row'><th>Слово</th><th>Глобально</th><th>Удалить</th></tr></thead>"
 
 #: gateone/applications/terminal/static/terminal.js:3007
