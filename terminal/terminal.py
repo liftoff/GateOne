@@ -170,13 +170,17 @@ except ImportError:  # Python 3 doesn't have imap or izip in itertool
     imap = map
     izip = zip
 try:
-    dummy = xrange
+    xrange = xrange
 except NameError:  # Python 3 doesn't have xrange()
     xrange = range
 try:
-    dummy = unichr
+    unichr = unichr
 except NameError:  # Python 3 doesn't have unichr()
     unichr = chr
+try:
+    basestring = basestring
+except NameError:  # Python 3 doesn't have basestring
+    basestring = (str, bytes)
 
 # Inernationalization support
 _ = str # So pyflakes doesn't complain
