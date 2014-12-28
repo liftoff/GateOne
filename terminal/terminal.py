@@ -166,12 +166,16 @@ except ImportError: # Python <2.7 didn't have OrderedDict in collections
         sys.exit(1)
 try:
     from itertools import imap, izip
-except ImportError: # Python 3 doesn't have imap or izip in itertool
+except ImportError:  # Python 3 doesn't have imap or izip in itertool
     imap = map
     izip = zip
-if 'xrange' not in dir(__builtins__):   # Python 3 doesn't have xrange()
+try:
+    dummy = xrange
+except NameError:  # Python 3 doesn't have xrange()
     xrange = range
-if 'unichr' not in dir(__builtins__):   # Python 3 doesn't have unichr()
+try:
+    dummy = unichr
+except NameError:  # Python 3 doesn't have unichr()
     unichr = chr
 
 # Inernationalization support
