@@ -646,7 +646,7 @@ class CASAuthHandler(BaseAuthHandler):
         next_url = self.get_argument('next', None)
 	next_param = ""
 	if next_url:
-		next_param = "?next=" + next_url
+		next_param = "?next=" + quote(next_url)
         redirect_url = '%slogin?service=%s%s' % (cas_server, quote(service_url), quote(next_param))
         logging.debug("Redirecting to CAS URL: %s" % redirect_url)
         self.redirect(redirect_url)
@@ -672,7 +672,7 @@ class CASAuthHandler(BaseAuthHandler):
         next_url = self.get_argument('next', None)
 	next_param = ""
 	if next_url:
-		next_param = "?next=" + next_url
+		next_param = "?next=" + quote(next_url)
         validate_url = (
             cas_server +
             validate_suffix +
