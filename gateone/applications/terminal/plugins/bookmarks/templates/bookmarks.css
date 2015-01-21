@@ -1,0 +1,669 @@
+.✈panel.✈panel_bookmarks {
+    width: 90%;
+    height: 85%; /* A bit off the bottom so you can see if something scrolls */
+}
+.✈sectransform {
+    /* For only transform effects */
+    /* WebKit */
+    -webkit-transform-origin: center center;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform-origin: center center;
+    /* Opera */
+    -o-transition: -moz-transform 1s ease-in-out;
+    -o-transform-origin: center center;
+    /* IE 9+ */
+    -ms-transform-origin: center center;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: center center;
+    transition: transform 1s ease-in-out;
+}
+.✈openbookmarktrans {
+    /* For only transform effects */
+    /* WebKit */
+    -webkit-transform-origin: center right;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform-origin: center right;
+    /* Opera */
+    -o-transition: -moz-transform 1s ease-in-out;
+    -o-transform-origin: center right;
+    /* IE 9+ */
+    -ms-transform-origin: center right;
+    -ms-transition: all 1s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: center center;
+    transition: transform 1s ease-in-out;
+}
+.✈bookmark.✈beforeopen {
+    -webkit-transform: translateX(2%);
+    -moz-transform: translateX(2%);
+    -ms-transform: translateX(2%);
+    -o-transform: translateX(2%);
+    transform: translateX(2%);
+    opacity: 1;
+}
+.✈openbookmark {
+    -webkit-transform: translate(800%, 0px) scale(10);
+    -moz-transform: translate(800%, 0px) scale(10);
+    -ms-transform: translate(800%, 0px) scale(10);
+    -o-transform: translate(800%, 0px) scale(10);
+    transform: translate(800%, 0px) scale(10);
+    background-image: none;
+    background-color: grey;
+    opacity: 1;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+}
+.✈bookmark {
+    font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
+    position: relative;
+    height: 2.5em;
+    overflow: hidden;
+    color: #000;
+    padding-bottom: 0.5em;
+    margin-bottom: 0.2em;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+    line-height: 1;
+    /* Firefox 3.6+ */
+    background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* Safari 5.1+, Chrome 10+ */
+    background-image: -webkit-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* Opera 11.10+ */
+    background-image: -o-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    /* IE 10+ */
+    background-image: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
+}
+.✈bookmark.✈over {
+   border: 0.1em red solid;
+}
+.✈bookmark a {
+    color: #1F5470;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+}
+.✈bookmark a:hover {
+    color: maroon;
+}
+.✈bookmark a:visited {
+    color: #1F5470;
+}
+.✈bm_confirm_delete {
+    text-align: center;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    border: 0px;
+    padding-top: 0.2em;
+    padding-right: 0.2em;
+    padding-bottom: 0.2em;
+    padding-left: 0.2em;
+    z-index: 750;
+    height: 100%;
+    opacity: 1;
+    background-color: white;
+}
+.✈bm_taglist_label {
+    font-weight: bold;
+}
+ul.✈bm_taglist {
+    display: inline;
+    font-size: 0.8em;
+    position: absolute;
+    margin: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 5;
+    font-family: 'Varela Round', Dejavu Sans, Verdana, Arial, sans-serif;
+}
+ul.✈bm_taglist li {
+    margin-left: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    list-style: none;
+    display: inline-block;
+    background-color: #333;
+    color: white;
+}
+ul.✈bm_taglist li:hover {
+    color: #fff;
+    background-color: #1F5470;
+    cursor: pointer;
+}
+ul.✈bm_taglist li.first {
+    margin-left: 0;
+    border-left: none;
+    list-style: none;
+    background-color: #333;
+    color: white;
+}
+ul.✈bm_taglist li.bm_autotag {
+    margin-left: 0.2em;
+    margin-top: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    list-style: none;
+    color: #fff;
+    background-color: #1F5470;
+    font-size: 0.95em;
+}
+ul.✈bm_taglist li.bm_autotag:hover {
+    color: #fff;
+    background-color: maroon;
+    cursor: pointer;
+}
+.✈bm_context {
+    position: fixed;
+    font-size: 0.8em;
+    background-color: #eee;
+    margin-top: 0.2em;
+    padding: 0.2em;
+    border: 1px #000 solid;
+}
+div.✈bm_context a {
+    color: #000;
+    background-color: #eee;
+    float: left;
+    clear: both;
+}
+div.✈bm_context a:hover {
+    color: #fff;
+    background-color: #1F5470;
+}
+.✈bm_options {
+    float: right;
+    font-weight: bold;
+    color: #1F5470;
+    padding-right: 0.5em;
+}
+.✈bm_container {
+    width: 60%;
+    position: absolute;
+    top: 4.8em;
+    margin-top: .1em;
+    bottom: 0;
+    padding-left: 0.2em;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="100%" width="100%" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop stop-color="#fff" offset="0"/><stop stop-color="#ccc" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>');
+    background-repeat: no-repeat;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-size: 100% 100%;
+    margin-left: 9%;
+}
+.✈bm_tagcloud {
+    width: 29%;
+    float: right;
+    display: block;
+    font-size: 0.8em;
+    clear: right;
+    color: #000;
+    font-family: 'Varela Round', Dejavu Sans, Verdana, Arial, sans-serif;
+}
+.✈bm_tagcloud h3 {
+    font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
+}
+.✈bm_tagcloud a.✈inactive {
+    color: #777;
+}
+.✈bm_tagcloud a.✈inactive:hover {
+    color: #1F5470;
+}
+.✈bm_tagcloud_ul {
+    display: inline;
+    padding-left: 0;
+}
+.✈bm_tag {
+    margin-left: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    list-style: none;
+    display: inline-block;
+    background-color: #333;
+    color: #fff;
+    font-size: 0.95em;
+    cursor: move;
+}
+.✈bm_autotag {
+    color: #fff;
+    background-color: #1F5470;
+    margin-left: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    list-style: none;
+    display: inline-block;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+.✈bm_autotag:hover {
+    color: #fff;
+    background-color: maroon;
+    cursor: pointer;
+}
+.✈bm_urltype_tag {
+    font-style: italic;
+}
+.✈bm_urltype_tag:before {
+    content: "★";
+}
+.✈bm_tag:hover {
+    color: #fff;
+    background-color: #1F5470;
+    cursor: move;
+    -webkit-transition: -webkit-transform 0s ease-in-out;
+    -moz-transition: -webkit-transform 0s ease-in-out;
+    -o-transition: -webkit-transform 0s ease-in-out;
+    -ms-transition: -webkit-transform 0s ease-in-out;
+    transition: -webkit-transform 0s ease-in-out;
+}
+.✈bm_tag.✈inactive {
+    background-color: #777;
+}
+.✈untagged {
+    background-color: maroon;
+}
+.✈searches {
+    background-color: #fff;
+    color: #000;
+}
+.✈bm_controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    z-index: 5;
+}
+.✈bm_controls a {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+.✈bm_content {
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: 5;
+}
+.✈bm_content a:hover {
+    color: maroon;
+}
+.✈bm_url {
+    font-weight: bold;
+    vertical-align: top;
+    padding-left: 0.1em;
+}
+.✈bm_visited {
+    top: 0;
+    right: 0;
+    padding: 0.2em;
+    background-color: #1F5470;
+    color: white;
+    font-size: 0.9em;
+    z-index: 5;
+    position: absolute;
+}
+.✈bm_visited:hover {
+    background-color: #000;
+    cursor: pointer;
+}
+.✈bm_created {
+    top: 0;
+    right: 2em;
+    padding: 0.2em;
+    background-color: #1F5470;
+    color: white;
+    font-size: 0.9em;
+    z-index: 5;
+    position: absolute;
+}
+.✈bm_created:hover {
+    background-color: #000;
+    cursor: pointer;
+}
+.✈bm_tags {
+    width: 100%;
+    position: relative;
+    float: left;
+    padding-left: 0.2em;
+    font-size: 0.9em;
+    border-bottom: 0.1em #000 solid;
+}
+.✈bm_tags ul {
+    margin-left: 0;
+    padding-left: 0;
+    display: inline;
+}
+.✈bm_tags ul li {
+    margin-right: -0.7em;
+    padding-left: 0.2em;
+    padding-right: 1.6em;
+    list-style: none;
+    display: inline;
+    background-color: #1F5470;
+    color: #fff;
+}
+.✈bm_tags ul li:hover {
+    background-color: #fff;
+    cursor: pointer;
+    color: #000;
+}
+.✈bm_tags ul li:hover:after {
+    content: "X";
+    font-size: 1.5em;
+    bottom: 0.5em;
+    color: maroon;
+}
+.✈bm_tags ul li:after {
+    font-size: 1.5em;
+    font-weight: bold;
+    content: "/";
+    line-height: 0;
+    position: absolute;
+    bottom: 0.53em;
+    color: #DDD;
+    margin-left: 0.2em;
+}
+.✈bm_tags ul li:last-child {
+    padding-right: 0.3em;
+}
+.✈bm_tags ul li:last-child:hover:after {
+    content: "X";
+    font-size: 1.5em;
+    bottom: 0.5em;
+    color: maroon;
+}
+.✈bm_tags ul li:last-child:after {
+    content: " ";
+    font-size: 1.75em;
+    margin-left: 0.2em;
+    background-color: transparent;
+    position: absolute;
+    bottom: 0.5em;
+}
+.✈bm_display_opts {
+    width: 69%;
+    text-align: right;
+    font-size: 0.9em;
+    margin-left: 0.45em;
+}
+.✈bm_display_opts a {
+    font-size: 0.8em;
+}
+.✈bm_desc {
+    padding-left: 0.3em;
+    vertical-align: top;
+}
+.✈bm_sort_options a {
+    font-weight: normal;
+}
+.✈bm_sort_options a:hover {
+    cursor: pointer;
+}
+.✈bm_sort_options a.✈active {
+    font-weight: normal;
+    cursor: default;
+    color: #000;
+}
+.✈bm_sort_options a.✈active:hover {
+    color: #000;
+}
+.✈bm_sort_direction {
+    float: right;
+    margin-left: 0.5em;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+    -moz-transition: -webkit-transform 0.5s ease-in-out;
+    -o-transition: -webkit-transform 0.5s ease-in-out;
+    -ms-transition: -webkit-transform 0.5s ease-in-out;
+    transition: -webkit-transform 0.5s ease-in-out;
+    cursor: pointer;
+}
+.✈bm_sort_direction:hover {
+    color: #fff;
+}
+.✈bm_search {
+    position: absolute;
+    top: 0;
+    right: 2.5em;
+    font-size: 0.7em;
+    margin-right: 0;
+}
+.✈bm_new {
+    float: left;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding-left: 0.2em;
+}
+.✈bm_new:hover {
+    -webkit-transition: -webkit-transform 0.1s ease-in-out;
+    -moz-transition: -webkit-transform 0.1s ease-in-out;
+    -o-transition: -webkit-transform 0.1s ease-in-out;
+    -ms-transition: -webkit-transform 0.1s ease-in-out;
+    transition: -webkit-transform 0.1s ease-in-out;
+}
+.✈linkfloat {
+    color: transparent;
+    background-color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2em; /* Just big enough to cover most of the bookmark element but not enough to cover the tags */
+    z-index: 100;
+}
+.✈linkfloat:hover {
+    cursor: pointer;
+}
+.✈bm_preview {
+    float: right;
+    width: 29%;
+    height: 50%;
+    overflow: hidden;
+    margin-top: -1.4em;
+}
+.✈bm_preview iframe {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    border: 0.1em #000 solid;
+}
+.✈bm_favicon {
+    padding-right: 0.1em;
+}
+.✈bm_buttons {
+    text-align: center;
+    margin-top: 1em;
+}
+.✈bm_pagination {
+    width: 29%;
+    float: right;
+    display: block;
+    font-size: 1em;
+    clear: right;
+    margin-top: -1em;
+}
+.✈bm_pagination ul {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+.✈bm_pagination li {
+    border: 0;
+    margin:0;
+    padding:0;
+    font-size: 0.8em;
+    list-style: none;
+    margin-right: 0.1em;
+}
+.✈bm_pagination a {
+    border: solid 1px #9aafe5;
+    margin-right: 0.1em;
+}
+.✈bm_pagination .✈previous-off,
+.✈bm_pagination .✈next-off {
+    border: solid 1px #DEDEDE;
+    color: #888888;
+    display: block;
+    float: left;
+    font-weight: bold;
+    margin-right: 0.1em;
+    padding: 0 0.1em;
+}
+.✈bm_pagination .✈next a,
+.✈bm_pagination .✈previous a {
+    font-weight:bold;
+}
+.✈bm_pagination a:link,
+.✈bm_pagination a:visited {
+    float: left;
+}
+.✈bm_pagination a:hover{
+    border: solid 1px #1F5470;
+}
+.✈bm_pagination .✈active {
+    background-color: #1F5470;
+    color: #FFF;
+}
+.✈bm_pagination .✈inactive a {
+    border: solid 1px #DEDEDE;
+    color: #888;
+}
+.✈search {
+    color: maroon;
+}
+.✈background_svg { /* Just used to center everything inside */
+    width: 100%;
+    height: 95%;
+    overflow: hidden;
+}
+.✈bm_progresscontainer {
+    /* WebKit */
+    -webkit-transition: all 5s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 5s ease-in-out;
+    /* Opera */
+    -o-transition: all 5s ease-in-out;
+    /* IE 9+ */
+    -ms-transition: all 5s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 5s ease-in-out;
+    font-weight: bold;
+    font-size: 1em;
+    text-align: center;
+    color: #000;
+    float: right;
+    clear: both;
+}
+.✈bm_progressbarcontainer {
+    background-color: #000;
+    height: 0.4em;
+    /* WebKit */
+    -webkit-transition: all 5s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 5s ease-in-out;
+    /* Opera */
+    -o-transition: all 5s ease-in-out;
+    /* IE 9+ */
+    -ms-transition: all 5s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 5s ease-in-out;
+    font-weight: bold;
+    font-size: 1em;
+    border: 1px #FFF solid;
+    padding: 0.5em;
+    margin: 0.2em;
+    width: 15em;
+}
+.✈bm_progressbar {
+    background-color: #1F5470;
+    height: 100%;
+}
+.✈bookmarks_upload {
+    display: block;
+    margin: 0 auto;
+}
+.✈bm_dialog_form {
+    display: block;
+    padding: 0.5em;
+    text-align: center;
+}
+.✈bm_new_form {
+    padding: 0.5em;
+    min-width: 23em;
+}
+.✈bm_new_form label {
+    display: block;
+}
+.✈bm_new_form input {
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.✈bm_new_form textarea {
+    width: 100%;
+    height: 4em;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.✈bm_import_form {
+    min-width: 15em;
+    text-align: center;
+    padding: 0.5em;
+}
+.✈bm_import_form p {
+    margin: 0;
+    max-width: 20em;
+    display: inline-block;
+    margin-top: 0.5em;
+}
+.✈bm_export_form {
+    min-width: 22em;
+    text-align: center;
+}
+/* Effects */
+div.✈bookmark:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    -o-transition: all 0.05s ease-in-out;
+    -o-transform-origin: center center;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
+}
+div.✈bmfocus {
+    text-decoration: underline;
+    cursor: pointer;
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    -o-transition: all 0.05s ease-in-out;
+    -o-transform-origin: center center;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
+    -webkit-transform: translateX(2%);
+    -moz-transform: translateX(2%);
+    -ms-transform: translateX(2%);
+    -o-transform: translateX(2%);
+    transform: translateX(2%);
+}

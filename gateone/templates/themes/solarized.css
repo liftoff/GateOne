@@ -1,0 +1,1011 @@
+@charset "UTF-8";
+/* Gate One solarized theme */
+#{{container}} hr, h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+}
+#{{container}} {
+    position: absolute;
+    outline: none;
+    overflow: hidden;
+    font-size: 1em;
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition-property: all;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 1s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 1s ease-in-out;
+}
+#{{container}} input, select {
+    background-color: #002b36;
+    color: #fff;
+    border: 1px #fff solid;
+}
+.✈centered_text {
+    text-align: center;
+}
+.✈centered_buttons {
+    margin: 0 auto;
+    text-align: center;
+}
+div.✈grid {
+    background-color: #002b36;
+    display: inline-block;
+}
+div.✈workspace {
+    color: #FFF;
+    background-color: #002b36;
+    position: relative;
+    float: left;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
+    transition: transform 1s ease-in-out;
+}
+.✈wsshadow{
+    box-shadow: 0 0 1em #fff;
+}
+.✈ws_stop {
+    z-index: 999999;
+    position: absolute;
+    -webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
+}
+.✈ws_stop_right {
+    width: 3em;
+    height: 100%;
+    top: 0;
+    right: 0;
+    background-image: linear-gradient(to left, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+}
+.✈ws_stop_left {
+    width: 3em;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+}
+.✈ws_stop_up {
+    width: 100%;
+    height: 3em;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+}
+.✈ws_stop_down {
+    width: 100%;
+    height: 3em;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(to top, rgba(255, 255, 255, 0.46) 0%,rgba(125,185,232,0) 100%);
+}
+div.✈workspace .✈appchooser {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background-color: rgba(0, 26, 33, 0.5);
+}
+div.✈workspace .✈appchooser_title {
+    color: #fff;
+    text-align: center;
+    width: 80%;
+    font-family: Ubuntu, Arial, sans-serif;
+    border-bottom: 1px solid #222;
+    margin: 0 auto;
+}
+div.✈workspace .✈appchooser .✈app_grid {
+    margin: 0 auto;
+    text-align: center;
+}
+div.✈workspace .✈appchooser .✈application {
+    display: inline-block;
+    width: 15%;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 26, 44, 0.5));
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 1em;
+    border-radius: 1em;
+    margin-left: 2%;
+    margin-right: 2%;
+    width: 15%;
+    height: 10em;
+    font-family: sans-serif;
+    min-width: 6.5em;
+}
+div.✈workspace .✈appchooser .✈application span {
+    margin: 0 0 1em 0;
+    word-wrap: break-word;
+    display: inline-block;
+}
+div.✈workspace .✈appchooser .✈application:hover {
+    box-shadow: 0 0 0.6em #444;
+    background: linear-gradient(to bottom, #333, #686868);
+    cursor: pointer;
+    text-shadow: .1em .1em .4em #000;
+}
+div.✈workspace .✈appchooser .✈application:focus {
+    box-shadow: 0 0 0.6em #444;
+    background: linear-gradient(to bottom, #333, #686868);
+    cursor: pointer;
+    outline: none;
+    text-shadow: .1em .1em .4em #000;
+}
+.✈pointer {
+    cursor: pointer;
+}
+.✈about_gateone ul {
+    list-style-type: none;
+    padding-left: 1.5em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+.✈about_gateone li:before {
+    content: "⎚ ";
+}
+.✈centertrans { /* Just sets the transform-origin to "center center" */
+    -webkit-transform-origin: center center;
+    -moz-transform-origin: center center;
+    -ms-transform-origin: center center;
+    -o-transform-origin: center center;
+    transform-origin: center center;
+}
+.✈toprighttrans { /* Just sets the transform-origin to "top right" */
+    -webkit-transform-origin: top right;
+    -moz-transform-origin: top right;
+    -ms-transform-origin: top right;
+    -o-transform-origin: top right;
+    transform-origin: top right;
+}
+.✈twosectrans {
+    -webkit-transition: all 2s ease-in-out;
+    -moz-transition: all 2s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 2s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: all 2s ease-in-out;
+    transition: all 2s ease-in-out;
+}
+.✈sectrans {
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}
+.✈sectransform {
+    /* For only transform effects */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -o-transition-property: -o-transform;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    transition: transform 1s ease-in-out;
+}
+.✈halfsectrans {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 0.5s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+}
+.✈quartersectrans {
+    -webkit-transition: all 0.25s ease-in-out;
+    -moz-transition: all 0.25s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 0.25s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: all 0.25s ease-in-out;
+    transition: all 0.25s ease-in-out;
+}
+.✈superfasttrans {
+    -webkit-transition: all 0.1s ease-in-out;
+    -moz-transition: all 0.1s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 0.1s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: all 0.1s ease-in-out;
+    transition: all 0.1s ease-in-out;
+}
+.✈origintopmiddle {
+    -webkit-transform-origin: 50% 0;
+    -moz-transform-origin: 50% 0;
+    -ms-transform-origin: 50% 0;
+    -o-transform-origin: 50% 0;
+    transform-origin: 50% 0;
+}
+.✈originbottommiddle {
+    -webkit-transform-origin: 50% 100%;
+    -moz-transform-origin: 50% 100%;
+    -ms-transform-origin: 50% 100%;
+    -o-transform-origin: 50% 100%;
+    transform-origin: 50% 100%;
+}
+#{{container}} textarea {
+    font-family: monospace; /* For consistency */
+}
+.✈noanimate {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+.✈toolbar {
+    z-index: 800;
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #fff;
+    text-align: right;
+    padding-left: 0.4em;
+}
+.✈toolbar_icon {
+    float: right;
+    clear: both;
+    opacity: .75;
+    margin-top: 0.3em;
+    -webkit-transition: -webkit-transform 1.0s ease-in-out;
+    -moz-transition: -moz-transform 1.0s ease-in-out;
+    -ms-transition: -ms-transform 1.0s ease-in-out;
+    -o-transition: -o-transform 1.0s ease-in-out;
+    transition: transform 1.0s ease-in-out;
+    margin-right: 5px;
+}
+.✈toolbar_icon:hover {
+    opacity: 1;
+    cursor:pointer;
+}
+.✈toolbar_icon:target {
+    -webkit-transform:rotate(180deg);
+    -moz-transform:rotate(180deg);
+    -ms-transform:rotate(180deg);
+    -o-transform:rotate(180deg);
+    transform:rotate(180deg);
+}
+/*
+A note about these ✈-prefixed classes:  If there's a chance that an element may
+be added to the page outside of #{{container}} (i.e. when embedding) I have
+prefixed it with the unicode symbol for an airplane (✈).  This is to avoid
+potential conflicts with other classes that may be on the page.
+*/
+.✈infocontainer {
+    font-family: sans-serif;
+    font-size: 1.6em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900; /* Above dialogs */
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    -ms-box-orient: vertical;
+    box-orient: vertical;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    -ms-box-align: center;
+    flex-align: center;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    -ms-box-pack: center;
+    flex-pack: center;
+    align-items: center;
+    justify-content: center;
+}
+.✈wsinfo {
+    padding: 1em;
+    z-index: 750;
+    border: solid 1px #000;
+    color: #fff;
+    border-radius: 0.5em;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    -ms-box-orient: vertical;
+    box-orient: vertical;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    -ms-box-align: center;
+    flex-align: center;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    -ms-box-pack: center;
+    flex-pack: center;
+    align-items: center;
+    justify-content: center;
+}
+.✈noticecontainer {
+    display: block;
+    position: fixed;
+    bottom: 2em;
+    right: 3em;
+    z-index: 500;
+}
+.✈noticecontainer .✈close_notice {
+    float: right;
+    opacity: .5;
+    -webkit-transform: scale(.6);
+    -webkit-transform-origin: right top;
+    -moz-transform: scale(.5);
+    -moz-transform-origin: right top;
+    -ms-transform: scale(.5);
+    -ms-transform-origin: right top;
+    -o-transform: scale(.5);
+    -o-transform-origin: right top;
+    transform: scale(.5);
+    transform-origin: right top;
+}
+.✈noticecontainer .✈close_notice:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+.✈noticecontainer a {
+    color: #93a1a1;
+}
+.✈noticecontainer a:visited {
+    color: #93a1a1;
+}
+.✈terminfo {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.✈sideinfo {
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: right top;
+    -moz-transform: rotate(90deg);
+    -moz-transform-origin: right top;
+    -ms-transform: rotate(90deg);
+    -ms-transform-origin: right top;
+    -o-transform: rotate(90deg);
+    -o-transform-origin: right top;
+    transform: rotate(90deg);
+    transform-origin: right top;
+    right: 3px; /* This will get overridden by a px value calculated based on the width of the scrollbar */
+    bottom: 0;
+    color: white;
+    position: absolute;
+    font-family: sans-serif;
+    font-style: italic;
+    font-size: 1.3em;
+    opacity: 0.5;
+    font-weight: bold;
+    margin-bottom: -1em;
+    z-index: 10;
+}
+.✈notice {
+    -webkit-transition: all 5.0s ease-in-out;
+    -moz-transition: all 5.0s ease-in-out;
+    -ms-transition: all 5.0s ease-in-out;
+    -o-transition: all 5.0s ease-in-out;
+    transition: all 5.0s ease-in-out;
+    color: #fff;
+    background-color: rgba(34,34,34,0.8);
+    font-weight: bold;
+    font-size: 1.1em;
+    border: 1px #FFF solid;
+    padding: 0.5em;
+    margin: 1em;
+    float: right;
+    clear: both;
+}
+.✈sidepanel {
+    -webkit-transition: -webkit-transform 1.0s ease-in-out;
+    -moz-transition: all 1.0s ease-in-out;
+    -ms-transition: all 1.0s ease-in-out;
+    -o-transition: all 1.0s ease-in-out;
+    transition: all 1.0s ease-in-out;
+}
+.✈panel {
+    position:absolute;
+    top:1em;
+    right:3.4em;
+    display: block;
+    background: #002b36;
+    color: #839496;
+    font-family: sans-serif;
+    z-index: 400; /* Same as toolbar */
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: .4em;
+    padding-top: .2em;
+    padding-bottom: .2em;
+    padding-left: .4em;
+    font-size: 1em;
+    margin: 0.1em;
+    max-height: 90%; /* Ensures a scrollbar will appear if the browser window is too small to fit a panel */
+    -webkit-transform: scale(0);
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transform: scale(0);
+    -moz-transition: all 0.5s ease-in-out;
+    -moz-transform-origin: top right;
+    -ms-transform: scale(0);
+    -ms-transition: all 0.5s ease-in-out;
+    -ms-transform-origin: top right;
+    -o-transform: scale(0);
+    -o-transition: all 0.5s ease-in-out;
+    -o-transform-origin: top right;
+    transform: scale(0);
+    transform-origin: top right;
+    transition: all 0.5s ease-in-out;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+    border: 0.1em #fff outset;
+    border-radius: 0.15em;
+}
+.✈panel h2 {
+    width: 100%;
+    font-size: 1.5em;
+    border-bottom: 0.1em #839496 solid;
+    position: relative;
+    margin-bottom: 0.2em;
+    padding-right: 1em; /* Make room for the X icon */
+}
+.✈panel h3 {
+    font-size: 1.2em;
+    border-bottom: 0.1em #000 solid;
+    position: relative;
+    margin-bottom: 0.2em;
+}
+.✈panel a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.✈panel a:hover {
+    color: maroon;
+    cursor: pointer;
+}
+.✈panel a:visited {
+    color: #1F5470;
+}
+.✈paneltable {
+    position: relative;
+    width: 96.8%;
+    padding-bottom: 0.5em;
+    margin-bottom: 0.2em;
+    border: 0.1em #fff solid;
+}
+.✈paneltablerow {
+    display: table-row;
+    padding-bottom: 0.3em;
+}
+.✈paneltablelabel {
+    display: table-cell;
+    vertical-align: middle;
+    padding-top: 0.2em;
+}
+.✈paneltablecell {
+    display: table-cell;
+    padding-left: 1em;
+}
+.✈panel_close_icon {
+    position: absolute;
+    opacity: .75;
+    right: 0;
+    top: 0;
+    padding: 0.2em;
+}
+.✈panel_close_icon:hover {
+    opacity: 1;
+    cursor:pointer;
+}
+.✈prefs_panel {
+}
+.✈prefs_list {
+    float: right;
+    margin-left: 2em;
+    margin-bottom: 0.5em;
+}
+.✈save_button {
+    float: right;
+    clear: both;
+}
+.✈prefs_list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 auto;
+}
+.✈prefs_list li {
+    font-weight: bold;
+    border: 1px #fff solid;
+    padding: .5em;
+    -webkit-transition: -webkit-transform 0.25s ease-in-out;
+    -moz-transition: -moz-transform 0.25s ease-in-out;
+    -ms-transition: -ms-transform 0.25s ease-in-out;
+    -o-transition: -o-transform 0.25s ease-in-out;
+    transition: transform 0.25s ease-in-out;
+}
+.✈prefs_list li:hover {
+    cursor: pointer;
+    background-color: #000;
+}
+.✈prefs_list .✈active {
+    background-color: #002B36;
+    background-image: linear-gradient(#002B36, #000);
+    color: #fff;
+}
+.✈prefs_list .✈active:hover {
+    background-color: #002B36;
+    color: #fff;
+}
+.✈prefs_content {
+    float: left;
+}
+.✈sub1 li {
+    padding-left: 0.6em;
+}
+.✈sub1 li:before {
+    content: "⏋ ";
+}
+#{{container}} label {
+    display: block;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    padding-top: 0.2em;
+}
+.✈medium {
+    height: 5em;
+}
+.✈button {
+    display: inline-block;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    padding: .2em 0.5em .25em;
+    margin-right: 0.25em;
+    border-radius: .15em;
+    font-weight: bold;
+    font-size: 0.9em;
+    background-color: #002b36;
+    border: 0;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.2s;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.6);
+    color: white;
+}
+.✈button:hover {
+    text-decoration: none;
+    background-color: #00151A;
+}
+.✈button:active {
+    position: relative;
+}
+.✈user_info {
+    font-size: 0.8em;
+    padding-bottom: 0.25em;
+    margin-right: 1.5em;
+    text-align: right;
+}
+.✈user_info a:hover {
+    cursor: pointer;
+}
+.✈dialogcontainer {
+    font-family: sans-serif;
+    position: fixed;
+    overflow-x: hidden;
+    top: 25%;
+    left: 25%;
+    background-color: #CCC;
+    z-index: 850;
+    color: #000;
+    border-radius: 0.15em;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+    background-image: linear-gradient(#eee, #aaa);
+}
+.✈dialogcontainer h3 {
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: #171E25;
+    color: #fff;
+    margin-top: 0;
+    padding-right: 1.5em; /* Making room for the X */
+    padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    padding-top: 0;
+    padding-bottom: 1px; /* To ensure the text doesn't touch the bottom */
+    text-align: center;
+    font-size: 0.9em;
+    border-radius: 0.15em 0.15em 0 0;
+    line-height: 1.5;
+}
+.✈dialogcontainer p {
+    margin: 0;
+}
+.✈dialogcontainer textarea {
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+}
+.✈dialogcontainer input {
+    margin-right: 1.3em;
+    margin-bottom: 0.2em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+    display: block;
+    width: 98%;
+}
+.✈dialogcontainer label {
+    font-size: 1.2em;
+    padding-top: 0.5em;
+    display: inline-block;
+    font-family: sans-serif;
+}
+.✈dialogtitle:hover {
+    cursor: move;
+}
+.✈dialogdiv {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* These will be replaced by more accurate px calculations by GateOne.Visual.dialog() */
+    height: calc(100% - 2em);
+    height: -webkit-calc(100% - 2em);
+}
+.✈dialogcontent {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+.✈dialog_icons {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.✈dialog_icon {
+    margin-top: 0.2em;
+    margin-right: 0.1em;
+    margin-left: 0.1em;
+    cursor: pointer;
+    opacity: .75;
+    float: right;
+    display: inline-block;
+}
+.✈dialog_icon svg {
+    width: 1em;
+    height: 1em;
+}
+.✈dialog_icon:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
+}
+.✈dialog_minimize {
+    margin-top: .55em;
+    margin-right: 0.4em;
+}
+.✈dialog_close {
+}
+.✈prefsdialog {
+    background: #002b36;
+}
+.✈alertdialog {
+    background: #002b36;
+    color: white;
+    text-align: center;
+    min-width: 25em;
+    min-height: 7em;
+}
+.✈confirmdialog {
+    background: #002b36;
+    color: white;
+    text-align: center;
+    min-width: 25em;
+    min-height: 7em;
+}
+.✈draghandle {
+    background-color: transparent;
+    width: 1em;
+    height: 1em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+.✈draghandle:hover {
+    cursor: se-resize;
+}
+.✈confirm_message {
+    min-width: 15em;
+    text-align: center;
+}
+.✈confirm_message p {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+.✈widgetcontainer {
+    font-family: sans-serif;
+    position: absolute;
+    overflow: hidden;
+    top: 25%;
+    left: 25%;
+    background-color: transparent;
+    max-width: 100%;
+    max-height: 100%;
+    z-index: 750;
+}
+.✈widgetcontainer:hover {
+    cursor: move;
+}
+.✈widgetcontainer h3 {
+    background-color: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    padding-left: 0.5em;
+    line-height: 1.5;
+    margin-top: 0;
+    padding-right: 1.5em; /* Making room for the X */
+    padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    text-align: center;
+    font-size: 0.9em;
+    /* Hidden by default */
+    opacity: 0;
+}
+.✈widgettitle:hover {
+    cursor: move;
+}
+.✈widgetdiv {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.✈widgetcontent:hover {
+    border: solid 1px #000;
+}
+.✈widgetcontent {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.✈widget_icons {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.✈widget_icon {
+    margin-top: 0.2em;
+    margin-right: 0.3em;
+    cursor: pointer;
+    opacity: .75;
+    float: right;
+    display: inline-block;
+}
+.✈widget_close {
+}
+.✈widget_icon svg {
+    width: 1em;
+    height: 1em;
+}
+.✈widget_icon:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
+}
+.✈widget_configure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 0.2em;
+    margin-left: 0.2em;
+    cursor: pointer;
+    opacity: .75;
+}
+.✈widget_configure:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
+}
+.✈widget_form input {
+    width: 97%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.2em;
+    display: block;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px #fff;
+    color: #000;
+    position: relative;
+    z-index: 2;
+    font-size: 1em;
+}
+.✈table_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    color: #000;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+.✈active.✈table_row {
+    -webkit-transform: skew(-10deg) translate(0.5%);
+    -moz-transform: skew(-10deg) translate(0.5%);
+    -ms-transform: skew(-10deg) translate(0.5%);
+    -o-transform: skew(-10deg) translate(0.5%);
+    transform: skew(-10deg) translate(0.5%);
+}
+.✈table_cell {
+    display: table-cell;
+    max-width: 13em;
+    padding-right: 0.5em;
+    background-image: linear-gradient(to bottom,  #fff, rgba(200, 200, 200, 0.5));
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.✈table_header_row {
+    display: table-header-group;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.✈table_header_cell {
+    color: #1F5470;
+    background-image: none;
+    background: none;
+}
+.✈table_header_cell.✈active {
+    color: maroon;
+}
+.✈table_header_cell:hover {
+    color: maroon;
+    cursor: pointer;
+    background-color: #fff;
+}
+.✈metadata_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+}
+.✈metadata_value {
+    display: table-cell;
+    padding-right: 0.5em;
+}
+.✈metadata_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+    vertical-align: top;
+    width: 50%; /* Ensures things are centered */
+}
+/* SVG Styling */
+.✈svgplain { fill: #fff; }
+.✈svg { fill: #FFF; }
+div.✈appicon { padding-top: 1em; }
+div.✈appicon:hover {
+    -webkit-filter: drop-shadow( .1em .1em .4em #000 );
+    -moz-filter: drop-shadow( .1em .1em .4em #000 );
+    -ms-filter: drop-shadow( .1em .1em .4em #000 );
+    -o-filter: drop-shadow( .1em .1em .4em #000 );
+    filter: drop-shadow( .1em .1em .4em #000 );
+}
+div.✈appicon svg { fill: #fff; width: 6em; height: 6em; }
+.✈stop1 { stop-color: #FFF; }
+.✈stop2 { stop-color: #E1E2E3; }
+.✈stop3 { stop-color: #D3D4D6; }
+.✈stop4 { stop-color: #CACBCD; }
+.✈panelstop1 { stop-color: #2A5BA6; }
+.✈panelstop2 { stop-color: #2D61B4; }
+.✈panelstop3 { stop-color: #2E63B9; }
+.✈panelstop4 { stop-color: #1F5470; }
+/* Change the styling of the SVG close icon so it is white when inside dialogs */
+div.✈dialog_close .✈svgplain { fill: #FFFFFF; }
+/* Ditto for widgets */
+div.✈widget_close .✈svgplain { fill: #FFFFFF; }
+.✈clock {
+    color: #fff;
+    opacity: 0.7;
+    font-size: 0.7em;
+    position: absolute;
+    right: 1.1em;
+    bottom: 0.1em;
+}
+.✈overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #FFF;
+    opacity: .1;
+    z-index: 510; /* Just above the pastearea */
+}
+[draggable] {
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -webkit-user-drag: element;
+}
+/* Optimize Gate One for mobile devices */
+@media only screen and (max-width: 800px) {
+    .✈toolbar {
+        font-size: 100%;
+        -webkit-transform: scale(2) translate(-40%, 25%);
+        /* For whatever reason scaling doesn't work properly in Firefox Mobile but that's OK since the icons appear to be big enough to usable regardless */
+        -ms-transform: scale(2) translate(-40%, 25%); /* We'll see */
+        -o-transform: scale(2) translate(-40%, 25%); /* Yet to be tested */
+        transform: scale(2) translate(-40%, 25%); /* Yet to be tested */
+    }
+    .✈toolbar svg {
+        margin-bottom: 1em; /* So they do not overlap */
+    }
+    .✈sideinfo {
+        display: none; /* Not enough room for it on mobile */
+    }
+    .✈app_grid {
+        margin: 0 auto;
+        text-align: center;
+    }
+    .✈application {
+        display: inline-block;
+        margin-top: 0.5em;
+        border-radius: 0.5em;
+        width: 6.5em;
+        height: 8.5em;
+    }
+    .✈application span {
+        margin: 0 0 0.5em 0;
+    }
+    div.✈appicon svg { width: 4em; height: 4em; }
+}

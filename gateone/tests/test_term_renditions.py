@@ -526,7 +526,13 @@ if __name__ == "__main__":
     print("IF YOUR SYSTEM BECOMES UNRESPONSIVE TRY CLOSING THIS TERMINAL")
     print("...starting test in 5 seconds...")
     sleep(5)
-    print(color_combos_8())
-    print(color_combos_16())
-    print(fancy_styles())
+    for line in color_combos_8().split('\n'):
+        print(line)
+        sleep(0.15)
+    for line in color_combos_16().split('\n'):
+        print(line)
+        sleep(0.15)
+    for line in fancy_styles().split('\n'):
+        print(line)
+        sleep(0.15)
     print(color_combos_256())

@@ -1,0 +1,30 @@
+/*
+This file defines what applications will be available to users.  It is just
+an example; you'll need to make your own.
+
+If no 'applications' setting is defined all applications will be available.
+
+NOTE:  Each application may still define its own access controls so even if
+       all applications are available to all users doesn't mean that all
+       users will actually be able to use them.
+*/
+{
+    // "*" for default (all users)
+    "*": {
+        "gateone": {
+            "enabled_applications": [ // These are configured globally
+                'terminal', 'sftp'
+            ],
+            "user_applications": [ // These can be user-specific
+                'terminal', 'sftp'
+            ]
+        }
+    },
+    // Example of user-specific application restriction
+    "user.email=.*company.com": {
+        "gateone": {
+            // Only allow these folks to use the sftp application:
+            "user_applications": ['sftp']
+        }
+    }
+}

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,8 +5,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.0 documentation</title>
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +26,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +36,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
     <link rel="prev" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" /> 
@@ -60,748 +69,6 @@
             
   <div class="section" id="module-termio">
 <span id="termio-py-terminal-input-output-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module<a class="headerlink" href="#module-termio" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="about-termio">
-<h2>About termio<a class="headerlink" href="#about-termio" title="Permalink to this headline">¶</a></h2>
-<p>This module provides a Multiplex class that can perform the following:</p>
-<blockquote>
-<div><ul class="simple">
-<li>Fork a child process that opens a given terminal program.</li>
-<li>Read and write data to and from the child process (asynchronously).</li>
-<li>Examine the output of the child process in real-time and perform actions (also asynchronously!) based on what is &quot;expected&quot; (aka non-blocking, pexpect-like functionality).</li>
-<li>Log the output of the child process to a file and/or syslog.</li>
-</ul>
-</div></blockquote>
-<p>The Multiplex class is meant to be used in conjunction with a running
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a> instance.  It can be instantiated from within
-your Tornado application like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">multiplexer</span> <span class="o">=</span> <span class="n">termio</span><span class="o">.</span><span class="n">Multiplex</span><span class="p">(</span>
-    <span class="s">&#39;nethack&#39;</span><span class="p">,</span>
-    <span class="n">log_path</span><span class="o">=</span><span class="s">&#39;/var/log/myapp&#39;</span><span class="p">,</span>
-    <span class="n">user</span><span class="o">=</span><span class="s">&#39;bsmith@CORP&#39;</span><span class="p">,</span>
-    <span class="n">term_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">syslog</span><span class="o">=</span><span class="bp">True</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Support for event loops other than Tornado is in the works!</p>
-</div>
-<p>Then <em>multiplexer</em> can create and launch a new controlling terminal (tty)
-running the given command (e.g. 'nethack'):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">env</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;PATH&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH&#39;</span><span class="p">],</span>
-    <span class="s">&#39;MYVAR&#39;</span><span class="p">:</span> <span class="s">&#39;foo&#39;</span>
-<span class="p">}</span>
-<span class="n">fd</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
-<span class="c"># The fd is returned from spawn() in case you want more low-level control.</span>
-</pre></div>
-</div>
-<p>Input and output from the controlled program is asynchronous and gets handled
-via IOLoop.  It will automatically write all output from the terminal program to
-an instance of self.terminal_emulator (which defaults to Gate One's
-<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a>).  So if you want to perform an action whenever the running
-terminal application has output (like, say, sending a message to a client)
-you'll need to attach a callback:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">screen_update</span><span class="p">():</span>
-    <span class="s">&#39;Called when new output is ready to send to the client&#39;</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
-    <span class="n">socket_or_something</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="n">multiplexer</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">multiplexer</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span> <span class="o">=</span> <span class="n">screen_update</span>
-</pre></div>
-</div>
-<p>In this example, <tt class="xref py py-obj docutils literal"><span class="pre">screen_update()</span></tt> will <tt class="xref py py-obj docutils literal"><span class="pre">write()</span></tt> the output of
-<tt class="xref py py-obj docutils literal"><span class="pre">multiplexer.dump_html()</span></tt> to <em>socket_or_something</em> whenever the terminal program
-has some sort of output.  You can also make calls directly to the terminal
-emulator (if you're using a custom one):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">screen_update</span><span class="p">():</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">my_custom_func</span><span class="p">()</span>
-    <span class="n">whatever</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Writing characters to the controlled terminal application is pretty
-straightforward:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">multiplexer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&#39;some text&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Typically you'd pass in keystrokes or commands from your application to the
-underlying program this way and the screen/terminal emulator would get updated
-automatically.  If using Gate One's <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal()</span></tt></a> you can also attach
-callbacks to perform further actions when more specific situations are
-encountered (e.g. when the window title is set via its respective escape
-sequence):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">set_title</span><span class="p">():</span>
-    <span class="s">&#39;Hypothetical title-setting function&#39;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Window title was just set to: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
-<span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">multiplexer</span><span class="o">.</span><span class="n">CALLBACK_TITLE</span><span class="p">]</span> <span class="o">=</span> <span class="n">set_title</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="module-functions-and-classes">
-<h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="termio.debug_expect">
-<tt class="descclassname">termio.</tt><tt class="descname">debug_expect</tt><big>(</big><em>m_instance</em>, <em>match</em><big>)</big><a class="reference internal" href="../_modules/termio.html#debug_expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.debug_expect" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a> if <tt class="xref py py-attr docutils literal"><span class="pre">self.debug</span></tt> is
-True.  It facilitates easy debugging of regular expressions.  It will print
-out precisely what was matched and where.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function only works with post-process patterns.</p>
-</div>
-</dd></dl>
-
-<dl class="exception">
-<dt id="termio.Timeout">
-<em class="property">exception </em><tt class="descclassname">termio.</tt><tt class="descname">Timeout</tt><a class="reference internal" href="../_modules/termio.html#Timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Timeout" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a> and <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.await()</span></tt></a>;
-called when a timeout is reached.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="termio.Pattern">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Pattern</tt><big>(</big><em>pattern</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>preprocess=False</em>, <em>timeout=30</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Pattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Pattern" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a>, an object to store patterns
-(regular expressions) and their associated properties.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The variable <em>m_instance</em> is used below to mean the current instance of BaseMultiplex (or a subclass thereof).</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Pattern :</th><td class="field-body"><p class="first">A regular expression or iterable of regular expressions that will be checked against the output stream.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Callback :</th><td class="field-body"><p class="first">A function that will be called when the pattern is matched.  Callbacks are called like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">callback</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched_string</span><span class="p">)</span>
-</pre></div>
-</div>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Optional :</th><td class="field-body"><p class="first">Indicates that this pattern is optional.  Meaning that it isn't required to match before the next pattern in <tt class="xref py py-attr docutils literal"><span class="pre">BaseMultiplex._patterns</span></tt> is checked.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Sticky :</th><td class="field-body"><p class="first">Indicates that the pattern will not time out and won't be automatically removed from self._patterns when it is matched.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Errorback :</th><td class="field-body"><p class="first">A function to call in the event of a timeout or if an exception is encountered.  Errorback functions are called like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">errorback</span><span class="p">(</span><span class="n">m_instance</span><span class="p">)</span>
-</pre></div>
-</div>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Preprocess :</th><td class="field-body"><p class="first">Indicates that this pattern is to be checked against the incoming stream before it is processed by the terminal emulator.  Useful if you need to match non-printable characters like control codes and escape sequences.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Timeout :</th><td class="field-body"><p class="first">A <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a> object indicating how long we should wait before calling <tt class="xref py py-meth docutils literal"><span class="pre">errorback()</span></tt>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Created :</th><td class="field-body"><p class="first last">A <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.datetime" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.datetime</span></tt></a> object that gets set when the Pattern is instantiated by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a>.  It is used to determine if and when a timeout has been reached.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="termio.BaseMultiplex">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">BaseMultiplex</tt><big>(</big><em>cmd</em>, <em>terminal_emulator=None</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_id=None</em>, <em>syslog=False</em>, <em>syslog_host=None</em>, <em>syslog_facility=None</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>A base class that all Multiplex types will inherit from.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Cmd :</th><td class="field-body"><em>string</em> - The command to execute when calling <a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-meth docutils literal"><span class="pre">spawn()</span></tt></a>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Terminal_emulator :</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><em>terminal.Terminal or similar</em> - The terminal emulator to write to when capturing the incoming output stream from <em>cmd</em>.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Log_path :</th><td class="field-body"><em>string</em> - The absolute path to the log file where the output from <em>cmd</em> will be saved.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Term_id :</th><td class="field-body"><em>string</em> - The terminal identifier to associated with this instance (only used in the logs to identify terminals).</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Syslog :</th><td class="field-body"><em>boolean</em> - Whether or not the session should be logged using the local syslog daemon.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Syslog_host :</th><td class="field-body"><em>string</em> - An optional syslog host to send session log information to (this is independent of the <em>syslog</em> option above--it does not require a syslog daemon be present on the host running Gate One).</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">Syslog_facility :</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><em>integer</em> - The syslog facility to use when logging messages.  All possible facilities can be found in <tt class="xref py py-obj docutils literal"><span class="pre">utils.FACILITIES</span></tt> (if you need a reference other than the syslog module).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Debug :</th><td class="field-body"><em>boolean</em> - Used by the <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-obj docutils literal"><span class="pre">expect</span></tt></a> methods...  If set, extra debugging information will be output whenever a regular expression is matched.</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="termio.BaseMultiplex.add_callback">
-<tt class="descname">add_callback</tt><big>(</big><em>event</em>, <em>callback</em>, <em>identifier=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.add_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.add_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attaches the given <em>callback</em> to the given <em>event</em>.  If given,
-<em>identifier</em> can be used to reference this callback leter (e.g. when you
-want to remove it).  Otherwise an identifier will be generated
-automatically.  If the given <em>identifier</em> is already attached to a
-callback at the given event, that callback will be replaced with
-<em>callback</em>.</p>
-<p><em>event</em> - The numeric ID of the event you're attaching <em>callback</em> to (e.g. Multiplex.CALLBACK_UPDATE).
-<em>callback</em> - The function you're attaching to the <em>event</em>.
-<em>identifier</em> - A string or number to be used as a reference point should you wish to remove or update this callback later.</p>
-<p>Returns the identifier of the callback.  to Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">somefunc</span><span class="p">():</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span> <span class="o">=</span> <span class="s">&quot;myref&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This allows the controlling program to have multiple callbacks for the same event.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.remove_callback">
-<tt class="descname">remove_callback</tt><big>(</big><em>event</em>, <em>identifier</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.remove_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.remove_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the callback referenced by <em>identifier</em> that is attached to the
-given <em>event</em>.  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="s">&quot;myref&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.remove_all_callbacks">
-<tt class="descname">remove_all_callbacks</tt><big>(</big><em>identifier</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.remove_all_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.remove_all_callbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes all callbacks associated with <em>identifier</em>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex._call_callback">
-<tt class="descname">_call_callback</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex._call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex._call_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is here in the event that subclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a> need
-to call callbacks in an implementation-specific way.  It just calls
-<em>callback</em>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.spawn">
-<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.spawn" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method must be overridden by suclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a>.  It is
-expected to execute a child process in a way that allows non-blocking
-reads to be performed.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.isalive">
-<tt class="descname">isalive</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.isalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.isalive" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method must be overridden by suclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a>.  It is
-expected to return True if the child process is still alive and False
-otherwise.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.term_write">
-<tt class="descname">term_write</tt><big>(</big><em>stream</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.term_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.term_write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <tt class="xref py py-obj docutils literal"><span class="pre">stream</span></tt> to <tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.term</span></tt> and also takes care of
-logging to <tt class="xref py py-attr docutils literal"><span class="pre">log_path</span></tt> (if set) and/or syslog (if
-<tt class="xref py py-attr docutils literal"><span class="pre">syslog</span></tt> is <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a>).  When complete, will call any
-callbacks registered in <tt class="xref py py-obj docutils literal"><span class="pre">CALLBACK_UPDATE</span></tt>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Stream :</th><td class="field-body">A string or bytes containing the incoming output stream from the underlying terminal program.</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This kind of logging doesn't capture user keystrokes.  This is intentional as we don't want passwords winding up in the logs.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.preprocess">
-<tt class="descname">preprocess</tt><big>(</big><em>stream</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.preprocess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles preprocess patterns registered by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a>.  That
-is, those patterns which have been marked with <tt class="xref py py-obj docutils literal"><span class="pre">preprocess</span> <span class="pre">=</span> <span class="pre">True</span></tt>.
-Patterns marked in this way get handled <em>before</em> the terminal emulator
-processes the <tt class="xref py py-obj docutils literal"><span class="pre">stream</span></tt>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Stream :</th><td class="field-body">A string or bytes containing the incoming output stream from the underlying terminal program.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.postprocess">
-<tt class="descname">postprocess</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.postprocess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles post-process patterns registered by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex._handle_match">
-<tt class="descname">_handle_match</tt><big>(</big><em>pattern_obj</em>, <em>match</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex._handle_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex._handle_match" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles a matched regex detected by <a class="reference internal" href="#termio.BaseMultiplex.postprocess" title="termio.BaseMultiplex.postprocess"><tt class="xref py py-meth docutils literal"><span class="pre">postprocess()</span></tt></a>.  It calls <tt class="xref py py-obj docutils literal"><span class="pre">Pattern.callback</span></tt> and takes care of removing it from <tt class="xref py py-attr docutils literal"><span class="pre">_patterns</span></tt> (if it isn't sticky).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.writeline">
-<tt class="descname">writeline</tt><big>(</big><em>line=''</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.writeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.writeline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Just like <tt class="xref py py-meth docutils literal"><span class="pre">write()</span></tt> but it writes a newline after writing <em>line</em>.</p>
-<p>If no <em>line</em> is given a newline will be written.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.writelines">
-<tt class="descname">writelines</tt><big>(</big><em>lines</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.writelines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.writelines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>lines</em> (a list of strings) to the underlying program, appending
-a newline after each line.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.dump_html">
-<tt class="descname">dump_html</tt><big>(</big><em>full=False</em>, <em>client_id='0'</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.dump_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.dump_html" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the difference of terminal lines (a list of lines, to be
-specific) and its scrollback buffer (which is also a list of lines) as a
-tuple:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>If a line hasn't changed since the last dump said line will be replaced
-with an empty string in the output.</p>
-<p>If <em>full</em>, will return the entire screen (not just the diff).
-if <em>client_id</em> is given (string), this will be used as a unique client
-identifier for keeping track of screen differences (so you can have
-multiple clients getting their own unique diff output for the same
-Multiplex instance).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.dump">
-<tt class="descname">dump</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.dump" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps whatever is currently on the screen of the terminal emulator as
-a list of plain strings (so they'll be escaped and look nice in an
-interactive Python interpreter).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.timeout_check">
-<tt class="descname">timeout_check</tt><big>(</big><em>timeout_now=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.timeout_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.timeout_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterates over <tt class="xref py py-attr docutils literal"><span class="pre">BaseMultiplex._patterns</span></tt> checking each to
-determine if it has timed out.  If a timeout has occurred for a
-<a class="reference internal" href="#termio.Pattern" title="termio.Pattern"><tt class="xref py py-obj docutils literal"><span class="pre">Pattern</span></tt></a> and said Pattern has an <em>errorback</em> function that function
-will be called.</p>
-<p>Returns True if there are still non-sticky patterns remaining.  False
-otherwise.</p>
-<p>If <em>timeout_now</em> is True, will force the first errorback to be called
-and will empty out self._patterns.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.expect">
-<tt class="descname">expect</tt><big>(</big><em>patterns</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>timeout=15</em>, <em>position=None</em>, <em>preprocess=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.expect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Watches the stream of output coming from the underlying terminal program
-for <em>patterns</em> and if there's a match <em>callback</em> will be called:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">callback</span><span class="p">(</span><span class="n">multiplex_instance</span><span class="p">,</span> <span class="n">matched_string</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><em>patterns</em> can be a string, an <a class="reference external" href="http://docs.python.org/2.7/library/re.html#re.RegexObject" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">re.RegexObject</span></tt></a> (as created by
-<a class="reference external" href="http://docs.python.org/2.7/library/re.html#re.compile" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">re.compile()</span></tt></a>), or a iterator of either/or.  Returns a reference
-object that can be used to remove the registered pattern/callback at any
-time using the <a class="reference internal" href="#termio.BaseMultiplex.unexpect" title="termio.BaseMultiplex.unexpect"><tt class="xref py py-meth docutils literal"><span class="pre">unexpect()</span></tt></a> method (see below).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function is non-blocking!</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>timeout</em> value gets compared against the time <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a> was called to create it.  So don't wait too long if you're planning on using <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">await()</span></tt></a>!</p>
-</div>
-<p>Here's a simple example that changes a user's password:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">write_password</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Sending Password... </span><span class="si">%s</span><span class="s"> patterns remaining.&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">_patterns</span><span class="p">))</span>
-<span class="gp">... </span>    <span class="n">m_instance</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">&#39;somepassword&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="s">&#39;passwd someuser&#39;</span><span class="p">)</span> <span class="c"># Assumes running as root :)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;(?i)password:&#39;</span><span class="p">,</span> <span class="n">write_password</span><span class="p">)</span> <span class="c"># Step 1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;(?i)password:&#39;</span><span class="p">,</span> <span class="n">write_password</span><span class="p">)</span> <span class="c"># Step 2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">_patterns</span><span class="p">))</span> <span class="c"># To show that there&#39;s two in the queue</span>
-<span class="go">    2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span> <span class="c"># Execute the command</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">await</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c"># This will block for up to 10 seconds waiting for self._patterns to be empty (not counting optional patterns)</span>
-<span class="go">Sending Password... 1 patterns remaining.</span>
-<span class="go">Sending Password... 0 patterns remaining.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">isalive</span><span class="p">()</span>
-<span class="go">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># All done!</span>
-</pre></div>
-</div>
-<div class="admonition tip">
-<p class="first admonition-title">Tip</p>
-<p class="last">The <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">await()</span></tt></a> method will automatically call <a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-meth docutils literal"><span class="pre">spawn()</span></tt></a> if not <a class="reference internal" href="#termio.BaseMultiplex.isalive" title="termio.BaseMultiplex.isalive"><tt class="xref py py-meth docutils literal"><span class="pre">isalive()</span></tt></a>.</p>
-</div>
-<p>This would result in the password of 'someuser' being changed to 'somepassword'.  How is the order determined?  Every time <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a> is called it creates a new <a class="reference internal" href="#termio.Pattern" title="termio.Pattern"><tt class="xref py py-class docutils literal"><span class="pre">Pattern</span></tt></a> using the given parameters and appends it to <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> (which is a list).  As each <a class="reference internal" href="#termio.Pattern" title="termio.Pattern"><tt class="xref py py-class docutils literal"><span class="pre">Pattern</span></tt></a> is matched its <em>callback</em> gets called and the <a class="reference internal" href="#termio.Pattern" title="termio.Pattern"><tt class="xref py py-class docutils literal"><span class="pre">Pattern</span></tt></a> is removed from <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> (unless <em>sticky</em> is <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a>).  So even though the patterns and callbacks listed above were identical they will get executed and removed in the order they were created as each respective <a class="reference internal" href="#termio.Pattern" title="termio.Pattern"><tt class="xref py py-class docutils literal"><span class="pre">Pattern</span></tt></a> is matched.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Only the first pattern, or patterns marked as <em>sticky</em> are checked against the incoming stream.  If the first non-sticky pattern is marked <em>optional</em> then the proceeding pattern will be checked (and so on).  All other patterns will sit in <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> until their predecessors are matched/removed.</p>
-</div>
-<p>Patterns can be removed from <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> as needed by calling <tt class="xref py py-obj docutils literal"><span class="pre">unexpect(&lt;reference&gt;)</span></tt>.  Here's an example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">handle_accepting_ssh_key</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">m_instance</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;yes&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="s">&#39;ssh someuser@somehost&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ref1</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;(?i)Are you sure.*\(yes/no\)\?&#39;</span><span class="p">,</span> <span class="n">handle_accepting_ssh_key</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">send_password</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="n">m_instance</span><span class="o">.</span><span class="n">unexpect</span><span class="p">(</span><span class="n">ref1</span><span class="p">)</span>
-<span class="gp">... </span>   <span class="bp">self</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">&#39;somepassword&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ref2</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;(?i)password:&#39;</span><span class="p">,</span> <span class="n">send_password</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># spawn() and/or await() and do stuff...</span>
-</pre></div>
-</div>
-<p>The example above would send 'yes' if asked by the SSH program to accept
-the host's public key (which would result in it being automatically
-removed from <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt>).  However, if this condition isn't met
-before send_password() is called, send_password() will use the reference
-object to remove it directly.  This ensures that the pattern won't be
-accidentally matched later on in the program's execution.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Even if we didn't match the &quot;Are you sure...&quot; pattern it would still get auto-removed after its timeout was reached.</p>
-</div>
-<p><strong>About pattern ordering:</strong> The position at which the given pattern will
-be inserted in <tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> can be specified via the
-<em>position</em> argument.  The default is to simply append which should be
-appropriate in most cases.</p>
-<p><strong>About Timeouts:</strong> The <em>timeout</em> value passed to expect() will be used
-to determine how long to wait before the pattern is removed from
-self._patterns.  When this occurs, <em>errorback</em> will be called with
-current Multiplex instance as the only argument.  If <em>errorback</em> is None
-(the default) the pattern will simply be discarded with no action taken.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If <em>sticky</em> is True the <em>timeout</em> value will be ignored.</p>
-</div>
-<p><strong>Notes about the length of what will be matched:</strong>  The entire terminal
-'screen' will be searched every time new output is read from the
-incoming stream.  This means that the number of rows and columns of the
-terminal determines the size of the search.  So if your pattern needs to
-look for something inside of 50 lines of text you need to make sure that
-when you call <a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-obj docutils literal"><span class="pre">spawn</span></tt></a> you specify at least <tt class="xref py py-obj docutils literal"><span class="pre">rows</span> <span class="pre">=</span> <span class="pre">50</span></tt>.  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">handle_long_search</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">do_stuff</span><span class="p">(</span><span class="n">matched</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="s">&#39;someCommandWithLotsOfOutput.sh&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># &#39;begin&#39;, at least one non-newline char, 50 newlines, at least one char, then &#39;end&#39;:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;begin.+[</span><span class="se">\n</span><span class="s">]{50}.+end&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">my_regex</span><span class="p">,</span> <span class="n">handle_accepting_ssh_key</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">51</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Call m.read(), m.spawn() or just let an event loop (e.g. Tornado&#39;s IOLoop) take care of things...</span>
-</pre></div>
-</div>
-<p><strong>About non-printable characters:</strong> If the <em>postprocess</em> argument is
-True (the default), patterns will be checked against the current screen as
-output by the terminal emulator.  This means that things like control
-codes and escape sequences will be handled and discarded by the terminal
-emulator and as such won't be available for patterns to be checked
-against.  To get around this limitation you can set <em>preprocess</em> to True
-and the pattern will be checked against the incoming stream before it is
-processed by the terminal emulator.  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">handle_xterm_title</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Caught title: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">matched</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="s">&#39;echo -e &quot;</span><span class="se">\033</span><span class="s">]0;Some Title</span><span class="se">\007</span><span class="s">&quot;&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">title_seq_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1b\][0-2]\;(.*?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">title_seq_regex</span><span class="p">,</span> <span class="n">handle_xterm_title</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># &lt;-- &#39;preprocess=True&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">await</span><span class="p">()</span>
-<span class="go">Caught title: Some Title</span>
-<span class="go">&gt;&gt;&gt;</span>
-</pre></div>
-</div>
-<p><strong>Notes about debugging:</strong> Instead of using <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-obj docutils literal"><span class="pre">await</span></tt></a> to wait for all of your patterns to be matched at once you can make individual calls to <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">read</span></tt></a> to determine if your patterns are being matched in the way that you want.  For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">do_stuff</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Debug: do_stuff() got </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">matched</span><span class="p">))</span>
-<span class="gp">... </span>    <span class="c"># Do stuff here</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="s">&#39;someLongComplicatedOutput.sh&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;some pattern&#39;</span><span class="p">,</span> <span class="n">do_stuff</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;some other pattern&#39;</span><span class="p">,</span> <span class="n">do_stuff</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Instead of calling await() just call one read() at a time...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
-<span class="go">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="c"># Oops, called read() too soon.  Try again:</span>
-<span class="go">&#39;some other pattern&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Doh!  Looks like &#39;some other pattern&#39; comes first.  Let&#39;s start over...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">unexpect</span><span class="p">()</span> <span class="c"># Called with no arguments, it empties m._patterns</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c"># Tip: This will call unexpect() too so the line above really isn&#39;t necessary</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;some other pattern&#39;</span><span class="p">,</span> <span class="n">do_stuff</span><span class="p">)</span> <span class="c"># This time this one will be first</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;some pattern&#39;</span><span class="p">,</span> <span class="n">do_stuff</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="c"># This time I waited a moment :)</span>
-<span class="go">&#39;Debug: do_stuff() got &quot;some other pattern&quot;&#39;</span>
-<span class="go">&#39;some other pattern&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Huzzah!  Now let&#39;s see if &#39;some pattern&#39; matches...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
-<span class="go">&#39;Debug: do_stuff() got &quot;some pattern&quot;&#39;</span>
-<span class="go">&#39;some pattern&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># As you can see, calling read() at-will in an interactive interpreter can be very handy.</span>
-</pre></div>
-</div>
-<p><strong>About asynchronous use:</strong>  This mechanism is non-blocking (with the exception of <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-obj docutils literal"><span class="pre">await</span></tt></a>) and is meant to be used asynchronously.  This means that if the running program has no output, <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">read</span></tt></a> won't result in any patterns being matched.  So you must be careful about timing <em>or</em> you need to ensure that <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">read</span></tt></a> gets called either automatically when there's data to be read (IOLoop, EPoll, select, etc) or at regular intervals via a loop.  Also, if you're not calling <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">read</span></tt></a> at an interval (i.e. you're using a mechanism to detect when there's output to be read before calling it e.g. IOLoop) you need to ensure that <a class="reference internal" href="#termio.BaseMultiplex.timeout_check" title="termio.BaseMultiplex.timeout_check"><tt class="xref py py-obj docutils literal"><span class="pre">timeout_check</span></tt></a> is called regularly anyway or timeouts won't get detected if there's no output from the underlying program.  See the <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.read" title="termio.MultiplexPOSIXIOLoop.read"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop.read</span></tt></a> override for an example of what this means and how to do it.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.unexpect">
-<tt class="descname">unexpect</tt><big>(</big><em>ref=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.unexpect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.unexpect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes <em>ref</em> from self._patterns so it will no longer be checked
-against the incoming stream.  If <em>ref</em> is None (the default),
-<tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt> will be emptied.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.await">
-<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
-<dd><p>Blocks until all non-optional patterns inside self._patterns have been
-removed <em>or</em> if the given <em>timeout</em> is reached.  <em>timeout</em> may be an
-integer (in seconds) or a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a> object.</p>
-<p>Returns True if all non-optional, non-sticky patterns were handled
-successfully.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The timeouts attached to Patterns are set when they are created.  Not when when you call <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">await()</span></tt></a>!</p>
-</div>
-<p>As a convenience, if <a class="reference internal" href="#termio.BaseMultiplex.isalive" title="termio.BaseMultiplex.isalive"><tt class="xref py py-meth docutils literal"><span class="pre">isalive()</span></tt></a> resolves to False,
-<a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-meth docutils literal"><span class="pre">spawn()</span></tt></a> will be called automatically with <em>rows</em>, <em>cols</em>,
-and <em>env</em> given as arguments.</p>
-<dl class="docutils">
-<dt>await</dt>
-<dd>To wait with expectation.</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.terminate">
-<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.terminate" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method must be overridden by suclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a>.  It is
-expected to terminate/kill the child process.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex._read">
-<tt class="descname">_read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex._read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex._read" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method must be overridden by subclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a>.  It is
-expected that this method read the output from the running terminal
-program in a non-blocking way, pass the result into <a class="reference internal" href="#termio.BaseMultiplex.term_write" title="termio.BaseMultiplex.term_write"><tt class="xref py py-obj docutils literal"><span class="pre">term_write</span></tt></a>, and
-then return the result.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.BaseMultiplex.read">
-<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <a class="reference internal" href="#termio.BaseMultiplex._read" title="termio.BaseMultiplex._read"><tt class="xref py py-obj docutils literal"><span class="pre">_read</span></tt></a> and checks if any timeouts have been reached in
-<tt class="xref py py-obj docutils literal"><span class="pre">self._patterns</span></tt>.  Returns the result of <a class="reference internal" href="#termio.BaseMultiplex._read" title="termio.BaseMultiplex._read"><tt class="xref py py-obj docutils literal"><span class="pre">_read</span></tt></a>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="termio.MultiplexPOSIXIOLoop">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">MultiplexPOSIXIOLoop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop" title="Permalink to this definition">¶</a></dt>
-<dd><p>The MultiplexPOSIXIOLoop class takes care of executing a child process on
-POSIX (aka Unix) systems and keeping track of its state via a terminal
-emulator (<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by default).  If there's a started instance
-of <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a>, handlers will be added to it that
-automatically keep the terminal emulator synchronized with the output of the
-child process.</p>
-<p>If there's no IOLoop (or it just isn't started), terminal applications can
-be interacted with by calling <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.read" title="termio.MultiplexPOSIXIOLoop.read"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop.read</span></tt></a> (to write any
-pending output to the terminal emulator) and <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.write" title="termio.MultiplexPOSIXIOLoop.write"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop.write</span></tt></a>
-(which writes directly to stdin of the child).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.read" title="termio.MultiplexPOSIXIOLoop.read"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop.read</span></tt></a> is non-blocking.</p>
-</div>
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._call_callback">
-<tt class="descname">_call_callback</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._call_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the IOLoop is started, adds the callback via
-<tt class="xref py py-meth docutils literal"><span class="pre">IOLoop.add_callback()</span></tt> to ensure it gets called at the next IOLoop
-iteration (which is thread safe).  If the IOLoop isn't started
-<em>callback</em> will get called immediately and directly.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._reenable_output">
-<tt class="descname">_reenable_output</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._reenable_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._reenable_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>Restarts capturing output from the underlying terminal program by
-disengaging the rate limiter.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._blocked_io_handler">
-<tt class="descname">_blocked_io_handler</tt><big>(</big><em>signum=None</em>, <em>frame=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._blocked_io_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._blocked_io_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles the situation where a terminal is blocking IO (usually because
-of too much output).  This method would typically get called
-automatically by IOLoop's signal threshold mechanism
-(<tt class="xref py py-meth docutils literal"><span class="pre">IOLoop.set_blocking_signal_threshold()</span></tt>).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.spawn">
-<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.spawn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a new virtual terminal (tty) and executes self.cmd within it.
-Also attaches <tt class="xref py py-meth docutils literal"><span class="pre">self._ioloop_read_handler()</span></tt> to the IOLoop so that
-the terminal emulator will automatically stay in sync with the output of
-the child process.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Cols :</th><td class="field-body">The number of columns to emulate on the virtual terminal (width)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Rows :</th><td class="field-body">The number of rows to emulate (height).</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Env :</th><td class="field-body">Optional - A dictionary of environment variables to set when executing self.cmd.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Em_dimensions :</th><td class="field-body">Optional - The dimensions of a single character within the terminal (only used when calculating the number of rows/cols images take up).</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.isalive">
-<tt class="descname">isalive</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.isalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.isalive" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks the underlying process to see if it is alive and sets self._alive
-appropriately.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.resize">
-<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>em_dimensions=None</em>, <em>ctrl_l=True</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.resize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resizes the child process's terminal window to <em>rows</em> and <em>cols</em> by
-first sending it a TIOCSWINSZ event and then sending ctrl-l.</p>
-<p>If <em>em_dimensions</em> are provided they will be updated along with the
-rows and cols.</p>
-<p>The sending of ctrl-l can be disabled by setting <em>ctrl_l</em> to False.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.terminate">
-<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.terminate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kill the child process associated with <tt class="xref py py-obj docutils literal"><span class="pre">self.fd</span></tt>.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If dtach is being used this only kills the dtach process.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._ioloop_read_handler">
-<tt class="descname">_ioloop_read_handler</tt><big>(</big><em>fd</em>, <em>event</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._ioloop_read_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._ioloop_read_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read in the output of the process associated with <em>fd</em> and write it to
-<tt class="xref py py-obj docutils literal"><span class="pre">self.term</span></tt>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Fd :</th><td class="field-body">The file descriptor of the child process.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Event :</th><td class="field-body">An IOLoop event (e.g. IOLoop.READ).</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This method is not meant to be called directly...  The IOLoop should be the one calling it when it detects any given event on the fd.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._read">
-<tt class="descname">_read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads at most <em>bytes</em> from the incoming stream, writes the result to
-the terminal emulator using <tt class="xref py py-obj docutils literal"><span class="pre">term_write</span></tt>, and returns what was read.
-If <em>bytes</em> is -1 (default) it will read <tt class="xref py py-obj docutils literal"><span class="pre">self.fd</span></tt> until there's no more
-output.</p>
-<p>Returns the result of all that reading.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Non-blocking.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._timeout_checker">
-<tt class="descname">_timeout_checker</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._timeout_checker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._timeout_checker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs <tt class="xref py py-obj docutils literal"><span class="pre">timeout_check</span></tt> and if there are no more non-sticky
-patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>, stops <tt class="xref py py-attr docutils literal"><span class="pre">scheduler</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.read">
-<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.read" title="Permalink to this definition">¶</a></dt>
-<dd><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This is an override of <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.read</span></tt></a> in order to take advantage of the IOLoop for ensuring <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.expect</span></tt></a> patterns timeout properly.</p>
-</div>
-<p>Calls <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-obj docutils literal"><span class="pre">_read</span></tt></a> and checks if any timeouts have been reached
-in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.  Returns the result of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-meth docutils literal"><span class="pre">_read()</span></tt></a>.  This
-is an override of <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.read</span></tt></a> that will create a
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.PeriodicCallback" title="(in Tornado v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt></a> (as <tt class="xref py py-obj docutils literal"><span class="pre">self.scheduler</span></tt>) that
-executes <tt class="xref py py-attr docutils literal"><span class="pre">timeout_check</span></tt> at a regular interval.  The
-<tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> will automatically cancel itself if there are no more
-non-sticky patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop._write">
-<tt class="descname">_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>chars</em> to <tt class="xref py py-obj docutils literal"><span class="pre">self.fd</span></tt> (pretty straightforward).  If IOError or
-OSError exceptions are encountered, will run <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.terminate" title="termio.MultiplexPOSIXIOLoop.terminate"><tt class="xref py py-obj docutils literal"><span class="pre">terminate</span></tt></a>.  All other
-exceptions are logged but no action will be taken.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="termio.MultiplexPOSIXIOLoop.write">
-<tt class="descname">write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">_write(*chars*)</span></tt> via <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._call_callback" title="termio.MultiplexPOSIXIOLoop._call_callback"><tt class="xref py py-obj docutils literal"><span class="pre">_call_callback</span></tt></a> to ensure thread safety.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="termio.MultiplexMacOSIOLoop">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">MultiplexMacOSIOLoop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#termio.MultiplexMacOSIOLoop" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class is a subclass of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop" title="termio.MultiplexPOSIXIOLoop"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop</span></tt></a> that overrides the
-<a class="reference internal" href="#termio.MultiplexMacOSIOLoop.isalive" title="termio.MultiplexMacOSIOLoop.isalive"><tt class="xref py py-obj docutils literal"><span class="pre">isalive</span></tt></a> function since Mac OS X doesn't have /proc.</p>
-<dl class="method">
-<dt id="termio.MultiplexMacOSIOLoop.isalive">
-<tt class="descname">isalive</tt><big>(</big><big>)</big><a class="headerlink" href="#termio.MultiplexMacOSIOLoop.isalive" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Mac OS X-specific version of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop.isalive" title="termio.MultiplexPOSIXIOLoop.isalive"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop.isalive</span></tt></a> that
-checks the underlying process to see if it is alive and sets
-<tt class="xref py py-obj docutils literal"><span class="pre">self._alive</span></tt> appropriately.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="termio.spawn">
-<tt class="descclassname">termio.</tt><tt class="descname">spawn</tt><big>(</big><em>cmd</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.spawn" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shortcut to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="n">m</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="termio.Multiplex">
-<tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop" title="termio.MultiplexPOSIXIOLoop"><tt class="xref py py-class docutils literal"><span class="pre">MultiplexPOSIXIOLoop</span></tt></a></p>
-</dd></dl>
-
-</div>
 </div>
 
 
@@ -813,15 +80,6 @@ checks the underlying process to see if it is alive and sets
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a><ul>
-<li><a class="reference internal" href="#about-termio">About termio</a></li>
-<li><a class="reference internal" href="#module-functions-and-classes">Module Functions and Classes</a></li>
-</ul>
-</li>
-</ul>
-
   <h4>Previous topic</h4>
   <p class="topless"><a href="terminal.html"
                         title="previous chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
@@ -869,9 +127,32 @@ checks the underlying process to see if it is alive and sets
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

@@ -2,7 +2,7 @@ COPYRIGHT NOTICE
 ================
 Gate One and all bundled original code...
 
-    Copyright 2011 Liftoff Software Corporation
+    Copyright 2013 Liftoff Software Corporation
 
 Gate One is dual-licensed:  AGPLv3 or Commercial Licensing.
 
@@ -26,6 +26,15 @@ SVG Icons (inline in gateone.js) were taken from GoSquared which released them
 under the, "free for you to use as you wish" license =).  See:
 
     http://www.gosquared.com/liquidicity/archives/122
+
+The pdf.svg icon was created by "Beate Kaspar, Hendrik Eggers" and licensed
+under the "Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)" license:
+
+    http://creativecommons.org/licenses/by-sa/3.0/
+
+The gopam.py module is licensed under the MIT license:
+
+    http://www.opensource.org/licenses/mit-license.php
 
 Portional items
 ^^^^^^^^^^^^^^^

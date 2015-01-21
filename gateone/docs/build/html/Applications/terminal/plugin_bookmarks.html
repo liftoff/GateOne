@@ -1,0 +1,805 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>The Bookmarks Plugin &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
+    <link rel="next" title="The Convenience Plugin" href="plugin_convenience.html" />
+    <link rel="prev" title="terminal_input.js" href="js_terminal_input.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_convenience.html" title="The Convenience Plugin"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="js_terminal_input.html" title="terminal_input.js"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-bookmarks-plugin">
+<h1>The Bookmarks Plugin<a class="headerlink" href="#the-bookmarks-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<p>bookmarks.js - The client-side portion of Gate One's Bookmarks plugin.</p>
+<dl class="function">
+<dt id="GateOne.Bookmarks.addFilterDateTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">addFilterDateTag</tt><big>(</big><em>bookmarks</em>, <em>dateTag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.addFilterDateTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>dateTag</em> to the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.addFilterTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">addFilterTag</tt><big>(</big><em>bookmarks</em>, <em>tag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.addFilterTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>tag</em> to the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.addFilterURLTypeTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">addFilterURLTypeTag</tt><big>(</big><em>bookmarks</em>, <em>typeTag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.addFilterURLTypeTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>typeTag</em> to the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.addTagToBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">addTagToBookmark</tt><big>(</big><em>URL</em>, <em>tag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.addTagToBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>tag</em> to the bookmark object associated with <em>URL</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.allTags">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">allTags</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.allTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of all the tags in <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'bookmarks']</span></tt> ordered alphabetically.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.Bookmarks.bookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">bookmarks</tt><a class="headerlink" href="#GateOne.Bookmarks.bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the user's bookmarks are stored in this array which is stored/loaded from <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'bookmarks']</span></tt>.  Each bookmark consists of the following data structure:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">created</span><span class="o">:</span> <span class="mi">1356974567922</span><span class="p">,</span>
+    <span class="nx">images</span><span class="o">:</span> <span class="p">{</span><span class="nx">favicon</span><span class="o">:</span> <span class="s2">&quot;data:image/x-icon;base64,&lt;gobbledygook&gt;&quot;</span><span class="p">},</span>
+    <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+    <span class="nx">notes</span><span class="o">:</span> <span class="s2">&quot;Login to the Gate One server itself&quot;</span><span class="p">,</span>
+    <span class="nx">tags</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Linux&quot;</span><span class="p">,</span> <span class="s2">&quot;Ubuntu&quot;</span><span class="p">,</span> <span class="s2">&quot;Production&quot;</span><span class="p">,</span> <span class="s2">&quot;Gate One&quot;</span><span class="p">],</span>
+    <span class="nx">updateSequenceNum</span><span class="o">:</span> <span class="mi">11</span><span class="p">,</span>
+    <span class="nx">updated</span><span class="o">:</span> <span class="mi">1356974567922</span><span class="p">,</span>
+    <span class="nx">url</span><span class="o">:</span> <span class="s2">&quot;ssh://localhost&quot;</span><span class="p">,</span>
+    <span class="nx">visits</span><span class="o">:</span> <span class="mi">0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Most of that should be self-explanatory except the <tt class="xref py py-obj docutils literal"><span class="pre">updateSequenceNum</span></tt> (aka USN).  The USN value is used to determine when this bookmark was last changed in comparison to the highest USN stored on the server.  By comparing the highest client-side USN against the highest server-side USN we can determine what (if anything) has changed since the last synchronization.  It is much more efficient than enumerating all bookmarks on both the client and server in order to figure out what's different.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.createBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">createBookmark</tt><big>(</big><em>bmContainer</em>, <em>bookmark</em>, <em>delay</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.createBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new bookmark element and places it in <em>bmContainer</em>.  Also returns the bookmark element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bmContainer</strong> (<em>DOM_node</em>) -- The DOM node we're going to be placing the bookmark.</li>
+<li><strong>bookmark</strong> (<em>object</em>) -- A bookmark object (presumably taken from <a class="reference internal" href="#GateOne.Bookmarks.bookmarks" title="GateOne.Bookmarks.bookmarks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt></a>)</li>
+<li><strong>delay</strong> (<em>number</em>) -- The amount of milliseconds to wait before translating (sliding) the bookmark into view.</li>
+<li><strong>ad</strong> (<em>boolean</em>) -- If true, will not bother adding tags or edit/delete/share links.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.createOrUpdateBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">createOrUpdateBookmark</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.createOrUpdateBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates or updates a bookmark (in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> and localStorage) using the given bookmark <em>obj</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.createPanel">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">createPanel</tt><big>(</big><span class="optional">[</span><em>embedded</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.createPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the bookmarks panel.  If the bookmarks panel already exists it will be destroyed and re-created, resetting the pagination.</p>
+<p>If <em>embedded</em> is true then we'll just load the header (without search).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.createSortOpts">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">createSortOpts</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.createSortOpts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a span representing the current sort direction and &quot;sort by&quot; type.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.deleteBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">deleteBookmark</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.deleteBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks the user for confirmation then deletes the chosen bookmark...</p>
+<p><em>obj</em> can either be a URL (string) or the &quot;go_bm_delete&quot; anchor tag.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not the same thing as <a class="reference internal" href="#GateOne.Bookmarks.removeBookmark" title="GateOne.Bookmarks.removeBookmark"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.removeBookmark()</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.deletedBookmarksSyncComplete">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">deletedBookmarksSyncComplete</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.deletedBookmarksSyncComplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the response from the server after we've sent the 'bookmarks_deleted' WebSocket action.  Resets <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'deletedBookmarks']</span></tt> and displays a message to the user indicating how many bookmarks were just deleted.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.editBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">editBookmark</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.editBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the bookmark editor for the given <em>obj</em> (the bookmark element on the page).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only meant to be called from a 'bm_edit' anchor tag (as the <em>obj</em>).</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.exportBookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">exportBookmarks</tt><big>(</big><span class="optional">[</span><em>bookmarks</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.exportBookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the user to save their bookmarks as a Netscape-style HTML file.  Immediately starts the download.</p>
+<p>If <em>bookmarks</em> is given, that array will be what is exported.  Otherwise the complete <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> array will be exported.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.filterBookmarksBySearchString">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">filterBookmarksBySearchString</tt><big>(</big><em>str</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.filterBookmarksBySearchString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters bookmarks to those matching <em>str</em> (used by the search function).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.flushIconQueue">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">flushIconQueue</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.flushIconQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loops over <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'iconQueue']</span></tt> fetching icons until it is empty.</p>
+<p>If the queue is currently being processed this function won't do anything when called.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.generateTip">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">generateTip</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.generateTip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random, helpful tip for using bookmarks (as a string).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.getAutotags">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getAutotags</tt><big>(</big><span class="optional">[</span><em>bookmarks</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getAutotags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of all the autotags in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> or <em>bookmarks</em> if given.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ordered alphabetically with the URL types coming before date tags.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.getBookmarkObj">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getBookmarkObj</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getBookmarkObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bookmark object associated with the given <em>URL</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.getDateTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getDateTag</tt><big>(</big><em>dateObj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getDateTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <tt class="docutils literal"><span class="pre">Date</span></tt> object, returns a string such as &quot;&lt;7 days&quot;.  Suitable for use as an autotag.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.getMaxBookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getMaxBookmarks</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getMaxBookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates and returns the number of bookmarks that will fit in the given element (<em>elem</em>).  <em>elem</em> may be an element ID or a DOM node object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.getTags">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">getTags</tt><big>(</big><span class="optional">[</span><em>bookmarks</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.getTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of all the tags in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> or <em>bookmarks</em> if given.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ordered alphabetically</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.highestUSN">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">highestUSN</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.highestUSN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the highest <tt class="xref py py-obj docutils literal"><span class="pre">updateSequenceNum</span></tt> that exists in all bookmarks.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.httpIconHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">httpIconHandler</tt><big>(</big><em>bookmark</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.httpIconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the icon for the given HTTP or HTTPS <em>bookmark</em> and saves it in the bookmarks DB.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.incrementVisits">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">incrementVisits</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.incrementVisits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increments by 1 the 'visits' value of the bookmark object associated with the given <em>URL</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.init">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the bookmarks panel, initializes some important variables, registers the <tt class="kbd docutils literal"><span class="pre">Control-Alt-b</span></tt> keyboard shortcut, and registers the following WebSocket actions:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_updated&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncBookmarks</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_save_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_delete_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">deletedBookmarksSyncComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_renamed_tags&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">tagRenameComplete</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.loadBookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">loadBookmarks</tt><big>(</big><span class="optional">[</span><em>delay</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.loadBookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters/sorts/displays bookmarks and updates the bookmarks panel to reflect the current state of things (draws the tag cloud and ensures the pagination is correct).</p>
+<p>If <em>delay</em> (milliseconds) is given, loading of bookmarks will be delayed by that amount before they're drawn (for animation purposes).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.loadPagination">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">loadPagination</tt><big>(</big><em>bookmarks</em><span class="optional">[</span>, <em>page</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.loadPagination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the pagination for the given array of bookmarks and returns the pagination node.</p>
+<p>If <em>page</em> is given the pagination will highlight the given page number and adjust the prev/next links accordingly.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.loadTagCloud">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">loadTagCloud</tt><big>(</big><span class="optional">[</span><em>active</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.loadTagCloud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the tag cloud.  If <em>active</em> is given it must be one of 'tags' or 'autotags'.  It will mark the appropriate header as inactive and load the respective tags.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openBookmark</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the function in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.URLHandlers</span></tt> associated with the protocol of the given <em>URL</em>.</p>
+<p>If no function is registered for the given <em>URL</em> protocol a new browser window will be opened using the given <em>URL</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openExportDialog">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openExportDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openExportDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dialog where the user can select some options and export their bookmarks.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openImportDialog">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openImportDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openImportDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the form where a user can create or edit a bookmark.</p>
+<p>If <em>URL</em> is given, pre-fill the form with the associated bookmark for editing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openNewBookmarkForm">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openNewBookmarkForm</tt><big>(</big><span class="optional">[</span><em>URL</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openNewBookmarkForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the form where a user can create or edit a bookmark.</p>
+<p>If <em>URL</em> is given, pre-fill the form with the associated bookmark for editing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openRenameDialog">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openRenameDialog</tt><big>(</big><em>tagName</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openRenameDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dialog where the user can rename the given <em>tagName</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.openSearchDialog">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">openSearchDialog</tt><big>(</big><em>URL</em>, <em>title</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.openSearchDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dialog where the user can utilize a keyword search <em>URL</em>.  <em>title</em> will be used to create the dialog title like this:  &quot;Keyword Search: <em>title</em>&quot;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.panelToggleIn">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">panelToggleIn</tt><big>(</big><em>panel</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.panelToggleIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when <tt class="xref py py-obj docutils literal"><span class="pre">panel_toggle:in</span></tt> event is triggered, calls <a class="reference internal" href="#GateOne.Bookmarks.createPanel" title="GateOne.Bookmarks.createPanel"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.createPanel()</span></tt></a> if <em>panel</em> is the Bookmarks panel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.registerIconHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">registerIconHandler</tt><big>(</big><em>protocol</em>, <em>handler</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.registerIconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given <em>handler</em> as the function to use whenever a bookmark icon needs to be retrieved for the given <em>protocol</em>.</p>
+<p>When the given <em>handler</em> is called it will be passed the bookmark object as the only argument.  It is up to the handler to call (or not) <tt class="docutils literal"><span class="pre">GateOne.Bookmarks.storeFavicon(bookmark,</span> <span class="pre">&lt;icon</span> <span class="pre">data</span> <span class="pre">URI&gt;);</span></tt> to store the icon.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.registerURLHandler">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">registerURLHandler</tt><big>(</big><em>protocol</em>, <em>handler</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.registerURLHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given <em>handler</em> as the function to use whenever a bookmark is opened with a matching <em>protocol</em>.</p>
+<p>When the given <em>handler</em> is called it will be passed the URL as the only argument.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.removeBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">removeBookmark</tt><big>(</big><em>url</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.removeBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the bookmark matching <em>url</em> from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> and saves the change to localStorage.</p>
+<p>If <em>callback</em> is given it will be called after the bookmark has been deleted.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not the same thing as <a class="reference internal" href="#GateOne.Bookmarks.deleteBookmark" title="GateOne.Bookmarks.deleteBookmark"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.deleteBookmark()</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.removeFilterDateTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">removeFilterDateTag</tt><big>(</big><em>bookmarks</em>, <em>dateTag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.removeFilterDateTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given <em>dateTag</em> from the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.removeFilterTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">removeFilterTag</tt><big>(</big><em>bookmarks</em>, <em>tag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.removeFilterTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given <em>tag</em> from the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.removeFilterURLTypeTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">removeFilterURLTypeTag</tt><big>(</big><em>bookmarks</em>, <em>typeTag</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.removeFilterURLTypeTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given <em>typeTag</em> from the filter list.  <em>bookmarks</em> is unused.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.renameTag">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">renameTag</tt><big>(</big><em>oldName</em>, <em>newName</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.renameTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renames the tag matching <em>oldName</em> to be <em>newName</em> for all bookmarks that have it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.Bookmarks.sortFunctions">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">sortFunctions</tt><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>An associative array of functions that are used to sort bookmarks.  When the user clicks on one of the sorting options it assigns one of these functions to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Bookmarks.sortfunc()</span></tt> which is then applied like so:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">bookmarks</span><span class="p">.</span><span class="nx">sort</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">sortfunc</span><span class="p">);</span>
+</pre></div>
+</div>
+<dl class="staticmethod">
+<dt id="GateOne.Bookmarks.sortFunctions.alphabetical">
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.alphabetical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts bookmarks alphabetically.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Bookmarks.sortFunctions.created">
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">created</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts bookmarks by date modified followed by alphabetical.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Bookmarks.sortFunctions.visits">
+<tt class="descclassname">GateOne.Bookmarks.sortFunctions.</tt><tt class="descname">visits</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.sortFunctions.visits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts bookmarks according to the number of visits followed by alphabetical.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.storeBookmark">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">storeBookmark</tt><big>(</big><em>bookmarkObj</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.storeBookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the given <em>bookmarkObj</em> in localStorage.</p>
+<p>if <em>callback</em> is given it will be executed after the bookmark is stored with the <em>bookmarkObj</em> as the only argument.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.storeBookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">storeBookmarks</tt><big>(</big><em>bookmarks</em><span class="optional">[</span>, <em>recreatePanel</em><span class="optional">[</span>, <em>skipTags</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.storeBookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an array of <em>bookmarks</em> and stores them in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt>.</p>
+<p>If <em>recreatePanel</em> is true, the panel will be re-drawn after bookmarks are stored.</p>
+<p>If <em>skipTags</em> is true, bookmark tags will be ignored when saving <em>bookmarks</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.storeFavicon">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">storeFavicon</tt><big>(</big><em>bookmark</em>, <em>dataURI</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.storeFavicon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the given <em>dataURI</em> as the 'favicon' image for the given <em>bookmark</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><em>dataURI</em> must be pre-encoded <a class="reference external" href="data:URI">data:URI</a></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.syncBookmarks">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">syncBookmarks</tt><big>(</big><em>response</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.syncBookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:bookmarks_updated</span></tt> WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.syncComplete">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">syncComplete</tt><big>(</big><em>response</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.syncComplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the sync (download) is completed.  Stores the current highest <tt class="xref py py-obj docutils literal"><span class="pre">updateSequenceNum</span></tt> in localStorage, and notifies the user of any errors that occurred during synchronization.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.tagContextMenu">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">tagContextMenu</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.tagContextMenu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we right-click on a tag <em>elem</em>.  Gives the user the option to rename the tag or cancel the context menu.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.tagRenameComplete">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">tagRenameComplete</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.tagRenameComplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the 'bookmarks_renamed_tags' WebSocket action is received from the server.  Deletes <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'renamedTags']</span></tt> (which stores tags that have been renamed and are awaiting sync) and displays a message to the user indicating that tags were renamed successfully.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.toggleSortOrder">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">toggleSortOrder</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.toggleSortOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses the order of the bookmarks list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.updateIcon">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">updateIcon</tt><big>(</big><em>bookmark</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.updateIcon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the handler in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.iconHandlers</span></tt> associated with the given <em>bookmark.url</em> protocol.</p>
+<p>If no handler can be found no operation will be performed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.updateIcons">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">updateIcons</tt><big>(</big><em>urls</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.updateIcons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loops over the given <em>urls</em> attempting to fetch and store their respective favicons.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is only used when debugging.  It is called by no other functions.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.updateProgress">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">updateProgress</tt><big>(</big><em>name</em>, <em>total</em>, <em>num</em><span class="optional">[</span>, <em>desc</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.updateProgress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates/updates a progress bar given a <em>name</em>, a <em>total</em>, and <em>num</em> representing the current state of an action.</p>
+<p>Optionally, a description (<em>desc</em>) may be provided that will be placed above the progress bar.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.updateUSN">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">updateUSN</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.updateUSN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the <tt class="xref py py-obj docutils literal"><span class="pre">updateSequenceNum</span></tt> of the bookmark matching <em>obj</em> in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Bookmarks.bookmarks</span></tt> (and in localStorage via <a class="reference internal" href="#GateOne.Bookmarks.storeBookmark" title="GateOne.Bookmarks.storeBookmark"><tt class="xref js js-meth docutils literal"><span class="pre">storeBookmark()</span></tt></a>).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Bookmarks.userLoginSync">
+<tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">userLoginSync</tt><big>(</big><em>username</em><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.userLoginSync" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:js_loaded</span></tt> event.  Calls the server-side <tt class="xref py py-obj docutils literal"><span class="pre">terminal:bookmarks_get</span></tt> WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-bookmarks">
+<span id="python"></span><h2>Python<a class="headerlink" href="#module-bookmarks" title="Permalink to this headline">¶</a></h2>
+<p>bookmarks.py - A plugin for Gate One that adds fancy bookmarking capabilities.</p>
+<div class="section" id="hooks">
+<h3>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/fetchicon&quot;</span><span class="p">,</span> <span class="n">FaviconHandler</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/export&quot;</span><span class="p">,</span> <span class="n">ExportHandler</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/import&quot;</span><span class="p">,</span> <span class="n">ImportHandler</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:bookmarks_sync&#39;</span><span class="p">:</span> <span class="n">save_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_get&#39;</span><span class="p">:</span> <span class="n">get_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_deleted&#39;</span><span class="p">:</span> <span class="n">delete_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_rename_tags&#39;</span><span class="p">:</span> <span class="n">rename_tags</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_bookmarks_css_template</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="bookmarks.unescape">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">unescape</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#unescape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.unescape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unescape HTML code refs; c.f. <a class="reference external" href="http://wiki.python.org/moin/EscapingHtml">http://wiki.python.org/moin/EscapingHtml</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.parse_bookmarks_html">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">parse_bookmarks_html</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#parse_bookmarks_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.parse_bookmarks_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the Netscape-style bookmarks.html in string, <em>html</em> and returns a
+list of Bookmark objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.get_json_tags">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_json_tags</tt><big>(</big><em>bookmarks</em>, <em>url</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#get_json_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_json_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates over <em>bookmarks</em> (dict) trying to find tags associated with the
+given <em>url</em>.  Returns the tags found as a list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.get_ns_json_bookmarks">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_ns_json_bookmarks</tt><big>(</big><em>json_dict</em>, <em>bookmarks</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#get_ns_json_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_ns_json_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>json_dict</em>, updates <em>bookmarks</em> with each URL as it is found
+within.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only works with Netscape-style bookmarks.json files.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.parse_bookmarks_json">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">parse_bookmarks_json</tt><big>(</big><em>json_str</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#parse_bookmarks_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.parse_bookmarks_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <em>json_str</em>, returns a list of bookmark objects representing the data
+contained therein.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.BookmarksDB">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">BookmarksDB</tt><big>(</big><em>user_dir</em>, <em>user</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to read and write bookmarks to a file on disk.  Can also synchronize
+a given list of bookmarks with what's on disk.  Uses a given bookmark's
+<tt class="docutils literal"><span class="pre">updateSequenceNum</span></tt> to track what wins the &quot;who is newer?&quot; comparison.</p>
+<p>Sets up our bookmarks database object and reads everything in.</p>
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.open_bookmarks">
+<tt class="descname">open_bookmarks</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.open_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.open_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the bookmarks stored in self.user_dir.  If not present, an
+empty file will be created.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.save_bookmarks">
+<tt class="descname">save_bookmarks</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.save_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.save_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves self.bookmarks to self.bookmarks_path as a JSON-encoded list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.sync_bookmarks">
+<tt class="descname">sync_bookmarks</tt><big>(</big><em>bookmarks</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.sync_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.sync_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <em>bookmarks</em>, synchronize with self.bookmarks doing conflict
+resolution and whatnot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.delete_bookmark">
+<tt class="descname">delete_bookmark</tt><big>(</big><em>bookmark</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.delete_bookmark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.delete_bookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given <em>bookmark</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.get_bookmarks">
+<tt class="descname">get_bookmarks</tt><big>(</big><em>updateSequenceNum=0</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.get_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.get_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of bookmarks newer than <em>updateSequenceNum</em>.
+If <em>updateSequenceNum</em> is 0 or undefined, all bookmarks will be
+returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.get_highest_USN">
+<tt class="descname">get_highest_USN</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.get_highest_USN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.get_highest_USN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the highest updateSequenceNum in self.bookmarks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.rename_tag">
+<tt class="descname">rename_tag</tt><big>(</big><em>old_tag</em>, <em>new_tag</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#BookmarksDB.rename_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.rename_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Goes through all bookmarks and renames all tags named <em>old_tag</em> to be
+<em>new_tag</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.FaviconHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">FaviconHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#FaviconHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrives the biggest favicon-like icon at the given URL.  It will try to
+fetch apple-touch-icons (which can be nice and big) before it falls back
+to grabbing the favicon.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Works with GET and POST requests but POST is preferred since it keeps the URL from winding up in the server logs.</p>
+</div>
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.get_favicon_url">
+<tt class="descname">get_favicon_url</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#FaviconHandler.get_favicon_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.get_favicon_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses <em>html</em> looking for a favicon URL.  Returns a tuple of:</p>
+<div class="highlight-python"><div class="highlight"><pre>(&lt;url&gt;, &lt;mimetype&gt;)
+</pre></div>
+</div>
+<p>If no favicon can be found, returns:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.icon_multifetch">
+<tt class="descname">icon_multifetch</tt><big>(</big><em>urls</em>, <em>response</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#FaviconHandler.icon_multifetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.icon_multifetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the icon at the given URLs, stopping when it finds the biggest.
+If an icon is not found, calls itself again with the next icon URL.
+If the icon is found, writes it to the client and finishes the request.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.icon_fetch">
+<tt class="descname">icon_fetch</tt><big>(</big><em>url</em>, <em>mimetype</em>, <em>response</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#FaviconHandler.icon_fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.icon_fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the fetched icon to the client.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.ImportHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">ImportHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#ImportHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.ImportHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a bookmarks.html in a POST and returns a list of bookmarks in JSON
+format</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.ExportHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">ExportHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#ExportHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.ExportHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a JSON-encoded list of bookmarks and returns a Netscape-style HTML
+file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.send_bookmarks_css_template">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">send_bookmarks_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../../_modules/bookmarks.html#send_bookmarks_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.send_bookmarks_css_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends our bookmarks.css template to the client using the 'load_style'
+WebSocket action.  The rendered template will be saved in Gate One's
+'cache_dir'.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Bookmarks Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+<li><a class="reference internal" href="#module-bookmarks">Python</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="js_terminal_input.html"
+                        title="previous chapter">terminal_input.js</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin_convenience.html"
+                        title="next chapter">The Convenience Plugin</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/Applications/terminal/plugin_bookmarks.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_convenience.html" title="The Convenience Plugin"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="js_terminal_input.html" title="terminal_input.js"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

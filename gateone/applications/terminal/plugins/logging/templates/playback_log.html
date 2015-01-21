@@ -1,0 +1,461 @@
+<!doctype html>
+<html>
+<!--
+Wondering what made this recording?
+
+    http://liftoffsoftware.com/Products/GateOne
+
+There's also a Github repo if you want to see how it works:
+
+    https://github.com/liftoff/GateOne
+
+Here's the template that generated this file, specifically:
+
+    https://github.com/liftoff/GateOne/blob/master/gateone/applications/terminal/plugins/logging/templates/playback_log.html
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="description" content="Gate One - Session Playback">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate One - Session Playback</title>
+</head>
+<style>
+* { margin:0; padding:0 }
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 1em;
+}
+html, body { min-height:100%; }
+body {
+    padding: 0 0 0px;
+}
+/* Theme */
+{{theme}}
+/* Text colors */
+{{colors}}
+/* 256 colors */
+{{colors_256}}
+/* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
+.✈terminal_pre {
+    height: 100%;
+    width: 100%;
+    white-space: pre; /* Playbacks shouldn't wrap text to fit or they can look really strange */
+}
+.✈terminal {
+    position:absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.✈sidetitle {
+    right: 1.3em;
+    top: 11.5em;
+    bottom: auto;
+    left: auto;
+    font-size: 2em;
+}
+.✈sideinfo {
+    right: .1em;
+}
+.✈full {
+    width: 100%;
+    height: 100%;
+}
+</style>
+
+<body>
+  <div id="{{container}}" style="width: 100%; height: 100%;">
+    <div id="{{prefix}}gridwrapper">
+    </div>
+  </div>
+
+  <script>
+// Create the terminal record scaffold
+var term = 1; // For recordings this will always be 1
+var terminals = {};
+terminals[term] = {};
+terminals[term]['screen'] = new Array();
+terminals[term]['playbackFrames'] = new Array();
+var progressBarMouseDown = false,
+    currentFrame = null,
+    milliseconds = 0,
+    paused = false,
+    frameUpdater = null,
+    frameRate = 15, // Approximate
+    frameInterval = Math.round(1000/frameRate), // Needs to be converted to ms
+    resizeTimer = null, // Used to de-bounce window resizes
+    selectedFrameIndex = 0,
+    progressBar = null; // Assigned below
+function setTransform(node, transform) {
+    // Applys the given CSS3 *transform* to *node* for all known vendor prefixes (e.g. -<whatever>-transform)
+    var transforms = {
+        '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
+        '-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
+        '-o-transform': '', // Opera
+        '-ms-transform': '', // IE9+
+        '-khtml-transform': '' // Konqueror
+    };
+    for (prefix in transforms) {
+        node.style[prefix] = transform;
+    }
+    if (node.style.MozTransform != undefined) {
+        node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason
+    }
+}
+function fitWindow(node) {
+    // Scales the recording to fit within the browser view
+    var node = document.getElementById(node),
+        translate = 0,
+        nodeHeight = node.scrollHeight,
+        nodeWidth = node.scrollWidth;
+    if (nodeHeight > document.documentElement.clientHeight) { // Resize to fit
+        var scaleY = document.documentElement.clientHeight / (nodeHeight + 15), // +15 to make room for playback bar
+            translate = Math.abs((scaleY - 1)*10) * 5, // This is how much needs to be translated to match the scale
+            scaleXY = "scale(" + scaleY + ", " + scaleY + ")",
+            translateXY = 'translate(-' + translate + '%, -' + translate + '%) ',
+            transform = translateXY + scaleXY;
+        setTransform(node.parentNode, transform);
+    }
+}
+function scrollToBottom(elem) {
+    var node = document.getElementById(elem),
+        preview = {{preview}};
+    if (!preview) {
+        node.scrollTop = node.scrollHeight;
+    }
+}
+function addPlaybackControls() {
+    // Add the session playback controls to the given terminal
+    var controlsContainer = document.getElementById('{{prefix}}controlsContainer');
+    if (controlsContainer) {
+        // Remove it (we'll re-add it with events attached)
+        document.getElementById('{{container}}').removeChild(controlsContainer);
+    }
+    var playPause = document.createElement("div");
+    playPause.id = "{{prefix}}playPause";
+    playPause.innerHTML = '\u25B8';
+    playPause.className = "✈centertrans ✈playPause";
+    playPause.onclick = function (e) {
+        clearInterval(frameUpdater);
+        startRealtimePlayback();
+    }
+    progressBar = document.createElement("div");
+    progressBar.id = "{{prefix}}progressBar";
+    progressBar.className = "✈progressBar";
+    var progressBarContainer = document.createElement("div");
+    progressBarContainer.id = "{{prefix}}progressBarContainer";
+    progressBarContainer.className = "✈progressBarContainer";
+    progressBarContainer.appendChild(progressBar);
+    var clock = document.createElement("div");
+    clock.id = "{{prefix}}clock";
+    clock.className = "✈clock";
+    clock.innerHTML = "00:00:00";
+    var updateProgress = function(e) {
+        e.preventDefault();
+        if (progressBarMouseDown) {
+            clearInterval(frameUpdater); // Necessary to keep things flowing at the right rate/in order
+            if (!paused) {
+                // Restart playback if it isn't paused
+                startRealtimePlayback();
+            }
+            var X = e.clientX,
+                firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']),
+                lastFrame = terminals[1]['playbackFrames'].length - 1,
+                lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']),
+                totalMilliseconds = lastDateTime.getTime() - firstDateTime.getTime(),
+                percent = ((X - progressBarContainer.offsetLeft) / progressBarContainer.offsetWidth),
+                frameMS = Math.round(totalMilliseconds * percent),
+                currentFrame = selectFrame(frameMS);
+            progressBar.style.width = (percent*100) + '%'; // Update the progress bar to reflect the user's click
+            // Now update the terminal window to reflect the (approximate) selected frame
+            var selectedFrame = terminals[term]['playbackFrames'][currentFrame],
+                dateTime = new Date(selectedFrame['time']);
+            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+            document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
+            // Set the milliseconds global to accurately reflect the selected position:
+            milliseconds = Math.round(totalMilliseconds * percent);
+            playbackRealtime();
+        }
+    }
+    progressBarContainer.onmousedown = function(e) {
+        progressBarMouseDown = true;
+        updateProgress(e);
+    }
+    progressBarContainer.onmouseup = function(e) {
+        progressBarMouseDown = false;
+    }
+    progressBarContainer.onmousemove = function(e) {
+        // First figure out where the user clicked and what % that represents in the playback buffer
+        updateProgress(e);
+    };
+    var playbackControls = document.createElement("div");
+    playbackControls.id = "{{prefix}}playbackControls";
+    playbackControls.className = "✈playbackControls";
+    playbackControls.appendChild(playPause);
+    playbackControls.appendChild(progressBarContainer);
+    playbackControls.appendChild(clock);
+    var controlsContainer = document.createElement("div");
+    controlsContainer.id = "{{prefix}}controlsContainer";
+    controlsContainer.className = "✈controlsContainer";
+    controlsContainer.appendChild(playbackControls);
+    document.getElementById('{{container}}').appendChild(controlsContainer);
+}
+function selectFrame(ms) {
+    // Returns the last frame # with a 'time' less than (first frame's time + *ms*)
+    var firstFrameObj = terminals[1]['playbackFrames'][0],
+        frameTime = new Date(firstFrameObj['time']),
+        framesLength = terminals[1]['playbackFrames'].length - 1,
+        frameObj = null,
+        frame = null;
+    // Get a Date() that reflects the current position:
+    frameTime.setMilliseconds(frameTime.getMilliseconds() + ms);
+    for (i in terminals[1]['playbackFrames']) {
+        frameObj = terminals[1]['playbackFrames'][i];
+        var dateTime = new Date(frameObj['time']);
+        if (dateTime.getTime() > frameTime.getTime()) {
+            if (i > 0) {
+                frame = i - 1;
+            } else {
+                frame = i;
+            }
+            break
+        }
+    }
+    return frame;
+}
+function playbackRealtime() {
+    // Plays back the session recording in real-time.  Must be called every time you want an update of the screen (so run it inside setInterval()).
+    selectedFrameIndex = selectFrame(milliseconds);
+    var selectedFrame = null,
+        frameTime = new Date(terminals[1]['playbackFrames'][0]['time']),
+        lastFrame = terminals[1]['playbackFrames'].length - 1,
+        lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']),
+        preview = {{preview}};
+    if (selectedFrameIndex != null) {
+        selectedFrame = terminals[1]['playbackFrames'][selectedFrameIndex];
+    } else {
+        selectedFrame = terminals[1]['playbackFrames'][lastFrame];
+    }
+    frameTime.setMilliseconds(frameTime.getMilliseconds() + milliseconds);
+    try {
+        if (selectedFrameIndex == null) { // All done
+            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+            document.getElementById('{{prefix}}clock').innerHTML = lastDateTime.toLocaleTimeString();
+            if (!preview) {
+                document.getElementById('{{prefix}}sideinfo').innerHTML = lastDateTime.toLocaleDateString();
+            }
+            progressBar.style.width = '100%';
+            scrollToBottom('{{prefix}}term1_pre');
+            clearInterval(frameUpdater);
+            milliseconds = 0;
+            pauseRealtimePlayback(); // Just resets the play button in this situation
+            return;
+        }
+        document.getElementById('{{prefix}}clock').innerHTML = frameTime.toLocaleTimeString();
+        if (!preview) {
+            document.getElementById('{{prefix}}sideinfo').innerHTML = frameTime.toLocaleDateString();
+        }
+        document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+        scrollToBottom('{{prefix}}term1_pre');
+        // Update progress bar
+        var firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']);
+        var percent = Math.abs((lastDateTime.getTime() - frameTime.getTime())/(lastDateTime.getTime() - firstDateTime.getTime()) - 1);
+        if (percent > 1) {
+            percent = 1; // Last frame might be > 100% due to timing...  No biggie
+        }
+        progressBar.style.width = (percent*100) + '%';
+        milliseconds += frameInterval; // Increment determines our framerate
+    } catch (e) {
+        // Likely the page was just replaced with something new.  Cancel everything.
+        clearInterval(frameUpdater);
+        return;
+    }
+}
+function startRealtimePlayback() {
+    var playPause = document.getElementById("{{prefix}}playPause");
+    playPause.innerHTML = '<b>=</b>';
+    setTransform(playPause, 'rotate(90deg) scale(1.5) translate(0%, -20%)');
+    playPause.onclick = pauseRealtimePlayback;
+    frameUpdater = setInterval(playbackRealtime, frameInterval);
+    paused = false;
+}
+function pauseRealtimePlayback() {
+    var playPause = document.getElementById("{{prefix}}playPause");
+    playPause.innerHTML = '\u25B8';;
+    setTransform(playPause, '');
+    clearInterval(frameUpdater);
+    playPause.onclick = function (e) {
+        clearInterval(frameUpdater); // Just in case
+        startRealtimePlayback();
+    }
+    paused = true;
+}
+function togglePlayback() {
+    if (paused) {
+        startRealtimePlayback();
+    } else {
+        pauseRealtimePlayback();
+    }
+}
+function onResize() {
+    // This gets run if the window is resized
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        var term1 = document.getElementById('{{prefix}}term1');
+        setTransform(term1, '');
+        term1.style['height'] = "100%";
+        setTimeout(function() {
+            var termPre = document.getElementById('{{prefix}}term1_pre');
+            if (termPre.scrollHeight) {
+                term1.style['height'] = termPre.scrollHeight + 'px';
+                fitWindow('{{prefix}}term1_pre');
+            }
+        }, 250);
+    }, 100);
+}
+function onKeyDown(e) {
+    if (e.keyCode == 32) { // Space bar
+        togglePlayback();
+    }
+}
+function mouse(e) {
+    // Given an event object, returns an object:
+    // {
+    //    type:   <event type>, // Just preserves it
+    //    left:   <true/false>,
+    //    right:  <true/false>,
+    //    middle: <true/false>,
+    // }
+    // Note: Based on functions from MochiKit.Signal
+    var m = { type: e.type, button: {} };
+    if (e.type != 'mousemove' && e.type != 'mousewheel') {
+        if (e.which) { // Use 'which' if possible (modern and consistent)
+            m.button.left = (e.which == 1);
+            m.button.middle = (e.which == 2);
+            m.button.right = (e.which == 3);
+        } else { // Have to use button
+            m.button.left = !!(e.button & 1);
+            m.button.right = !!(e.button & 2);
+            m.button.middle = !!(e.button & 4);
+        }
+    }
+    if (e.type == 'mousewheel' || e.type == 'DOMMouseScroll') {
+        m.wheel = { x: 0, y: 0 };
+        if (e.wheelDeltaX || e.wheelDeltaY) {
+            m.wheel.x = e.wheelDeltaX / -40 || 0;
+            m.wheel.y = e.wheelDeltaY / -40 || 0;
+        } else if (e.wheelDelta) {
+            m.wheel.y = e.wheelDelta / -40;
+        } else {
+            m.wheel.y = e.detail || 0;
+        }
+    }
+    return m;
+}
+function wheelFunc(e) {
+    var m = mouse(e),
+        lastFrame = terminals[1]['playbackFrames'].length - 1;
+    if (selectedFrameIndex == null) {
+        // All done
+        selectedFrameIndex = lastFrame;
+        progressBar.style.width = '100%';
+        scrollToBottom('{{prefix}}term1_pre');
+    }
+    if (m.wheel.y > 0) {
+        // Scroll up
+        if (selectedFrameIndex < lastFrame) {
+            selectedFrameIndex += 1;
+        }
+    } else {
+        if (selectedFrameIndex > 0) {
+            selectedFrameIndex -= 1;
+        }
+    }
+    var firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']),
+        lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']),
+        totalMilliseconds = lastDateTime.getTime() - firstDateTime.getTime(),
+        percent = (selectedFrameIndex / terminals[1]['playbackFrames'].length) * 100,
+    // Now update the terminal window to reflect the (approximate) selected frame
+        selectedFrame = terminals[term]['playbackFrames'][selectedFrameIndex],
+        dateTime = new Date(selectedFrame['time']);
+    progressBar.style.width = percent + '%'; // Update the progress bar to reflect the current position
+    if (selectedFrameIndex == lastFrame) {
+        progressBar.style.width = '100%';
+    }
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+    document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
+    // Set the milliseconds global to accurately reflect the selected position:
+    milliseconds = Math.round(totalMilliseconds * (percent/100));
+}
+var mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
+window.onresize = function() {onResize()}
+window.addEventListener('keydown', onKeyDown, false);
+window.addEventListener(mousewheelevt, wheelFunc, true);
+window.onload = function() {
+    terminals[term]['playbackFrames'] = {% raw recording %};
+    var terminal = document.createElement("div"),
+        sideinfo = document.createElement("div"),
+        sidetitle = document.createElement("div"),
+        preview = {{preview}},
+        selectedFrame = terminals[1]['playbackFrames'][0],
+        dateTime = new Date(selectedFrame['time']);
+    terminal.id = '{{prefix}}term1';
+    terminal.title = 'Recorded Session';
+    terminal.className = '✈terminal ✈termcontainer ✈full';
+    document.getElementById('{{prefix}}gridwrapper').appendChild(terminal);
+    addPlaybackControls();
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre" class="✈terminal_pre">' + selectedFrame['screen'].join('\n') + "</pre>";
+    document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
+    scrollToBottom('{{prefix}}term1_pre');
+    // Add the sidebar text
+    sideinfo.id = '{{prefix}}sideinfo';
+    sideinfo.className = '✈sideinfo';
+    sidetitle.style.right = "0"; // No scrollbar so no need to make room for it
+    sidetitle.id = '{{prefix}}sidetitle';
+    sidetitle.className = '✈sideinfo ✈sidetitle';
+    sidetitle.style.top = "11.5em"; // Slightly different from a standard Gate One theme
+    sidetitle.style.right = "0"; // No scrollbar here either
+    if (!preview) {
+        sidetitle.innerHTML = "Gate One \u25B8 Playback";
+        sideinfo.innerHTML = dateTime.toLocaleDateString();
+    }
+    document.getElementById('{{container}}').appendChild(sidetitle);
+    document.getElementById('{{container}}').appendChild(sideinfo);
+    startRealtimePlayback();
+    // Set the background of the page to match the background of the terminal
+    var term1 = document.getElementById('{{prefix}}term1'),
+        style = window.getComputedStyle(term1, null);
+    document.body.style['background'] = style['background'];
+    document.body.style['background-clip'] = style['background-clip'];
+    document.body.style['background-color'] = style['background-color'];
+    document.body.style['background-image'] = style['background-image'];
+    document.body.style['background-origin'] = style['background-origin'];
+    document.body.style['background-position'] = style['background-position'];
+    document.body.style['background-repeat'] = style['background-repeat'];
+    document.body.style['background-size'] = style['background-size'];
+    if (!preview) {
+        setTimeout(function() {
+            fitWindow('{{prefix}}term1_pre');
+        }, 1000);
+    }
+}
+window.onunload = function() {
+    // Stop any running timers
+    clearInterval(frameUpdater);
+}
+  </script>
+</body>
+</html>

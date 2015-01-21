@@ -1,0 +1,337 @@
+/* Gate One stylesheet for printing */
+body {
+    color: black;
+    background-color: white;
+}
+hr {
+    margin: 0;
+    padding: 0;
+}
+#{{container}} {
+    position: static;
+    overflow: visible;
+    background-color: white;
+    padding: 0;
+    z-index: 0;
+    font-size: 0.8em;
+    color: black;
+    width: 100%;
+    margin: 0;
+    float: none;
+    height: 100%;
+}
+textarea {
+    background-color: #fff;
+    color: black;
+    outline: none;
+    resize: none;
+    font-family: monospace; /* Just "monospace" let the browser/printer choose what's best for print */
+    line-height: 1;
+}
+.✈terminal {
+    line-height: 1;
+    background-color: #fff;
+    color: black;
+    position:static;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    float: none;
+}
+.✈terminal a {
+    color: maroon;
+}
+.✈terminal a:visited {
+    color: maroon;
+}
+.✈terminal_pre {
+    font-family: monospace;
+    font-size: 1em;
+    line-height: 1;
+    width: 100%;
+    overflow: visible;
+    position: static;
+    color: black;
+    margin: 0;
+    padding: 0;
+    float: none;
+    white-space: pre-wrap;
+    -webkit-transform: none !important;
+    -moz-transform: none !important;
+    -ms-transform: none !important;
+    -o-transform: none !important;
+    transform: none !important;
+}
+span.cursor { color: #fff; background-color: #000; }
+span.reverse { background-color: #aaa; color: #fff; }
+.✈toolbar {
+    display: none;
+}
+.✈toolbar_container {
+    display: none;
+}
+.✈infocontainer {
+    display: none;
+}
+.✈noticecontainer {
+    display: none;
+}
+.✈terminfo {
+    color: #000;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.✈pastearea {
+    display: none !important;
+}
+.✈go_none { /* No prefix on this one because of issues with that in the JS code */
+    display: none;
+}
+.✈sideinfo {
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: right top;
+    -moz-transform: rotate(90deg);
+    -moz-transform-origin: right top;
+    -ms-transform: rotate(90deg);
+    -ms-transform-origin: right top;
+    -o-transform: rotate(90deg);
+    -o-transform-origin: right top;
+    transform: rotate(90deg);
+    transform-origin: right top;
+    right: 1em; /* This will get overridden by a px value calculated based on the width of the scrollbar */
+    bottom: 0;
+    color: black;
+    position: absolute;
+    font-family: sans-serif;
+    font-style: italic;
+    font-size: 1.3em;
+    opacity: 0.5;
+    font-weight: bold;
+    margin-bottom: -1em;
+    z-index: 10;
+}
+.✈notice {
+    display: none;
+}
+.✈panel {
+    display: none;
+}
+.✈medium {
+    height: 5em;
+}
+.✈user_info {
+    font-size: 0.8em;
+    padding-bottom: 0.25em;
+    text-align: right;
+}
+.✈user_info a:hover {
+    cursor: pointer;
+}
+.✈dialogcontainer {
+    display: none;
+}
+.✈dialogdiv {
+    display: none;
+}
+.✈dialogcontent {
+    display: none;
+}
+.✈dialog_close {
+    display: none;
+}
+.✈widgetcontainer {
+    display: none;
+}
+.✈widgetcontainer h3 {
+    background-color: transparent;
+    color: #000;
+    padding-left: 0.5em;
+    line-height: 1.5;
+    margin-top: 0;
+    padding-right: 1.5em; /* Making room for the X */
+    padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    text-align: center;
+    font-size: 1.1em;
+    /* Hidden by default */
+    opacity: 0;
+}
+.✈widgetcontainer textarea {
+    margin-right: 1.3em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+}
+.✈widgetcontainer input {
+    margin-right: 1.3em;
+    margin-bottom: 0.2em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+    display: block;
+    width: 99%;
+}
+.✈widgetcontainer label {
+    font-size: 1.2em;
+    padding-top: 0.5em;
+    display: inline-block;
+    font-family: sans-serif;
+}
+.✈widgettitle:hover {
+    cursor: move;
+}
+.✈widgetdiv {
+    float: left;
+    position: relative;
+    left: 50%;
+    width: 100%;
+}
+.✈widgetcontent {
+    float: left;
+    position: relative;
+    left: -50%;
+    width: 100%;
+    border: solid 1px transparent;
+}
+.✈widget_close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0.2em;
+    margin-right: 0.2em;
+    cursor: pointer;
+    opacity: .75;
+}
+.✈widget_configure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 0.2em;
+    margin-left: 0.2em;
+    cursor: pointer;
+    opacity: .75;
+}
+.✈widget_form input {
+    width: 97%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.2em;
+    display: block;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px #fff;
+    color: #000;
+    position: relative;
+    z-index: 2;
+    font-size: 1em;
+}
+.✈table_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    color: #000;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+.✈active.✈table_row {
+    -webkit-transform: skew(-10deg) translate(0.5%);
+    -moz-transform: skew(-10deg) translate(0.5%);
+    -ms-transform: skew(-10deg) translate(0.5%);
+    -o-transform: skew(-10deg) translate(0.5%);
+    transform: skew(-10deg) translate(0.5%);
+}
+.✈table_cell {
+    display: table-cell;
+    max-width: 13em;
+    padding-right: 0.5em;
+    background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    background-image: -webkit-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    background-image: -o-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
+    background-image: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.✈table_header_row {
+    display: table-header-group;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.✈table_header_cell {
+    color: #1F5470;
+    background-image: none;
+    background: none;
+}
+.✈table_header_cell.✈active {
+    color: maroon;
+}
+.✈table_header_cell:hover {
+    color: maroon;
+    cursor: pointer;
+    background-color: #fff;
+}
+.✈metadata_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+}
+.✈metadata_value {
+    display: table-cell;
+    padding-right: 0.5em;
+}
+.✈metadata_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+    vertical-align: top;
+    width: 50%; /* Ensures things are centered */
+}
+/* SVG Styling */
+.✈stop1 { stop-color: #636466; }
+.✈stop2 { stop-color: #464648; }
+.✈stop3 { stop-color: #5D5E60; }
+.✈stop4 { stop-color: #535355; }
+.✈panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
+.✈panelstop2 { stop-color: #2D61B4; }
+.✈panelstop3 { stop-color: #2E63B9; }
+.✈panelstop4 { stop-color: #1F5470; }
+/* Change the styling of the SVG close icon so it is white when inside dialogs */
+.✈dialogtitle .✈panelstop1 { stop-color: #FFF; }
+.✈dialogtitle .✈panelstop2 { stop-color: #CCC; }
+.✈dialogtitle .✈panelstop3 { stop-color: #DDD; }
+.✈dialogtitle .✈panelstop4 { stop-color: #FFF; }
+/* Ditto for widgets */
+.✈widgettitle .✈panelstop1 { stop-color: #636466; }
+.✈widgettitle .✈panelstop2 { stop-color: #464648; }
+.✈widgettitle .✈panelstop3 { stop-color: #5D5E60; }
+.✈widgettitle .✈panelstop4 { stop-color: #535355; }
+.✈overlay {
+    display: none;
+}
+/* Plugin-specific CSS (will get ignored if plugin is missing) */
+.✈playbackControls {
+    display: none;
+}
+.✈controlsContainer {
+    display: none;
+}
+.✈playPause {
+    display: none;
+}
+.✈progressBar {
+    display: none;
+}
+.✈progressBarContainer {
+    display: none;
+}
+.✈clock {
+    display: none;
+}

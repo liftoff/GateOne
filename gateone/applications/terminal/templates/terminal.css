@@ -1,0 +1,68 @@
+@charset "UTF-8";
+/* Generic Terminal application CSS that will be the same across all themes */
+.✈pastearea {
+    font-family: monospace;
+    display: block;
+    color: transparent;
+    background: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 1.1em;
+    padding: 0;
+    border: 0;
+    right: 3em;
+    z-index: 200;
+    margin: 0;
+    opacity: 0;
+    width: calc(100% - 2em);
+    height: calc(100% - 2em);
+    width: -webkit-calc(100% - 2em);
+    height: -webkit-calc(100% - 2em);
+}
+.✈pastearea:hover {
+    cursor: text;
+}
+span.✈screen {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+}
+span.✈scrollback {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+}
+span.✈termline {
+    width: 100%;
+}
+/* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
+.✈go_none {
+    height: 1px;
+    width: 1px;
+}
+.✈IME {
+    height: 0;
+    width: 0;
+    position: fixed;
+    z-index: 99999;
+    top: -99999px;
+    left: -99999px;
+}
+/* Only give the IME input element a height/width if it has focus */
+.✈IME:focus {
+    height: 1.2em;
+    width: auto;
+}
+.✈font_monospace {
+    font-family: monospace;
+}
+.✈font_ubuntu {
+    font-family: 'Ubuntu Mono';
+}
+@media only screen and (max-width: 800px) {
+    .✈pastearea {
+        /* Touchscreens don't work with the pastearea */
+        display: none;
+    }
+}

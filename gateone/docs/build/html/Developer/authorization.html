@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>authorization.py - Authentication Classes &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="ctypes_pam.py - PAM Authentication Module" href="ctypes_pam.html" />
+    <link rel="prev" title="authentication.py - Authentication Classes" href="authentication.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="authentication.html" title="authentication.py - Authentication Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gateone.auth.authorization">
+<span id="authorization-py-authentication-classes"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">authorization.py</span></tt> - Authentication Classes<a class="headerlink" href="#module-gateone.auth.authorization" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="authorization">
+<span id="authorization-py"></span><h2>Authorization<a class="headerlink" href="#authorization" title="Permalink to this headline">¶</a></h2>
+<p>This module contains Gate One's authorization helpers.</p>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gateone.auth.authorization.require">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authorization.</tt><tt class="descname">require</tt><big>(</big><em>*conditions</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authorization.html#require"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authorization.require" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator to add authorization requirements to any given function or
+method using condition classes. Condition classes are classes with check()
+methods that return True if the condition is met.</p>
+<p>Example of using &#64;require with is_user():</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@require</span><span class="p">(</span><span class="n">is_user</span><span class="p">(</span><span class="s">&#39;administrator&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">admin_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;Hello, Administrator!&#39;</span>
+</pre></div>
+</div>
+<p>This would only allow the user, 'administrator' access to the index page.
+In this example the <em>condition</em> is the <a class="reference internal" href="#gateone.auth.authorization.is_user" title="gateone.auth.authorization.is_user"><tt class="xref py py-obj docutils literal"><span class="pre">is_user</span></tt></a> function which checks that
+the logged-in user's username (aka UPN) is 'administrator'.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authorization.authenticated">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authorization.</tt><tt class="descname">authenticated</tt><a class="reference internal" href="../_modules/gateone/auth/authorization.html#authenticated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authorization.authenticated" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if the user is authenticated.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only meant to be used with WebSockets.  <tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt>
+instances can use <tt class="xref py py-obj docutils literal"><span class="pre">&#64;tornado.web.authenticated</span></tt></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authorization.is_user">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authorization.</tt><tt class="descname">is_user</tt><big>(</big><em>upn</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authorization.html#is_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authorization.is_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if the given username/UPN matches what's in <tt class="xref py py-obj docutils literal"><span class="pre">self._current_user</span></tt>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authorization.policies">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authorization.</tt><tt class="descname">policies</tt><big>(</big><em>app</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authorization.html#policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authorization.policies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if all the given conditions are within the limits specified in Gate One's
+settings (e.g. 50limits.conf).  Here's an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">new_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+    <span class="c"># Actual function would be here</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>That would apply all policies that are configured for the 'terminal'
+application.  It works like this:</p>
+<p>The <a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication" title="app_terminal.TerminalApplication"><tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt></a> application registers its
+name and policy-checking function inside of
+<a class="reference internal" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.initialize" title="app_terminal.TerminalApplication.initialize"><tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt></a> like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="n">terminal_policies</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Whenever a function decorated with <tt class="docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
+called the registered policy-checking function (e.g.
+<tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current
+instance of <a class="reference internal" href="#gateone.auth.authorization.policies" title="gateone.auth.authorization.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
+<p>It is then up to the policy-checking function to make a determination as to
+whether or not the user is allowed to execute the decorated function and
+must return <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt> if allowed.  Also note that the policy-checking function
+will be able to make modifications to the function and its arguments if the
+security policies warrant it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you write your own policy-checking function (like
+<tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt>) it is often a good idea to send a
+notification to the user indicating why they've been denied.  You can
+do this with the <tt class="xref py py-meth docutils literal"><span class="pre">instance.send_message()</span></tt> method.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">authorization.py</span></tt> - Authentication Classes</a><ul>
+<li><a class="reference internal" href="#authorization">Authorization</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="authentication.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">authentication.py</span></tt> - Authentication Classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ctypes_pam.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">ctypes_pam.py</span></tt> - PAM Authentication Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/authorization.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ctypes_pam.html" title="ctypes_pam.py - PAM Authentication Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="authentication.html" title="authentication.py - Authentication Classes"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

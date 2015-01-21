@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>Embedding Gate One Into Other Applications &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="How To Embed Gate One - Chapter 1" href="embedding_chapter1.html" />
+    <link rel="prev" title="The Help Plugin" href="plugin_help.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="embedding_chapter1.html" title="How To Embed Gate One - Chapter 1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugin_help.html" title="The Help Plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="embedding-gate-one-into-other-applications">
+<span id="gateone-embedding"></span><h1>Embedding Gate One Into Other Applications<a class="headerlink" href="#embedding-gate-one-into-other-applications" title="Permalink to this headline">¶</a></h1>
+<p>Gate One can be embedded into <em>any</em> web page (really!) <em>without</em> using an iframe.  Since that's not a common thing to do on the web (yet) you'll need to understand a few things like how it works, what you can do with it, and how to keep it secure.  This tutorial will teach you everything you need to know to get Gate One embedded into your web application.</p>
+<p>To use the examples in this tutorial you must have Gate One installed on some host (<em>any</em> host) where you can run the 'gateone' command (you don't need root).  Alternatively, you can run Gate One out of a directory (e.g. the GateOne directory from 'git clone') using the 'run_gateone.py' command.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="embedding_chapter1.html">How To Embed Gate One - Chapter 1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="embedding_chapter1.html#placement">Placement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_chapter1.html#include-gateone-js">Include gateone.js</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_chapter1.html#call-gateone-init">Call GateOne.init()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_chapter1.html#complete-example">Complete Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="embedding_chapter1.html#try-it">Try It</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="embedding_api_auth.html">API Authentication</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#enable-api-authentication">Enable API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#generate-an-api-key-secret">Generate an API Key/Secret</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#generate-an-auth-object">Generate An Auth Object</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="embedding_api_auth.html#example-api-authentication-code">Example API Authentication Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#python">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#php">PHP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_api_auth.html#ruby">Ruby</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_help.html"
+                        title="previous chapter">The Help Plugin</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="embedding_chapter1.html"
+                        title="next chapter">How To Embed Gate One - Chapter 1</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/embedding.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="embedding_chapter1.html" title="How To Embed Gate One - Chapter 1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="plugin_help.html" title="The Help Plugin"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

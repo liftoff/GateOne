@@ -1,0 +1,30 @@
+// This is an example of a limits.conf file.  You'll need to create your own.
+// The limits.conf file controls "how much" of any given feature or function a
+// given user or group may utilize.  The format of this file is JSON with
+// support for JavaScript-style comments (they will be removed before parsing).
+{
+    // "*" for default (all users)
+    "*": {
+        "terminal": { // This is the "application" i.e. whatever is passed to @require(policies("<application>"))
+            "max_terms": 50 // An absolute maximum
+        }
+    },
+    // Regular expressions work too
+    "user=bob.*": {}, // Note: 'user=' is just a shortcut for 'user.upn='
+    "group=gateone_users": {
+        "terminal": {
+            "max_terms": 100 // Absolute maximum
+        }
+    },
+    // You can also use properties if the user or group has them...
+    "user.email=.*liftoffsoftware.com": {
+        "terminal": {
+            "max_terms": 1000 // Absolute maximum
+        }
+    },
+    "group.whatever=foo": { // Just another example
+        "terminal": {
+            "max_terms": 1 // Only one open terminal for these folks
+        }
+    }
+}

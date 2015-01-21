@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=0">
+    <title>Gate One - Broadcast Terminal: {{share_id}}</title>
+    <link rel="stylesheet" href="{{url_prefix}}static/gateone.css" type="text/css" media="screen" />
+    <link rel="shortcut icon" href="{{url_prefix}}static/favicon.ico" />
+</head>
+<body>
+<script type="text/javascript" src="{{gateone_js}}"></script>
+<div id="gateone"></div>
+<style>
+.✈terminal { position: relative; } /* Fixes a strange rendering bug in Chrome where the sideinfo panel gets overlapped with the terminal scrollbar */
+.✈terminal_pre {
+    overflow: auto; /* So users with smaller screens than the sharer can scroll to see everything */
+}
+.✈shared_term_entry {
+    max-height: 50%;
+    padding: .5em;
+    display: table;
+}
+.✈shared_term_entry input {
+    width: 17em;
+}
+.✈join_form_cell {
+    display: table-cell;
+}
+.✈join_broadcast {
+    position: relative;
+    top: 0;
+    left: 80%;
+}
+</style>
+<script>
+
+window.onload = function() {
+    // Initialize Gate One using defaults:
+    GateOne.location = 'broadcast';
+{% if prefs %}
+    var urlPrefs = {% raw prefs %};
+    for (var pref in urlPrefs) {
+        GateOne.prefs[pref] = urlPrefs[pref];
+    }
+    // Also remove the long obtrusive query string from the URL
+    GateOne.Utils.removeQueryVariable('prefs');
+{% end %}
+    var go = GateOne,
+        prefix = go.prefs.prefix,
+        u = go.Utils,
+        v = go.Visual,
+        E = go.Events,
+        closeDialog, loaded,
+        savedValues = localStorage['go_broadcast_user_info'],
+        url = window.location.href.split('/terminal')[0],
+        entryDialogContainer = u.createElement('form', {'class': '✈shared_term_entry'}),
+        row1 = u.createElement('div', {'class': '✈table_row'}),
+        row2 = u.createElement('div', {'class': '✈table_row'}),
+        row3 = u.createElement('div', {'class': '✈table_row'}),
+        row4 = u.createElement('div', {'class': '✈table_row'}),
+        row5 = u.createElement('div', {'class': '✈table_row'}),
+        empty = u.createElement('div', {'class': '✈join_form_cell'}),
+        nameInputLabel = u.createElement('label', {'class': '✈join_form_cell'}),
+        nameInput = u.createElement('input', {'type': 'text', 'id': 'broadcast_user_name', 'class': '✈broadcast_user_name ✈join_form_cell', 'placeholder': 'John Doe'}),
+        emailInputLabel = u.createElement('label', {'class': '✈join_form_cell'}),
+        emailInput = u.createElement('input', {'type': 'email', 'id': 'broadcast_user_email', 'class': '✈broadcast_user_email ✈join_form_cell', 'placeholder': 'john.doe@company.com'}),
+        passwordLabel = u.createElement('label', {'class': '✈join_form_cell'}),
+        password = u.createElement('input', {'type': 'password', 'id': 'broadcast_password', 'class': '✈broadcast_password ✈join_form_cell', 'placeholder': 'If required'}),
+        rememberInputLabel = u.createElement('label', {'class': '✈join_form_cell'}),
+        rememberInput = u.createElement('input', {'type': 'checkbox', 'id': 'broadcast_user_remember', 'class': '✈broadcast_user_remember ✈join_form_cell'}),
+//         buttonContainer = u.createElement('div', {'class': '✈centered_buttons'}),
+        join = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Join', 'class': '✈button ✈black ✈join_broadcast'}),
+        attachSharedTerminal = function() {
+            go.Base.superSandbox("", ["GateOne.Terminal"], function() {
+                go.Terminal.attachSharedTerminal('{{share_id}}', password.value, {'name': nameInput.value, 'email': emailInput.value});
+            });
+        },
+        callback = function() {
+//             go.Logging.setLevel('debug');
+            go.Net.setLocation(go.location); // Needed since we're not performing an authentication
+            // Create the grid (for only one terminal) and request the client JS/CSS
+            var gridwrapper = v.createGrid('gridwrapper');
+            go.node.appendChild(gridwrapper);
+            var style = getComputedStyle(go.node, null),
+                adjust = 0,
+                paddingRight = (style['padding-right'] || style['paddingRight']);
+            if (paddingRight) {
+                adjust = parseInt(paddingRight.split('px')[0]);
+            }
+            var gridWidth = (v.goDimensions.w+adjust) * 2;
+            gridwrapper.style.width = gridWidth + 'px';
+            go.ws.send(JSON.stringify({"terminal:get_client_files": null}));
+            E.on('go:js_loaded', function() {
+                if (!loaded) {
+                    loaded = true;
+                    closeDialog = v.dialog('Join Shared Terminal', entryDialogContainer, {'class': '✈prefsdialog'});
+                }
+            });
+        };
+        nameInputLabel.innerHTML = "Your Name";
+        nameInputLabel.htmlFor = prefix+"broadcast_user_name";
+        emailInputLabel.innerHTML = "Email Address";
+        emailInputLabel.htmlFor = prefix+"broadcast_user_email";
+        passwordLabel.innerHTML = "Password";
+        passwordLabel.htmlFor = prefix+"broadcast_password";
+        rememberInputLabel.innerHTML = "Remember Me";
+        rememberInputLabel.htmlFor = prefix+"broadcast_user_remember";
+        join.innerHTML = "Join";
+        if (savedValues) {
+            savedValues = JSON.parse(localStorage['go_broadcast_user_info']);
+            nameInput.value = savedValues['name'];
+            emailInput.value = savedValues['email'];
+            rememberInput.checked = true;
+        }
+        row1.appendChild(nameInputLabel);
+        row1.appendChild(nameInput);
+        row2.appendChild(emailInputLabel);
+        row2.appendChild(emailInput);
+        row3.appendChild(passwordLabel);
+        row3.appendChild(password);
+        row4.appendChild(rememberInputLabel);
+        row4.appendChild(rememberInput);
+        row5.appendChild(empty);
+        row5.appendChild(join);
+        entryDialogContainer.appendChild(row1);
+        entryDialogContainer.appendChild(row2);
+        entryDialogContainer.appendChild(row3);
+        entryDialogContainer.appendChild(row4);
+        entryDialogContainer.appendChild(row5);
+        entryDialogContainer.onsubmit = function(e) {
+            e.preventDefault(); // Don't actually submit anything
+            var name = nameInput.value,
+                email = emailInput.value;
+            if (rememberInput.checked) {
+                localStorage['go_broadcast_user_info'] = JSON.stringify({'name': name, 'email': email});
+            } else {
+                delete localStorage['go_broadcast_user_info'];
+            }
+            attachSharedTerminal();
+            closeDialog();
+        }
+        E.on("terminal:reconnect_terminal", function(message) {
+            var term = message['term'];
+            go.Terminal.newTerminal(term);
+            go.Terminal.switchTerminal(term);
+            go.Terminal.lastTermNumber = term;
+        });
+        go.init({
+            'embedded': true,
+            'showTitle': true,
+            'authenticate': false,
+            'url': url,
+            'broadcastTerminal': true
+        }, callback);
+}
+</script>
+</body>
+</html>

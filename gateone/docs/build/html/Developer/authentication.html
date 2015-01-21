@@ -1,0 +1,457 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>authentication.py - Authentication Classes &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="authorization.py - Authentication Classes" href="authorization.html" />
+    <link rel="prev" title="Developer Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="authorization.html" title="authorization.py - Authentication Classes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Developer Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gateone.auth.authentication">
+<span id="authentication-py-authentication-classes"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">authentication.py</span></tt> - Authentication Classes<a class="headerlink" href="#module-gateone.auth.authentication" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="authentication">
+<span id="auth-py"></span><h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
+<p>This module contains Gate One's authentication classes.  They map to Gate One's
+--auth configuration option like so:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="44%" />
+<col width="56%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>--auth=none</td>
+<td>NullAuthHandler</td>
+</tr>
+<tr class="row-even"><td>--auth=kerberos</td>
+<td>KerberosAuthHandler</td>
+</tr>
+<tr class="row-odd"><td>--auth=google</td>
+<td>GoogleAuthHandler</td>
+</tr>
+<tr class="row-even"><td>--auth=pam</td>
+<td>PAMAuthHandler</td>
+</tr>
+<tr class="row-odd"><td>--auth=api</td>
+<td>APIAuthHandler</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">API authentication is handled inside of <a class="reference internal" href="server.html#gateone-py"><em>Gate One</em></a></p>
+</div>
+<div class="section" id="none-or-anonymous">
+<h3>None or Anonymous<a class="headerlink" href="#none-or-anonymous" title="Permalink to this headline">¶</a></h3>
+<p>By default Gate One will not authenticate users.  This means that user sessions
+will be tied to their browser cookie and users will not be able to resume their
+sessions from another computer/browser.  Most useful for situations where
+session persistence and logging aren't important.</p>
+<p><em>All</em> users will show up as ANONYMOUS using this authentication type.</p>
+</div>
+<div class="section" id="kerberos">
+<h3>Kerberos<a class="headerlink" href="#kerberos" title="Permalink to this headline">¶</a></h3>
+<p>Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall
+back to HTTP Basic authentication if GSSAPI auth fails.  This authentication
+type can be integrated into any Kerberos infrastructure including Windows
+Active Directory.</p>
+<p>It is great for both transparent authentication and being able to tie sessions
+and logs to specific users within your organization (compliance).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The sso.py module itself has extensive documentation on this authentication
+type.</p>
+</div>
+</div>
+<div class="section" id="google-authentication">
+<h3>Google Authentication<a class="headerlink" href="#google-authentication" title="Permalink to this headline">¶</a></h3>
+<p>If you want persistent user sessions but don't care to run your own
+authentication infrastructure this authentication type is for you.  Assuming,
+of course, that your Gate One server and clients will have access to the
+Internet.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This authentication type is perfect if you're using Chromebooks (Chrome OS
+devices).</p>
+</div>
+</div>
+<div class="section" id="api-authentication">
+<h3>API Authentication<a class="headerlink" href="#api-authentication" title="Permalink to this headline">¶</a></h3>
+<p>API-based authentication is actually handled in gateone.py but we still need
+<em>something</em> to exist at the /auth URL that will always return the
+'unauthenticated' response.  This ensures that no one can authenticate
+themselves by visiting that URL manually.</p>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gateone.auth.authentication.additional_attributes">
+<tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">additional_attributes</tt><big>(</big><em>user</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#additional_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.additional_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>user</em> dict, return a dict containing any additional attributes
+defined in Gate One's attribute repositories.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function doesn't actually work yet (support for attribute repos
+like LDAP is forthcoming).</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.BaseAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">BaseAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#BaseAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.BaseAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base class for all Gate One authentication handlers.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.BaseAuthHandler.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#BaseAuthHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.BaseAuthHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tornado standard method--implemented our way.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.BaseAuthHandler.user_login">
+<tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#BaseAuthHandler.user_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.BaseAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called immediately after a user authenticates successfully.  Saves
+session information in the user's directory.  Expects <em>user</em> to be a
+dict containing a 'upn' value representing the username or
+userPrincipalName. e.g. <a class="reference external" href="mailto:'user&#37;&#52;&#48;REALM">'user<span>&#64;</span>REALM</a>' or just 'someuser'.  Any additional
+values will be attached to the user object/cookie.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.BaseAuthHandler.user_logout">
+<tt class="descname">user_logout</tt><big>(</big><em>user</em>, <em>redirect=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#BaseAuthHandler.user_logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.BaseAuthHandler.user_logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called immediately after a user logs out, cleans up the user's session
+information and optionally, redirects them to <em>redirect</em> (URL).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.NullAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">NullAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#NullAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.NullAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A handler for when no authentication method is chosen (i.e. --auth=none).
+With this handler all users will show up as &quot;ANONYMOUS&quot;.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.NullAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#NullAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.NullAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'gateone_user' cookie with a new random session ID
+(<em>go_session</em>) and sets <em>go_upn</em> to 'ANONYMOUS'.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.NullAuthHandler.user_login">
+<tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#NullAuthHandler.user_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.NullAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an override of BaseAuthHandler since anonymous auth is special.
+Generates a unique session ID for this user and saves it in a browser
+cookie.  This is to ensure that anonymous users can't access each
+other's sessions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.APIAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">APIAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#APIAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.APIAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A handler that always reports 'unauthenticated' since API-based auth doesn't
+use auth handlers.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.APIAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#APIAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.APIAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the 'gateone_user' cookie and handles some other situations for
+backwards compatibility.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.GoogleAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">GoogleAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#GoogleAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.GoogleAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Google authentication handler using Tornado's built-in GoogleOAuth2Mixin
+(fairly boilerplate).</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.GoogleAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#GoogleAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.GoogleAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user object given to us by
+Google.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.GoogleAuthHandler._on_auth">
+<tt class="descname">_on_auth</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#GoogleAuthHandler._on_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.GoogleAuthHandler._on_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just a continuation of the get() method (the final step where it
+actually sets the cookie).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.SSLAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">SSLAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#SSLAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.SSLAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>SSL Certificate-based  authentication handler.  Can only be used if the
+<tt class="docutils literal"><span class="pre">ca_certs</span></tt> option is set along with <tt class="docutils literal"><span class="pre">ssl_auth=required</span></tt> or
+<tt class="docutils literal"><span class="pre">ssl_auth=optional</span></tt>.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.SSLAuthHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#SSLAuthHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.SSLAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out helpful error messages if the requisite settings aren't
+configured.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.SSLAuthHandler._convert_certificate">
+<tt class="descname">_convert_certificate</tt><big>(</big><em>cert</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#SSLAuthHandler._convert_certificate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.SSLAuthHandler._convert_certificate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the certificate format returned by get_ssl_certificate() into
+a format more suitable for a user dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.SSLAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#SSLAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.SSLAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user's client SSL
+certificate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.KerberosAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">KerberosAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#KerberosAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.KerberosAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles authenticating users via Kerberos/GSSAPI/SSO.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.KerberosAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#KerberosAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.KerberosAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the user's request header for the proper Authorization data.
+If it checks out the user will be logged in via _on_auth().  If not,
+the browser will be redirected to login.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.PAMAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">PAMAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#PAMAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.PAMAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles authenticating users via PAM.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.PAMAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#PAMAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the user's request header for the proper Authorization data.
+If it checks out the user will be logged in via _on_auth().  If not,
+the browser will be redirected to login.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.auth.authentication.CASAuthHandler">
+<em class="property">class </em><tt class="descclassname">gateone.auth.authentication.</tt><tt class="descname">CASAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>CAS authentication handler.</p>
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out helpful error messages if the requisite settings aren't
+configured.</p>
+<p>NOTE: It won't hurt anything to override this method in your
+RequestHandler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user object given to us by
+Google.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.authenticate_redirect">
+<tt class="descname">authenticate_redirect</tt><big>(</big><em>callback=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redirects to the authentication URL for this CAS service.</p>
+<p>After authentication, the service will redirect back to the given
+callback URI with additional parameters.</p>
+<p>We request the given attributes for the authenticated user by
+default (name, email, language, and username). If you don't need
+all those attributes for your app, you can request fewer with
+the ax_attrs keyword argument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler.get_authenticated_user">
+<tt class="descname">get_authenticated_user</tt><big>(</big><em>server_ticket</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests the user's information from the CAS server using the given
+<em>server_ticket</em> and calls <tt class="docutils literal"><span class="pre">self._on_auth</span></tt> with the resulting user
+dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.auth.authentication.CASAuthHandler._on_auth">
+<tt class="descname">_on_auth</tt><big>(</big><em>response</em><big>)</big><a class="reference internal" href="../_modules/gateone/auth/authentication.html#CASAuthHandler._on_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.auth.authentication.CASAuthHandler._on_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just a continuation of the get() method (the final step where it
+actually sets the cookie).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">authentication.py</span></tt> - Authentication Classes</a><ul>
+<li><a class="reference internal" href="#authentication">Authentication</a><ul>
+<li><a class="reference internal" href="#none-or-anonymous">None or Anonymous</a></li>
+<li><a class="reference internal" href="#kerberos">Kerberos</a></li>
+<li><a class="reference internal" href="#google-authentication">Google Authentication</a></li>
+<li><a class="reference internal" href="#api-authentication">API Authentication</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Developer Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="authorization.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">authorization.py</span></tt> - Authentication Classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/authentication.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="authorization.html" title="authorization.py - Authentication Classes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Developer Documentation"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

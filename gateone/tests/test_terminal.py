@@ -58,5 +58,5 @@ class Test1Coding(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    print "Date & Time:\t\t\t%s" % time.ctime()
+    print("Date & Time:\t\t\t%s" % time.ctime())
     unittest.main()

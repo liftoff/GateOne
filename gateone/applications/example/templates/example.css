@@ -1,0 +1,9 @@
+/*
+Any CSS that shouldn't be controlled via themes should go here.
+*/
+.✈example_container {
+    width: calc(100% - 2em);
+    height: 100%;
+    overflow-y: auto;
+    background-color: #000;
+}

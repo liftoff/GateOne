@@ -1,0 +1,40 @@
+.✈bookmark { /* Override the bookmark plugin's CSS to make it really dark */
+    color: white;
+    border: 0.1em #fff solid;
+    background-image: -webkit-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background-image: -o-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background-image: linear-gradient(to bottom, #000, rgba(12, 12, 12, 0.7));
+}
+.✈bm_pagination a {
+    border: 0.1em #fff solid;
+}
+.✈bm_pagination a:link,
+.✈bm_pagination a:visited {
+    float: left;
+}
+.✈bm_pagination a:hover{
+    border: solid 1px #fff;
+}
+.✈bm_pagination .active {
+    color: #FFF;
+    background-color: #111;
+    border: 0.1em #000 solid;
+}
+.✈✈bm_pagination .inactive a {
+    border: solid 1px #fff;
+    color: #888;
+}
+div.✈bookmark:hover {
+    background-color: rgba(0, 0, 0, 1);
+    cursor: pointer;
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -o-transition: all 0.05s ease-in-out;
+    -o-transform-origin: center center;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
+}

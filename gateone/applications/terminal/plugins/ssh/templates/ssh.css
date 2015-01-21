@@ -1,0 +1,130 @@
+.✈ssh_ids_listcontainer {
+    margin-left: 0.5em;
+}
+.✈ssh_id {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+.✈active.✈ssh_id {
+    -webkit-transform: skew(-10deg) translate(0.5%);
+}
+.✈ssh_id_title {
+    width: 15em;
+}
+.✈ssh_id_metadata_value {
+    display: table-cell;
+    padding-right: 0.5em;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+.✈ssh_id_pubkey_value {
+    width: 100%;
+    height: 4em;
+}
+.✈ssh_id_metadata_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+    width: 24%;
+    font-size: 0.9em;
+}
+.✈ssh_id_default {
+    text-align: center;
+    padding-left: 1.2em;
+}
+.✈ssh_id_delete {
+    margin-bottom: 0.2em;
+}
+.✈panel_ssh_ids {
+    width: 90%;
+    height: 85%; /* A bit off the bottom so you can see if something scrolls */
+}
+.✈ssh_ids_container {
+    position: absolute;
+    top: 3.9em;
+    bottom: 0;
+    padding-left: .2em;
+    margin-left: .5em;
+    left: 0;
+    right: 0;
+}
+.✈ssh_ids_options {
+    display: table-cell;
+    text-transform: uppercase;
+    background-image: none;
+    padding-left: 0.5em;
+}
+.✈ssh_id_metadata {
+    width: 100%;
+    display: table;
+}
+.✈ssh_id_info {
+    float: right;
+    width: 48%;
+    margin-right: 0.5em;
+    margin-top: -1.5em;
+}
+.✈ssh_id_form {
+    margin: 0 auto;
+    padding: 0.5em;
+}
+.✈ssh_id_form input {
+    width: 100%;
+}
+.✈ssh_id_form select {
+    font-size: 0.9em;
+    display: inline-block;
+    padding: 0.2em 0.2em;
+    border-radius: 2px;
+    position: relative;
+    margin-right: 1em;
+    margin-bottom: 0.4em;
+    margin-left: 0.4em;
+}
+.✈ssh_id:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.2);
+    -webkit-transform-origin: center center;
+    -webkit-transition: background-color 0.05s ease-in-out;
+    -moz-transition: background-color 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -o-transition-property: background-color;
+    -o-transition-duration: 0.05s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: center center;
+    -khtml-transform-origin: center center;
+    -khtml-transition: background-color 0.05s ease-in-out;
+    -ms-transform-origin: center center;
+    -ms-transition: background-color 0.05s ease-in-out;
+    transform-origin: top left;
+    transition: background-color 0.05s ease-in-out;
+}
+.✈ssh_new_id_passphrase {
+    display: block;
+}
+.✈ssh_keybits_row {
+}
+.✈ssh_panel_link {
+    float: left;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-right: 0.5em;
+}
+.✈ssh_panel_link:hover {
+    cursor: pointer;
+    -webkit-transition: -webkit-transform 0.1s ease-in-out;
+    -moz-transition: -webkit-transform 0.1s ease-in-out;
+    -o-transition-property: all;
+    -o-transition-duration: 0.1s;
+    -o-transition-timing-function: ease-in-out;
+    -khtml-transition: -webkit-transform 0.1s ease-in-out;
+    -ms-transition: -webkit-transform 0.1s ease-in-out;
+    transition: -webkit-transform 0.1s ease-in-out;
+}
+.✈panel_known_hosts {
+    max-width: 93%;
+}

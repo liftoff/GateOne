@@ -9,7 +9,8 @@ Contents
 
 .. toctree::
     :maxdepth: 2
-    
+
     About/index.rst
-    UserGuide/index.rst
+    Applications/index.rst
     Developer/index.rst
+    ReleaseNotes/index.rst

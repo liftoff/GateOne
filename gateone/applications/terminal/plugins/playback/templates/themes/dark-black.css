@@ -1,0 +1,59 @@
+/* Gate One dark-black theme */
+.✈playbackControls {
+    padding: 0;
+    border: 0;
+}
+.✈controlsContainer {
+    display: block;
+    position: absolute;
+    z-index: 100;
+    bottom: 0;
+    white-space: normal;
+    padding: 0;
+    border: 0;
+    left: 0;
+    right: 2em;
+    font-family: 'Ubuntu Mono', monospace;
+}
+.✈playPause {
+    float: left;
+    color: #fff;
+    opacity: 0.7;
+    font-size: 1em;
+    margin-left: 0.3em;
+}
+.✈playPause:hover {
+    cursor: pointer;
+}
+.✈progressBar {
+    background: #000;
+    padding: 0;
+    margin: 1px;
+    border: 0;
+    width: 0%;
+    height: 5px;
+}
+.✈progressBarContainer {
+    position: absolute;
+    bottom: 0;
+    right: 6em;
+    left: 1.4em;
+    margin-bottom: 0.25em;
+    background: #fff;
+    border: 0;
+    opacity: 0.7;
+}
+.✈clock {
+    color: #fff;
+    opacity: 0.7;
+    font-size: 0.7em;
+    position: absolute;
+    right: 2em;
+    bottom: 0.1em;
+}
+/* Optimize Gate One for mobile devices */
+@media only screen and (max-width: 800px) {
+    .✈playbackControls {
+        display: none; /* Small screens really don't have room for this */
+    }
+}

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,8 +5,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>The Help Plugin &mdash; Gate One 1.0 documentation</title>
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>The Help Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +26,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,10 +36,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="The Logging Plugin" href="plugin_logging.html" />
-    <link rel="prev" title="The Bookmarks Plugin" href="plugin_bookmarks.html" /> 
+    <link rel="next" title="Embedding Gate One Into Other Applications" href="embedding.html" />
+    <link rel="prev" title="term_ww.js" href="js_go_process.html" /> 
   </head>
   <body>
     <div class="related">
@@ -43,10 +52,10 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="plugin_logging.html" title="The Logging Plugin"
+          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="plugin_bookmarks.html" title="The Bookmarks Plugin"
+          <a href="js_go_process.html" title="term_ww.js"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -60,6 +69,63 @@
             
   <div class="section" id="the-help-plugin">
 <h1>The Help Plugin<a class="headerlink" href="#the-help-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="GateOne.Help">
+<tt class="descclassname">GateOne.</tt><tt class="descname">Help</tt><a class="headerlink" href="#GateOne.Help" title="Permalink to this definition">¶</a></dt>
+<dd><p>A global Gate One plugin for providing helpful/useful information to the user.</p>
+<dl class="staticmethod">
+<dt id="GateOne.Help.aboutGateOne">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">aboutGateOne</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the Gate One version/credits.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Help.addHelpSection">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">addHelpSection</tt><big>(</big><em>section</em>, <em>title</em>, <em>action</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.addHelpSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds help to the Help panel under the given <em>section</em> using the given <em>title</em>.  The <em>title</em> will be a link that performs one of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>If <em>action</em> is a URL, <a class="reference internal" href="#GateOne.Help.showHelpSection" title="GateOne.Help.showHelpSection"><tt class="xref js js-meth docutils literal"><span class="pre">showHelpSection()</span></tt></a> will be called to load the content at that URL.</li>
+<li>If <em>action</em> is a DOM node it will be displayed to the user (in the help panel).</li>
+</ul>
+</div></blockquote>
+<p>Example:</p>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Help</span><span class="p">.</span><span class="nx">addHelp</span><span class="p">(</span><span class="s1">&#39;Terminal&#39;</span><span class="p">,</span> <span class="s1">&#39;SSH Plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;/terminal/ssh/static/help.html&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>If a <em>callback</em> is provided it will be called after the <em>action</em> is loaded (i.e. when the user clicks on the link).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Help.init">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the help panel and registers the <tt class="kbd docutils literal"><span class="pre">Shift-F1</span></tt> (show help) and <tt class="kbd docutils literal"><span class="pre">Ctrl-S</span></tt> (displays helpful message about suspended terminal output) keyboard shortcuts.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Help.showFirstTimeDialog">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showFirstTimeDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pops up a dialog for first-time users that shows them the basics of Gate One.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Help.showHelp">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelp</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showHelp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the help panel.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Help.showHelpSection">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelpSection</tt><big>(</big><em>helpURL</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.showHelpSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows the given help information (<em>helpURL</em>) by sliding out whatever is in the help panel and sliding in the new help text.</p>
+<p>If <em>callback</em> is given it will be called after the content is loaded.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -71,12 +137,20 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Help Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
-  <p class="topless"><a href="plugin_bookmarks.html"
-                        title="previous chapter">The Bookmarks Plugin</a></p>
+  <p class="topless"><a href="js_go_process.html"
+                        title="previous chapter">term_ww.js</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="plugin_logging.html"
-                        title="next chapter">The Logging Plugin</a></p>
+  <p class="topless"><a href="embedding.html"
+                        title="next chapter">Embedding Gate One Into Other Applications</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/plugin_help.txt"
@@ -109,18 +183,41 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="plugin_logging.html" title="The Logging Plugin"
+          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
              >next</a> |</li>
         <li class="right" >
-          <a href="plugin_bookmarks.html" title="The Bookmarks Plugin"
+          <a href="js_go_process.html" title="term_ww.js"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

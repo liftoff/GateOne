@@ -1,0 +1,30 @@
+.✈help_panel {
+    width: 60%;
+    height: 80%;
+}
+.✈panel_nav {
+    position: absolute;
+    top: 2em;
+    left: 0;
+    padding-left: 0.2em;
+    padding-top: 0.5em;
+}
+.✈panel_nav:hover {
+    cursor: pointer;
+}
+.✈help_content {
+    position: absolute;
+    top: 3em;
+    left: 0;
+    padding-bottom: 0.5em;
+}
+.✈help_ul {
+    margin-left: 1em;
+    padding-left: 1em;
+}
+.✈help_sections {
+    padding: 0.5em;
+}
+.✈help_section {
+    padding-top: 0.5em;
+}

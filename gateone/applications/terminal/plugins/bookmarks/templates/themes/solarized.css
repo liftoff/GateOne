@@ -1,0 +1,28 @@
+.✈bm_sort_options a.✈active {
+    font-weight: normal;
+    cursor: default;
+    color: #8A8A8A;
+}
+.✈bm_sort_options a.✈active:hover {
+    color: #DFDFDF;
+}
+.✈bookmark a {
+    color: #fff;
+}
+.✈bookmark {
+    color: #fff;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 26, 44, 0.5));
+}
+.✈bm_tags {
+    border-bottom: .1em #fff solid;
+}
+.✈panel h3 {
+    border-bottom: .1em #FFF solid;
+    color: #fff;
+}
+.✈bm_tagcloud_tip {
+    color: #fff;
+}
+.✈bm_visited {
+    background-color: rgba(0,0,0,0.7);
+}

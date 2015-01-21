@@ -1,0 +1,175 @@
+* { margin: 0; padding: 0; outline: 0; }
+
+/* HTML5 tags */
+header, section, footer,
+aside, nav, article, figure {
+	display: block;
+}
+
+body { font-family: DejaVu Sans, Arial; color: #4b4b4b; text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2); }
+
+::selection { background-color: rgba(122, 192, 0, 0.2); }
+::-moz-selection { background-color: rgba(122, 192, 0, 0.2); border: 10px solid red; }
+
+h1 { color: #fff; font-size: 40px; position: relative; top: 15px; }
+h1 a { color: #fff; font-size: 40px; background-color: #ff5400; padding: 5px 25px 10px 25px; width: 300px; -webkit-border-radius: 10px; -moz-border-radius: 10px; -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4); -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6); border-bottom: 1px solid rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.6);
+	background: -webkit-gradient(
+	    linear,
+	    left bottom,
+	    left top,
+	    color-stop(0.23, #c34000),
+	    color-stop(0.62, #ff5400)
+	);
+	background: -moz-linear-gradient(
+	    center bottom,
+	    #c34000 23%,
+	    #ff5400 62%
+	);
+}
+
+h1 a:hover { color: #fff; border-bottom: 1px solid rgba(0, 0, 0, 0.4); padding-bottom: 10px; background-color: #7ac000;
+	background: -webkit-gradient(
+	    linear,
+	    left bottom,
+	    left top,
+	    color-stop(0.23, #619702),
+	    color-stop(0.62, #7ac000)
+	);
+	background: -moz-linear-gradient(
+	    center bottom,
+	    #619702 23%,
+	    #7ac000 62%
+	);
+}
+
+h2 { text-align: center; font-size: 3.5em; color: #ff5400; }
+h2 span.sub { font-size: 48px; float: left; color: #4b4b4b; }
+
+a { color: #7ac000; text-decoration: none; border-bottom: 1px solid #7ac000; padding-bottom: 2px; }
+a:hover { color: #ff5400; text-decoration: none; border-bottom: 1px solid #ff5400; padding-bottom: 2px; }
+a:active { color: #ff5400; text-decoration: none; border-bottom: 1px solid #ff5400; padding-bottom: 2px; position: relative; top: 1px; }
+
+p { font-size: 24px; margin-bottom: 15px; line-height: 36px; }
+strong { font-family: KeffeesatzBold, Arial; }
+
+header { padding: 5px 0; width: 100%; background-color: #000; margin-bottom: 25px; -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4); -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4); position: fixed; z-index: 10; float: left; }
+#headercontainer, #contentcontainer { width: 960px; margin: 0 auto; position: relative; }
+#contentcontainer { float: none; padding-top: 0px; }
+
+nav { width: auto; float: left; }
+nav ul { position: absolute; right: 0; display: block; margin-top: -37px; }
+nav ul li { display: inline; margin-left: 50px; }
+nav ul li a { font-size: 24px; border-bottom: none; }
+
+section { margin-bottom: 2em; padding-top: 150px; float: left; }
+
+#intro h2 a { padding-bottom: 0px; }
+#intro a.featured { padding-bottom: 0px; border-bottom: none; }
+#intro a img { border: 5px solid rgba(122, 192, 0, 0.15); -webkit-border-radius: 5px; margin-top: 40px; margin-bottom: 5px; }
+#intro a img:hover, #terminal .work a img:hover, input:hover, textarea:hover { border: 5px solid rgba(122, 192, 0, 1); -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.4); }
+#intro a img:active, #terminal .work a img:active { -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+
+#contact { margin-bottom: 0px; }
+
+input[type="text"] { width: 400px; }
+textarea { width: 750px; height: 275px; }
+label { color: #ff5400; }
+input, textarea { background-color: rgba(255, 255, 255, 0.4); border: 5px solid rgba(122, 192, 0, 0.15); padding: 10px; font-family: Keffeesatz, Arial; color: #4b4b4b; font-size: 24px; -webkit-border-radius: 5px; margin-bottom: 15px; margin-top: -10px; }
+input:focus, textarea:focus { border: 5px solid #ff5400; background-color: rgba(255, 255, 255, 1); }
+
+input[type="submit"] { border: none; cursor: pointer; color: #fff; font-size: 24px; background-color: #7ac000; padding: 5px 36px 8px 36px; -webkit-border-radius: 10px; -moz-border-radius: 10px; -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4); -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6); border-bottom: 1px solid rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.6);
+	background: -webkit-gradient(
+	    linear,
+	    left bottom,
+	    left top,
+	    color-stop(0.23, #619702),
+	    color-stop(0.62, #7ac000)
+	);
+	background: -moz-linear-gradient(
+	    center bottom,
+	    #619702 23%,
+	    #7ac000 62%
+	);
+}
+
+input[type="submit"]:hover { color: #fff; border-bottom: 1px solid rgba(0, 0, 0, 0.4); background-color: #ff5400;
+	background: -webkit-gradient(
+	    linear,
+	    left bottom,
+	    left top,
+	    color-stop(0.23, #c34000),
+	    color-stop(0.62, #ff5400)
+	);
+	background: -moz-linear-gradient(
+	    center bottom,
+	    #c34000 23%,
+	    #ff5400 62%
+	);
+}
+
+input[type="submit"]:active { position: relative; top: 1px; }
+
+footer { float: left; }
+footer ul { }
+footer ul li { display: inline; margin-right: 50px; }
+footer ul li a { font-size: 24px; margin-left: 10px; }
+footer ul li img { vertical-align: bottom; position: relative; top: 2px; }
+
+/* The following '.tabs' stuff applies to the section of index.html that shows how to make a tabbed interface */
+.tabs{
+    height:30px;
+}
+
+.tabs > ul{
+    font-size: 1em;
+    list-style:none;
+}
+
+.tabs > ul > li{
+    margin:0 2px 0 0;
+    padding:7px 10px;
+    display:block;
+    float:left;
+    color:#FFF;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;
+    -moz-border-radius-bottomright: 0px;
+    -moz-border-radius-bottomleft: 0px;
+    border-top-left-radius:4px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    background: #C9C9C9; /* old browsers */
+    background: -moz-linear-gradient(top, #0C91EC 0%, #257AB6 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#0C91EC), color-stop(100%,#257AB6)); /* webkit */
+    background: -ms-linear-gradient(top, #0C91EC 0%, #257AB6 100%);
+    background: -o-linear-gradient(top, #0C91EC 0%, #257AB6 100%);
+    background: linear-gradient(top, #0C91EC 0%, #257AB6 100%); /* Future */
+}
+
+.tabs > ul > li:hover{
+    background: #FFFFFF; /* old browsers */
+    background: -moz-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFFFFF), color-stop(10%,#F3F3F3), color-stop(50%,#F3F3F3), color-stop(100%,#FFFFFF)); /* webkit */
+    background: -ms-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    background: -o-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    background: linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    cursor:pointer;
+    color: #333;
+}
+
+.tabs > ul > li.tabActiveHeader{
+    background: #FFFFFF; /* old browsers */
+    background: -moz-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFFFFF), color-stop(10%,#F3F3F3), color-stop(50%,#F3F3F3), color-stop(100%,#FFFFFF)); /* webkit */
+    background: -ms-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    background: -o-linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    background: linear-gradient(top, #FFFFFF 0%, #F3F3F3 10%, #F3F3F3 50%, #FFFFFF 100%);
+    cursor:pointer;
+    color: #333;
+}

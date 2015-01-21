@@ -1,0 +1,1 @@
+from .notice import hooks

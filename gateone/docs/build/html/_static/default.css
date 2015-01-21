@@ -228,6 +228,14 @@ p.admonition-title:after {
     content: ":";
 }
 
+div.deprecated {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    color: red;
+    padding-top: 0.4em;
+}
+
 pre {
     padding: 5px;
     color: #222;
@@ -255,6 +263,7 @@ th.field-name {
 
 dt {
 /*     font-size: 1.1em; */
+    font-weight: bold;
 }
 
 .warning tt {
@@ -320,4 +329,26 @@ div.viewcode-block:target {
 .body .highlight .nn {
     color: #000;
     font-weight: bold;
+}
+
+/* Custom collapsable index container */
+div.collapseindex {
+    border: 1px solid #005A8C;
+    padding-left: 2em;
+    border-right: none;
+    border-left: none;
+}
+div.collapseindex ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+div.collapseindex a {
+    font-weight: bold;
+}
+a.showhide:hover {
+    cursor: pointer;
+}
+span.collapsindextitle {
+    font-size: 110%;
 }

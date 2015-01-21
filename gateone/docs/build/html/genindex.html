@@ -1,7 +1,4 @@
 
-
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,8 +6,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Index &mdash; Gate One 1.0 documentation</title>
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>Index &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -18,8 +26,8 @@
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.0',
+        URL_ROOT:    './',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,7 +37,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="index.html" /> 
+    <link rel="top" title="Gate One 1.2.0 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -90,18 +98,62 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--address">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--address">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --auth=string (none|google|kerberos)
+    --api_keys=string (key1:secret1,key2:secret2,...)
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--auth">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--api_keys">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --api_timestamp_window=string (special: [0-9]+[smhd])
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--api_timestamp_window">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --auth=string (none|pam|google|kerberos|api)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--auth">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --ca_certs=string (file path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--ca_certs">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --cache_dir=string (directory path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--cache_dir">command line option</a>
   </dt>
 
       </dl></dd>
@@ -112,7 +164,40 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--certificate">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--certificate">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --combine_css=string (file path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--combine_css">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --combine_css_container=string (e.g. &#39;gateone&#39;)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--combine_css_container">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --combine_js=string (file path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--combine_js">command line option</a>
   </dt>
 
       </dl></dd>
@@ -123,7 +208,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--command">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--command">command line option</a>
   </dt>
 
       </dl></dd>
@@ -134,7 +219,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--command_line_option">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--command_line_option">command line option</a>
   </dt>
 
       </dl></dd>
@@ -145,7 +230,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--config">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--config">command line option</a>
   </dt>
 
       </dl></dd>
@@ -156,51 +241,73 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--cookie_secret">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--cookie_secret">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --debug
+    --debug=boolean
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--debug">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--debug">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --disable_ssl
+    --disable_ssl=boolean
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--disable_ssl">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--disable_ssl">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --dtach
+    --dtach=boolean
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--dtach">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--dtach">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --embedded
+    --embedded=boolean
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--embedded">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--embedded">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --enable_unix_socket=boolean
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--enable_unix_socket">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --gid=string
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--gid">command line option</a>
   </dt>
 
       </dl></dd>
@@ -211,7 +318,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--https_redirect">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--https_redirect">command line option</a>
   </dt>
 
       </dl></dd>
@@ -222,7 +329,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--js_init">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--js_init">command line option</a>
   </dt>
 
       </dl></dd>
@@ -233,7 +340,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--keyfile">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--keyfile">command line option</a>
   </dt>
 
       </dl></dd>
@@ -244,7 +351,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--kill">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--kill">command line option</a>
   </dt>
 
       </dl></dd>
@@ -255,10 +362,12 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--locale">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--locale">command line option</a>
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     --log_file_max_size=bytes
@@ -266,7 +375,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--log_file_max_size">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_max_size">command line option</a>
   </dt>
 
       </dl></dd>
@@ -277,12 +386,10 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--log_file_num_backups">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_num_backups">command line option</a>
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     --log_file_prefix=string (file path)
@@ -290,29 +397,29 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--log_file_prefix">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_prefix">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --log_to_stderr
+    --log_to_stderr=boolean
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--log_to_stderr">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--log_to_stderr">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --logging
+    --logging=string (info|warning|error|none)
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--logging">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--logging">command line option</a>
   </dt>
 
       </dl></dd>
@@ -323,7 +430,18 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--new_api_key">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--new_api_key">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --origins=string (semicolon-separated origins)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--origins">command line option</a>
   </dt>
 
       </dl></dd>
@@ -334,7 +452,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--pam_realm">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--pam_realm">command line option</a>
   </dt>
 
       </dl></dd>
@@ -345,7 +463,18 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--pam_service">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--pam_service">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --pid_file=string
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--pid_file">command line option</a>
   </dt>
 
       </dl></dd>
@@ -356,7 +485,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--port">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--port">command line option</a>
   </dt>
 
       </dl></dd>
@@ -367,7 +496,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--session_dir">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--session_dir">command line option</a>
   </dt>
 
       </dl></dd>
@@ -378,7 +507,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--session_logging">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--session_logging">command line option</a>
   </dt>
 
       </dl></dd>
@@ -389,7 +518,18 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--session_timeout">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--session_timeout">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --ssl_auth=string (None|optional|required)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--ssl_auth">command line option</a>
   </dt>
 
       </dl></dd>
@@ -400,7 +540,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--sso_realm">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--sso_realm">command line option</a>
   </dt>
 
       </dl></dd>
@@ -411,7 +551,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--sso_service">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--sso_service">command line option</a>
   </dt>
 
       </dl></dd>
@@ -422,18 +562,7 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--syslog_facility">command line option</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt>
-    --syslog_host=string (IP or FQDN)
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="About/index.html#cmdoption--syslog_host">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--syslog_facility">command line option</a>
   </dt>
 
       </dl></dd>
@@ -444,18 +573,40 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--syslog_session_logging">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--syslog_session_logging">command line option</a>
   </dt>
 
       </dl></dd>
       
   <dt>
-    --url_prefix
+    --uid=string
   </dt>
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--url_prefix">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--uid">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --unix_socket_path=string (file path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--unix_socket_path">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --url_prefix=string (e.g. &#34;/ssh/&#34;)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--url_prefix">command line option</a>
   </dt>
 
       </dl></dd>
@@ -466,7 +617,29 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--user_dir">command line option</a>
+  <dt><a href="About/configuration.html#cmdoption--user_dir">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --user_logs_max_age=string (special: [0-9]+[smhd])
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--user_logs_max_age">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --version
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/configuration.html#cmdoption--version">command line option</a>
   </dt>
 
       </dl></dd>
@@ -477,161 +650,83 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone._">_() (in module gateone)</a>
+  <dt><a href="Developer/server.html#gateone.core.server._">_() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._blocked_io_handler">_blocked_io_handler() (termio.MultiplexPOSIXIOLoop method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler._convert_certificate">_convert_certificate() (gateone.auth.authentication.SSLAuthHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex._call_callback">_call_callback() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket._deliver">_deliver() (gateone.core.server.ApplicationWebSocket class method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._enumerate_logs">_enumerate_logs() (in module logging_plugin)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket._list_connected_users">_list_connected_users() (gateone.core.server.ApplicationWebSocket class method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils._minify">_minify() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler._on_auth">_on_auth() (gateone.auth.authentication.CASAuthHandler method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._call_callback">(termio.MultiplexPOSIXIOLoop method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler._on_auth">(gateone.auth.authentication.GoogleAuthHandler method)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._cancel_esc_sequence">_cancel_esc_sequence() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_flat">_retrieve_log_flat() (in module logging_plugin)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._capture_image">_capture_image() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._carriage_return">_carriage_return() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/gateone.html#gateone.JSPluginsHandler._combine_plugins">_combine_plugins() (gateone.JSPluginsHandler method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._csi">_csi() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._csi_device_status_report">_csi_device_status_report() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._dcs_handler">_dcs_handler() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._device_status_report">_device_status_report() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._dsr_get_cursor_position">_dsr_get_cursor_position() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._erase_characters">_erase_characters() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._escape">_escape() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex._handle_match">_handle_match() (termio.BaseMultiplex method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._ioloop_read_handler">_ioloop_read_handler() (termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/auth.html#auth.GoogleAuthHandler._on_auth">_on_auth() (auth.GoogleAuthHandler method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._opt_handler">_opt_handler() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_playback">_retrieve_log_playback() (in module logging_plugin)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._osc_handler">_osc_handler() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._return_known_hosts">_return_known_hosts() (ssh.KnownHostsHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex._read">_read() (termio.BaseMultiplex method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._read">(termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/terminal.html#terminal._reduce_renditions">_reduce_renditions() (in module terminal)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._save_known_hosts">_save_known_hosts() (ssh.KnownHostsHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._reenable_output">_reenable_output() (termio.MultiplexPOSIXIOLoop method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._save_log_playback">_save_log_playback() (in module logging_plugin)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket._send_refresh">_send_refresh() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication._send_refresh">_send_refresh() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._set_line_params">_set_line_params() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication._shared_terminals_dict">_shared_terminals_dict() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._set_rendition">_set_rendition() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket._start_cleaner">_start_cleaner() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._set_tabstop">_set_tabstop() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket._start_file_watcher">_start_file_watcher() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._set_top_bottom">_set_top_bottom() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket._start_session_watcher">_start_session_watcher() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal._spanify_screen">_spanify_screen() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._spanify_scrollback">_spanify_scrollback() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._string_terminator">_string_terminator() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._sub_esc_sequence">_sub_esc_sequence() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._Terminal__ignore">_Terminal__ignore() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._timeout_checker">_timeout_checker() (termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop._write">_write() (termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._xoff">_xoff() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal._xon">_xon() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict._timeout_checker">_timeout_checker() (gateone.core.utils.AutoExpireDict method)</a>
   </dt>
 
   </dl></td>
@@ -641,59 +736,95 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.add_callback">add_callback() (terminal.Terminal method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.add_callback">(termio.BaseMultiplex method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.allow_draft76">allow_draft76() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication.add_handler">add_handler() (gateone.core.server.GOApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#module-auth">auth (module)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.add_terminal_callbacks">add_terminal_callbacks() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/authpam.html#authpam.PAMAuthMixin.auth_basic">auth_basic() (authpam.PAMAuthMixin method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication.add_timeout">add_timeout() (gateone.core.server.GOApplication method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.auth_basic">(sso.KerberosAuthMixin method)</a>
-  </dt>
-
-      </dl></dd>
       
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.auth_negotiate">auth_negotiate() (sso.KerberosAuthMixin method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.additional_attributes">additional_attributes() (in module gateone.auth.authentication)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.allow_draft76">allow_draft76() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.api_auth">api_auth() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.APIAuthHandler">APIAuthHandler (class in gateone.auth.authentication)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#module-app_terminal">app_terminal (module)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.authenticate">authenticate() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket">ApplicationWebSocket (class in gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/authpam.html#authpam.PAMAuthMixin.authenticate_redirect">authenticate_redirect() (authpam.PAMAuthMixin method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.apply_cli_overrides">apply_cli_overrides() (in module app_terminal)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/pam.html#gateone.auth.pam.PAMAuthMixin.auth_basic">auth_basic() (gateone.auth.pam.PAMAuthMixin method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.authenticate_redirect">(sso.KerberosAuthMixin method)</a>
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin.auth_basic">(gateone.auth.sso.KerberosAuthMixin method)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/authpam.html#module-authpam">authpam (module)</a>
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin.auth_negotiate">auth_negotiate() (gateone.auth.sso.KerberosAuthMixin method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.await">await() (termio.BaseMultiplex method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.authenticate">authenticate() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.authenticate">(gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/ctypes_pam.html#gateone.auth.ctypes_pam.authenticate">(in module gateone.auth.ctypes_pam)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.authenticate_redirect">authenticate_redirect() (gateone.auth.authentication.CASAuthHandler method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/pam.html#gateone.auth.pam.PAMAuthMixin.authenticate_redirect">(gateone.auth.pam.PAMAuthMixin method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin.authenticate_redirect">(gateone.auth.sso.KerberosAuthMixin method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/authorization.html#gateone.auth.authorization.authenticated">authenticated (class in gateone.auth.authorization)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict">AutoExpireDict (class in gateone.core.utils)</a>
   </dt>
 
   </dl></td>
@@ -703,33 +834,43 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.backspace">backspace() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/woff_info.html#woff_info.BadWoff">BadWoff</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.BaseAuthHandler">BaseAuthHandler (class in auth)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler">BaseAuthHandler (class in gateone.auth.authentication)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.BaseHandler">BaseHandler (class in gateone)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.BaseHandler">BaseHandler (class in gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.bell">bell() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.bind">bind() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex">BaseMultiplex (class in termio)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#module-bookmarks">bookmarks (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.bell">bell() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB">BookmarksDB (class in bookmarks)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/terminal.html#terminal.Terminal.bell">(terminal.Terminal method)</a>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.broadcast_file_update">broadcast_file_update() (gateone.core.server.ApplicationWebSocket class method)</a>
   </dt>
 
-      </dl></dd>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.broadcast_message">broadcast_message() (in module gateone.core.server)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -737,43 +878,49 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.char_handler">char_handler() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.cache_cleanup">cache_cleanup() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_line">clear_line() (terminal.Terminal method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler">CASAuthHandler (class in gateone.auth.authentication)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_line_from_cursor">clear_line_from_cursor() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.check_origin">check_origin() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_line_from_cursor_left">clear_line_from_cursor_left() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.check_write_permissions">check_write_permissions() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_line_from_cursor_right">clear_line_from_cursor_right() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.ChownError">ChownError</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_screen">clear_screen() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.clean_up">clean_up() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_screen_from_cursor">clear_screen_from_cursor() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.cleanup_old_sessions">cleanup_old_sessions() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_screen_from_cursor_down">clear_screen_from_cursor_down() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.cleanup_user_logs">cleanup_user_logs() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.clear_screen_from_cursor_up">clear_screen_from_cursor_up() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict.clear">clear() (gateone.core.utils.AutoExpireDict method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.clear_term_settings">clear_term_settings() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.cmd_var_swap">cmd_var_swap() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.cmd_var_swap">cmd_var_swap() (in module gateone.core.utils)</a>
   </dt>
 
       
@@ -783,194 +930,224 @@
 
       <dd><dl>
         
-  <dt><a href="About/index.html#cmdoption--address">--address=string (IPv4 or IPv6 address)</a>
+  <dt><a href="About/configuration.html#cmdoption--address">--address=string (IPv4 or IPv6 address)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--auth">--auth=string (none|google|kerberos)</a>
+  <dt><a href="About/configuration.html#cmdoption--api_keys">--api_keys=string (key1:secret1,key2:secret2,...)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--certificate">--certificate=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--api_timestamp_window">--api_timestamp_window=string (special: [0-9]+[smhd])</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--command">--command=string (program path)</a>
+  <dt><a href="About/configuration.html#cmdoption--auth">--auth=string (none|pam|google|kerberos|api)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--command_line_option">--command_line_option</a>
+  <dt><a href="About/configuration.html#cmdoption--ca_certs">--ca_certs=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--config">--config=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--cache_dir">--cache_dir=string (directory path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--cookie_secret">--cookie_secret=string ([A-Za-z0-9])</a>
+  <dt><a href="About/configuration.html#cmdoption--certificate">--certificate=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--debug">--debug</a>
+  <dt><a href="About/configuration.html#cmdoption--combine_css">--combine_css=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--disable_ssl">--disable_ssl</a>
+  <dt><a href="About/configuration.html#cmdoption--combine_css_container">--combine_css_container=string (e.g. &#39;gateone&#39;)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--dtach">--dtach</a>
+  <dt><a href="About/configuration.html#cmdoption--combine_js">--combine_js=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--embedded">--embedded</a>
+  <dt><a href="About/configuration.html#cmdoption--command">--command=string (program path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--https_redirect">--https_redirect</a>
+  <dt><a href="About/configuration.html#cmdoption--command_line_option">--command_line_option</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--js_init">--js_init=string (JavaScript Object)</a>
+  <dt><a href="About/configuration.html#cmdoption--config">--config=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--keyfile">--keyfile=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--cookie_secret">--cookie_secret=string ([A-Za-z0-9])</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--kill">--kill</a>
+  <dt><a href="About/configuration.html#cmdoption--debug">--debug=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--locale">--locale=string (locale string)</a>
+  <dt><a href="About/configuration.html#cmdoption--disable_ssl">--disable_ssl=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--log_file_max_size">--log_file_max_size=bytes</a>
+  <dt><a href="About/configuration.html#cmdoption--dtach">--dtach=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--log_file_num_backups">--log_file_num_backups=integer</a>
+  <dt><a href="About/configuration.html#cmdoption--embedded">--embedded=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--log_file_prefix">--log_file_prefix=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--enable_unix_socket">--enable_unix_socket=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--log_to_stderr">--log_to_stderr</a>
+  <dt><a href="About/configuration.html#cmdoption--gid">--gid=string</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--logging">--logging</a>
+  <dt><a href="About/configuration.html#cmdoption--https_redirect">--https_redirect</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--new_api_key">--new_api_key</a>
+  <dt><a href="About/configuration.html#cmdoption--js_init">--js_init=string (JavaScript Object)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--pam_realm">--pam_realm=string (hostname)</a>
+  <dt><a href="About/configuration.html#cmdoption--keyfile">--keyfile=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--pam_service">--pam_service=string</a>
+  <dt><a href="About/configuration.html#cmdoption--kill">--kill</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--port">--port=integer (1-65535)</a>
+  <dt><a href="About/configuration.html#cmdoption--locale">--locale=string (locale string)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--session_dir">--session_dir=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_max_size">--log_file_max_size=bytes</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--session_logging">--session_logging</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_num_backups">--log_file_num_backups=integer</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--session_timeout">--session_timeout=string (special: [0-9]+[smhd])</a>
+  <dt><a href="About/configuration.html#cmdoption--log_file_prefix">--log_file_prefix=string (file path)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--sso_realm">--sso_realm=string (Kerberos realm or Active Directory domain)</a>
+  <dt><a href="About/configuration.html#cmdoption--log_to_stderr">--log_to_stderr=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--sso_service">--sso_service=string (kerberos service name)</a>
+  <dt><a href="About/configuration.html#cmdoption--logging">--logging=string (info|warning|error|none)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--syslog_facility">--syslog_facility=string (auth|cron|daemon|kern|local0|local1|local2|local3|local4|local5|local6|local7|lpr|mail|news|syslog|user|uucp)</a>
+  <dt><a href="About/configuration.html#cmdoption--new_api_key">--new_api_key</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--syslog_host">--syslog_host=string (IP or FQDN)</a>
+  <dt><a href="About/configuration.html#cmdoption--origins">--origins=string (semicolon-separated origins)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--syslog_session_logging">--syslog_session_logging</a>
+  <dt><a href="About/configuration.html#cmdoption--pam_realm">--pam_realm=string (hostname)</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--url_prefix">--url_prefix</a>
+  <dt><a href="About/configuration.html#cmdoption--pam_service">--pam_service=string</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--user_dir">--user_dir=string (file path)</a>
+  <dt><a href="About/configuration.html#cmdoption--pid_file">--pid_file=string</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--port">--port=integer (1-65535)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--session_dir">--session_dir=string (file path)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--session_logging">--session_logging</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--session_timeout">--session_timeout=string (special: [0-9]+[smhd])</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--ssl_auth">--ssl_auth=string (None|optional|required)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--sso_realm">--sso_realm=string (Kerberos realm or Active Directory domain)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--sso_service">--sso_service=string (kerberos service name)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--syslog_facility">--syslog_facility=string (auth|cron|daemon|kern|local0|local1|local2|local3|local4|local5|local6|local7|lpr|mail|news|syslog|user|uucp)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--syslog_session_logging">--syslog_session_logging</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--uid">--uid=string</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--unix_socket_path">--unix_socket_path=string (file path)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--url_prefix">--url_prefix=string (e.g. &#34;/ssh/&#34;)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--user_dir">--user_dir=string (file path)</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--user_logs_max_age">--user_logs_max_age=string (special: [0-9]+[smhd])</a>
+  </dt>
+
+        
+  <dt><a href="About/configuration.html#cmdoption--version">--version</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/utils.html#utils.convert_to_timedelta">convert_to_timedelta() (in module utils)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="Developer/utils.html#utils.create_data_uri">create_data_uri() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.convert_to_bytes">convert_to_bytes() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.create_plugin_links">create_plugin_links() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.convert_to_timedelta">convert_to_timedelta() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_down">cursor_down() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.create_data_uri">create_data_uri() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_horizontal_absolute">cursor_horizontal_absolute() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.create_signature">create_signature() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_left">cursor_left() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_next_line">cursor_next_line() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_position">cursor_position() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_position_vertical">cursor_position_vertical() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_previous_line">cursor_previous_line() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_right">cursor_right() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.cursor_up">cursor_up() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.create_user_ssh_dir">create_user_ssh_dir() (in module ssh)</a>
   </dt>
 
   </dl></td>
@@ -980,53 +1157,33 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.debug_expect">debug_expect() (in module termio)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.debug_info">debug_info() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.debug_terminal">debug_terminal() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.delete_bookmark">delete_bookmark() (bookmarks.BookmarksDB method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.delete_characters">delete_characters() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.delete_identity">delete_identity() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.delete_line">delete_line() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.dsr">dsr() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.DownloadHandler">DownloadHandler (class in gateone.core.server)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.dump">dump() (terminal.Terminal method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.dump">(termio.BaseMultiplex method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.dump_components">dump_components() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.drop_privileges">drop_privileges() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.dump_html">dump_html() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.dropbear_generate_new_keypair">dropbear_generate_new_keypair() (in module ssh)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.dump_html">(termio.BaseMultiplex method)</a>
-  </dt>
-
-      </dl></dd>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.dump_plain">dump_plain() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.dsr">dsr() (app_terminal.TerminalApplication method)</a>
   </dt>
 
   </dl></td>
@@ -1036,21 +1193,61 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.ErrorHandler">ErrorHandler (class in gateone)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.entry_point_files">entry_point_files() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.esc_opt_handler">esc_opt_handler() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.enumerate_colors">enumerate_colors() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.enumerate_fonts">enumerate_fonts() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.enumerate_logs">enumerate_logs() (in module logging_plugin)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.enumerate_themes">enumerate_themes() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ErrorHandler">ErrorHandler (class in gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/logviewer.html#logviewer.escape_escape_seq">escape_escape_seq() (in module logviewer)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/logviewer.html#logviewer.escape_escape_seq">escape_escape_seq() (in module logviewer)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#module-example">example (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.expect">expect() (termio.BaseMultiplex method)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#example.example_command_hook">example_command_hook() (in module example)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_example.html#example.example_opt_esc_handler">example_opt_esc_handler() (in module example)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_example.html#example.example_websocket_action">example_websocket_action() (in module example)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_example.html#example.ExampleHandler">ExampleHandler (class in example)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.execute_command">execute_command() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.ExportHandler">ExportHandler (class in bookmarks)</a>
   </dt>
 
   </dl></td>
@@ -1060,17 +1257,25 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/logviewer.html#logviewer.flatten_log">flatten_log() (in module logviewer)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.FaviconHandler">FaviconHandler (class in bookmarks)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.flush">flush() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.file_checker">file_checker() (gateone.core.server.ApplicationWebSocket class method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.file_request">file_request() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.full_refresh">full_refresh() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.flatten_log">flatten_log() (in module logviewer)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.full_refresh">full_refresh() (app_terminal.TerminalApplication method)</a>
   </dt>
 
   </dl></td>
@@ -1080,35 +1285,275 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/js_gateone.html#GateOne">GateOne (global variable or constant)</a>
+  <dt><a href="Developer/js_gateone.html#GateOne">GateOne (None attribute)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#module-gateone">gateone (module)</a>
+  <dt><a href="Developer/authentication.html#module-gateone.auth.authentication">gateone.auth.authentication (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Base">GateOne.Base (GateOne attribute)</a>
+  <dt><a href="Developer/authorization.html#module-gateone.auth.authorization">gateone.auth.authorization (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Base.module">GateOne.Base.module() (GateOne.Base method)</a>
+  <dt><a href="Developer/ctypes_pam.html#module-gateone.auth.ctypes_pam">gateone.auth.ctypes_pam (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Base.update">GateOne.Base.update() (GateOne.Base method)</a>
+  <dt><a href="Developer/pam.html#module-gateone.auth.pam">gateone.auth.pam (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Icons">GateOne.Icons (GateOne attribute)</a>
+  <dt><a href="Developer/sso.html#module-gateone.auth.sso">gateone.auth.sso (module)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.init">GateOne.init() (GateOne method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.addFilterDateTag">GateOne.Bookmarks.addFilterDateTag() (GateOne.Bookmarks method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.initialize">GateOne.initialize() (GateOne method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.addFilterTag">GateOne.Bookmarks.addFilterTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.addFilterURLTypeTag">GateOne.Bookmarks.addFilterURLTypeTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.addTagToBookmark">GateOne.Bookmarks.addTagToBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.allTags">GateOne.Bookmarks.allTags() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.bookmarks">GateOne.Bookmarks.bookmarks (GateOne.Bookmarks attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.createBookmark">GateOne.Bookmarks.createBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.createOrUpdateBookmark">GateOne.Bookmarks.createOrUpdateBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.createPanel">GateOne.Bookmarks.createPanel() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.createSortOpts">GateOne.Bookmarks.createSortOpts() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.deleteBookmark">GateOne.Bookmarks.deleteBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.deletedBookmarksSyncComplete">GateOne.Bookmarks.deletedBookmarksSyncComplete() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.editBookmark">GateOne.Bookmarks.editBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.exportBookmarks">GateOne.Bookmarks.exportBookmarks() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.filterBookmarksBySearchString">GateOne.Bookmarks.filterBookmarksBySearchString() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.flushIconQueue">GateOne.Bookmarks.flushIconQueue() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.generateTip">GateOne.Bookmarks.generateTip() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.getAutotags">GateOne.Bookmarks.getAutotags() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.getBookmarkObj">GateOne.Bookmarks.getBookmarkObj() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.getDateTag">GateOne.Bookmarks.getDateTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.getMaxBookmarks">GateOne.Bookmarks.getMaxBookmarks() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.getTags">GateOne.Bookmarks.getTags() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.highestUSN">GateOne.Bookmarks.highestUSN() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.httpIconHandler">GateOne.Bookmarks.httpIconHandler() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.incrementVisits">GateOne.Bookmarks.incrementVisits() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.init">GateOne.Bookmarks.init() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.loadBookmarks">GateOne.Bookmarks.loadBookmarks() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.loadPagination">GateOne.Bookmarks.loadPagination() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.loadTagCloud">GateOne.Bookmarks.loadTagCloud() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openBookmark">GateOne.Bookmarks.openBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openExportDialog">GateOne.Bookmarks.openExportDialog() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openImportDialog">GateOne.Bookmarks.openImportDialog() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openNewBookmarkForm">GateOne.Bookmarks.openNewBookmarkForm() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openRenameDialog">GateOne.Bookmarks.openRenameDialog() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.openSearchDialog">GateOne.Bookmarks.openSearchDialog() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.panelToggleIn">GateOne.Bookmarks.panelToggleIn() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.registerIconHandler">GateOne.Bookmarks.registerIconHandler() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.registerURLHandler">GateOne.Bookmarks.registerURLHandler() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.removeBookmark">GateOne.Bookmarks.removeBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.removeFilterDateTag">GateOne.Bookmarks.removeFilterDateTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.removeFilterTag">GateOne.Bookmarks.removeFilterTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.removeFilterURLTypeTag">GateOne.Bookmarks.removeFilterURLTypeTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.renameTag">GateOne.Bookmarks.renameTag() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.sortFunctions">GateOne.Bookmarks.sortFunctions (GateOne.Bookmarks attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.storeBookmark">GateOne.Bookmarks.storeBookmark() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.storeBookmarks">GateOne.Bookmarks.storeBookmarks() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.storeFavicon">GateOne.Bookmarks.storeFavicon() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.syncBookmarks">GateOne.Bookmarks.syncBookmarks() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.syncComplete">GateOne.Bookmarks.syncComplete() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.tagContextMenu">GateOne.Bookmarks.tagContextMenu() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.tagRenameComplete">GateOne.Bookmarks.tagRenameComplete() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.toggleSortOrder">GateOne.Bookmarks.toggleSortOrder() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.updateIcon">GateOne.Bookmarks.updateIcon() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.updateIcons">GateOne.Bookmarks.updateIcons() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.updateProgress">GateOne.Bookmarks.updateProgress() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.updateUSN">GateOne.Bookmarks.updateUSN() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#GateOne.Bookmarks.userLoginSync">GateOne.Bookmarks.userLoginSync() (GateOne.Bookmarks method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_convenience.html#GateOne.Convenience">GateOne.Convenience (GateOne attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/log.html#module-gateone.core.log">gateone.core.log (module)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#module-gateone.core.server">gateone.core.server (module)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#module-gateone.core.utils">gateone.core.utils (module)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/plugin_help.html#GateOne.Help">GateOne.Help (GateOne attribute)</a>
   </dt>
 
       
@@ -1116,679 +1561,865 @@
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.bufferEscSeq">GateOne.Input.bufferEscSeq() (GateOne.Input method)</a>
+  <dt><a href="Developer/js_gateone.html#GateOne.openApplication">GateOne.openApplication() (GateOne method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.capture">GateOne.Input.capture() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.addPlaybackControls">GateOne.Playback.addPlaybackControls() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.charBuffer">GateOne.Input.charBuffer (GateOne.Input attribute)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.hideControls">GateOne.Playback.hideControls() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.disableCapture">GateOne.Input.disableCapture() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.init">GateOne.Playback.init() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.emulateKey">GateOne.Input.emulateKey() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.newTerminalCallback">GateOne.Playback.newTerminalCallback() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.emulateKeyCombo">GateOne.Input.emulateKeyCombo() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.playbackRealtime">GateOne.Playback.playbackRealtime() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.key">GateOne.Input.key() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.playPauseControl">GateOne.Playback.playPauseControl() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.keyTable">GateOne.Input.keyTable (GateOne.Input attribute)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.pushPlaybackFrame">GateOne.Playback.pushPlaybackFrame() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.modifiers">GateOne.Input.modifiers() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.savePrefsCallback">GateOne.Playback.savePrefsCallback() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.mouse">GateOne.Input.mouse() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.saveRecording">GateOne.Playback.saveRecording() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.onKeyDown">GateOne.Input.onKeyDown() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.selectFrame">GateOne.Playback.selectFrame() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.onKeyUp">GateOne.Input.onKeyUp() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.showsControls">GateOne.Playback.showsControls() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.queue">GateOne.Input.queue() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.startPlayback">GateOne.Playback.startPlayback() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.registerShortcut">GateOne.Input.registerShortcut() (GateOne.Input method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.switchWorkspaceEvent">GateOne.Playback.switchWorkspaceEvent() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Input.shortcuts">GateOne.Input.shortcuts (GateOne.Input attribute)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#GateOne.Playback.updateClock">GateOne.Playback.updateClock() (GateOne.Playback method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.loadedModules">GateOne.loadedModules (GateOne attribute)</a>
+  <dt><a href="Developer/js_gateone.html#GateOne.restoreDefaults">GateOne.restoreDefaults() (GateOne method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net">GateOne.Net (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.autoConnect">GateOne.SSH.autoConnect() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.actions">GateOne.Net.actions (GateOne.Net attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.bookmarkIconHandler">GateOne.SSH.bookmarkIconHandler() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.addAction">GateOne.Net.addAction() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.commandCompleted">GateOne.SSH.commandCompleted() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.connect">GateOne.Net.connect() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.connect">GateOne.SSH.connect() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.connectionError">GateOne.Net.connectionError() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.createKHPanel">GateOne.SSH.createKHPanel() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.fullRefresh">GateOne.Net.fullRefresh() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.createPanel">GateOne.SSH.createPanel() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.killTerminal">GateOne.Net.killTerminal() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.deleteCompleteAction">GateOne.SSH.deleteCompleteAction() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.log">GateOne.Net.log() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.displayHostFingerprint">GateOne.SSH.displayHostFingerprint() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.onMessage">GateOne.Net.onMessage() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.displayMetadata">GateOne.SSH.displayMetadata() (GateOne.SSH method)</a>, <a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.displayMetadata">[1]</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.onOpen">GateOne.Net.onOpen() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.duplicateSession">GateOne.SSH.duplicateSession() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.ping">GateOne.Net.ping() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.enterPassphraseAction">GateOne.SSH.enterPassphraseAction() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.pong">GateOne.Net.pong() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.execRemoteCmd">GateOne.SSH.execRemoteCmd() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.reauthenticate">GateOne.Net.reauthenticate() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.getConnectString">GateOne.SSH.getConnectString() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.refresh">GateOne.Net.refresh() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.getMaxIDs">GateOne.SSH.getMaxIDs() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.sendChars">GateOne.Net.sendChars() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.handleConnect">GateOne.SSH.handleConnect() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.sendDimensions">GateOne.Net.sendDimensions() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.handleReconnect">GateOne.SSH.handleReconnect() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Net.setTerminal">GateOne.Net.setTerminal() (GateOne.Net method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.incomingIDsAction">GateOne.SSH.incomingIDsAction() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.noSavePrefs">GateOne.noSavePrefs (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.init">GateOne.SSH.init() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs">GateOne.prefs (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.keygenComplete">GateOne.SSH.keygenComplete() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.auth">GateOne.prefs.auth (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.loadIDs">GateOne.SSH.loadIDs() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.autoConnectURL">GateOne.prefs.autoConnectURL (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.newIDForm">GateOne.SSH.newIDForm() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.bellSound">GateOne.prefs.bellSound (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.postInit">GateOne.SSH.postInit() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.colors">GateOne.prefs.colors (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.saveComplete">GateOne.SSH.saveComplete() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.cols">GateOne.prefs.cols (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.updateKH">GateOne.SSH.updateKH() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.disableTermTransitions">GateOne.prefs.disableTermTransitions (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.uploadCertificateForm">GateOne.SSH.uploadCertificateForm() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.embedded">GateOne.prefs.embedded (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.uploadIDForm">GateOne.SSH.uploadIDForm() (GateOne.SSH method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.fillContainer">GateOne.prefs.fillContainer (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.__new__">GateOne.Terminal.__new__() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.fontSize">GateOne.prefs.fontSize (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal._trimmedScreen">GateOne.Terminal._trimmedScreen() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.goDiv">GateOne.prefs.goDiv (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.alignTerminal">GateOne.Terminal.alignTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.prefix">GateOne.prefs.prefix (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.applyScreen">GateOne.Terminal.applyScreen() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.rows">GateOne.prefs.rows (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.attachSharedTerminal">GateOne.Terminal.attachSharedTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.scrollback">GateOne.prefs.scrollback (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.bellAction">GateOne.Terminal.bellAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.showTitle">GateOne.prefs.showTitle (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.changeLocation">GateOne.Terminal.changeLocation() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.showToolbar">GateOne.prefs.showToolbar (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.chooser">GateOne.Terminal.chooser() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.style">GateOne.prefs.style (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.clearScreen">GateOne.Terminal.clearScreen() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.theme">GateOne.prefs.theme (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.clearScrollback">GateOne.Terminal.clearScrollback() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.prefs.url">GateOne.prefs.url (GateOne.prefs attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.closeTerminal">GateOne.Terminal.closeTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal">GateOne.Terminal (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.connectionError">GateOne.Terminal.connectionError() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.closeTermCallbacks">GateOne.Terminal.closeTermCallbacks (GateOne.Terminal attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.createPrefsPanel">GateOne.Terminal.createPrefsPanel() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.closeTerminal">GateOne.Terminal.closeTerminal() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.dbReady">GateOne.Terminal.dbReady() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.init">GateOne.Terminal.init() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.detachSharedTerminal">GateOne.Terminal.detachSharedTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.modes">GateOne.Terminal.modes (GateOne.Terminal attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.displayTermInfo">GateOne.Terminal.displayTermInfo() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.newTermCallbacks">GateOne.Terminal.newTermCallbacks (GateOne.Terminal attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.enableScrollback">GateOne.Terminal.enableScrollback() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.newTerminal">GateOne.Terminal.newTerminal() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.enumerateColorsAction">GateOne.Terminal.enumerateColorsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.notifyActivity">GateOne.Terminal.notifyActivity() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.enumerateCommandsAction">GateOne.Terminal.enumerateCommandsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.notifyInactivity">GateOne.Terminal.notifyInactivity() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.enumerateFontsAction">GateOne.Terminal.enumerateFontsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.reattachTerminalsAction">GateOne.Terminal.reattachTerminalsAction() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.generateAuthObject">GateOne.Terminal.Example.generateAuthObject() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.reconnectTerminalAction">GateOne.Terminal.reconnectTerminalAction() (GateOne.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.init">GateOne.Terminal.Example.init() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.setModeAction">GateOne.Terminal.setModeAction() (GateOne.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.termUpdatesWorker">GateOne.Terminal.termUpdatesWorker (GateOne.Terminal attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.updateTerminalAction">GateOne.Terminal.updateTerminalAction() (GateOne.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals">GateOne.terminals (GateOne attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].backspace <character>">GateOne.terminals[num].backspace &lt;character&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].columns <number>">GateOne.terminals[num].columns &lt;number&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].created <Date()>">GateOne.terminals[num].created &lt;Date()&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].mode <string>">GateOne.terminals[num].mode &lt;string&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].playbackFrames <Array()>">GateOne.terminals[num].playbackFrames &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].prevScreen <Array()>">GateOne.terminals[num].prevScreen &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].rows <number>">GateOne.terminals[num].rows &lt;number&gt; (GateOne.terminals[num] attribute)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].screen <Array()>">GateOne.terminals[num].screen &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.stopGraph">GateOne.Terminal.Example.stopGraph() (GateOne.Terminal.Example method)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].scrollback <Array()>">GateOne.terminals[num].scrollback &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.toggleLoadGraph">GateOne.Terminal.Example.toggleLoadGraph() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].scrollbackVisible <boolean>">GateOne.terminals[num].scrollbackVisible &lt;boolean&gt; (GateOne.terminals[num] attribute)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.topTop">GateOne.Terminal.Example.topTop() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].sshConnectString <string>">GateOne.terminals[num].sshConnectString &lt;string&gt; (GateOne.terminals[num] attribute)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.updateGraph">GateOne.Terminal.Example.updateGraph() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils">GateOne.Utils (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.updateTop">GateOne.Terminal.Example.updateTop() (GateOne.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.createElement">GateOne.Utils.createElement() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.fullRefresh">GateOne.Terminal.fullRefresh() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.deleteCookie">GateOne.Utils.deleteCookie() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.getLocations">GateOne.Terminal.getLocations() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.endsWith">GateOne.Utils.endsWith() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.getOpenTerminals">GateOne.Terminal.getOpenTerminals() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getEmDimensions">GateOne.Utils.getEmDimensions() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal_input.html#GateOne.Terminal.handleVisibility">GateOne.Terminal.handleVisibility() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getNode">GateOne.Utils.getNode() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.hasVoiceExt">GateOne.Terminal.hasVoiceExt() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getNodes">GateOne.Utils.getNodes() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.hideIcons">GateOne.Terminal.hideIcons() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getOffset">GateOne.Utils.getOffset() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.highlight">GateOne.Terminal.highlight() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getRowsAndColumns">GateOne.Utils.getRowsAndColumns() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.highlightDialog">GateOne.Terminal.highlightDialog() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getSelText">GateOne.Utils.getSelText() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.highlightTexts">GateOne.Terminal.highlightTexts (GateOne.Terminal attribute)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.getToken">GateOne.Utils.getToken() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal_input.html#GateOne.Terminal.Input">GateOne.Terminal.Input (GateOne.Terminal attribute)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.hasElementClass">GateOne.Utils.hasElementClass() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.isActive">GateOne.Terminal.isActive() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.hideElement">GateOne.Utils.hideElement() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.killTerminal">GateOne.Terminal.killTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.init">GateOne.Utils.init() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.lastLines">GateOne.Terminal.lastLines() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isArray">GateOne.Utils.isArray() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.listSharedTerminals">GateOne.Terminal.listSharedTerminals() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isElement">GateOne.Utils.isElement() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.loadFont">GateOne.Terminal.loadFont() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isEven">GateOne.Utils.isEven() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.loadTextColors">GateOne.Terminal.loadTextColors() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isHTMLCollection">GateOne.Utils.isHTMLCollection() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.loadWebWorkerAction">GateOne.Terminal.loadWebWorkerAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isNodeList">GateOne.Utils.isNodeList() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.locationsAction">GateOne.Terminal.locationsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.isPrime">GateOne.Utils.isPrime() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.moveTerminalAction">GateOne.Terminal.moveTerminalAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.itemgetter">GateOne.Utils.itemgetter() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.newPastearea">GateOne.Terminal.newPastearea() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.items">GateOne.Utils.items() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.newTerminal">GateOne.Terminal.newTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.loadCSS">GateOne.Utils.loadCSS() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.notifyActivity">GateOne.Terminal.notifyActivity() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.loadPrefs">GateOne.Utils.loadPrefs() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.notifyInactivity">GateOne.Terminal.notifyInactivity() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.loadScript">GateOne.Utils.loadScript() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.onResizeEvent">GateOne.Terminal.onResizeEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.loadThemeCSS">GateOne.Utils.loadThemeCSS() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.paste">GateOne.Terminal.paste() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.noop">GateOne.Utils.noop() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.playBell">GateOne.Terminal.playBell() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.partial">GateOne.Utils.partial() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.popupTerm">GateOne.Terminal.popupTerm() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.postOnLoad">GateOne.Utils.postOnLoad() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.printScreen">GateOne.Terminal.printScreen() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.randomPrime">GateOne.Utils.randomPrime() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.reattachTerminalsAction">GateOne.Terminal.reattachTerminalsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.removeElement">GateOne.Utils.removeElement() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.reconnectEvent">GateOne.Terminal.reconnectEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.replaceURLWithHTMLLinks">GateOne.Utils.replaceURLWithHTMLLinks() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.reconnectTerminalAction">GateOne.Terminal.reconnectTerminalAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.saveAs">GateOne.Utils.saveAs() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.refresh">GateOne.Terminal.refresh() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.saveAsAction">GateOne.Utils.saveAsAction() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.registerTextTransform">GateOne.Terminal.registerTextTransform() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.savePrefs">GateOne.Utils.savePrefs() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.relocateTerminal">GateOne.Terminal.relocateTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.scrollLines">GateOne.Utils.scrollLines() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.relocateWorkspaceEvent">GateOne.Terminal.relocateWorkspaceEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.scrollToBottom">GateOne.Utils.scrollToBottom() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.resetTerminalAction">GateOne.Terminal.resetTerminalAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.setActiveStyleSheet">GateOne.Utils.setActiveStyleSheet() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.resizeAction">GateOne.Terminal.resizeAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.showElement">GateOne.Utils.showElement() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.scrollPageDown">GateOne.Terminal.scrollPageDown() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.startsWith">GateOne.Utils.startsWith() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.scrollPageUp">GateOne.Terminal.scrollPageUp() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.toArray">GateOne.Utils.toArray() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sendDimensions">GateOne.Terminal.sendDimensions() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Utils.xhrGet">GateOne.Utils.xhrGet() (GateOne.Utils method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sendString">GateOne.Terminal.sendString() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual">GateOne.Visual (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setActive">GateOne.Terminal.setActive() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.addSquare">GateOne.Visual.addSquare() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setModeAction">GateOne.Terminal.setModeAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.applyStyle">GateOne.Visual.applyStyle() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setShareID">GateOne.Terminal.setShareID() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.applyTransform">GateOne.Visual.applyTransform() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setTerminal">GateOne.Terminal.setTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.bellAction">GateOne.Visual.bellAction() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setTitle">GateOne.Terminal.setTitle() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.createGrid">GateOne.Visual.createGrid() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.setTitleAction">GateOne.Terminal.setTitleAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.disableScrollback">GateOne.Visual.disableScrollback() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.shareBroadcastURL">GateOne.Terminal.shareBroadcastURL() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.displayMessage">GateOne.Visual.displayMessage() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.shareDialog">GateOne.Terminal.shareDialog() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.displayTermInfo">GateOne.Visual.displayTermInfo() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sharedTerminalsAction">GateOne.Terminal.sharedTerminalsAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.enableScrollback">GateOne.Visual.enableScrollback() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sharedTerminalsDialog">GateOne.Terminal.sharedTerminalsDialog() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.goDimensions">GateOne.Visual.goDimensions (GateOne.Visual attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sharedTermObj">GateOne.Terminal.sharedTermObj() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.init">GateOne.Visual.init() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.shareID">GateOne.Terminal.shareID() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.playBell">GateOne.Visual.playBell() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.shareInfo">GateOne.Terminal.shareInfo() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.setTitleAction">GateOne.Visual.setTitleAction() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.sharePermissions">GateOne.Terminal.sharePermissions() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.slideDown">GateOne.Visual.slideDown() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.shareWidget">GateOne.Terminal.shareWidget() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.slideLeft">GateOne.Visual.slideLeft() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.showIcons">GateOne.Terminal.showIcons() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.slideRight">GateOne.Visual.slideRight() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.showSuspended">GateOne.Terminal.showSuspended() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.slideToTerm">GateOne.Visual.slideToTerm() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.swappedWorkspacesEvent">GateOne.Terminal.swappedWorkspacesEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.slideUp">GateOne.Visual.slideUp() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.switchTerminal">GateOne.Terminal.switchTerminal() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.toggleGridView">GateOne.Visual.toggleGridView() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.switchTerminalEvent">GateOne.Terminal.switchTerminalEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.togglePanel">GateOne.Visual.togglePanel() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.switchWorkspaceEvent">GateOne.Terminal.switchWorkspaceEvent() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.toggleScrollback">GateOne.Visual.toggleScrollback() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.termEncodingAction">GateOne.Terminal.termEncodingAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.Visual.updateDimensions">GateOne.Visual.updateDimensions() (GateOne.Visual method)</a>
+  <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Terminal.Example.stopTop">GateOne.Terminal.Terminal.Example.stopTop() (GateOne.Terminal.Terminal.Example method)</a>
   </dt>
 
       
-  <dt><a href="Developer/js_gateone.html#GateOne.ws">GateOne.ws (GateOne attribute)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.termKeyboardModeAction">GateOne.Terminal.termKeyboardModeAction() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.gen_self_signed_openssl">gen_self_signed_openssl() (in module utils)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.termUpdateFromWorker">GateOne.Terminal.termUpdateFromWorker() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.gen_self_signed_pyopenssl">gen_self_signed_pyopenssl() (in module utils)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.toggleScrollback">GateOne.Terminal.toggleScrollback() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.gen_self_signed_ssl">gen_self_signed_ssl() (in module utils)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.unHighlight">GateOne.Terminal.unHighlight() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.generate_session_id">generate_session_id() (in module utils)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.unregisterTextTransform">GateOne.Terminal.unregisterTextTransform() (GateOne.Terminal method)</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.GoogleAuthHandler.get">get() (auth.GoogleAuthHandler method)</a>
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.updateDimensions">GateOne.Terminal.updateDimensions() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.updateTerminalAction">GateOne.Terminal.updateTerminalAction() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.workspaceClosedEvent">GateOne.Terminal.workspaceClosedEvent() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.writeScrollback">GateOne.Terminal.writeScrollback() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.xtermEncode">GateOne.Terminal.xtermEncode() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.createLogItem">GateOne.TermLogging.createLogItem() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.createPanel">GateOne.TermLogging.createPanel() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.displayFlatLogAction">GateOne.TermLogging.displayFlatLogAction() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.displayMetadata">GateOne.TermLogging.displayMetadata() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.displayPlaybackLogAction">GateOne.TermLogging.displayPlaybackLogAction() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.getMaxLogItems">GateOne.TermLogging.getMaxLogItems() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.incomingLogAction">GateOne.TermLogging.incomingLogAction() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.incomingLogsCompleteAction">GateOne.TermLogging.incomingLogsCompleteAction() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.init">GateOne.TermLogging.init() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.loadLogs">GateOne.TermLogging.loadLogs() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.loadPagination">GateOne.TermLogging.loadPagination() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.openLogFlat">GateOne.TermLogging.openLogFlat() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.openLogPlayback">GateOne.TermLogging.openLogPlayback() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.saveRenderedLog">GateOne.TermLogging.saveRenderedLog() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.sessionLoggingDisabled">GateOne.TermLogging.sessionLoggingDisabled() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.sortFunctions">GateOne.TermLogging.sortFunctions (GateOne.TermLogging attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#GateOne.TermLogging.toggleSortOrder">GateOne.TermLogging.toggleSortOrder() (GateOne.TermLogging method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/js_gateone.html#GateOne.Visual.disableTransitions">GateOne.Visual.disableTransitions() (GateOne.Visual method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/js_gateone.html#GateOne.Visual.enableTransitions">GateOne.Visual.enableTransitions() (GateOne.Visual method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.gateone_policies">gateone_policies() (in module gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.gen_self_signed_openssl">gen_self_signed_openssl() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.gen_self_signed_pyopenssl">gen_self_signed_pyopenssl() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.gen_self_signed_ssl">gen_self_signed_ssl() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.generate_new_keypair">generate_new_keypair() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.generate_session_id">generate_session_id() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_example.html#example.ExampleHandler.get">get() (example.ExampleHandler method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/auth.html#auth.KerberosAuthHandler.get">(auth.KerberosAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.APIAuthHandler.get">(gateone.auth.authentication.APIAuthHandler method)</a>
   </dt>
 
         
-  <dt><a href="Developer/auth.html#auth.NullAuthHandler.get">(auth.NullAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get">(gateone.auth.authentication.CASAuthHandler method)</a>
   </dt>
 
         
-  <dt><a href="Developer/auth.html#auth.PAMAuthHandler.get">(auth.PAMAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler.get">(gateone.auth.authentication.GoogleAuthHandler method)</a>
   </dt>
 
         
-  <dt><a href="Developer/gateone.html#gateone.HTTPSRedirectHandler.get">(gateone.HTTPSRedirectHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.KerberosAuthHandler.get">(gateone.auth.authentication.KerberosAuthHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.NullAuthHandler.get">(gateone.auth.authentication.NullAuthHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.PAMAuthHandler.get">(gateone.auth.authentication.PAMAuthHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler.get">(gateone.auth.authentication.SSLAuthHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.HTTPSRedirectHandler.get">(gateone.core.server.HTTPSRedirectHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.get">(ssh.KnownHostsHandler method)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/authpam.html#authpam.PAMAuthMixin.get_authenticated_user">get_authenticated_user() (authpam.PAMAuthMixin method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.get_256_colors">get_256_colors() (in module logging_plugin)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.get_authenticated_user">(sso.KerberosAuthMixin method)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.get_256_colors">(in module logviewer)</a>
+  </dt>
+
+        
+  <dt><a href="Applications/terminal/plugin_playback.html#playback.get_256_colors">(in module playback)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/auth.html#auth.BaseAuthHandler.get_current_user">get_current_user() (auth.BaseAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get_authenticated_user">get_authenticated_user() (gateone.auth.authentication.CASAuthHandler method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/gateone.html#gateone.BaseHandler.get_current_user">(gateone.BaseHandler method)</a>
+  <dt><a href="Developer/pam.html#gateone.auth.pam.PAMAuthMixin.get_authenticated_user">(gateone.auth.pam.PAMAuthMixin method)</a>
   </dt>
 
         
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.get_current_user">(gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin.get_authenticated_user">(gateone.auth.sso.KerberosAuthMixin method)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.get_cursor_position">get_cursor_position() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.get_bell">get_bell() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.get_or_update_metadata">get_or_update_metadata() (in module utils)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.get_bookmarks">get_bookmarks() (bookmarks.BookmarksDB method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.get_plugins">get_plugins() (in module utils)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_cmd_output">get_cmd_output() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.get_process_tree">get_process_tree() (in module utils)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.get_colors">get_colors() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.get_title">get_title() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_connect_string">get_connect_string() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.get_translation">get_translation() (in module utils)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.get_current_user">get_current_user() (gateone.auth.authentication.BaseAuthHandler method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.get_current_user">(gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.BaseHandler.get_current_user">(gateone.core.server.BaseHandler method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.FaviconHandler.get_favicon_url">get_favicon_url() (bookmarks.FaviconHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.get_webworker">get_webworker() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.get_frames">get_frames() (in module logviewer)</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.GoogleAuthHandler">GoogleAuthHandler (class in auth)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.get_highest_USN">get_highest_USN() (bookmarks.BookmarksDB method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_host_fingerprint">get_host_fingerprint() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_identities">get_identities() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.get_json_tags">get_json_tags() (in module bookmarks)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_key">get_key() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/logviewer.html#logviewer.get_log_metadata">get_log_metadata() (in module logviewer)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.get_ns_json_bookmarks">get_ns_json_bookmarks() (in module bookmarks)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.get_or_cache">get_or_cache() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_private_key">get_private_key() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.get_process_tree">get_process_tree() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_public_key">get_public_key() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_ssh_dir">get_ssh_dir() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/logviewer.html#logviewer.get_terminal_size">get_terminal_size() (in module logviewer)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.get_theme">get_theme() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.get_webworker">get_webworker() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/log.html#gateone.core.log.go_logger">go_logger() (in module gateone.core.log)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication">GOApplication (class in gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler">GoogleAuthHandler (class in gateone.auth.authentication)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.got_error">got_error() (in module ssh)</a>
   </dt>
 
   </dl></td>
@@ -1798,21 +2429,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.handle_special">handle_special() (in module terminal)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.highest_term_num">highest_term_num() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.horizontal_tab">horizontal_tab() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.HTTPSRedirectHandler">HTTPSRedirectHandler (class in gateone.core.server)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.HTTPSRedirectHandler">HTTPSRedirectHandler (class in gateone)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/utils.html#utils.human_readable_bytes">human_readable_bytes() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.human_readable_bytes">human_readable_bytes() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
@@ -1822,55 +2449,69 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.init_renditions">init_renditions() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.FaviconHandler.icon_fetch">icon_fetch() (bookmarks.FaviconHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.init_screen">init_screen() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.FaviconHandler.icon_multifetch">icon_multifetch() (bookmarks.FaviconHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.init_scrollback">init_scrollback() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.ImportHandler">ImportHandler (class in bookmarks)</a>
   </dt>
 
       
-  <dt><a href="Developer/authpam.html#authpam.PAMAuthMixin.initialize">initialize() (authpam.PAMAuthMixin method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.init">init() (in module app_terminal)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.initialize">(sso.KerberosAuthMixin method)</a>
-  </dt>
-
-        
-  <dt><a href="Developer/terminal.html#terminal.Terminal.initialize">(terminal.Terminal method)</a>
-  </dt>
-
-      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.insert_characters">insert_characters() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.insert_line">insert_line() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.isalive">isalive() (termio.BaseMultiplex method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.initialize">initialize() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/termio.html#termio.MultiplexMacOSIOLoop.isalive">(termio.MultiplexMacOSIOLoop method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.initialize">(gateone.auth.authentication.CASAuthHandler method)</a>
   </dt>
 
         
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.isalive">(termio.MultiplexPOSIXIOLoop method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler.initialize">(gateone.auth.authentication.SSLAuthHandler method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/pam.html#gateone.auth.pam.PAMAuthMixin.initialize">(gateone.auth.pam.PAMAuthMixin method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin.initialize">(gateone.auth.sso.KerberosAuthMixin method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.initialize">(gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication.initialize">(gateone.core.server.GOApplication method)</a>
+  </dt>
+
+        
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.initialize">(in module ssh)</a>
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.install_license">install_license() (in module gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict.interval">interval (gateone.core.utils.AutoExpireDict attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/authorization.html#gateone.auth.authorization.is_user">is_user (class in gateone.auth.authorization)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -1878,13 +2519,13 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.json_encode">json_encode() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.json_encode">json_encode() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.JSPluginsHandler">JSPluginsHandler (class in gateone)</a>
+  <dt><a href="Developer/log.html#gateone.core.log.JSONAdapter">JSONAdapter (class in gateone.core.log)</a>
   </dt>
 
   </dl></td>
@@ -1894,37 +2535,45 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TidyThread.keepalive">keepalive() (gateone.TidyThread method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.KerberosAuthHandler">KerberosAuthHandler (class in gateone.auth.authentication)</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.KerberosAuthHandler">KerberosAuthHandler (class in auth)</a>
+  <dt><a href="Developer/sso.html#gateone.auth.sso.KerberosAuthMixin">KerberosAuthMixin (class in gateone.auth.sso)</a>
   </dt>
 
       
-  <dt><a href="Developer/sso.html#sso.KerberosAuthMixin">KerberosAuthMixin (class in sso)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.kill_all_sessions">kill_all_sessions() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.kill_dtached_proc">kill_dtached_proc() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.kill_dtached_proc">kill_dtached_proc() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.kill_dtached_proc_bsd">kill_dtached_proc_bsd() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.kill_dtached_proc_macos">kill_dtached_proc_macos() (in module utils)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.kill_session">kill_session() (in module app_terminal)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.kill_terminal">kill_terminal() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.kill_session_processes">kill_session_processes() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.killall">killall() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.killall">killall() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.killall_macos">killall_macos() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.killall_bsd">killall_bsd() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler">KnownHostsHandler (class in ssh)</a>
   </dt>
 
   </dl></td>
@@ -1934,15 +2583,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.linefeed">linefeed() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.license_info">license_info() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.load_plugins">load_plugins() (in module utils)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.list_applications">list_applications() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.load_modules">load_modules() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.load_prefs">load_prefs() (gateone.core.server.ApplicationWebSocket class method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#module-logging_plugin">logging_plugin (module)</a>
+  </dt>
+
       
   <dt><a href="Developer/logviewer.html#module-logviewer">logviewer (module)</a>
   </dt>
@@ -1954,37 +2615,37 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.MainHandler">MainHandler (class in gateone)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.main">main() (in module logviewer)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.merge_handlers">merge_handlers() (in module utils)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.MainHandler">MainHandler (class in gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.MimeTypeFail">MimeTypeFail</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.memoize">memoize (class in gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.mkdir_p">mkdir_p() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.merge_handlers">merge_handlers() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.mode_handler">mode_handler() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.MimeTypeFail">MimeTypeFail</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex">Multiplex (in module termio)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.minify">minify() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.MultiplexMacOSIOLoop">MultiplexMacOSIOLoop (class in termio)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.mkdir_p">mkdir_p() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop">MultiplexPOSIXIOLoop (class in termio)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.mode_handler">mode_handler() (app_terminal.TerminalApplication method)</a>
   </dt>
 
   </dl></td>
@@ -1994,33 +2655,33 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.new_multiplex">new_multiplex() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.new_multiplex">new_multiplex() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.new_terminal">new_terminal() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.none_fix">none_fix() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.newline">newline() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.noop">noop() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.next_line">next_line() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_notice.html#module-notice">notice (module)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.none_fix">none_fix() (in module utils)</a>
+  <dt><a href="Applications/terminal/plugin_notice.html#notice.notice_esc_seq_handler">notice_esc_seq_handler() (in module notice)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.noop">noop() (in module utils)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.notify_permissions">notify_permissions() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.NullAuthHandler">NullAuthHandler (class in auth)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.NullAuthHandler">NullAuthHandler (class in gateone.auth.authentication)</a>
   </dt>
 
   </dl></td>
@@ -2030,17 +2691,81 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.on_close">on_close() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.on_close">on_close() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.on_close">(gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication.on_close">(gateone.core.server.GOApplication method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.on_message">on_message() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.on_message">on_message() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.on_pong">on_pong() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.open">open() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.open">(gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+        
+  <dt><a href="Developer/server.html#gateone.core.server.GOApplication.open">(gateone.core.server.GOApplication method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.open_bookmarks">open_bookmarks() (bookmarks.BookmarksDB method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.open_sub_channel">open_sub_channel() (in module ssh)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.open">open() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.openssh_generate_new_keypair">openssh_generate_new_keypair() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.openssh_generate_public_key">openssh_generate_public_key() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.opt_esc_handler">opt_esc_handler() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.opt_esc_handler">(in module ssh)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.BaseHandler.options">options() (gateone.core.server.BaseHandler method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/server.html#gateone.core.server.StaticHandler.options">(gateone.core.server.StaticHandler method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.overwrite">overwrite() (in module ssh)</a>
   </dt>
 
   </dl></td>
@@ -2050,15 +2775,23 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/auth.html#auth.PAMAuthHandler">PAMAuthHandler (class in auth)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.PAMAuthHandler">PAMAuthHandler (class in gateone.auth.authentication)</a>
   </dt>
 
       
-  <dt><a href="Developer/authpam.html#authpam.PAMAuthMixin">PAMAuthMixin (class in authpam)</a>
+  <dt><a href="Developer/pam.html#gateone.auth.pam.PAMAuthMixin">PAMAuthMixin (class in gateone.auth.pam)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Pattern">Pattern (class in termio)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.parse_bookmarks_html">parse_bookmarks_html() (in module bookmarks)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.parse_bookmarks_json">parse_bookmarks_json() (in module bookmarks)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_playback.html#module-playback">playback (module)</a>
   </dt>
 
       
@@ -2066,25 +2799,39 @@
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.PluginCSSTemplateHandler">PluginCSSTemplateHandler (class in gateone)</a>
+  <dt><a href="Developer/authorization.html#gateone.auth.authorization.policies">policies (class in gateone.auth.authorization)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.pong">pong() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.policy_broadcast">policy_broadcast() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.postprocess">postprocess() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.policy_list_users">policy_list_users() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.preprocess">preprocess() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.policy_send_user_message">policy_send_user_message() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.process_opt_esc_sequence">process_opt_esc_sequence() (in module utils)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.pong">pong() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_example.html#example.ExampleHandler.post">post() (example.ExampleHandler method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.post">(ssh.KnownHostsHandler method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.process_opt_esc_sequence">process_opt_esc_sequence() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
@@ -2094,89 +2841,89 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.raw">raw() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.random_words">random_words() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.read">read() (termio.BaseMultiplex method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.read">(termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.refresh_screen">refresh_screen() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.raw">raw() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/remote_syslog.html#module-remote_syslog">remote_syslog (module)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.read_pid">read_pid() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.remove_all_callbacks">remove_all_callbacks() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.recursive_chown">recursive_chown() (in module gateone.core.utils)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.remove_all_callbacks">(termio.BaseMultiplex method)</a>
-  </dt>
-
-      </dl></dd>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.remove_callback">remove_callback() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.refresh_screen">refresh_screen() (app_terminal.TerminalApplication method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.remove_callback">(termio.BaseMultiplex method)</a>
-  </dt>
-
-      </dl></dd>
       
-  <dt><a href="Developer/gateone.html#gateone.require_auth">require_auth() (in module gateone)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.remove_pid">remove_pid() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.remove_terminal_callbacks">remove_terminal_callbacks() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.remove_viewer">remove_viewer() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.rename_tag">rename_tag() (bookmarks.BookmarksDB method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.render_256_colors">render_256_colors() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.render_and_send_css">render_and_send_css() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.reset">reset() (terminal.Terminal method)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.render_html_playback">render_html_playback() (in module logviewer)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.reset_expanded_mode">reset_expanded_mode() (terminal.Terminal method)</a>
+  <dt><a href="Developer/logviewer.html#logviewer.render_log_frames">render_log_frames() (in module logviewer)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.reset_terminal">reset_terminal() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.render_style">render_style() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.resize">resize() (gateone.TerminalWebSocket method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/terminal.html#terminal.Terminal.resize">(terminal.Terminal method)</a>
-  </dt>
-
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.resize">(termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.restore_cursor_position">restore_cursor_position() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict.renew">renew() (gateone.core.utils.AutoExpireDict method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.retrieve_first_frame">retrieve_first_frame() (in module utils)</a>
+  <dt><a href="Developer/authorization.html#gateone.auth.authorization.require">require (class in gateone.auth.authorization)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.reverse_linefeed">reverse_linefeed() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.reset_client_terminal">reset_client_terminal() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.restore_term_settings">restore_term_settings() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/logviewer.html#logviewer.retrieve_first_frame">retrieve_first_frame() (in module logviewer)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_flat">retrieve_log_flat() (in module logging_plugin)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_playback">retrieve_log_playback() (in module logging_plugin)</a>
   </dt>
 
   </dl></td>
@@ -2186,105 +2933,189 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.save_cursor_position">save_cursor_position() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.save_bookmarks">save_bookmarks() (bookmarks.BookmarksDB method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.scroll_down">scroll_down() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.save_log_playback">save_log_playback() (in module logging_plugin)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.scroll_up">scroll_up() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_playback.html#playback.save_recording">save_recording() (in module playback)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.send_receive_mode">send_receive_mode() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.save_term_settings">save_term_settings() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_application_mode">set_application_mode() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.send_256_colors">send_256_colors() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_expanded_mode">set_expanded_mode() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.send_bookmarks_css_template">send_bookmarks_css_template() (in module bookmarks)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_G0_charset">set_G0_charset() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.send_client_files">send_client_files() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_G1_charset">set_G1_charset() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_css">send_css() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_led_state">set_led_state() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_extra">send_extra() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.set_terminal">set_terminal() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_js">send_js() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.set_title">set_title() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_js_or_css">send_js_or_css() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/terminal.html#terminal.Terminal.set_title">(terminal.Terminal method)</a>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_js_translation">send_js_translation() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
-      </dl></dd>
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.send_logging_css_template">send_logging_css_template() (in module logging_plugin)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_message">send_message() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.send_plugin_static_files">send_plugin_static_files() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.send_print_stylesheet">send_print_stylesheet() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.send_result">send_result() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.send_ssh_css_template">send_ssh_css_template() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.send_term_encoding">send_term_encoding() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.send_term_keyboard_mode">send_term_keyboard_mode() (app_terminal.TerminalApplication method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.session_logging_check">session_logging_check() (in module logging_plugin)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.BaseHandler.set_default_headers">set_default_headers() (gateone.core.server.BaseHandler method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.set_default_identities">set_default_identities() (in module ssh)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.shell_command">shell_command() (in module utils)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.StaticHandler.set_extra_headers">set_extra_headers() (gateone.core.server.StaticHandler method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.short_hash">short_hash() (in module utils)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.set_locales">set_locales() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.show_hide_cursor">show_hide_cursor() (terminal.Terminal method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.set_ssh_connect_string">set_ssh_connect_string() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.spawn">spawn() (in module termio)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.spawn">(termio.BaseMultiplex method)</a>
-  </dt>
-
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.spawn">(termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="Developer/utils.html#utils.SSLGenerationError">SSLGenerationError</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.set_ssh_socket">set_ssh_socket() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/sso.html#module-sso">sso (module)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.set_terminal">set_terminal() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.str2bool">str2bool() (in module utils)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.set_title">set_title() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.string_to_syslog_facility">string_to_syslog_facility() (in module utils)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.SharedTermHandler">SharedTermHandler (class in app_terminal)</a>
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.StyleHandler">StyleHandler (class in gateone)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.shell_command">shell_command() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/remote_syslog.html#remote_syslog.syslog">syslog() (in module remote_syslog)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.short_hash">short_hash() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#module-ssh">ssh (module)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.SSHExecutionException">SSHExecutionException</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.SSHKeygenException">SSHKeygenException</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.SSHKeypairException">SSHKeypairException</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.SSHMultiplexingException">SSHMultiplexingException</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.SSHPassphraseException">SSHPassphraseException</a>
+  </dt>
+
+      
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler">SSLAuthHandler (class in gateone.auth.authentication)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.SSLGenerationError">SSLGenerationError</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.StaticHandler">StaticHandler (class in gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.store_id_file">store_id_file() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.str2bool">str2bool() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/log.html#gateone.core.log.string_to_syslog_facility">string_to_syslog_facility() (in module gateone.core.log)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.strip_xss">strip_xss() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.sync_bookmarks">sync_bookmarks() (bookmarks.BookmarksDB method)</a>
   </dt>
 
   </dl></td>
@@ -2294,11 +3125,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.term_write">term_write() (termio.BaseMultiplex method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal">Terminal (class in terminal)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.term_ended">term_ended() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
@@ -2306,47 +3133,49 @@
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket">TerminalWebSocket (class in gateone)</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication">TerminalApplication (class in app_terminal)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.terminate">terminate() (termio.BaseMultiplex method)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.terminate_sub_channel">terminate_sub_channel() (in module ssh)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.terminate">(termio.MultiplexPOSIXIOLoop method)</a>
-  </dt>
-
-      </dl></dd>
       
   <dt><a href="Developer/termio.html#module-termio">termio (module)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TermStaticFiles">TermStaticFiles (class in app_terminal)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict.timeout">timeout (gateone.core.utils.AutoExpireDict attribute)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.TidyThread">TidyThread (class in gateone)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.timeout_func">timeout_func() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Timeout">Timeout</a>
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.timeout_session">timeout_session() (in module app_terminal)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.timeout_check">timeout_check() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.timeout_sessions">timeout_sessions() (in module gateone.core.server)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.timeout_func">timeout_func() (in module utils)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.timeout_sub_channel">timeout_sub_channel() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.toggle_alternate_screen_buffer">toggle_alternate_screen_buffer() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.total_seconds">total_seconds() (in module gateone.core.utils)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.toggle_alternate_screen_buffer_cursor">toggle_alternate_screen_buffer_cursor() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.touch">touch() (in module gateone.core.utils)</a>
   </dt>
 
   </dl></td>
@@ -2356,39 +3185,31 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.unexpect">unexpect() (termio.BaseMultiplex method)</a>
+  <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.unescape">unescape() (in module bookmarks)</a>
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.UnknownFacility">UnknownFacility</a>
+  <dt><a href="Developer/log.html#gateone.core.log.UnknownFacility">UnknownFacility</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.use_g0_charset">use_g0_charset() (terminal.Terminal method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.use_g1_charset">use_g1_charset() (terminal.Terminal method)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.AutoExpireDict.update">update() (gateone.core.utils.AutoExpireDict method)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/auth.html#auth.BaseAuthHandler.user_login">user_login() (auth.BaseAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.user_login">user_login() (gateone.auth.authentication.BaseAuthHandler method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/auth.html#auth.NullAuthHandler.user_login">(auth.NullAuthHandler method)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.NullAuthHandler.user_login">(gateone.auth.authentication.NullAuthHandler method)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="Developer/auth.html#auth.BaseAuthHandler.user_logout">user_logout() (auth.BaseAuthHandler method)</a>
-  </dt>
-
-      
-  <dt><a href="Developer/utils.html#module-utils">utils (module)</a>
+  <dt><a href="Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.user_logout">user_logout() (gateone.auth.authentication.BaseAuthHandler method)</a>
   </dt>
 
   </dl></td>
@@ -2398,7 +3219,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.valid_hostname">valid_hostname() (in module utils)</a>
+  <dt><a href="Developer/utils.html#gateone.core.utils.valid_hostname">valid_hostname() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/server.html#gateone.core.server.validate_authobj">validate_authobj() (in module gateone.core.server)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/server.html#gateone.core.server.validate_licenses">validate_licenses() (in module gateone.core.server)</a>
   </dt>
 
   </dl></td>
@@ -2408,27 +3239,41 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/utils.html#utils.which">which() (in module utils)</a>
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.wait_for_prompt">wait_for_prompt() (in module ssh)</a>
   </dt>
 
       
-  <dt><a href="Developer/terminal.html#terminal.Terminal.write">write() (terminal.Terminal method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.watch_file">watch_file() (gateone.core.server.ApplicationWebSocket class method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.write">(termio.MultiplexPOSIXIOLoop method)</a>
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.which">which() (in module gateone.core.utils)</a>
   </dt>
 
-      </dl></dd>
+      
+  <dt><a href="Applications/terminal/woff_info.html#module-woff_info">woff_info (module)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/woff_info.html#woff_info.woff_name_data">woff_name_data() (in module woff_info)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.writeline">writeline() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.wrap_and_send_js">wrap_and_send_js() (gateone.core.server.ApplicationWebSocket method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.BaseMultiplex.writelines">writelines() (termio.BaseMultiplex method)</a>
+  <dt><a href="Developer/server.html#gateone.core.server.ApplicationWebSocket.write_binary">write_binary() (gateone.core.server.ApplicationWebSocket method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#gateone.core.utils.write_pid">write_pid() (in module gateone.core.utils)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.ws_exec_command">ws_exec_command() (in module ssh)</a>
   </dt>
 
   </dl></td>
@@ -2476,9 +3321,32 @@
         <li><a href="index.html">Gate One Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
-        &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

@@ -1,0 +1,2032 @@
+# German (Germany) translations for PROJECT.
+# Copyright (C) 2014 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2014-09-04 18:37-0400\n"
+"PO-Revision-Date: 2014-09-04 19:05-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: de_DE <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: gateone/applications/docker/app_docker.py:117
+#, python-format
+msgid "Active Docker Plugins: %s, "
+msgstr "Aktiv Docker Plugins: %s , "
+
+#: gateone/applications/docker/app_docker.py:220
+msgid ""
+"User is not allowed to use the docker application.  Skipping post-"
+"authentication functions."
+msgstr "Benutzer ist nicht berechtigt, die Hafenarbeiter Anwendung verwenden. Überspringen Post-Authentifizierungsfunktionen."
+
+#: gateone/applications/docker/app_docker.py:295
+msgid "The test_docker WebSocket action was called successfully!"
+msgstr "Die test_docker WebSocket Aktion wurde erfolgreich aufgerufen!"
+
+#: gateone/applications/docker/app_docker.py:297
+#: gateone/applications/example/app_example.py:439
+#, python-format
+msgid "Here's what was recieved: %s"
+msgstr "Hier ist, was bekamen, war: %s"
+
+#: gateone/applications/docker/app_docker.py:331
+msgid "// This is Gate One's Docker application settings file.\n"
+msgstr "// Das ist das Gate One Docker Anwendungseinstellungen-Datei. \ N"
+
+#: gateone/applications/example/app_example.py:68
+msgid "Doesn't do anything (just an example from the example app)."
+msgstr "Nichts (nur ein Beispiel aus dem Beispiel app) zu tun."
+
+#: gateone/applications/example/app_example.py:99
+#, python-format
+msgid "%s denied access to the 'test_example' function by policy.upn"
+msgstr "%s keinen Zugang zu den "test_example"-Funktion durch policy.upn"
+
+#: gateone/applications/example/app_example.py:154
+#, python-format
+msgid "%s denied access to the Example application by policy.upn"
+msgstr "%s verweigert den Zugang zum Beispiel durch Anwendung policy.upn"
+
+#: gateone/applications/example/app_example.py:255
+#, python-format
+msgid "Active Example Plugins: %s, "
+msgstr "Aktiv Beispiel Plugins: %s , "
+
+#: gateone/applications/example/app_example.py:358
+msgid ""
+"User is not allowed to use the Example application.  Skipping post-"
+"authentication functions."
+msgstr "Benutzer ist nicht erlaubt, das Beispiel-Anwendung. Überspringen Post-Authentifizierungsfunktionen."
+
+#: gateone/applications/example/app_example.py:437
+msgid "The test_example WebSocket action was called successfully!"
+msgstr "Die test_example WebSocket Aktion wurde erfolgreich aufgerufen!"
+
+#: gateone/applications/example/app_example.py:473
+msgid "// This is Gate One's Example application settings file.\n"
+msgstr "// Das ist das Gate One Anwendungsbeispiel Einstellungsdatei. \ N"
+
+#: gateone/applications/file_transfer/app_file_transfer.py:110
+#: gateone/applications/terminal/policy.py:264
+#, python-format
+msgid "%s denied access to the Terminal application by policy.upn"
+msgstr "%s keinen Zugang zu den Terminal-Anwendung von policy.upn"
+
+#: gateone/applications/file_transfer/app_file_transfer.py:169
+#, python-format
+msgid "Active File Transfer Plugins: %s, "
+msgstr "Aktive File Transfer Plugins: %s , "
+
+#: gateone/applications/file_transfer/app_file_transfer.py:183
+#: gateone/applications/terminal/app_terminal.py:280
+msgid "Got exception trying to initialize the {0} plugin:"
+msgstr "Bekam Ausnahme versucht, das zu initialisieren {0} -Plugin:"
+
+#: gateone/applications/file_transfer/file_utils.py:36
+msgid ""
+"Could not import lzma module.  You probably need to run 'sudo pip install"
+" backports.lzma'.  If you get errors you'll need to install the libzma-"
+"dev package and re-run the pip command."
+msgstr "LZMA-Modul konnte nicht importiert werden. Sie müssen wahrscheinlich zu laufen "sudo pip installieren backports.lzma '. Wenn Sie Fehler, die Sie benötigen, um die libzma-dev-Paket zu installieren und erhalten erneut ausführen die PIP-Befehl."
+
+#: gateone/applications/file_transfer/file_utils.py:99
+msgid "Removing because {path} is larger than {human_size}: {fp}"
+msgstr "Entfernen, da {Pfad} ist größer als {} human_size: {fp}"
+
+#: gateone/applications/file_transfer/file_utils.py:105
+msgid "Could not delete {fp} ({e})"
+msgstr "Konnte nicht gelöscht werden {fp} ({e})"
+
+#: gateone/applications/file_transfer/file_utils.py:128
+msgid "Removing file due to age (>{max_age} old): {file_path}"
+msgstr "Entfernen Datei aufgrund des Alters (> {} max_age alt): {} file_path"
+
+#: gateone/applications/file_transfer/protocol.py:386
+msgid "{instance_name}._process_queue(): No action registered for '{action}'"
+msgstr "{} Instanz ._ process_queue (): Keine Aktion für registrierte '{action}'"
+
+#: gateone/applications/file_transfer/protocol.py:393
+msgid "{instance_name}._process_queue(): got invalid message: {message}"
+msgstr "{} Instanz ._ process_queue (): {} Nachricht: ungültige Nachricht bekam"
+
+#: gateone/applications/file_transfer/plugins/protocol_dns/protocol_dns.py:95
+msgid "Error: dnspython is not installed."
+msgstr "Fehler: dnspython nicht installiert ist."
+
+#: gateone/applications/file_transfer/plugins/protocol_ftp/protocol_ftp.py:96
+#: gateone/applications/file_transfer/plugins/protocol_ftp/protocol_ftp.py:136
+msgid "Error retrieving {url}: {err}"
+msgstr "Fehler beim Abrufen {url}: {err}"
+
+#: gateone/applications/file_transfer/plugins/protocol_http/protocol_http.py:132
+msgid "Fetching {log_url} ({human_size})"
+msgstr "Abrufen {log_url} ({human_size})"
+
+#: gateone/applications/file_transfer/plugins/protocol_http/protocol_http.py:135
+msgid "Error retrieving {log_url}: {err}"
+msgstr "Fehler beim Abrufen {} log_url: {err}"
+
+#: gateone/applications/file_transfer/plugins/protocol_http/protocol_http.py:141
+msgid "{log_url} fetched successfully."
+msgstr "{} Log_url holte erfolgreich."
+
+#: gateone/applications/terminal/app_terminal.py:57
+msgid ""
+"If enabled, logs of user sessions will be saved in "
+"<user_dir>/<user>/logs.  Default: Enabled"
+msgstr "Wenn aktiviert, werden Protokolle von Benutzersitzungen in <user_dir> / <Benutzer> / logs gespeichert werden. Standard: Aktiviert"
+
+#: gateone/applications/terminal/app_terminal.py:64
+msgid "If enabled, logs of user sessions will be written to syslog."
+msgstr "Wenn aktiviert, werden Protokolle von Benutzersitzungen auf syslog geschrieben werden."
+
+#: gateone/applications/terminal/app_terminal.py:70
+msgid ""
+"Wrap terminals with dtach. Allows sessions to be resumed even if Gate One"
+" is stopped and started (which is a sweet feature)."
+msgstr "Wickeln Terminals mit dtach. Ermöglicht Sitzungen wieder aufgenommen, auch wenn Gate One gestoppt und gestartet (das ist ein süßes Feature ist) werden."
+
+#: gateone/applications/terminal/app_terminal.py:77
+msgid "Kill any running Gate One terminal processes including dtach'd processes."
+msgstr "Töten alle laufenden Gate One Terminalprozesse einschließlich dtach'd Prozesse."
+
+#: gateone/applications/terminal/app_terminal.py:263
+#, python-format
+msgid "Active Terminal Plugins: %s, "
+msgstr "Aktiven Terminal-Plugins: %s , "
+
+#: gateone/applications/terminal/app_terminal.py:406
+msgid ""
+"User is not allowed to use the Terminal application.  Skipping post-"
+"authentication functions."
+msgstr "Benutzer ist nicht erlaubt, die Terminal-Anwendung zu verwenden. Überspringen Post-Authentifizierungsfunktionen."
+
+#: gateone/applications/terminal/app_terminal.py:440
+#: gateone/applications/x11/app_x11.py:720
+msgid "Path to icon ({icon}) for command, '{cmd}' could not be found."
+msgstr "Weg zum Symbol (Symbol {}) für Befehl "cmd {} 'konnte nicht gefunden werden."
+
+#: gateone/applications/terminal/app_terminal.py:511
+msgid "You're missing the 'commands' setting!"
+msgstr "Du bist der Einstellung 'Befehle' fehlt!"
+
+#: gateone/applications/terminal/app_terminal.py:530
+#: gateone/applications/terminal/app_terminal.py:577
+#, python-format
+msgid "Bad font in fonts dir (missing Font Family in name table): %s"
+msgstr "Bad Schriftart in Schriftarten dir (fehlende Schriftfamilie im Namen Tabelle): %s"
+
+#: gateone/applications/terminal/app_terminal.py:803
+msgid ""
+"Warning: Terminals are closing too fast.  If you see this message "
+"multiple times it is likely that the configured command is failing to "
+"execute.  Please check your server settings."
+msgstr "Achtung: Die Klemmen sind Schluss zu schnell. Wenn Sie diese Meldung mehrmals sehen, es ist wahrscheinlich, dass der Befehl konfiguriert versagt auszuführen. Bitte überprüfen Sie Ihre Server-Einstellungen."
+
+#: gateone/applications/terminal/app_terminal.py:813
+#, python-format
+msgid ""
+"Terminals are closing too quickly after being opened (command: %s).  "
+"Please check your 'commands' (usually in settings/50terminal.conf)."
+msgstr "(: Befehl Terminals zu schnell nach dem Öffnen Schließen %s ). Bitte überprüfen Sie Ihre 'Befehle' (in der Regel in den Einstellungen / 50terminal.conf)."
+
+#: gateone/applications/terminal/app_terminal.py:1030
+#, python-format
+msgid ""
+"You are missing a 'default_command' in your terminal settings (usually "
+"50terminal.conf in %s)"
+msgstr "Sie sind ein "default_command 'fehlt in Ihrem Terminal-Einstellungen (in der Regel 50terminal.conf in %s )"
+
+#: gateone/applications/terminal/app_terminal.py:1042
+#, python-format
+msgid "%s: Attempted to execute invalid command (%s)."
+msgstr "%s : Versuch einer ungültigen Befehl (Ausführen %s )."
+
+#: gateone/applications/terminal/app_terminal.py:1044
+#, python-format
+msgid "Terminal: Invalid command: %s"
+msgstr "Terminal: Invalid command: %s"
+
+#: gateone/applications/terminal/app_terminal.py:1122
+#, python-format
+msgid "new_terminal cmd: %s"
+msgstr "new_terminal cmd: %s"
+
+#: gateone/applications/terminal/app_terminal.py:1186
+msgid "WARNING: Logging is set to DEBUG.  All keystrokes will be logged!"
+msgstr "WARNUNG: Protokollierung auf DEBUG gesetzt ist. Alle Tastatureingaben werden protokolliert!"
+
+#: gateone/applications/terminal/app_terminal.py:1218
+msgid ""
+"Invalid encoding.  For a list of valid encodings see:<br><a "
+"href='http://docs.python.org/2/library/codecs.html#standard-encodings' "
+"target='new'>Standard Encodings</a>"
+msgstr "Ungültige Kodierung. Für eine Liste der gültigen Codierungen siehe: <br> <a href='http://docs.python.org/2/library/codecs.html#standard-encodings' target='new'> Standard-Codierungen </a>"
+
+#: gateone/applications/terminal/app_terminal.py:1251
+#, python-format
+msgid "Invalid keyboard mode.  Must be one of: %s, "
+msgstr "Ungültige Tastatur-Modus. Muss einer der folgenden sein: %s , "
+
+#: gateone/applications/terminal/app_terminal.py:1273
+msgid "Error: Terminal {term} does not exist."
+msgstr "Fehler: Terminal {Begriff} existiert nicht."
+
+#: gateone/applications/terminal/app_terminal.py:1312
+msgid "Error: Terminal {term} does not exist at the current location ({location})"
+msgstr "Fehler: Terminal {Begriff} ist nicht an der aktuellen Position existiert ({location})"
+
+#: gateone/applications/terminal/app_terminal.py:1363
+#, python-format
+msgid "Incoming terminal from location: %s"
+msgstr "Eingangsterminal vom Standort: %s"
+
+#: gateone/applications/terminal/app_terminal.py:1602
+#, python-format
+msgid "WebSocket closed (%s)"
+msgstr "WebSocket geschlossen ( %s )"
+
+#: gateone/applications/terminal/app_terminal.py:1656
+#, python-format
+msgid "KeyError in refresh_screen: %s"
+msgstr "KeyError in refresh_screen: %s"
+
+#: gateone/applications/terminal/app_terminal.py:1664
+#, python-format
+msgid "Invalid terminal number given to full_refresh(): %s"
+msgstr "Ungültige Kassennummer gegeben, um full_refresh (): %s"
+
+#: gateone/applications/terminal/app_terminal.py:1766
+#, python-format
+msgid "Got exception trying to write_chars() to terminal %sterm"
+msgstr "Bekam Ausnahme versucht, write_chars () an die Klemme %s Begriff"
+
+#: gateone/applications/terminal/app_terminal.py:1808
+msgid "Got exception trying to execute plugin's optional ESC sequence handler..."
+msgstr "Bekam Ausnahme versucht, optional ESC-Sequenz Handler Plugins ausführen ..."
+
+#: gateone/applications/terminal/app_terminal.py:1824
+#, python-format
+msgid "Could not load bell: %s"
+msgstr "Glocke konnte nicht geladen werden: %s"
+
+#: gateone/applications/terminal/app_terminal.py:1861
+#: gateone/core/server.py:2534
+msgid "send_css is false; will not send JavaScript."
+msgstr "send_css ist falsch; nicht senden JavaScript."
+
+#: gateone/applications/terminal/app_terminal.py:2041
+msgid "{upn} updated sharing permissions on terminal {term} ({title}))"
+msgstr "{} Upn aktualisiert Freigabeberechtigungen auf Klemme {Begriff} ({title}))"
+
+#: gateone/applications/terminal/app_terminal.py:2170
+#, python-format
+msgid "Share ID '%s' is already in use"
+msgstr "Share ID ' %s 'ist bereits im Einsatz"
+
+#: gateone/applications/terminal/app_terminal.py:2183
+msgid "{upn} changed share ID of terminal {term} from '{old}'' to '{new}'"
+msgstr "{} Upn geändert Aktie ID des Terminal {Begriff} aus '{alt}' 'auf' {new} '"
+
+#: gateone/applications/terminal/app_terminal.py:2203
+msgid "Error: Invalid share ID."
+msgstr "Fehler: Ungültige ID Aktie."
+
+#: gateone/applications/terminal/app_terminal.py:2241
+msgid "No terminal associated with the given share_id."
+msgstr "Kein Anschluss mit dem angegebenen share_id verbunden."
+
+#: gateone/applications/terminal/app_terminal.py:2352
+msgid "Invalid share_id."
+msgstr "Ungültige share_id."
+
+#: gateone/applications/terminal/app_terminal.py:2362
+msgid "Requested shared terminal does not exist."
+msgstr "Angefordert gemeinsame Terminal gibt es nicht."
+
+#: gateone/applications/terminal/app_terminal.py:2367
+msgid "You are not authorized to view this terminal"
+msgstr "Sie sind nicht berechtigt, diesen Anschluss zu sehen"
+
+#: gateone/applications/terminal/app_terminal.py:2371
+msgid "Invalid password."
+msgstr "Ungültiges Passwort."
+
+#: gateone/applications/terminal/app_terminal.py:2440
+msgid "{upn} connected to terminal shared by {owner}"
+msgstr "{} Upn an Klemme verbunden durch gemeinsame Eigentümer {}"
+
+#: gateone/applications/terminal/app_terminal.py:2448
+#, python-format
+msgid "%s (%s) is now viewing terminal %s"
+msgstr "%s ( %s ) wird nun die Anzeige Klemme %s"
+
+#: gateone/applications/terminal/app_terminal.py:2709
+#: gateone/core/configuration.py:890
+msgid "// This is Gate One's Terminal application settings file.\n"
+msgstr "// Das ist Gate One Terminal-Anwendung Einstellungsdatei. \ N"
+
+#: gateone/applications/terminal/app_terminal.py:2725
+msgid "dtach command not found.  dtach support has been disabled."
+msgstr "dtach Befehl nicht gefunden. dtach Unterstützung wurde deaktiviert."
+
+#: gateone/applications/terminal/app_terminal.py:2730
+msgid ""
+"The default path to known_hosts has been changed.  Please update your "
+"settings to use '/.ssh/known_hosts' instead of '/ssh/known_hosts'.  "
+"Applying a termporary fix..."
+msgstr "Der Standardpfad zu known_hosts wurde geändert. Bitte aktualisieren Sie Ihre Einstellungen zu "/.ssh/known_hosts 'statt' / ssh / known_hosts 'zu verwenden. Anlegen einer termporary fix ..."
+
+#: gateone/applications/terminal/app_terminal.py:2793
+msgid "View terminal session logs."
+msgstr "Informieren Sie sich über Terminal-Session-Protokolle."
+
+#: gateone/applications/terminal/policy.py:72
+#, python-format
+msgid ""
+"%s denied opening new terminal.  The 'max_terms' policy limit (%s) has "
+"been reached for this user."
+msgstr "%s verweigert die Eröffnung neuer Terminal. Die Politik Grenze "max_terms '( %s ) hat für diesen Benutzer erreicht."
+
+#: gateone/applications/terminal/policy.py:78
+#, python-format
+msgid "Server policy dictates that you may only open %s terminal(s) "
+msgstr "Server-Richtlinie schreibt vor, dass Sie nur öffnen %s -Terminal (s) "
+
+#: gateone/applications/terminal/policy.py:119
+msgid ""
+"{upn} denied executing {function_name} by policy (not owner of terminal "
+"or does not have write access)."
+msgstr "{} Upn verweigert die Ausführung {} function_name durch die Politik (nicht Eigentümer des Terminals oder keine Schreibzugriff)."
+
+#: gateone/applications/terminal/policy.py:167
+#, python-format
+msgid "%s denied sharing terminal by policy.upn"
+msgstr "%s verweigert den Austausch von Terminal policy.upn"
+
+#: gateone/applications/terminal/policy.py:177
+msgid "You do not have permission to write to this terminal."
+msgstr "Sie haben keine Berechtigung, zu diesem Terminal zu schreiben."
+
+#: gateone/applications/terminal/term_utils.py:75
+msgid "Error decoding {0}.  File will be removed."
+msgstr "Fehler Dekodierung {0} . Datei werden entfernt."
+
+#: gateone/applications/terminal/plugins/html/html.py:63
+msgid "Raw HTML"
+msgstr "Raw HTML"
+
+#: gateone/applications/terminal/plugins/html/html.py:109
+#, python-format
+msgid "HTML Plugin: Sorry but the '%s' tag is not allowed."
+msgstr "HTML-Plugin: Es tut uns leid, aber der ' %s 'Tag nicht erlaubt ist."
+
+#: gateone/applications/terminal/plugins/html/html.py:117
+msgid "HTML Plugin: Sorry but using 'javascript:' is not allowed."
+msgstr "HTML-Plugin: Sorry, aber mit "javascript:" ist nicht erlaubt."
+
+#: gateone/applications/terminal/plugins/html/html.py:124
+msgid "HTML Plugin: Sorry but using JavaScript events is not allowed."
+msgstr "HTML-Plugin: Sorry, aber mit JavaScript-Ereignisse ist nicht erlaubt."
+
+#: gateone/applications/terminal/plugins/html/html.py:132
+msgid "HTML Plugin: Sorry but using 'FSCommand' is not allowed."
+msgstr "HTML-Plugin: Sorry, aber mit "FSCommand 'ist nicht erlaubt."
+
+#: gateone/applications/terminal/plugins/html/html.py:139
+msgid "HTML Plugin: Sorry but using 'seekSegmentTime' is not allowed."
+msgstr "HTML-Plugin: Sorry, aber mit 'seekSegmentTime' ist nicht erlaubt."
+
+#: gateone/applications/terminal/plugins/html/html.py:147
+msgid "HTML Plugin: Sorry but using 'vbscript:' is not allowed."
+msgstr "HTML-Plugin: Sorry, aber mit "VBScript: 'ist nicht zulässig."
+
+#: gateone/applications/terminal/plugins/logging/logging_plugin.py:113
+msgid ""
+"NOTE: User session logging is disabled.  To enable it, set "
+"'session_logging = True' in your server.conf."
+msgstr "Hinweis: Benutzersitzungsprotokollierung deaktiviert ist. Um es zu aktivieren, setzen 'session_logging = True "in Ihrem server.conf."
+
+#: gateone/applications/terminal/plugins/logging/logging_plugin.py:121
+msgid "NOTE: Your access to the log viewer has been restricted."
+msgstr "HINWEIS: Ihr Zugang zu den Log-Viewer wurde eingeschränkt."
+
+#: gateone/applications/terminal/plugins/logging/logging_plugin.py:323
+#: gateone/applications/terminal/plugins/logging/logging_plugin.py:456
+#: gateone/applications/terminal/plugins/logging/logging_plugin.py:575
+msgid "ERROR: Log not found"
+msgstr "Fehler: Nicht gefunden Anmelden"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:129
+#, python-format
+msgid "Renaming %s's 'ssh' directory to '.ssh'."
+msgstr "Umbenennen %s 's' ssh 'Verzeichnis' .ssh '."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:133
+#, python-format
+msgid ""
+"Both an 'ssh' and '.ssh' directory exist for user %s.  Using the .ssh "
+"directory."
+msgstr "Sowohl ein "ssh" und das Verzeichnis ".ssh 'gibt es für Benutzer %s . Verwendung der ssh-Verzeichnis."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:159
+#: gateone/applications/terminal/plugins/ssh/ssh.py:168
+msgid "SSH Plugin: Unable to open slave sub-channel."
+msgstr "SSH Plugin: Kann Slave Sub-Kanal zu öffnen."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:264
+msgid "SSH sub-channel closed due to inactivity."
+msgstr "SSH Unterkanal geschlossen wegen Inaktivität."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:276
+#, python-format
+msgid ""
+"%s: Got an error trying to capture output inside of execute_command() "
+"running: %s"
+msgstr "%s : Erhielt ein Fehler aufgetreten Ausgang innerhalb von execute_command () Lauf erfassen: %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:285
+msgid "Error: Timeout exceeded or command failed to execute."
+msgstr "Fehler: Timeout überschritten oder Befehl, der ausgeführt ist fehlgeschlagen."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:313
+#, python-format
+msgid "%s: Got an error trying to open sub-channel on term %s..."
+msgstr "%s : Erhielt ein Fehler aufgetreten Unterkanal auf tige öffnen %s ..."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:476
+#, python-format
+msgid "SSH Plugin Error: Invalid name given, %s"
+msgstr "SSH Plugin-Fehler: Ungültige Namen gegeben, %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:495
+#, python-format
+msgid "SSH Plugin Error: Public key not found at %s"
+msgstr "SSH-Plugin-Fehler: Öffentliche Schlüssel an nicht gefunden %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:524
+msgid "Error:  You must supply a 'host'."
+msgstr "Fehler: Sie müssen einen "Wirt" zu liefern."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:553
+#, python-format
+msgid "Error: Could not determine the fingerprint of %s:%s... '%s'"
+msgstr "Fehler: den Fingerabdruck konnte nicht ermittelt werden %s : %s ... ' %s '"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:617
+msgid "Keypair generation failed."
+msgstr "Schlüsselpaar Generation gescheitert."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:623
+#, python-format
+msgid "There was a problem generating SSH keys: %s"
+msgstr "Es gab ein Problem erzeugen SSH-Schlüssel: %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:641
+msgid "Keypair generation complete"
+msgstr "Schlüsselpaar Generation komplett"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:772
+#, python-format
+msgid "Error generating public key from private key at %s"
+msgstr "Fehler beim Erzeugen öffentlichen Schlüssel aus privaten Schlüssel in %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:841
+msgid "You must specify a valid *name*."
+msgstr "Sie müssen einen gültigen * Namen angeben *."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:848
+msgid "No files were given to save!"
+msgstr "Es wurden keine Dateien gegeben, um zu sparen!"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:869
+msgid "ERROR: Private key is not valid."
+msgstr "ERROR: Privater Schlüssel ist nicht gültig."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:880
+msgid "Got public key, cancelling public key generation timer."
+msgstr "Bekam öffentlichen Schlüssel, Abbrechen öffentlichen Timer Schlüsselerzeugung."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:891
+msgid ""
+"Only received a private key.  Setting timeout to generate the public key "
+"if not received within 3 seconds."
+msgstr "Nur erhielt einen privaten Schlüssel. Zeitlimit-Einstellung, um den öffentlichen Schlüssel zu generieren, wenn nicht innerhalb von 3 Sekunden."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:909
+#, python-format
+msgid "Error saving keys: %s"
+msgstr "Fehler beim Speichern Tasten: %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:936
+#, python-format
+msgid "Error deleting keypair: %s"
+msgstr "Fehler beim Löschen der Schlüsselpaar: %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:1029
+#, python-format
+msgid "Error getting identities: %s"
+msgstr "Fehler beim Abrufen der Identitäten: %s"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:1119
+#, python-format
+msgid "Error creating user's ssh directory: %s\n"
+msgstr "Fehler beim Erstellen der ssh-Verzeichnis des Benutzers: %s \ n"
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:1145
+#, python-format
+msgid ""
+"Could not set %s as executable.  You will need to 'chmod a+x' that script"
+" manually."
+msgstr "Konnte nicht gesetzt %s als ausführbare. Sie werden zu "chmod a + x 'diesem Skript manuell müssen."
+
+#: gateone/applications/terminal/plugins/ssh/ssh.py:1148
+msgid ""
+"Error loading SSH plugin:  The ssh_connect.py script is not executable.  "
+"See the logs for more details."
+msgstr "Fehler beim Laden SSH-Plugin: Der ssh_connect.py Skript ist nicht ausführbar. Siehe die Protokolle auf weitere Details."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:263
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:486
+msgid "The port must be an integer < 65535"
+msgstr "Der Port muss eine ganze Zahl <65535"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:337
+msgid "The following SSH identities are being used for this connection:"
+msgstr "Die folgenden SSH Identitäten werden für diese Verbindung verwendet:"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:345
+#, python-format
+msgid "\t[1m%s[0m"
+msgstr "\ T [1m %s [0m"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:390
+#, python-format
+msgid ""
+"]_;notice|Existing ssh session detected for ssh://%s@%s:%s; utilizing "
+"existing tunnel."
+msgstr "] _; Hinweis | Bestehende SSH-Sitzung für ssh erkannt: // %s @ %s : %s ; Nutzung bestehender Tunnel."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:507
+#, python-format
+msgid "Error: Could not find telnet binary in path %r"
+msgstr "Fehler: telnet binären Pfad in% r konnte nicht gefunden werden"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:645
+msgid ""
+"Path to the ssh command.  Default: 'ssh' (which usually means "
+"/usr/bin/ssh)."
+msgstr "Pfad zu dem Befehl ssh. Default: 'ssh' (was normalerweise bedeutet, / usr / bin / ssh)."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:660
+msgid "[Press Enter to close this terminal]"
+msgstr "[Drücken Sie die Eingabetaste, um diese zu schließen Terminal]"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:665
+msgid ""
+"Any additional arguments that should be passed to the ssh command.  It is"
+" recommended to wrap these in quotes."
+msgstr "Zusätzliche Argumente, die auf den Befehl ssh übergeben werden sollen. Es wird empfohlen, diese in Anführungszeichen ein."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:672
+msgid ""
+"Path to the control socket for connection sharing (see master mode and "
+"'man ssh')."
+msgstr "Weg mit der Steuerbuchse für Verbindungsfreigabe (siehe Master-Modus und "man ssh)."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:680
+msgid ""
+"Enable the use of SSHFP in verifying host keys. See:  "
+"http://en.wikipedia.org/wiki/SSHFP#SSHFP"
+msgstr "Ermöglichen den Einsatz von SSHFP bei der Überprüfung der Host-Schlüssel. Siehe: http://en.wikipedia.org/wiki/SSHFP#SSHFP"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:687
+msgid "Enable the VisualHostKey (randomart hash host key) option when connecting."
+msgstr "Aktivieren Sie die VisualHostKey (randomart Hash-Host-Schlüssel) Option bei Anschluss."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:694
+msgid "Display the logo image inline in the terminal."
+msgstr "Zeigen Sie das Logo-Bild inline im Terminal."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:699
+msgid "Provide the logo path (implies --logo)."
+msgstr "Geben Sie den Pfad-Logo (impliziert --Firmenzeichen)."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:704
+msgid ""
+"The default host that will be used for outbound connections if no "
+"hostname is provided.  Default: localhost"
+msgstr "Der Standard-Host, die für ausgehende Verbindungen eingesetzt werden, wenn kein Hostname versehen werden. Standard: localhost"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:711
+msgid ""
+"The default port that will be used for outbound connections if no port is"
+" provided.  Default: 22"
+msgstr "Der Standard-Port, die für ausgehende Verbindungen eingesetzt werden, wenn kein Port bereitgestellt werden. Default: 22"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:718
+msgid ""
+"Skip asking for host information (hostname and port) and ask for "
+"credentials only (you probably want to use --default_host and "
+"--default_port as well)."
+msgstr "Überspringen bitten um Host-Informationen (Hostname und Port) und fragen Sie nach Anmeldeinformationen nur (Sie wahrscheinlich zu bedienen und --default_host --default_port auch wollen)."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:785
+msgid "Error:  You must enter a valid hostname or IP address."
+msgstr "Fehler: Sie müssen einen gültigen Hostnamen oder die IP-Adresse einzugeben."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:787
+msgid "Error:  You must enter a valid port (1-65535)."
+msgstr "Fehler: Sie müssen einen gültigen Port (1-65535) eingeben."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:789
+msgid "Error:  You must enter a valid username."
+msgstr "Fehler: Sie müssen einen gültigen Benutzernamen eingeben."
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:801
+#, python-format
+msgid ""
+"[Press Shift-F1 for help]\n"
+"\n"
+"Host/IP or ssh:// URL%s: "
+msgstr "[Drücken Sie Shift-F1, um Hilfe] \ n \ nWirt / IP oder ssh: // URL %s : "
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:849
+#, python-format
+msgid "%s: "
+msgstr "%s : "
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:874
+#, python-format
+msgid "Connecting to ssh://%s@%s:%s"
+msgstr "Verbinden mit ssh: // %s @ %s : %s"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:894
+#, python-format
+msgid "Connecting to telnet://%s@%s:%s"
+msgstr "Verbindung zu telnet: // %s @ %s : %s"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:898
+#, python-format
+msgid "Connecting to telnet://%s:%s"
+msgstr "Verbindung zu telnet: // %s : %s"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:903
+#, python-format
+msgid "Unknown protocol \"%s\""
+msgstr "Unbekanntes Protokoll \ " %s \ ""
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:907
+#, python-format
+msgid "Got Exception: %s"
+msgstr "Bekam Ausnahme: %s"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:912
+msgid "[Press any key to close this terminal]"
+msgstr "[Drücken Sie eine beliebige Taste, um diese zu schließen Terminal]"
+
+#: gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py:916
+msgid ""
+"\n"
+"User requested exit.  Quitting..."
+msgstr "\ NUser angefordert Ausgang. Aufhören ..."
+
+#: gateone/applications/x11/app_x11.py:90
+msgid ""
+"If provided, will use the specified xorg.conf file when spawning "
+"instances of Xorg."
+msgstr "Falls vorhanden, wird die angegebene Datei xorg.conf zu verwenden, wenn der Laich Instanzen von Xorg."
+
+#: gateone/applications/x11/app_x11.py:328
+#, python-format
+msgid "Starting screenshot_process() (PID: %s)"
+msgstr "Ab screenshot_process () (PID: %s )"
+
+#: gateone/applications/x11/app_x11.py:343
+#, python-format
+msgid "Terminating screenshot_process() (PID: %s)"
+msgstr "Abschluss screenshot_process () (PID: %s )"
+
+#: gateone/applications/x11/app_x11.py:420
+msgid "Run X11 applications."
+msgstr "Führen X11-Anwendungen."
+
+#: gateone/applications/x11/app_x11.py:528
+#, python-format
+msgid "Active X11 Plugins: %s, "
+msgstr "Aktive X11 Plugins: %s , "
+
+#: gateone/applications/x11/app_x11.py:1238
+msgid ""
+"Images are taking too long to process.  Forcing output settings to "
+"safe/low overhead defaults."
+msgstr "Die Bilder werden zu lange bearbeiten. Erzwingen Ausgabeeinstellungen, um sichere / geringen Overhead Standardwerte."
+
+#: gateone/applications/x11/app_x11.py:1253
+msgid "Resuming original output settings."
+msgstr "Wiederaufnahme der ursprünglichen Ausgabeeinstellungen."
+
+#: gateone/applications/x11/app_x11.py:1299
+msgid "Client bandiwdth: {0}/sec"
+msgstr "Client bandiwdth: {0} / sec"
+
+#: gateone/applications/x11/app_x11.py:1712
+#, python-format
+msgid "Could not connect to the X11 server (display %s)"
+msgstr "Konnte nicht an den X11-Server verbinden (Anzeige %s )"
+
+#: gateone/applications/x11/app_x11.py:1873
+#, python-format
+msgid "x11_command: %s"
+msgstr "x11_command: %s"
+
+#: gateone/applications/x11/app_x11.py:2147
+#, python-format
+msgid "Invalid display number given to full_refresh(): %s"
+msgstr "Ungültige Display-Nummer gegeben, um full_refresh (): %s"
+
+#: gateone/applications/x11/app_x11.py:2310
+msgid ""
+"Error: Too too long waiting for the X11 display to start up.  Something "
+"is wrong with the server."
+msgstr "Fehler: Zu lange zu warten, bis die X11-Display zu starten. Etwas stimmt nicht mit dem Server."
+
+#: gateone/applications/x11/app_x11.py:2323
+#, python-format
+msgid ""
+"Error: The given display (%s) does not exist or you have not been granted"
+" access to it."
+msgstr "Fehler: Die angegebene Anzeige ( %s ) existiert nicht oder Sie haben keinen Zugang zu ihm gewährt."
+
+#: gateone/applications/x11/app_x11.py:2336
+#, python-format
+msgid "Application not configured: %s"
+msgstr "Anwendung nicht konfiguriert: %s"
+
+#: gateone/applications/x11/app_x11.py:2441
+msgid "// This is Gate One's X11 application settings file.\n"
+msgstr "// Das ist Gate One-X11-Anwendung Einstellungsdatei. \ N"
+
+#: gateone/applications/x11/app_x11.py:2453
+#, python-format
+msgid "%s not found.  Creating using template..."
+msgstr "%s nicht gefunden. Erstellen mit Vorlage ..."
+
+#: gateone/applications/x11/app_x11.py:2459
+#, python-format
+msgid "%s created successfully."
+msgstr "%s erfolgreich erstellt."
+
+#: gateone/applications/x11/app_x11.py:2461
+#, python-format
+msgid "Could not create xorg.conf (%s)"
+msgstr "Xorg.conf konnte nicht erstellt werden ( %s )"
+
+#: gateone/applications/x11/app_x11.py:2525
+msgid "Path to docker command (if not just 'docker' in $PATH)."
+msgstr "Weg zum Befehl Andockfenster (wenn nicht nur "Docker" in $ PATH)."
+
+#: gateone/applications/x11/app_x11.py:2531
+msgid "Name of the docker image to create."
+msgstr "Name der Docker Bild zu schaffen."
+
+#: gateone/applications/x11/app_x11.py:2537
+msgid "Name of the command (will show up in the application chooser)."
+msgstr "Name des Befehls (wird zeigen, bis in der Programmauswahl)."
+
+#: gateone/applications/x11/app_x11.py:2543
+msgid "Description of the command (help text for users)."
+msgstr "Beschreibung des Befehls (Hilfetext für Benutzer)."
+
+#: gateone/applications/x11/app_x11.py:2549
+msgid ""
+"Packages to install (if the command doesn't match the package name).  "
+"Additional packages may also be given to install alongside the given "
+"command inside the Docker container.  They will be installed via 'apt-get"
+" install <packages>"
+msgstr "Pakete zu installieren (falls der Befehl nicht den Paketnamen übereinstimmen). Zusatzpakete können auch an der Seite der gegebenen Befehl in der Docker Behälter installiert werden können. Sie werden über 'installiert werden apt-get install <Pakete>"
+
+#: gateone/applications/x11/app_x11.py:2557
+msgid "ERROR: You must specify at least one application to install and configure."
+msgstr "ERROR: Sie müssen mindestens eine Anwendung zu installieren und zu konfigurieren, angeben."
+
+#: gateone/applications/x11/app_x11.py:2601
+msgid "Adds X11 applications to Gate One."
+msgstr "Fügt X11-Anwendungen, um Gate One."
+
+#: gateone/applications/x11/x11.py:1310
+msgid "X11Display.resize(): Values must be given as integers."
+msgstr "X11Display.resize (): Die Werte müssen als ganze Zahlen angegeben werden."
+
+#: gateone/applications/x11/x11.py:1572
+#, python-format
+msgid "Could not find keysym for key: %s"
+msgstr "Nicht finden konnte keysym für Schlüssel: %s"
+
+#: gateone/applications/x11/x11.py:1573
+msgid ""
+"Please report what key you pressed and the above information in a ticket "
+"here: https://github.com/liftoff/GateOne/issues (we'll make it work)"
+msgstr "Bitte melden Sie welche Taste Sie gedrückt haben und die oben genannten Informationen in einem Ticket hier: https://github.com/liftoff/GateOne/issues (wir werden damit es funktioniert)"
+
+#: gateone/applications/x11/x11.py:1728 gateone/applications/x11/x11.py:1784
+msgid "Could not load dbus module.  Screensaver inhibiting probably won't work."
+msgstr "Dbus-Modul konnte nicht geladen werden. Bildschirmschoner hemmende wird wahrscheinlich nicht funktionieren."
+
+#: gateone/applications/x11/x11.py:1776
+msgid "Cannot re-enable a screensaver that was not disabled via this mechanism."
+msgstr "Kann nicht wieder aktivieren einen Bildschirmschoner, die nicht über diesen Mechanismus deaktiviert wurde."
+
+#: gateone/applications/x11/x11.py:2118
+#, python-format
+msgid ""
+"frame_extents() takes a tuple (or list) of integers in the form of: "
+"(left, right, top, bottom).  %s is not valid"
+msgstr "frame_extents () nimmt ein Tupel (oder Liste) der ganzen Zahlen in der Form von: (links, rechts, oben, unten). %s ist nicht gültig"
+
+#: gateone/async/async.py:138
+#, python-format
+msgid "Exception in Future: %s (id: %s)"
+msgstr "Ausnahme in Zukunft: %s (ID: %s )"
+
+#: gateone/async/async.py:223
+#, python-format
+msgid "Shutting down %s"
+msgstr "Abschalten %s"
+
+#: gateone/async/async.py:429
+#, python-format
+msgid "Starting the ThreadedRunner executor with %s worker threads."
+msgstr "Starten des ThreadedRunner Vollstrecker mit %s Worker-Threads."
+
+#: gateone/async/async.py:480
+#, python-format
+msgid "Starting the MultiprocessRunner executor with %s worker processes."
+msgstr "Starten des MultiprocessRunner Vollstrecker mit %s Arbeitsprozesse."
+
+#: gateone/async/async.py:513
+msgid "Shutting down the MultiprocessRunner executor."
+msgstr "Das Herunterfahren des MultiprocessRunner Executor."
+
+#: gateone/auth/authentication.py:158 gateone/auth/authentication.py:250
+#: gateone/core/server.py:1987
+#, python-format
+msgid "Creating user directory: %s"
+msgstr "Erstellen von Benutzerverzeichnis: %s"
+
+#: gateone/auth/authentication.py:162
+msgid ""
+"You're trying to use non-ASCII user information on a system that has the "
+"locale set to ASCII (or similar).  Please changeyour system's locale to "
+"something that supports Unicode characters. "
+msgstr "Sie versuchen, Nicht-ASCII-Benutzerinformationen auf einem System, das Gebietsschema auf ASCII (oder ähnlich) eingerichtet wurde. Bitte change locale Systems auf etwas, das Unicode-Zeichen unterstützt. "
+
+#: gateone/auth/authentication.py:365
+msgid "Google auth failed"
+msgstr "Google Auth gescheitert"
+
+#: gateone/auth/authentication.py:508
+msgid "Kerberos auth failed"
+msgstr "Kerberos Auth gescheitert"
+
+#: gateone/auth/authentication.py:509
+#, python-format
+msgid "KerberosAuthHandler user: %s"
+msgstr "KerberosAuthHandler Benutzer: %s"
+
+#: gateone/auth/authentication.py:564
+msgid "PAM auth failed"
+msgstr "PAM Auth gescheitert"
+
+#: gateone/auth/authentication.py:568
+#, python-format
+msgid "PAMAuthHandler user: %s"
+msgstr "PAMAuthHandler Benutzer: %s"
+
+#: gateone/auth/authentication.py:590
+msgid "CAS Server URL"
+msgstr "CAS-Server-URL"
+
+#: gateone/auth/authentication.py:693
+msgid "CAS authentication failed"
+msgstr "CAS-Authentifizierung fehlgeschlagen"
+
+#: gateone/auth/authorization.py:116
+#, python-format
+msgid "{\"ip_address\": \"%s\"} %s -> %s failed requirement: %s"
+msgstr "{\ "Ip-adresse \": \ " %s \ "} %s -> %s gescheitert Bedarf: %s"
+
+#: gateone/auth/authorization.py:121
+#, python-format
+msgid "{\"ip_address\": \"%s\"} unknown user -> %s failed requirement: %s"
+msgstr "{\ "Ip-adresse \": \ " %s \ "} unbekannten Benutzer -> %s gescheitert Bedarf: %s"
+
+#: gateone/auth/authorization.py:124
+#, python-format
+msgid "ERROR: %s"
+msgstr "FEHLER: %s"
+
+#: gateone/auth/authorization.py:148
+msgid "Only valid users may access this function"
+msgstr "Nur angemeldete Benutzer können diese Funktion zuzugreifen"
+
+#: gateone/auth/authorization.py:169
+msgid "You are not authorized to perform this action"
+msgstr "Sie sind nicht berechtigt, diese Aktion durchzuführen"
+
+#: gateone/auth/authorization.py:228
+msgid "Your ability to perform this action has been restricted"
+msgstr "Ihre Fähigkeit, diese Aktion durchzuführen eingeschränkt hat"
+
+#: gateone/auth/sso.py:132 gateone/auth/sso.py:133
+msgid "Kerberos/GSSAPI Single Sign-On"
+msgstr "Kerberos / GSSAPI Single Sign-On"
+
+#: gateone/auth/sso.py:164 gateone/auth/sso.py:174
+msgid "Kerberos Init failed"
+msgstr "Kerberos Init gescheitert"
+
+#: gateone/auth/sso.py:173
+#, python-format
+msgid "Kerberos Error: %s"
+msgstr "Kerberos Fehler: %s"
+
+#: gateone/auth/sso.py:214
+msgid "Headers have already been written"
+msgstr "Header wurden bereits geschrieben"
+
+#: gateone/core/configuration.py:187
+msgid ""
+"GateOne supports many different CLI 'commands' which can be used to "
+"invoke special functionality provided by plugins and applications (and "
+"application's plugins).  Each command can have it's own options and most "
+"will have a --help function of their own."
+msgstr "GateOne unterstützt viele verschiedene CLI 'Befehle', die verwendet werden können, um spezielle Funktionalität durch Plugins und Anwendungen (und Plugin-Anwendung) zur Verfügung gestellt aufzurufen. Jeder Befehl kann seinen eigenen Optionen haben und die meisten werden eine --help eigene Funktion haben."
+
+#: gateone/core/configuration.py:296
+msgid "Display version information."
+msgstr "Versionsnummer anzeigen."
+
+#: gateone/core/configuration.py:301
+msgid "DEPRECATED.  Use --settings_dir."
+msgstr "Veraltet. Verwenden --settings_dir."
+
+#: gateone/core/configuration.py:307
+msgid "Path to the settings directory."
+msgstr "Pfad zu dem Verzeichnis Einstellungen."
+
+#: gateone/core/configuration.py:314
+msgid ""
+"Path where Gate One should store temporary global files (e.g. rendered "
+"templates, CSS, JS, etc)."
+msgstr "Pfad, in dem Gate One sollte temporären globalen Dateien (zB Vorlagen gemacht, CSS, JS, etc.) zu speichern."
+
+#: gateone/core/configuration.py:323
+msgid "Enable debugging features such as auto-restarting when files are modified."
+msgstr "Aktivieren Debugging-Funktionen wie Auto-Neustart, wenn Dateien verändert."
+
+#: gateone/core/configuration.py:329
+msgid "Use the given 45-character string for cookie encryption."
+msgstr "Verwenden Sie die angegebenen 45-stellige Zeichenfolge für Cookie-Verschlüsselung."
+
+#: gateone/core/configuration.py:335
+msgid "DEPRECATED: Use the 'commands' option in the terminal settings."
+msgstr "Veraltet: Verwenden Sie die Option 'Befehle' in den Terminal-Einstellungen."
+
+#: gateone/core/configuration.py:342
+msgid ""
+"Run on the given address.  Default is all addresses (IPv6 included).  "
+"Multiple address can be specified using a semicolon as a separator (e.g. "
+"'127.0.0.1;::1;10.1.1.100')."
+msgstr "Führen Sie auf der angegebenen Adresse. Standardmäßig werden alle Adressen (IPv6 enthalten). Multiple-Adresse kann durch ein Semikolon als Trennzeichen (zB "127.0.0.1; :: 1; 10.1.1.100 ') angegeben werden."
+
+#: gateone/core/configuration.py:349
+msgid "Run on the given port."
+msgstr "Laufen auf dem angegebenen Port."
+
+#: gateone/core/configuration.py:355
+msgid "Enable Unix socket support."
+msgstr "Ermöglichen Unix-Socket-Unterstützung."
+
+#: gateone/core/configuration.py:361
+msgid "Path to the Unix socket (if --enable_unix_socket=True)."
+msgstr "Pfad zum Unix-Socket (wenn --enable_unix_socket = True)."
+
+#: gateone/core/configuration.py:368
+msgid "If enabled Gate One will run without SSL (generally not a good idea)."
+msgstr "Wenn aktiviert Gate One wird ohne SSL laufen (in der Regel keine gute Idee)."
+
+#: gateone/core/configuration.py:375
+msgid "Path to the SSL certificate.  Will be auto-generated if not found."
+msgstr "Pfad zum SSL-Zertifikat. Wird automatisch generiert, wenn nicht gefunden."
+
+#: gateone/core/configuration.py:384
+msgid "Path to the SSL keyfile.  Will be auto-generated if none is provided."
+msgstr "Pfad der SSL-Schlüsseldatei. Wird automatisch generiert, wenn keine vorgesehen sein."
+
+#: gateone/core/configuration.py:392
+msgid ""
+"Path to a file containing any number of concatenated CA certificates in "
+"PEM format.  They will be used to authenticate clients if the 'ssl_auth' "
+"option is set to 'optional' or 'required'."
+msgstr "Pfad zu einer Datei mit einer beliebigen Anzahl von verketteten CA-Zertifikate im PEM-Format. Sie wird verwendet, um Clients zu authentifizieren, wenn die Option "ssl_auth 'bis' optional 'oder' erforderlich 'gesetzt."
+
+#: gateone/core/configuration.py:402
+msgid ""
+"Enable the use of client SSL (X.509) certificates as a secondary "
+"authentication factor (the configured 'auth' type will come after SSL "
+"auth).  May be one of 'none', 'optional', or 'required'.  NOTE: Only "
+"works if the 'ca_certs' option is configured."
+msgstr "Aktivieren Sie die Verwendung von Client-SSL (X.509)-Zertifikate als sekundäre Authentifizierungsfaktor (die konfigurierte 'auth' Art wird nach SSL auth kommen). Kann eine der 'none', 'optional' oder 'erforderlich' sein. HINWEIS: Dies funktioniert nur, wenn die Option "ca_certs" konfiguriert ist."
+
+#: gateone/core/configuration.py:413
+msgid "Path to the location where user files will be stored."
+msgstr "Pfad zu dem Ort, wo die Dateien der Benutzer gespeichert werden."
+
+#: gateone/core/configuration.py:420
+msgid ""
+"Maximum length of time to keep any given user log before it is "
+"automatically removed."
+msgstr "Maximale Länge der Zeit, um eine bestimmte Benutzer-Log zu halten, bevor sie automatisch entfernt wird."
+
+#: gateone/core/configuration.py:429
+msgid "Path to the location where session information will be stored."
+msgstr "Pfad zu dem Ort, wo Sitzungsinformationen gespeichert werden."
+
+#: gateone/core/configuration.py:439
+#, python-format
+msgid ""
+"Syslog facility to use when logging to syslog (if syslog_session_logging "
+"is enabled).  Must be one of: %s., "
+msgstr "Syslog bei der Anmeldung an syslog (wenn syslog_session_logging aktiviert ist) zu bedienen. Muss einer der folgenden sein: %s ., "
+
+#: gateone/core/configuration.py:446
+msgid ""
+"Amount of time that a session is allowed to idle before it is killed.  "
+"Accepts <num>X where X could be one of s, m, h, or d for seconds, "
+"minutes, hours, and days.  Set to '0' to disable the ability to resume "
+"sessions."
+msgstr "Zeit, die eine Sitzung erlaubt in den Leerlauf, bevor es getötet wird. Akzeptiert <num> X, wobei X könnte einer der s, m, h, d oder für Sekunden, Minuten, Stunden und Tage. Auf "0" gesetzt, um die Fähigkeit zur Wiederaufnahme von Sitzungen zu deaktivieren."
+
+#: gateone/core/configuration.py:456
+msgid ""
+"Generate a new API key that an external application can use to embed Gate"
+" One."
+msgstr "Erzeugen Sie eine neue API-Schlüssel, dass eine externe Anwendung verwenden können, um Gate One einbetten."
+
+#: gateone/core/configuration.py:463
+#, python-format
+msgid "Authentication method to use.  Valid options are: %s"
+msgstr "Authentifizierungsmethode zu verwenden. Gültige Optionen sind: %s"
+
+#: gateone/core/configuration.py:474
+msgid "How long before an API authentication object becomes invalid."
+msgstr "Wie lange, bevor ein Objekt API-Authentifizierung wird ungültig."
+
+#: gateone/core/configuration.py:482
+msgid ""
+"Kerberos REALM (aka DOMAIN) to use when authenticating clients.  Only "
+"relevant if Kerberos authentication is enabled."
+msgstr "Kerberos-Bereich (aka DOMAIN), wenn Authentifizierung von Clients zu bedienen. Nur relevant, wenn die Kerberos-Authentifizierung aktiviert ist."
+
+#: gateone/core/configuration.py:490
+msgid ""
+"Kerberos service (aka application) to use.  Only relevant if Kerberos "
+"authentication is enabled."
+msgstr "Kerberos-Dienst (auch bekannt als Anwendung) zu bedienen. Nur relevant, wenn die Kerberos-Authentifizierung aktiviert ist."
+
+#: gateone/core/configuration.py:498
+msgid ""
+"Basic auth REALM to display when authenticating clients.  Default: "
+"hostname.  Only relevant if PAM authentication is enabled."
+msgstr "Grund Auth REICH angezeigt wird, wenn Authentifizierung von Clients. Standard: Hostname. Nur relevant, wenn PAM-Authentifizierung aktiviert ist."
+
+#: gateone/core/configuration.py:509
+msgid ""
+"PAM service to use.  Defaults to 'login'. Only relevant if PAM "
+"authentication is enabled."
+msgstr "PAM-Dienst zu verwenden. Standardmäßig auf "login". Nur relevant, wenn PAM-Authentifizierung aktiviert ist."
+
+#: gateone/core/configuration.py:517
+msgid ""
+"When embedding Gate One this option is available to plugins, "
+"applications, and templates so they know they're running in embedded mode"
+" and can change behavior (if necessary)."
+msgstr "Beim Einbetten Gate One diese Option verfügbar ist, Plugins, Anwendungen und Vorlagen, so dass sie wissen, dass sie in Embedded-Modus laufen und kann Verhalten zu ändern (falls erforderlich)."
+
+#: gateone/core/configuration.py:529
+#, python-format
+msgid ""
+"The locale (e.g. pt_PT) Gate One should use for translations.  If not "
+"provided, will default to $LANG (which is '%s' in your current shell)."
+msgstr "Das Gebietsschema (zB pt_PT) Gate One sollte für Übersetzungen verwenden. Falls nicht vorhanden, wird bis zu $ LANG (die 'ist standardmäßig %s 'in der aktuellen Shell)."
+
+#: gateone/core/configuration.py:535
+msgid ""
+"A JavaScript object (string) that will be used when running "
+"GateOne.init() inside index.html.  Example: --js_init=\"{theme: "
+"'white'}\" would result in GateOne.init({theme: 'white'})"
+msgstr "Ein JavaScript-Objekt (string), die beim Ausführen GateOne.init () in index.html verwendet wird. Beispiel: --js_init = \ "{Thema: 'weiß'} \" würde in GateOne.init führen ({Thema: 'weiß'})"
+
+#: gateone/core/configuration.py:545
+msgid ""
+"If enabled a separate listener will be started on port 80 that redirects "
+"users to the configured port using HTTPS."
+msgstr "Wenn aktiviert eine separate Listener auf Port 80, die Benutzer an den konfigurierten Port leitet über HTTPS gestartet werden."
+
+#: gateone/core/configuration.py:552
+msgid ""
+"An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  "
+"Use this if Gate One will be running behind a reverse proxy where you "
+"want it to be located at some sub-URL path."
+msgstr "Ein optionales Präfix vor allen Gate One URLs zu platzieren. zB '/ GateOne /'. Verwenden Sie dies, wenn Gate One wird hinter einem Reverse-Proxy, wo Sie es zu einem bestimmten Sub-URL-Pfad befinden wollen laufen."
+
+#: gateone/core/configuration.py:562
+msgid ""
+"A semicolon-separated list of origins you wish to allow access to your "
+"Gate One server over the WebSocket.  This value may contain "
+"hostnames/FQDNs (e.g. foo;foo.bar;) and IP addresses.  This value must "
+"contain all the hostnames/IPs that users will use to connect to Gate One."
+"  Alternatively, '*' may be  specified to allow access from anywhere.  "
+"NOTE: Using a '*' is only a good idea if you've configured Gate One to "
+"use API authentication."
+msgstr "Ein Semikolon getrennte Liste von Ursprüngen Sie den Zugriff auf Ihr Gate One-Server über das WebSocket zulassen möchten. Und IP-Adressen dieser Wert kann Hostnamen / FQDN (;; foo.bar zB foo) enthalten. Dieser Wert muss die Hostnamen / IP-Adressen, die Benutzer verwenden, um Gate One verbinden enthalten. Alternativ '*' angegeben werden, um den Zugriff von überall ermöglichen. HINWEIS: Mit einem '*' ist nur eine gute Idee, wenn Sie Gate One konfiguriert haben, um API-Authentifizierung verwenden."
+
+#: gateone/core/configuration.py:576
+msgid "Define the path to the pid file."
+msgstr "Definieren Sie den Pfad zur pid-Datei."
+
+#: gateone/core/configuration.py:583
+msgid "Drop privileges and run Gate One as this user/uid."
+msgstr "Drop Privilegien und als dieser Benutzer / uid laufen Gate One."
+
+#: gateone/core/configuration.py:590
+msgid "Drop privileges and run Gate One as this group/gid."
+msgstr "Drop Privilegien und wie diese Gruppe / gid laufen Gate One."
+
+#: gateone/core/configuration.py:597
+msgid ""
+"The 'key:secret,...' API key pairs you wish to use (only applies if using"
+" API authentication)"
+msgstr "Die "Schlüssel: Geheimnis, ... 'API-Schlüsselpaare, die Sie verwenden möchten (gilt nur bei Verwendung von API-Authentifizierung)"
+
+#: gateone/core/configuration.py:605
+msgid ""
+"Combines all of Gate One's JavaScript files into one big file and saves "
+"it to the given path (e.g. ./gateone.py --combine_js=/tmp/gateone.js)"
+msgstr "Vereint alle Gate One JavaScript-Dateien in eine große Datei und speichert sie in dem angegebenen Pfad (zB ./gateone.py --combine_js = / tmp / gateone.js)"
+
+#: gateone/core/configuration.py:615
+msgid ""
+"Combines all of Gate One's CSS Template files into one big file and saves"
+" it to the given path (e.g. ./gateone.py --combine_css=/tmp/gateone.css)."
+msgstr "Vereint alle Gate One CSS Template-Dateien in eine große Datei und speichert sie in dem angegebenen Pfad (zB ./gateone.py --combine_css = / tmp / gateone.css)."
+
+#: gateone/core/configuration.py:625
+msgid ""
+"Use this setting in conjunction with --combine_css if the <div> where "
+"Gate One lives is named something other than #gateone"
+msgstr "Verwenden Sie diese Einstellung in Verbindung mit --combine_css wenn die <div> wobei Gate One lebt, ist etwas anderes als #gateone benannt"
+
+#: gateone/core/configuration.py:634
+msgid ""
+"The number of processes to spawn use when using multiprocessing. Default "
+"is: <number of cores> + 1.  Set to 0 to disable multiprocessing."
+msgstr "Die Anzahl der Prozesse zu erzeugen, wenn die Verwendung mit Multi. Standard ist: <Anzahl der Kerne> + 1. Stellen Sie auf 0, um Multiprocessing deaktivieren."
+
+#: gateone/core/configuration.py:644
+msgid ""
+"Only configure Gate One (create SSL certs, conf.d, etc).  Do not start "
+"any Gate One processes."
+msgstr "Nur konfigurieren Gate One (SSL-Zertifikate erstellen, conf.d, etc). Führen Sie einen Tor nicht starten Eine Prozesse."
+
+#: gateone/core/configuration.py:704
+msgid ""
+"Gate One settings are incomplete.  A new <settings_dir>/10server.conf "
+"will be generated."
+msgstr "Gate One sind unvollständig. Eine neue <settings_dir> /10server.conf generiert."
+
+#: gateone/core/configuration.py:712
+msgid ""
+"You have a 10server.conf but it is either invalid (syntax error) or "
+"missing essential settings."
+msgstr "Sie haben eine 10server.conf aber es ist entweder ungültig (Syntaxfehler) oder fehlende wesentlichen Einstellungen."
+
+#: gateone/core/configuration.py:818
+#, python-format
+msgid ""
+"Old server.conf file found.  Converting to the new format as %s, %s, and "
+"%s"
+msgstr "Alt server.conf Datei gefunden. Umstellung auf das neue Format als %s , %s und %s"
+
+#: gateone/core/configuration.py:861 gateone/core/server.py:4269
+msgid ""
+"// This file contains the key and secret pairs used by Gate One's API "
+"authentication method.\n"
+msgstr "// Diese Datei enthält den Schlüssel und geheime Paare von Gate One API-Authentifizierungsmethode verwendet. \ N"
+
+#: gateone/core/configuration.py:873
+msgid "// This is Gate One's main settings file.\n"
+msgstr "// Das ist Haupteinstellungsdatei Gate One ist. \ N"
+
+#: gateone/core/configuration.py:879
+msgid "// This is Gate One's authentication settings file.\n"
+msgstr "// Das ist Gate One Authentifizierungseinstellungsdatei. \ N"
+
+#: gateone/core/configuration.py:973
+#, python-format
+msgid "%s does not exist"
+msgstr "%s existiert nicht"
+
+#: gateone/core/configuration.py:1005
+msgid " <-- Something went wrong right here (or right above it)"
+msgstr " <- Ging etwas schief hier (oder direkt darüber)"
+
+#: gateone/core/configuration.py:1013
+msgid ""
+"Got an exception trying to display precisely where the problem was.  This"
+" usually happens when you've used single quotes (') instead of double "
+"quotes (\")."
+msgstr "Bekam eine Ausnahme versucht, genau anzuzeigen, wo das Problem war. Dies geschieht in der Regel, wenn Sie das Hochkomma (') anstelle von doppelten Anführungszeichen (\ ") verwendet haben."
+
+#: gateone/core/configuration.py:1321
+#, python-format
+msgid "Non-theme CSS has been combined and saved to: %s"
+msgstr "Nicht-Thema CSS wurde kombiniert und gespeichert: %s"
+
+#: gateone/core/configuration.py:1337
+#, python-format
+msgid "The %s theme CSS has been combined and saved to: %s"
+msgstr "Die %s Thema CSS wurde kombiniert und gespeichert: %s"
+
+#: gateone/core/server.py:493
+#, python-format
+msgid "Removing log due to age (>%s old): %s"
+msgstr "Entfernen von Protokoll aufgrund des Alters (> %s alt): %s"
+
+#: gateone/core/server.py:537
+#, python-format
+msgid "Removing old session files due to age (>%s old): %s"
+msgstr "Entfernen von alten Session-Dateien aufgrund des Alters (> %s alt): %s"
+
+#: gateone/core/server.py:559
+#, python-format
+msgid "You do not have permission to send messages to %s."
+msgstr "Sie haben keine Berechtigung, um Nachrichten zu senden %s ."
+
+#: gateone/core/server.py:579
+msgid "You do not have permission to broadcast messages."
+msgstr "Sie haben keine Berechtigung, um Nachrichten zu senden."
+
+#: gateone/core/server.py:590
+msgid "You do not have permission to list connected users."
+msgstr "Sie haben keine Berechtigung, die angeschlossenen Benutzer auflisten."
+
+#: gateone/core/server.py:632
+msgid "Killing all sessions..."
+msgstr "Töten alle Sitzungen ..."
+
+#: gateone/core/server.py:677
+msgid "All user sessions have terminated."
+msgstr "Alle Nutzer Sitzungen beendet."
+
+#: gateone/core/server.py:693
+msgid "{session} timeout."
+msgstr "{} Sitzung Timeout."
+
+#: gateone/core/server.py:701
+msgid "Exception encountered in timeout_sessions(): {exception}"
+msgstr "Ausnahme in timeout_sessions angetroffen (): {} Ausnahme"
+
+#: gateone/core/server.py:725
+#, python-format
+msgid "Broadcasting %s to all users"
+msgstr "Rundfunk %s für alle Benutzer"
+
+#: gateone/core/server.py:901
+msgid "DownloadHandler: Could not determine use session"
+msgstr "DownloadHandler: Verwendung Sitzung konnte nicht ermittelt werden"
+
+#: gateone/core/server.py:1245
+msgid "{path} has been removed.  Removing from file checker."
+msgstr "{Pfad} wurde entfernt. Entfernen von Dateiprüfung."
+
+#: gateone/core/server.py:1258
+msgid ""
+"Exception encountered trying to execute the file update function for "
+"{path}..."
+msgstr "Ausnahme Beim Versuch, die Datei Update-Funktion für {Pfad} ausführen ..."
+
+#: gateone/core/server.py:1289
+#, python-format
+msgid "Settings have been modified.  Reloading from %s"
+msgstr "Einstellungen geändert wurden. Nachladen von %s"
+
+#: gateone/core/server.py:1296
+msgid "Settings have NOT been loaded."
+msgstr "Einstellungen wurden nicht geladen."
+
+#: gateone/core/server.py:1354
+#, python-format
+msgid "(Broadcast) %s"
+msgstr "(Broadcast) %s"
+
+#: gateone/core/server.py:1587
+#, python-format
+msgid "{\"ip_address\": \"%s\"} Access Denied (blacklisted)."
+msgstr "{\ "Ip-adresse \": \ " %s \ "} Access Denied (schwarze Liste)."
+
+#: gateone/core/server.py:1590
+#, python-format
+msgid "Your IP address (%s) has been blacklisted"
+msgstr "Ihre IP-Adresse ( %s ) wurde auf die schwarze Liste"
+
+#: gateone/core/server.py:1602
+#, python-format
+msgid "WebSocket opened (%s %s) via origin %s."
+msgstr "WebSocket geöffnet ( %s %s ) über Ursprung %s ."
+
+#: gateone/core/server.py:1606
+#, python-format
+msgid "{\"ip_address\": \"%s\"} WebSocket opened (unknown user)."
+msgstr "{\ "Ip-adresse \": \ " %s \ "} WebSocket geöffnet (unbekannt Benutzer)."
+
+#: gateone/core/server.py:1617
+#, python-format
+msgid "{\"ip_address\": \"%s\"} Unauthenticated WebSocket attempt."
+msgstr "{\ "Ip-adresse \": \ " %s \ "} authentifizierte WebSocket Versuch."
+
+#: gateone/core/server.py:1679
+msgid "Message rejected due to invalid origin."
+msgstr "Nachricht aufgrund ungültiger Herkunft abgelehnt."
+
+#: gateone/core/server.py:1685
+msgid "'Error: Message bust be a JSON dict.'"
+msgstr "'Fehler: Nachricht Büste ein JSON dict sein. ""
+
+#: gateone/core/server.py:1688
+msgid "'Error: We only accept JSON here.'"
+msgstr "'Fehler: Wir nehmen nur JSON hier. ""
+
+#: gateone/core/server.py:1704
+#, python-format
+msgid "Error in WebSocket action, %s: %s (%s line %s)"
+msgstr "Fehler in WebSocket Aktion %s : %s ( %s Zeile %s )"
+
+#: gateone/core/server.py:1710
+#, python-format
+msgid "Client sent unknown WebSocket action: %s"
+msgstr "Client gesendet unbekannt WebSocket Aktion: %s"
+
+#: gateone/core/server.py:1734
+#, python-format
+msgid "WebSocket closed (%s %s)."
+msgstr "WebSocket geschlossen ( %s %s )."
+
+#: gateone/core/server.py:1736
+msgid "WebSocket closed (unknown user)."
+msgstr "WebSocket geschlossen (unbekannt Benutzer)."
+
+#: gateone/core/server.py:1765
+msgid "WebSocket Latency: {0}ms"
+msgstr "WebSocket Latenz: {0} ms"
+
+#: gateone/core/server.py:1883
+msgid "API AUTH: Invalid API authentication object (missing api_key)."
+msgstr "API AUTH: Ungültige API-Authentifizierung Objekt (fehlende api_key)."
+
+#: gateone/core/server.py:1901 gateone/core/server.py:3782
+#, python-format
+msgid "API AUTH: Unsupported API auth signature method: %s"
+msgstr "API AUTH: Nicht unterstützte API-Auth Signaturverfahren: %s"
+
+#: gateone/core/server.py:1908 gateone/core/server.py:3787
+#, python-format
+msgid "API AUTH: Unsupported API version: %s"
+msgstr "API AUTH: Nicht unterstützte API-Version: %s"
+
+#: gateone/core/server.py:1914
+msgid "API AUTH: API Key not found."
+msgstr "API AUTH: API Key nicht gefunden."
+
+#: gateone/core/server.py:1923
+msgid "API AUTH: Signature check failed."
+msgstr "API AUTH: Signaturprüfung ist fehlgeschlagen."
+
+#: gateone/core/server.py:1924
+msgid "Got signature: {0}, expected: {1}"
+msgstr "Bekam Unterschrift: {0} , erwartet: {1}"
+
+#: gateone/core/server.py:1935
+#, python-format
+msgid "API AUTH: replay attack detected!  User: %s, Remote IP: %s, Origin: %s"
+msgstr "API AUTH: Replay-Angriff erkannt! Benutzer: %s , Remote IP: %s , Herkunft: %s"
+
+#: gateone/core/server.py:1937
+msgid "API AUTH: Replay attack detected!  This event has been logged."
+msgstr "API AUTH: Replay-Angriff erkannt! Dieses Ereignis wurde protokolliert."
+
+#: gateone/core/server.py:1946
+msgid ""
+"API AUTH: Authentication failed due to an expired auth object.  If you "
+"just restarted the server this is normal (users just need to reload the "
+"page).  If  this problem persists it could be a problem with the server's"
+" clock (either this server or the server(s) embedding Gate One)."
+msgstr "API AUTH: Authentifizierung fehlgeschlagen aufgrund eines abgelaufenen Auth Objekt. Wenn Sie nur den Server, das ist normal neu gestartet (Benutzer müssen nur die Seite neu zu laden). Wenn das Problem weiterhin besteht, es könnte ein Problem mit der Server-Uhr (entweder diesen Server oder den Server (n) die Einbettung Gate One) sein."
+
+#: gateone/core/server.py:1954
+msgid ""
+"AUTH FAILED: Authentication object timed out. Try reloading this page "
+"(F5)."
+msgstr "AUTH FAILED: Authentifizierung Objekt abgelaufen. Versuchen Sie diese Seite neu laden (F5)."
+
+#: gateone/core/server.py:1958
+msgid ""
+"AUTH FAILED: If the problem persists after reloading this page please "
+"contact your server administrator to notify them of the issue."
+msgstr "AUTH FAILED: Wenn das Problem nach dem Neuladen dieser Seite wenden Sie sich bitte an Ihren Administrator, um sie über das Thema zu informieren."
+
+#: gateone/core/server.py:1964
+msgid "API Authentication Successful"
+msgstr "API Authentifizierung erfolgreich"
+
+#: gateone/core/server.py:2055
+msgid "Proxy in use: Client URL differs from server."
+msgstr "Proxy im Einsatz: Client URL unterscheidet sich von Server."
+
+#: gateone/core/server.py:2078 gateone/core/server.py:2085
+msgid "Unauthenticated WebSocket attempt."
+msgstr "Nicht authentifizierte WebSocket Versuch."
+
+#: gateone/core/server.py:2125
+msgid ""
+"Client tried to use API-based authentication but this server is "
+"configured with 'auth = \"{0}\"'.  Did you forget to set '\"auth\": "
+"\"api\"' in the settings?"
+msgstr "Client versucht, API-basierte Authentifizierung verwenden, aber dieser Server konfiguriert wurde 'auth = \ " {0} \ "". Haben Sie vergessen auf '\ "auth \": \ "api \"' in den Einstellungen?"
+
+#: gateone/core/server.py:2130
+msgid ""
+"AUTHENTICATION ERROR: Server is not configured to perform API-based "
+"authentication.  Did someone forget to set '\"auth\": \"api\"' in the "
+"settings?"
+msgstr "Authentifizierungsfehler: Server ist nicht konfiguriert, API-basierte Authentifizierung. Hat jemand vergessen, auf '\ "auth \": \ "api \"' in den Einstellungen?"
+
+#: gateone/core/server.py:2158
+msgid "Authentication failed for unknown user"
+msgstr "Authentifizierung fehlgeschlagen für unbekannte Benutzer"
+
+#: gateone/core/server.py:2159
+msgid "AUTHENTICATION ERROR: User unknown"
+msgstr "Authentifizierungsfehler: User unknown"
+
+#: gateone/core/server.py:2179
+msgid ""
+"User {upn} authenticated successfully via origin {origin} (location: "
+"{location})."
+msgstr "Benutzer {} upn erfolgreich authentifiziert über Herkunft {} Herkunft (Standort: {location})."
+
+#: gateone/core/server.py:2192
+msgid "Please wait while the server is restarted..."
+msgstr "Bitte warten Sie, während der Server neu gestartet wird ..."
+
+#: gateone/core/server.py:2233
+msgid "Licensed user limit {max_users} exceeded: {user_count} connected users"
+msgstr "Lizenzierte Benutzer Grenze {} MAX_USERS überschritten: {} USER_COUNT verbundenen Benutzer"
+
+#: gateone/core/server.py:2619
+msgid "Modification to theme file detected.  Theme will be recreated."
+msgstr "Änderungen an Design-Datei erkannt. Thema wird neu erstellt werden."
+
+#: gateone/core/server.py:2727
+#, python-format
+msgid "No expired %s files at client %s"
+msgstr "Nein abgelaufenen %s Dateien auf Client %s"
+
+#: gateone/core/server.py:2730
+#, python-format
+msgid "Requesting deletion of expired files at client %s: %s"
+msgstr "Anfordern Löschen von abgelaufenen Dateien auf Client %s : %s"
+
+#: gateone/core/server.py:2786
+msgid "File Request Error: File not found ({0})"
+msgstr "Datei-Bestellung Fehler: Datei nicht gefunden ( {0} )"
+
+#: gateone/core/server.py:2899 gateone/core/server.py:3201
+msgid "send_js is false; will not send JavaScript."
+msgstr "send_js ist falsch; nicht senden JavaScript."
+
+#: gateone/core/server.py:2908 gateone/core/server.py:3131
+msgid "send_css is false; will not send CSS."
+msgstr "send_css ist falsch; senden nicht CSS."
+
+#: gateone/core/server.py:2977
+#, python-format
+msgid "send_js_or_css(): File not found: %s"
+msgstr "send_js_or_css (): Datei nicht gefunden: %s"
+
+#: gateone/core/server.py:3062 gateone/core/server.py:3136
+msgid "File does not exist: {0}"
+msgstr "Datei nicht vorhanden: {0}"
+
+#: gateone/core/server.py:3297
+#, python-format
+msgid "Translation file, %s could not be found"
+msgstr "Übersetzungsdatei %s konnte nicht gefunden werden"
+
+#: gateone/core/server.py:3322
+msgid "Error: No message to send."
+msgstr "Fehler: Keine Nachricht zu senden."
+
+#: gateone/core/server.py:3325
+msgid "Error: Missing UPN."
+msgstr "Fehler: Fehlende UPN."
+
+#: gateone/core/server.py:3329
+msgid "User Message: {0}"
+msgstr "Benutzer Nachricht: {0}"
+
+#: gateone/core/server.py:3589
+msgid ""
+"In order to use Google authentication you must create a Google project "
+"for your installation and add:\n"
+"\t{\"google_oauth\": {\"key\": \"<YOUR CLIENT ID>\", \"secret\": \"<YOUR "
+"CLIENT SECRET>\"}} to your 20authentication.conf (under the \"gateone\" "
+"section)."
+msgstr "Um Google-Authentifizierung verwenden, müssen Sie ein Google-Projekt für Ihre Installation zu erstellen und hinzuzufügen: \ n \ t {\ "google_oauth \": {\ "Schlüssel \": \ "<IHRE KUNDEN ID> \", \ "geheime \ "(GateOne \ section": "\" <IHRE KUNDEN SECRET> \ unter dem \)}}, um Ihre 20authentication.conf "."
+
+#: gateone/core/server.py:3595
+msgid ""
+"To create a Google auth client ID and secret go to: "
+"https://console.developers.google.com/ and click on \"APIs and Auth\".  "
+"Then click \"Create New Client ID\". Set the \"JavaScript Origins\" value"
+" to your Gate One server's address and the \"Redirect URIs\" to "
+"https://<your Gate One server FQDN>/auth"
+msgstr "Ein Google-Auth Client-ID und geheimen unterwegs zu erstellen: https://console.developers.google.com/ und klicken Sie auf \ "APIs und Auth \". Klicken Sie dann auf \ "Neue Client-ID \". Stellen Sie die \ "JavaScript Origins \" Wert an die Adresse Ihrer Gate One-Server und die \ "Redirect URIs \" zu https: // <Ihr Gate One Server FQDN> / auth"
+
+#: gateone/core/server.py:3602
+msgid ""
+"For example, if your \"JavaScript Origins\" is: "
+"https://gateone.example.com/"
+msgstr "Zum Beispiel, wenn Sie Ihre \ "JavaScript Origins \" ist: https://gateone.example.com/"
+
+#: gateone/core/server.py:3605
+msgid "Your \"Redirect URIs\" would be: https://gateone.example.com/auth"
+msgstr "Ihre \ "Redirect URIs \" wäre: https://gateone.example.com/auth"
+
+#: gateone/core/server.py:3615
+#, python-format
+msgid "Using %s authentication"
+msgstr "Verwendung %s -Authentifizierung"
+
+#: gateone/core/server.py:3617
+msgid "No authentication method configured. All users will be ANONYMOUS"
+msgstr "Keine Authentifizierungsmethode konfiguriert. Alle Benutzer anonym sein"
+
+#: gateone/core/server.py:3709
+#, python-format
+msgid "Loaded global plugins: %s"
+msgstr "Geladen globalen Plugins: %s"
+
+#: gateone/core/server.py:3730
+msgid ""
+"\n"
+"[1;31mAPI Authentication Failed![0m"
+msgstr "\ N [1; 31mAPI Authentifizierung fehlgeschlagen! [0m"
+
+#: gateone/core/server.py:3731
+#, python-format
+msgid "Checking: %s"
+msgstr "Überprüfung: %s"
+
+#: gateone/core/server.py:3736
+#, python-format
+msgid "Not valid JSON: %s"
+msgstr "Nicht gültig JSON: %s"
+
+#: gateone/core/server.py:3750
+#, python-format
+msgid "You appear to be missing the following keys from your JSON object: %s"
+msgstr "Es scheint, dass die folgenden Tasten von Ihrem JSON-Objekt fehlen: %s"
+
+#: gateone/core/server.py:3755
+msgid "You don't appear to have any API keys configured."
+msgstr "Sie scheinen nicht alle API-Schlüssel konfiguriert haben."
+
+#: gateone/core/server.py:3756
+msgid "Tip: You can create them on-demand via: gateone --new_api_key"
+msgstr "Tipp: GateOne --new_api_key: Sie können sie bei Bedarf über erstellen"
+
+#: gateone/core/server.py:3765
+#, python-format
+msgid "The given API key (%s) was not found."
+msgstr "Die angegebene API-Schlüssel ( %s ) wurde nicht gefunden."
+
+#: gateone/core/server.py:3769
+#, python-format
+msgid "The given API key (%s) has no secret!"
+msgstr "Die angegebene API-Schlüssel ( %s ) hat kein Geheimnis!"
+
+#: gateone/core/server.py:3770
+msgid "Your api_keys setting is probably not in the correct format."
+msgstr "Ihre api_keys Einstellung ist wahrscheinlich nicht das richtige Format."
+
+#: gateone/core/server.py:3771
+msgid "The correct format is {\"api_keys\": {\"<API key>\":\"<secret>\"}}"
+msgstr "Das richtige Format ist {\ "api_keys \": {\ "<API-Schlüssel> \": \ "<Geheimnis> \"}}"
+
+#: gateone/core/server.py:3772
+msgid ""
+"It is recommended that you run 'gateone --new_api_key' and modify (or at "
+"least look at) the resulting 30api_keys.conf"
+msgstr "Es wird empfohlen, dass Sie Run 'GateOne --new_api_key' und ändern (oder zumindest sehen) die resultierende 30api_keys.conf"
+
+#: gateone/core/server.py:3794
+#, python-format
+msgid ""
+"The generated signature (%s) does not match what was provided in the "
+"given auth object (%s)"
+msgstr "Die erzeugte Signatur ( %s ) stimmt nicht, was in der gegebenen Auth Objekt (vorausgesetzt %s )"
+
+#: gateone/core/server.py:3816
+msgid ""
+"A license file is already installed.  Are you sure you want to replace "
+"it? (y/n) "
+msgstr "Eine Lizenzdatei ist bereits installiert. Sind Sie sicher, dass Sie wollen, um sie zu ersetzen? (Y / n) "
+
+#: gateone/core/server.py:3858
+msgid ""
+"Could not import pyelliptic which is required to validate licenses.  "
+"Please install it:  sudo pip install pyelliptic"
+msgstr "Pyelliptic, die erforderlich ist, um Lizenzen zu validieren konnte nicht importiert werden. Bitte installieren: sudo pip installieren pyelliptic"
+
+#: gateone/core/server.py:3861
+msgid "Or you could just download it: https://github.com/yann2192/pyelliptic"
+msgstr "Oder Sie könnten nur herunterladen: https://github.com/yann2192/pyelliptic"
+
+#: gateone/core/server.py:3884
+msgid "License for '{product}' has expired: {license}"
+msgstr "Lizenz für '{product}' abgelaufen ist: {}-Lizenz"
+
+#: gateone/core/server.py:3890
+#, python-format
+msgid "License has an invalid signature: %s"
+msgstr "Lizenz hat eine ungültige Signatur: %s"
+
+#: gateone/core/server.py:3895
+msgid "License for '{product}' will expire in less than 30 days: {license}"
+msgstr "Lizenz für '{product}' wird in weniger als 30 Tagen ablaufen: {}-Lizenz"
+
+#: gateone/core/server.py:3923
+#, python-format
+msgid "Could not find/create settings directory at %s"
+msgstr "Konnte sie nicht finden / erstellen Einstellungen Verzeichnis unter %s"
+
+#: gateone/core/server.py:3935
+msgid "Broadcast messages to users connected to Gate One."
+msgstr "Broadcast-Nachrichten an Benutzer zu Gate One verbunden."
+
+#: gateone/core/server.py:3939
+msgid "Install a commercial license for Gate One."
+msgstr "Installieren Sie eine kommerzielle Lizenz für Gate One."
+
+#: gateone/core/server.py:3943
+msgid "Test API authentication by validating a JSON auth object."
+msgstr "Test-API-Authentifizierung durch die Validierung ein JSON-Objekt Auth."
+
+#: gateone/core/server.py:3947
+msgid ""
+"You probably want to provide a different destination via "
+"--log_file_prefix=/path/to/gateone.log"
+msgstr "Sie wollen wahrscheinlich ein anderes Ziel über --log_file_prefix = / path / to / gateone.log bieten"
+
+#: gateone/core/server.py:3969 gateone/core/server.py:3977
+#, python-format
+msgid "Could not create log directory: %s"
+msgstr "Konnte nicht erstellt Log-Verzeichnis: %s"
+
+#: gateone/core/server.py:4006
+#, python-format
+msgid "Could not write to the log: %s"
+msgstr "Konnte nicht schreiben, um die Log: %s"
+
+#: gateone/core/server.py:4123
+#, python-format
+msgid "Unknown CLI command: '%s'"
+msgstr "Unbekannt CLI-Befehl: ' %s '"
+
+#: gateone/core/server.py:4139
+msgid "Imported applications: {0}"
+msgstr "Anwendungen importiert: {0}"
+
+#: gateone/core/server.py:4149
+msgid "The configured 'uid' ({0}) does not exist."
+msgstr "Die konfigurierte 'uid' ( {0} ) existiert nicht."
+
+#: gateone/core/server.py:4160
+msgid "The configured 'gid' ({0}) does not exist."
+msgstr "Die konfigurierte 'gid' ( {0} ) existiert nicht."
+
+#: gateone/core/server.py:4165
+msgid "Running as non-root; will not drop privileges."
+msgstr "Laufen als nicht-root; Privilegien werden nicht fallen zu lassen."
+
+#: gateone/core/server.py:4179
+#, python-format
+msgid ""
+"Gate One could not create %s.  Please ensure that user, %s has permission"
+" to create this directory or create it yourself and make user, %s its "
+"owner."
+msgstr "Tor konnte man nicht erstellen %s . Bitte stellen Sie sicher, dass die Benutzer %s hat die Erlaubnis, dieses Verzeichnis zu erstellen oder erstellen Sie es selbst und machen Benutzer %s seines Besitzers."
+
+#: gateone/core/server.py:4190
+#, python-format
+msgid "Failed to recursively change permissions of user_dir: %s, uid: %s, gid: %s"
+msgstr "Fehler beim rekursiv Berechtigungen user_dir ändern: %s , UID: %s , gid: %s"
+
+#: gateone/core/server.py:4203
+#, python-format
+msgid ""
+"Error: Gate One could not create %s.  Please ensure that user, %s has "
+"permission to create this directory or create it yourself and make user, "
+"%s its owner."
+msgstr "Fehler: Gate One konnte nicht erstellen %s . Bitte stellen Sie sicher, dass die Benutzer %s hat die Erlaubnis, dieses Verzeichnis zu erstellen oder erstellen Sie es selbst und machen Benutzer %s seines Besitzers."
+
+#: gateone/core/server.py:4228
+#, python-format
+msgid "[1;31mERROR:[0m Could not create %s for log_file_prefix: %s"
+msgstr "[1; 31mERROR: [0m konnte nicht erstellt werden %s für log_file_prefix: %s"
+
+#: gateone/core/server.py:4230
+msgid ""
+"You probably want to change this option, run Gate One as root, or create "
+"that directory and give the proper user ownership of it."
+msgstr "Sie wollen wahrscheinlich diese Option, als root ausführen Gate One zu ändern, oder erstellen Sie das Verzeichnis und geben Sie die richtige Benutzer Eigentumsverhältnisse."
+
+#: gateone/core/server.py:4274
+#, python-format
+msgid "A new API key has been generated: %s"
+msgstr "Eine neue API-Schlüssel generiert wurde: %s"
+
+#: gateone/core/server.py:4275
+msgid "This key can now be used to embed Gate One into other applications."
+msgstr "Diese Taste kann nun verwendet werden, um Gate One in andere Anwendungen eingebettet werden."
+
+#: gateone/core/server.py:4291
+#, python-format
+msgid "Version: %s (%s)"
+msgstr "Version: %s ( %s )"
+
+#: gateone/core/server.py:4292
+#, python-format
+msgid "Tornado version %s"
+msgstr "Tornado-Version %s"
+
+#: gateone/core/server.py:4310
+#, python-format
+msgid ""
+"Connections to this server will be allowed from the following origins: "
+"'%s'"
+msgstr "': Verbindungen zu diesem Server werden aus den folgenden Ursprünge erlaubt sein %s '"
+
+#: gateone/core/server.py:4327
+msgid ""
+"Gate One could not create {ssl_base} ({e}). Are you using the correct "
+"--settings_dir?"
+msgstr "Gate One konnte nicht erstellt werden {ssl_base} ({e}). Sind Sie mit den richtigen --settings_dir?"
+
+#: gateone/core/server.py:4331
+msgid "No SSL private key found.  One will be generated."
+msgstr "Kein SSL privaten Schlüssel gefunden. Eine generiert."
+
+#: gateone/core/server.py:4335
+msgid "No SSL certificate found.  One will be generated."
+msgstr "Kein SSL-Zertifikat gefunden. Eine generiert."
+
+#: gateone/core/server.py:4340
+msgid ""
+"Logging is set to DEBUG.  Be aware that this will record the keystrokes "
+"of all users.  Don't be evil!"
+msgstr "Protokollierung auf DEBUG gesetzt ist. Seien Sie sich bewusst, dass dies die Tastatureingaben aller Benutzer aufzuzeichnen. Nicht böse sein!"
+
+#: gateone/core/server.py:4383
+#, python-format
+msgid ""
+"PAM authentication is configured but you are not running Gate One as "
+"root.  If the pam_service you've selected (%s) is configured to use "
+"pam_unix.so for 'auth' (i.e. authenticating against /etc/passwd and "
+"/etc/shadow) Gate One will not be able to authenticate all users.  It "
+"will only be able to authenticate the user that owns the gateone.py "
+"process.pam_service"
+msgstr "PAM-Authentifizierung konfiguriert ist, aber Sie nicht Gate One als Root ausgeführt werden. Wenn die pam_service Sie ausgewählt haben ( %s ) konfiguriert für 'auth' (dh die Authentifizierung gegen / etc / passwd und / etc / shadow) pam_unix.so verwenden Gate One nicht in der Lage, um alle Benutzer zu authentifizieren. Es wird nur in der Lage, den Benutzer, der die gateone.py process.pam_service besitzt authentifizieren"
+
+#: gateone/core/server.py:4392
+msgid "Gate One has been configured."
+msgstr "Gate One konfiguriert wurde."
+
+#: gateone/core/server.py:4399
+msgid "Listening on Unix socket '{socketpath}'"
+msgstr "Musik hören auf Unix-Socket '{socketpath}'"
+
+#: gateone/core/server.py:4407 gateone/core/server.py:4425
+msgid ""
+"You have https_redirect *and* disable_ssl enabled.  Please pick one or "
+"the other."
+msgstr "Sie haben https_redirect * und * disable_ssl aktiviert. Bitte wählen Sie die eine oder andere."
+
+#: gateone/core/server.py:4412
+msgid "http://{addr}:80/ will be redirected to..."
+msgstr "http: // {addr}: 80 / werden weitergeleitet ..."
+
+#: gateone/core/server.py:4417
+msgid "Listening on {proto}{address}:{port}/"
+msgstr "Hören auf {} {Proto-Adresse}: {port} /"
+
+#: gateone/core/server.py:4429
+msgid "http://*:80/ will be redirected to..."
+msgstr "http: // *: 80 / werden weitergeleitet ..."
+
+#: gateone/core/server.py:4432
+msgid "Listening on {proto}*:{port}/"
+msgstr "Hören auf {} * Proto: {port} /"
+
+#: gateone/core/server.py:4460
+msgid "Multiprocessing is disabled.  Performance will be sub-optimal."
+msgstr "Multiprocessing ist deaktiviert. Die Leistung wird nicht optimal sein."
+
+#: gateone/core/server.py:4470
+msgid ""
+"Multiprocessing is not functional on this system.  Threading for all "
+"async calls."
+msgstr "Multiprocessing ist nicht funktionsfähig auf diesem System. Threading für alle async Anrufe."
+
+#: gateone/core/server.py:4480
+msgid "Shutting down asynchronous processes/threads..."
+msgstr "Abschalten asynchrone Prozesse / Threads ..."
+
+#: gateone/core/server.py:4486
+msgid "Process running with pid "
+msgstr "Prozess läuft mit pid "
+
+#: gateone/core/server.py:4492
+msgid ""
+"Could not listen on {address}:{port} (address:port is already in use by "
+"another application)."
+msgstr "Konnte nicht auf {address} hören: {port} (Adresse: Port bereits von einer anderen Anwendung)."
+
+#: gateone/core/server.py:4497
+msgid ""
+"User '{user}' does not have permission to create a process listening on "
+"{address}:{port}.  Typically only root can use ports < 1024."
+msgstr "Benutzer {user} 'nicht über die Berechtigung, ein Verfahren zu hören auf {}-Adresse zu erstellen: {port}. Typischerweise nur root Ports <1024 zu verwenden."
+
+#: gateone/core/server.py:4505
+msgid "An error was encountered trying to listen on {address}:{port}..."
+msgstr "Ein Fehler trat beim Versuch auf {address} hören: {port} ..."
+
+#: gateone/core/server.py:4509
+msgid "Exception was: {0}"
+msgstr "Ausnahme war: {0}"
+
+#: gateone/core/server.py:4511
+msgid "Caught KeyboardInterrupt.  Killing sessions..."
+msgstr "Gefangen KeyboardInterrupt. Töten Sitzungen ..."
+
+#: gateone/core/server.py:4515
+msgid "Clearing cache_dir: {0}"
+msgstr "Clearing cache_dir: {0}"
+
+#: gateone/core/server.py:4519
+msgid "pid file removed."
+msgstr "pid-Datei entfernt."
+
+#: gateone/core/utils.py:334
+#, python-format
+msgid "Could not write PID file: %s"
+msgstr "Nicht schreiben konnte PID-Datei: %s"
+
+#: gateone/core/utils.py:369
+msgid "ERROR: Timeout running shell command"
+msgstr "Fehler: Zeitüberschreitung Shell-Befehl ausgeführt"
+
+#: gateone/core/utils.py:416
+#, python-format
+msgid "Error generating self-signed SSL key/certificate: %s"
+msgstr "Fehler beim Erzeugen selbst signierte SSL-Schlüssel / Zertifikat: %s"
+
+#: gateone/core/utils.py:457
+#, python-format
+msgid "Generating private key with command: %s"
+msgstr "Erzeugung privaten Schlüssel mit dem Befehl: %s"
+
+#: gateone/core/utils.py:461
+#, python-format
+msgid ""
+"An error occurred trying to create private SSL key:\n"
+"%s"
+msgstr "Trat ein Fehler auf privaten SSL-Schlüssel zu erstellen: \ n %s"
+
+#: gateone/core/utils.py:466
+#, python-format
+msgid "Decrypting private key with command: %s"
+msgstr "Entschlüsseln privaten Schlüssel mit dem Befehl: %s"
+
+#: gateone/core/utils.py:470
+#, python-format
+msgid ""
+"An error occurred trying to decrypt private SSL key:\n"
+"%s"
+msgstr "Trat ein Fehler auf privaten SSL-Schlüssel entschlüsseln: \ n %s"
+
+#: gateone/core/utils.py:475
+#, python-format
+msgid "Creating CSR with command: %s"
+msgstr "Erstellen CSR mit dem Befehl: %s"
+
+#: gateone/core/utils.py:479
+#, python-format
+msgid ""
+"An error occurred trying to create CSR:\n"
+"%s"
+msgstr "Trat ein Fehler auf CSR zu erstellen: \ n %s"
+
+#: gateone/core/utils.py:486
+#, python-format
+msgid "Generating self-signed certificate with command: %s"
+msgstr "Erzeugung selbst signiertes Zertifikat mit dem Befehl: %s"
+
+#: gateone/core/utils.py:490
+#, python-format
+msgid ""
+"An error occurred trying to create certificate:\n"
+"%s"
+msgstr "Trat ein Fehler auf Zertifikat zu erstellen: \ n %s"
+
+#: gateone/core/utils.py:522
+msgid ""
+"Error: You do not have pyOpenSSL installed.  Please install it (sudo pip "
+"install pyopenssl."
+msgstr "Fehler: Sie haben keine pyOpenSSL installiert. Bitte installieren Sie es (sudo pip installieren pyopenssl."
+
+#: gateone/core/utils.py:622
+#, python-format
+msgid "Could not create directory: %s"
+msgstr "Verzeichnis konnte nicht erstellt: %s"
+
+#: gateone/core/utils.py:835
+#, python-format
+msgid ""
+"Could not open pid_file (%s).  You *may* have to kill gateone.py manually"
+" (probably not)."
+msgstr "Konnte nicht geöffnet pid_file ( %s ). Sie * kann * manuell zu töten gateone.py (wahrscheinlich nicht)."
+
+#: gateone/core/utils.py:1426
+#, python-format
+msgid ""
+"Error: Gate One does not have the ability to recursively chown %s to uid "
+"%s/gid %s.  Please ensure that user, %s has write permission to the "
+"directory."
+msgstr "Fehler: Gate One nicht die Fähigkeit, rekursive chown haben %s zu uid %s / gid %s . Bitte stellen Sie sicher, dass die Benutzer, %s Schreibrechte auf das Verzeichnis."
+
+#: gateone/core/utils.py:1541 gateone/core/utils.py:1553
+#, python-format
+msgid "(saved ~%s bytes minifying %s)"
+msgstr "(Gespeicherte ~ %s Bytes minifying %s )"
+
+#: gateone/core/utils.py:1545
+#, python-format
+msgid "slimit failed trying to minify %s"
+msgstr "SLIMIT fehlgeschlagen versuchen, minify %s"
+
+#: gateone/core/utils.py:1656
+#, python-format
+msgid "Could not set supplemental groups: %s"
+msgstr "Zusätzliche Gruppen konnte nicht festgelegt: %s"
+
+#: gateone/core/utils.py:1662
+#, python-format
+msgid "Could not set effective group id: %s"
+msgstr "Konnte nicht gesetzt effektive Gruppen-ID: %s"
+
+#: gateone/core/utils.py:1667
+#, python-format
+msgid "Could not set effective user id: %s"
+msgstr "Konnte nicht gesetzt effektive Benutzer-ID: %s"
+
+#: gateone/core/utils.py:1682
+#, python-format
+msgid ""
+"Running as user/group, \"%s/%s\" with the following supplemental groups: "
+"%s"
+msgstr "Läuft als Benutzer / Gruppe, \ " %s / %s \ "mit folgenden Zusatz Gruppen: %s"
+

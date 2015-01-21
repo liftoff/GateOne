@@ -1,0 +1,12 @@
+[Unit]
+Description=Web-based terminal
+
+[Service]
+Type=simple
+PIDFile=/tmp/gateone.pid
+WorkingDirectory=/var/lib/gateone
+ExecStart=gateone
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>terminal_input.js &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
+    <link rel="next" title="The Bookmarks Plugin" href="plugin_bookmarks.html" />
+    <link rel="prev" title="terminal.js" href="js_terminal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_bookmarks.html" title="The Bookmarks Plugin"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="js_terminal.html" title="terminal.js"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="terminal-input-js">
+<span id="terminal-input-javascript"></span><h1>terminal_input.js<a class="headerlink" href="#terminal-input-js" title="Permalink to this headline">¶</a></h1>
+<p>Gate One's bundled Terminal application JavaScript (Input module) (<a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/applications/terminal/static/terminal_input.js">source</a>).</p>
+<dl class="attribute">
+<dt id="GateOne.Terminal.Input">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">Input</tt><a class="headerlink" href="#GateOne.Terminal.Input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminal-specific keyboard and mouse input stuff.</p>
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.init">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt> to capture keys/IME composition and attaches appropriate events.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.sendChars">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">sendChars</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.sendChars" title="Permalink to this definition">¶</a></dt>
+<dd><p>pop()s out the current <tt class="xref py py-obj docutils literal"><span class="pre">charBuffer</span></tt> and sends it to the server.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseWheel">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseWheel</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseWheel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the mousewheel event on the Terminal application container; calls <tt class="docutils literal"><span class="pre">preventDefault()</span></tt> if &quot;mouse motion&quot; event tracking mode is enabled and instead sends equivalent xterm escape sequences to the server to emulate mouse scroll events.</p>
+<p>If the <tt class="docutils literal"><span class="pre">Alt</span></tt> key is held the user will be able to scroll normally.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseMove">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseMove</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">contextmenu</span></tt> event on the Terminal application container; calls <tt class="docutils literal"><span class="pre">preventDefault()</span></tt> if &quot;mouse motion&quot; event tracking mode is enabled to prevent the usual context menu from popping up.</p>
+<p>If the <tt class="docutils literal"><span class="pre">Alt</span></tt> key is held while right-clicking the normal context menu will appear.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseMove</tt><big>(</big><em>e</em><big>)</big></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">mousemove</span></tt> event on the Terminal application container when mouse event tracking is enabled; pre-sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.mouseUpEscSeq</span></tt> with the current mouse coordinates.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseDown">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">mousedown</span></tt> event on the Terminal application container; performs the following actions based on which mouse button was used:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Left-click: Hides the pastearea.</li>
+<li>Right-click: If no text is highlighted in the terminal, makes sure the pastearea is visible and has focus.</li>
+<li>Middle-click: Makes sure the pastearea is visible and has focus so that middle-click-to-paste events (X11) will work properly.  Alternatively, if there is highlighted text in the terminal a paste event will be emulated (regardless of platform).</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onMouseUp">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onMouseUp</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onMouseUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">mouseup</span></tt> event on the Terminal application container; prevents the pastearea from being shown if text is highlighted in the terminal (so users can right-click to copy).  Also prevents the pastearea from being instantly re-enabled when clicking in order to allow double-click events to pass through to the terminal (to highlight words).</p>
+<p>The last thing this function does every time it is called is to change focus to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onCopy">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onCopy</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onCopy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).  Also displays a message to the user letting them know that the text was copied successfully (because having your highlighted text suddenly disappear isn't that intuitive).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.capture">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">capture</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.disableCapture">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">disableCapture</tt><big>(</big><em>e</em><span class="optional">[</span>, <em>force</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.disableCapture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onPaste">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onPaste</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onPaste" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the 'paste' event on the terminal application container; converts pasted text to plaintext and sends it to the selected terminal.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.queue">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">queue</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds 'text' to the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.charBuffer</span></tt> Array (to be sent to the server when ready via <tt class="xref py py-meth docutils literal"><span class="pre">GateOne.Terminal.sendChars()</span></tt>).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">queue</tt><big>(</big><em>cars</em><big>)</big></dt>
+<dd><p>Prepends the ESC key string (<tt class="xref py py-obj docutils literal"><span class="pre">String.fromCharCode(27)</span></tt>) to special character sequences (e.g. PgUp, PgDown, Arrow keys, etc) before adding them to the charBuffer</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onCompositionStart">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onCompositionStart</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onCompositionStart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we encounter the <tt class="xref py py-obj docutils literal"><span class="pre">compositionstart</span></tt> event which indicates the use of an <a class="reference external" href="http://en.wikipedia.org/wiki/Input_method">IME</a>.  That would most commonly be a mobile phone software keyboard or foreign language input methods (e.g. Anthy for Japanese, Chinese, etc).</p>
+<p>Ensures that <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt> is visible and as close to the cursor position as possible.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onCompositionEnd">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onCompositionEnd</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onCompositionEnd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we encounter the <tt class="xref py py-obj docutils literal"><span class="pre">compositionend</span></tt> event which indicates the <a class="reference external" href="http://en.wikipedia.org/wiki/Input_method">IME</a> has completed a composition.  Sends what was composed to the server and ensures that <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt> is emptied &amp; hidden.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onCompositionUpdate">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onCompositionUpdate</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onCompositionUpdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we encounter the 'compositionupdate' event which indicates incoming characters; sets <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.composition</span></tt>.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onKeyUp">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onKeyUp</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onKeyUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the terminal encounters a <tt class="xref py py-obj docutils literal"><span class="pre">keyup</span></tt> event; just ensures that <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt> is emptied so we don't accidentally send characters we shouldn't.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onInput">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onInput</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">input</span></tt> event on <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.inputNode</span></tt>; sends its contents.  If the user is in the middle of composing text via an <a class="reference external" href="http://en.wikipedia.org/wiki/Input_method">IME</a> it will wait until their composition is complete before sending the characters.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.onKeyDown">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">onKeyDown</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.onKeyDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.execKeystroke">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">execKeystroke</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.execKeystroke" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the Terminal application, executes the keystroke or shortcut associated with the given keydown event (<em>e</em>).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.emulateKey">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">emulateKey</tt><big>(</big><em>e</em>, <em>skipF11check</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.emulateKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method handles all regular keys registered via onkeydown events (not onkeypress)
+If <em>skipF11check</em> is true, the F11 (fullscreen check) logic will be skipped.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><tt class="kbd docutils literal"><span class="pre">Shift+key</span></tt> also winds up being handled by this function.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="GateOne.Terminal.Input.emulateKeyCombo">
+<tt class="descclassname">GateOne.Terminal.Input.</tt><tt class="descname">emulateKeyCombo</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.Input.emulateKeyCombo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method translates ctrl/alt/meta key combos such as <tt class="kbd docutils literal"><span class="pre">Ctrl-c</span></tt> into their string equivalents using <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.Input.keyTable</span></tt> and sends them to the server.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.handleVisibility">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">handleVisibility</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.handleVisibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls GateOne.Terminal.Input.capture() when the page becomes visible again <em>if</em> a terminal had focus before the document went invisible.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="js_terminal.html"
+                        title="previous chapter">terminal.js</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin_bookmarks.html"
+                        title="next chapter">The Bookmarks Plugin</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/Applications/terminal/js_terminal_input.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_bookmarks.html" title="The Bookmarks Plugin"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="js_terminal.html" title="terminal.js"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

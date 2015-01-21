@@ -1,0 +1,278 @@
+/* NOTE: I've only done the black-on-whatever permutation because it seems to be the only special permutation that makes a difference.  If anyone feels we need such fine-tuning of *all* foreground/background combinations please submit a ticket to the issue tracker (and be prepared to hear complaints about repetitive stress injuries!) */
+/* 8-color Foregrounds */
+span.✈f0 { color: #444; } /* Black */
+span.✈f1 { color: #D6292C; } /* Red */
+span.✈f2 { color: #13A110; } /* Green */
+span.✈f3 { color: #E9E900; } /* Yellow */
+span.✈f4 { color: #1B4CFF; } /* Blue */
+span.✈f5 { color: #E01DC6; } /* Magenta */
+span.✈f6 { color: #28AAA8; } /* Cyan */
+span.✈f7 { color: #eee; } /* White */
+/* 8-color Foregrounds on 8-color Backgrounds (need special handling to make the black text more readable) */
+span.✈f0.✈b0 { color: #444; background-color: #000; } /* Black on Black */
+span.✈f0.✈b1 { color: #000; background-color: #B21818; } /* Black on Red */
+span.✈f0.✈b2 { color: #000; background-color: green; } /* Black on Green */
+span.✈f0.✈b3 { color: #000; background-color: #FFFF00; } /* Black on Yellow */
+span.✈f0.✈b4 { color: #000; background-color: #1818B2; } /* Black on Blue */
+span.✈f0.✈b5 { color: #000; background-color: #B218B2; } /* Black on Magenta */
+span.✈f0.✈b6 { color: #000; background-color: #18B2B2; } /* Black on Cyan */
+span.✈f0.✈b7 { color: #000; background-color: #B2B2B2; } /* Black on White */
+/* 8-color Foregrounds with 'bright' (16-color) Backgrounds */
+span.✈f0.✈bb0 { color: #444; background-color: #000; } /* Black on Black */
+/* 8-color Backgrounds */
+span.✈b0  { background-color: #000; } /* Black (used when the rendition is set to 49) */
+span.✈b1  { background-color: #B21818; } /* Red */
+span.✈b2  { background-color: green; } /* Green */
+span.✈b3  { background-color: #FFFF00; } /* Yellow */
+span.✈b4  { background-color: #1818B2; } /* Blue */
+span.✈b5  { background-color: #B218B2; } /* Magenta */
+span.✈b6  { background-color: #18B2B2; } /* Cyan */
+span.✈b7  { background-color: #B2B2B2; } /* White */
+/* Reversed Foregrounds */
+/* NOTE: The default span.✈reverse {} must go in the theme to be background and foreground aware */
+span.✈reverse.✈f0 { background-color: #000; } /* Black on Black (#444 so you can still read it) */
+span.✈reverse.✈f1 { background-color: #D6292C; } /* Red on Black */
+span.✈reverse.✈f2 { background-color: green; } /* Green on Black */
+span.✈reverse.✈f3 { background-color: #BDC000; } /* Yellow on Black */
+span.✈reverse.✈f4 { background-color: #1B4CFF; } /* Blue on Black */
+span.✈reverse.✈f5 { background-color: #E01DC6; } /* Magenta on Black */
+span.✈reverse.✈f6 { background-color: #28AAA8; } /* Cyan on Black */
+span.✈reverse.✈f7 { background-color: #eee; } /* White on Black */
+/* Reversed Backgrounds */
+span.✈reverse.✈b0 { color: #000; }
+span.✈reverse.✈b1 { color: #B21818; }
+span.✈reverse.✈b2 { color: green; }
+span.✈reverse.✈b3 { color: #FFFF00; }
+span.✈reverse.✈b4 { color: #1818B2; }
+span.✈reverse.✈b5 { color: #B218B2; }
+span.✈reverse.✈b6 { color: #18B2B2; }
+span.✈reverse.✈b7 { color: #fff; }
+/* 16-color ('Bright') Foregrounds */
+span.✈bf0 { color: #5C5C5C; } /* Bright Black!  I never knew thee existed! */
+span.✈bf1 { color: #D6292C; } /* Bright Red */
+span.✈bf2 { color: #13A110; } /* Bright Green */
+span.✈bf3 { color: #E9E900; } /* Bright Yellow */
+span.✈bf4 { color: #1B4CFF; } /* Bright Blue */
+span.✈bf5 { color: #E01DC6; } /* Bright Magenta */
+span.✈bf6 { color: #28AAA8; } /* Bright Cyan */
+span.✈bf7 { color: #fff; } /* Bright White (use this on dentures) */
+span.✈bf0.✈bb1 { color: #000; background-color: #B21818; } /* Bright Black on Bright Red */
+span.✈bf0.✈bb2 { color: #000; background-color: #00E40C; } /* Bright Black on Bright Green */
+span.✈bf0.✈bb3 { color: #000; background-color: #FFFF00; } /* Bright Black on Bright Yellow */
+span.✈bf0.✈bb4 { color: #000; background-color: #1818B2; } /* Bright Black on Bright Blue */
+span.✈bf0.✈bb5 { color: #000; background-color: #B218B2; } /* Bright Black on Bright Magenta */
+span.✈bf0.✈bb6 { color: #000; background-color: #18B2B2; } /* Bright Black on Bright Cyan */
+span.✈bf0.✈bb7 { color: #000; background-color: #F0F0F0; } /* Bright Black on Bright White */
+/* 16-color ('Bright') Backgrounds */
+span.✈bb0  { background-color: #000; } /* Bright Black */
+span.✈bb1  { background-color: #B21818; } /* Bright Red */
+span.✈bb2  { background-color: #00E40C; } /* Bright Green */
+span.✈bb3  { background-color: #FFFF00; } /* Bright Yellow */
+span.✈bb4  { background-color: #1818B2; } /* Bright Blue */
+span.✈bb5  { background-color: #B218B2; } /* Bright Magenta */
+span.✈bb6  { background-color: #18B2B2; } /* Bright Cyan */
+span.✈bb7  { background-color: #F0F0F0; } /* Bright White */
+/* Reversed Foregrounds */
+span.✈reverse.✈bf0 { color: #000; background-color: #ccc; } /* Black */
+span.✈reverse.✈bf1 { color: #000; background-color: #D6292C; } /* Red */
+span.✈reverse.✈bf2 { color: #000; background-color: #13A110; } /* Green */
+span.✈reverse.✈bf3 { color: #000; background-color: #BDC000; } /* Yellow */
+span.✈reverse.✈bf4 { color: #000; background-color: #1B4CFF; } /* Blue */
+span.✈reverse.✈bf5 { color: #000; background-color: #E01DC6; } /* Magenta */
+span.✈reverse.✈bf6 { color: #000; background-color: #28AAA8; } /* Cyan */
+span.✈reverse.✈bf7 { color: #000; background-color: #eee; } /* White */
+span.✈encircle {
+    border: .1em;
+    border-radius: .7em;
+    -moz-border-radius: 1em;
+    display: inline-block;
+    margin-right: -0.15em; /* Because we scale it down to make the box normal-sized we have to move it to the left slightly to have it line up properly */
+    border-color: #BBB;
+    border-style: solid;
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -webkit-transform: scale(.9);
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform: scale(.9);
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -ms-transform: scale(.9);
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform: scale(.9);
+    /* Future CSS3 standard */
+    transition: transform 1s ease-in-out;
+    transform: scale(.9);
+}
+span.✈rightline {
+    border-right: .2em;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-style: solid;
+    margin-right: -0.2em;
+    display: inline-block;
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -webkit-transform: scale(.9);
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform: scale(.9);
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -ms-transform: scale(.9);
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform: scale(.9);
+    /* Future CSS3 standard */
+    transition: transform 1s ease-in-out;
+    transform: scale(.9);
+}
+span.✈rightdoubleline {
+    border-right: .3em;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-style: double;
+    margin-right: -0.3em;
+    display: inline-block;
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -webkit-transform: scale(.9);
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform: scale(.9);
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -ms-transform: scale(.9);
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform: scale(.9);
+    /* Future CSS3 standard */
+    transition: transform 1s ease-in-out;
+    transform: scale(.9);
+}
+span.✈leftline {
+    border-left: .2em;
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 0;
+    border-style: solid;
+    margin-right: -0.2em;
+    display: inline-block;
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -webkit-transform: scale(.9);
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform: scale(.9);
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -ms-transform: scale(.9);
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform: scale(.9);
+    /* Future CSS3 standard */
+    transition: transform 1s ease-in-out;
+    transform: scale(.9);
+}
+span.✈leftdoubleline {
+    border-left: .3em;
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 0;
+    border-style: double;
+    margin-right: -0.3em;
+    display: inline-block;
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -webkit-transform: scale(.9);
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform: scale(.9);
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -ms-transform: scale(.9);
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform: scale(.9);
+    /* Future CSS3 standard */
+    transition: transform 1s ease-in-out;
+    transform: scale(.9);
+}
+span.✈bold { font-weight: bold; vertical-align: bottom; }
+span.✈dim { opacity: 0.7; }
+span.✈hidden { color: transparent !important;}
+span.✈underline { text-decoration: underline; }
+span.✈overline { text-decoration: overline; }
+span.✈italic { font-style: italic; }
+span.✈strike { text-decoration: line-through; }
+span.✈frame {
+    /* An inset shadow emulates a border without making the box bigger */
+    -moz-box-shadow: inset 0.1em 0.1em 0.3em #000;
+    -webkit-box-shadow: inset 0.1em 0.1em 0.3em #000;
+    box-shadow: inset 0.1em 0.1em 0.3em #000;
+}
+@-webkit-keyframes blinker {
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+@-moz-keyframes blinker {
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+@keyframes blinker {
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+span.✈blink {
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 1s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-name: blinker;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-duration: 1s;
+}
+span.✈fastblink {
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 0.5s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 0.5s;
+    -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-name: blinker;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-duration: 0.5s;
+}
+span.✈clickable { /* Give emphasis to things we've added onclick events to */
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+span.✈clickable:hover {
+    cursor: pointer;
+}
+/* Syntax highlighting classes below */
+span.✈colheader { font-weight: bold; }
+span.✈row { display: inline-block; width: 100%; }
+/* The below item was commented because it doesn't work properly in Firefox; ugliness. */
+/* span.✈row:hover { background-color: rgba(9, 38, 173, 0.2); } */
+span.✈selectedrow { background-color: rgba(64, 166, 166, 0.2); }
+span.✈date { font-weight: bold; }
+span.✈time { color: #169416; font-weight: bold; }
+span.✈hostname { color: #008DCE; font-weight: bold; }
+span.✈service { color: #C56300; font-weight: bold; }
+span.✈string { color: #0AAC0A; }
+span.✈crit { font-weight: bold; color: #D50000; }
+span.✈error { color: #D50000; }
+span.✈warn { color: #B97800; }
+span.✈info { /* Defaults are probably fine for info */ }
+span.✈debug { color: #919191; }

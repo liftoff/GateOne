@@ -1,0 +1,52 @@
+To install Gate One from source execute the following from this directory:
+
+    python setup.py install
+
+By default it will be installed in /usr/local.  If you want to install
+it somewhere else just pass --prefix:
+
+    python setup.py install --prefix=/usr
+
+If using virtualenv:  Simply running `. /path/to/your/env/bin/activate` script
+and then running 'python setup.py install' will install Gate One into your
+virtualenv environment.
+
+To build an RPM package:
+
+    sudo python setup.py bdist_rpm
+    # The .rpm will end up in the 'dist' directory
+
+To build a Debian package (.deb):
+
+    sudo python setup.py --command-packages=stdeb.command bdist_deb
+    # The .deb will end up in the 'deb_dist' directory
+
+NOTE: The above command requires stdeb (http://pypi.python.org/pypi/stdeb).  You
+can usually install it with one of the following commands on most distros:
+
+    sudo pip install stdeb
+    ...or:
+    sudo easy_install stdeb
+
+To start Gate One interactively:
+
+    sudo gateone # Recommended if running for the first time (to see any errors)
+
+To stop/start/restart Gate One (as a service):
+
+    Red Hat/Debian/Ubuntu:      sudo service gateone stop/start/restart
+    Nearly everything else:     sudo /etc/init.d/gateone stop/start/restart
+
+To make Gate One start on boot:
+
+    Ubuntu:          Starts on boot by default
+    Debian:          update-rc.d gateone defaults
+    Red Hat/CentOS:  chkconfig --add gateone
+    Gentoo:          rc-update add gateone default
+
+Special note for Ubuntu systems:  If you *don't* want Gate One to start on boot
+just create /etc/init/gateone.override:
+
+    touch /etc/init/gateone.override
+
+(It's the "Ubuntu way")

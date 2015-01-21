@@ -1,0 +1,8 @@
+/*
+Syntax highlighting convenience styles
+
+NOTE:  "black" will be used for all themes if no other identically-named theme files are present.
+*/
+.✈highlight_root {
+    color: #D6292C;
+}

@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>woff_info.py - Python WOFF Font Inspector &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
+    <link rel="next" title="terminal.js" href="js_terminal.html" />
+    <link rel="prev" title="Terminal Configuration" href="configuration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="js_terminal.html" title="terminal.js"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Terminal Configuration"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-woff_info">
+<span id="woff-info-py-python-woff-font-inspector"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">woff_info.py</span></tt> - Python WOFF Font Inspector<a class="headerlink" href="#module-woff_info" title="Permalink to this headline">¶</a></h1>
+<p id="woff-info-py">Provides a number of functions that can be used to extract the 'name' data from
+.woff (web font) files.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In most cases .woff files have the metadata stripped (to save space) which
+is why this module only grabs the 'name' records from the snft (font data)
+tables.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">woff_info</span> <span class="kn">import</span> <span class="n">woff_name_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">woff_path</span> <span class="o">=</span> <span class="s">&#39;/opt/gateone/applications/terminal/static/fonts/ubuntumono-normal.woff&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">woff_info</span><span class="p">(</span><span class="n">woff_path</span><span class="p">))</span>
+<span class="go">{&#39;Compatible Full&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="go">&#39;Copyright&#39;: &#39;Copyright 2011 Canonical Ltd.  Licensed under the Ubuntu Font Licence 1.0&#39;,</span>
+<span class="go">&#39;Designer&#39;: &#39;Dalton Maag Ltd&#39;,</span>
+<span class="go">&#39;Designer URL&#39;: &#39;http://www.daltonmaag.com/&#39;,</span>
+<span class="go">&#39;Font Family&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="go">&#39;Font Subfamily&#39;: &#39;Regular&#39;,</span>
+<span class="go">&#39;Full Name&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="go">&#39;ID&#39;: &#39;Ubuntu Mono Regular Version 0.80&#39;,</span>
+<span class="go">&#39;Manufacturer&#39;: &#39;Dalton Maag Ltd&#39;,</span>
+<span class="go">&#39;Postscript Name&#39;: &#39;UbuntuMono-Regular&#39;,</span>
+<span class="go">&#39;Preferred Family&#39;: &#39;Ubuntu Mono&#39;,</span>
+<span class="go">&#39;Preferred Subfamily&#39;: &#39;Regular&#39;,</span>
+<span class="go">&#39;Trademark&#39;: &#39;Ubuntu and Canonical are registered trademarks of Canonical Ltd.&#39;,</span>
+<span class="go">&#39;Vendor URL&#39;: &#39;http://www.daltonmaag.com/&#39;,</span>
+<span class="go">&#39;Version&#39;: &#39;Version 0.80&#39;}</span>
+</pre></div>
+</div>
+<p>This script can also be executed on the command line to display the name
+information for any given WOFF file:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> ./woff_info static/fonts/ubuntumono-normal.woff
+{
+    &quot;Compatible Full&quot;: &quot;Ubuntu Mono&quot;,
+    &quot;Copyright&quot;: &quot;Copyright 2011 Canonical Ltd.  Licensed under the Ubuntu Font Licence 1.0&quot;,
+    &quot;Designer&quot;: &quot;Dalton Maag Ltd&quot;,
+    &quot;Designer URL&quot;: &quot;http://www.daltonmaag.com/&quot;,
+    &quot;Font Family&quot;: &quot;Ubuntu Mono&quot;,
+    &quot;Font Subfamily&quot;: &quot;Regular&quot;,
+    &quot;Full Name&quot;: &quot;Ubuntu Mono&quot;,
+    &quot;ID&quot;: &quot;Ubuntu Mono Regular Version 0.80&quot;,
+    &quot;Manufacturer&quot;: &quot;Dalton Maag Ltd&quot;,
+    &quot;Postscript Name&quot;: &quot;UbuntuMono-Regular&quot;,
+    &quot;Preferred Family&quot;: &quot;Ubuntu Mono&quot;,
+    &quot;Preferred Subfamily&quot;: &quot;Regular&quot;,
+    &quot;Trademark&quot;: &quot;Ubuntu and Canonical are registered trademarks of Canonical Ltd.&quot;,
+    &quot;Vendor URL&quot;: &quot;http://www.daltonmaag.com/&quot;,
+    &quot;Version&quot;: &quot;Version 0.80&quot;
+}
+</pre>
+<p>..note:</p>
+<div class="highlight-python"><div class="highlight"><pre>The command line output is JSON so it can be easily used by other programs.
+</pre></div>
+</div>
+<dl class="exception">
+<dt id="woff_info.BadWoff">
+<em class="property">exception </em><tt class="descclassname">woff_info.</tt><tt class="descname">BadWoff</tt><a class="reference internal" href="../../_modules/woff_info.html#BadWoff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#woff_info.BadWoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when the name data cannot be extracted from a a .woff file (for
+whatever reason).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="woff_info.woff_name_data">
+<tt class="descclassname">woff_info.</tt><tt class="descname">woff_name_data</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../../_modules/woff_info.html#woff_name_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#woff_info.woff_name_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the 'name' table data from the .woff font file at the given <em>path</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only returns the English language stuff.</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="previous chapter">Terminal Configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="js_terminal.html"
+                        title="next chapter">terminal.js</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/Applications/terminal/woff_info.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="js_terminal.html" title="terminal.js"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Terminal Configuration"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

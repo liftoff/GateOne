@@ -2,8 +2,14 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+{% if location == 'default' %}
     <title>Gate One - {{hostname}}</title>
+{% else %}
+    <title>Gate One - {{location}}</title>
+{% end %}
     <link rel="stylesheet" href="{{url_prefix}}static/gateone.css" type="text/css" media="screen" />
+    <link rel="shortcut icon" href="{{url_prefix}}static/favicon.ico" />
     {% raw head %}
 </head>
 <body>
@@ -13,6 +19,15 @@
 <script>
 window.onload = function() {
     // Initialize Gate One using defaults:
+    GateOne.location = '{{location}}';
+{% if prefs %}
+    var urlPrefs = {% raw prefs %};
+    for (var pref in urlPrefs) {
+        GateOne.prefs[pref] = urlPrefs[pref];
+    }
+    // Also remove the long obtrusive query string from the URL
+    GateOne.Utils.removeQueryVariable('prefs');
+{% end %}
     GateOne.init({% raw js_init %}); // NOTE: Many defaults (e.g. CSS themes/colors, font size, etc) can be overridden by the user.
 
     // Commented out below are a few examples of the various ways you can initialize Gate One...
@@ -29,9 +44,5 @@ window.onload = function() {
     // NOTE: Fonts *and* icons will be scaled according to the fontSize property.
 }
 </script>
-<audio id="bell" preload="auto"> <!-- This is used for the system bell -->
-  <source src="{{bell_data_uri}}" type="audio/ogg" />
-</audio>
-
 </body>
 </html>

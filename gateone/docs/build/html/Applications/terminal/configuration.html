@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>Terminal Configuration &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
+    <link rel="next" title="woff_info.py - Python WOFF Font Inspector" href="woff_info.html" />
+    <link rel="prev" title="app_terminal.py - Gate One Terminal Application" href="app_terminal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="app_terminal.html" title="app_terminal.py - Gate One Terminal Application"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="terminal-configuration">
+<span id="id1"></span><h1>Terminal Configuration<a class="headerlink" href="#terminal-configuration" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="settings">
+<h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>The Terminal application stores its settings by default in
+'gateone/settings/50terminal.conf'.  This file uses Gate One's standard JSON
+format and should look something like this:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="c1">// This is Gate One&#39;s Terminal application settings file.</span>
+<span class="p">{</span>
+    <span class="c1">// &quot;*&quot; means &quot;apply to all users&quot; or &quot;default&quot;</span>
+    <span class="s2">&quot;*&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;terminal&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// These settings apply to the &quot;terminal&quot; application</span>
+            <span class="s2">&quot;commands&quot;</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;SSH&quot;</span><span class="o">:</span> <span class="s2">&quot;/opt/gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py --logo -S &#39;%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%&#39; --sshfp -a &#39;-oUserKnownHostsFile=\\\&quot;%USERDIR%/%USER%/.ssh/known_hosts\\\&quot;&#39;&quot;</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;default_command&quot;</span><span class="o">:</span> <span class="s2">&quot;SSH&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dtach&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;session_logging&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;session_logs_max_age&quot;</span><span class="o">:</span> <span class="s2">&quot;30d&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;syslog_session_logging&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="s2">&quot;max_terms&quot;</span><span class="o">:</span> <span class="mi">100</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p>If you want Gate One to emulate the system's console (great in the event
+that SSH is unavailable) you can add &quot;setsid /bin/login&quot; to your commands:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;commands&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;SSH&quot;</span><span class="o">:</span> <span class="s2">&quot;/opt/gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py --logo -S &#39;%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%&#39; --sshfp -a &#39;-oUserKnownHostsFile=\\\&quot;%USERDIR%/%USER%/.ssh/known_hosts\\\&quot;&#39;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;login&quot;</span><span class="o">:</span> <span class="s2">&quot;setsid /bin/login&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="last">That will allow users to login to the same server hosting Gate One
+(i.e. just like SSH to localhost).  You can set &quot;default_command&quot; to &quot;login&quot;
+or users can visit <a class="reference external" href="https://your-gateone-server/?terminal_cmd=login">https://your-gateone-server/?terminal_cmd=login</a> and all
+new terminals will be opened using that command.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Terminal Configuration</a><ul>
+<li><a class="reference internal" href="#settings">Settings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="app_terminal.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">app_terminal.py</span></tt> - Gate One Terminal Application</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="woff_info.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">woff_info.py</span></tt> - Python WOFF Font Inspector</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/Applications/terminal/configuration.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="app_terminal.html" title="app_terminal.py - Gate One Terminal Application"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

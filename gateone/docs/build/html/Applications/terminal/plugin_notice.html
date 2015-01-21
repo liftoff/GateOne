@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    <title>The Notice Plugin &mdash; Gate One 1.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../../index.html" />
+    <link rel="up" title="Terminal Developer Documentation" href="developer.html" />
+    <link rel="next" title="The Playback Plugin" href="plugin_playback.html" />
+    <link rel="prev" title="The Logging Plugin" href="plugin_logging.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_playback.html" title="The Playback Plugin"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugin_logging.html" title="The Logging Plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-notice-plugin">
+<h1>The Notice Plugin<a class="headerlink" href="#the-notice-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-notice">
+<span id="python"></span><h2>Python<a class="headerlink" href="#module-notice" title="Permalink to this headline">¶</a></h2>
+<p>notice.py - A plugin for Gate One that adds an escape sequence handler that will
+tell the client browser to display a message whenever said escape sequence is
+encountered.  Any terminal program can emit the following escape sequence to
+display a message in the browser:</p>
+<div class="highlight-python"><div class="highlight"><pre>\x1b]_;notice|&lt;the message&gt;\x07
+</pre></div>
+</div>
+<p>Very straightforward and also very powerful.</p>
+<div class="section" id="hooks">
+<h3>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">notice_esc_seq_handler</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="notice.notice_esc_seq_handler">
+<tt class="descclassname">notice.</tt><tt class="descname">notice_esc_seq_handler</tt><big>(</big><em>self</em>, <em>message</em>, <em>term=None</em>, <em>multiplex=None</em><big>)</big><a class="reference internal" href="../../_modules/notice.html#notice_esc_seq_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notice.notice_esc_seq_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles text passed from the special optional escape sequance handler to
+display a <em>message</em> to the connected client (browser).  It can be invoked
+like so:</p>
+<pre class="ansi-block literal-block">
+$ echo -e &quot;]_;notice|Text passed to some_function()&quot;
+</pre>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="app_terminal.html#app_terminal.TerminalApplication.opt_esc_handler" title="app_terminal.TerminalApplication.opt_esc_handler"><tt class="xref py py-class docutils literal"><span class="pre">app_terminal.TerminalApplication.opt_esc_handler</span></tt></a> and
+<tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Notice Plugin</a><ul>
+<li><a class="reference internal" href="#module-notice">Python</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_logging.html"
+                        title="previous chapter">The Logging Plugin</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin_playback.html"
+                        title="next chapter">The Playback Plugin</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/Applications/terminal/plugin_notice.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_playback.html" title="The Playback Plugin"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="plugin_logging.html" title="The Logging Plugin"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li><a href="index.html" >Terminal</a> &raquo;</li>
+          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Liftoff Software Corporation.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

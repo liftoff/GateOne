@@ -1,0 +1,41 @@
+/*
+This is an example of a plugins.conf file.  You'll need to create your own.
+The plugins.conf file controls which plugins Gate One will use.  There are two
+types of plugin enablement settings:  "enabled_plugins" and "user_plugins".
+
+The "enabled_plugins" setting controls which plugins Gate One will load at a
+global level.  This encompasses Python, JavaScript, and CSS files.
+
+The "user_plugins" setting controls which client-side JavaScript/CSS plugins
+will be sent to client browsers.  This setting can be controlled globally or
+per-user.
+
+NOTE:  This configuration file is for "gateone" plugins.  For application's
+       plugins you probably want to use an application-specific .conf file
+       (though your settings will be applied either way).
+
+If you do not have any of these settings defined the default is enable all
+plugins.
+
+The format of this file is JSON with support for JavaScript-style comments
+(they will be removed before parsing).
+*/
+{
+    // "*" for default (all users)
+    "*": {
+        "gateone": {
+            "enabled_plugins": [ // These are configured globally
+                'someplugin', 'otherplugin'
+            ],
+            "user_plugins": [ // These can be user-specific
+                'help', 'macros'
+            ]
+        }
+    },
+    // Example of user-specific client-side plugin restriction
+    "user.email=.*company.com": {
+        "gateone": {
+            "user_plugins": [] // These folks don't get any client-side stuff
+        }
+    }
+}

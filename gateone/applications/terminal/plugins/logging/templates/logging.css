@@ -1,0 +1,143 @@
+.✈logitem_title {
+    width: 15em;
+}
+.✈panel_logs {
+    width: 90%;
+    height: 85%; /* A bit off the bottom so you can see if something scrolls */
+}
+.✈logview_container {
+    position: absolute;
+    top: 2.5em;
+    bottom: 0;
+    padding-left: .2em;
+    margin-left: .2em;
+    left: 0;
+    right: 0;
+}
+.✈logview_options {
+    display: table-cell;
+    text-transform: uppercase;
+    background-image: none;
+    padding-left: 0.5em;
+}
+.✈logitems_header {
+    color: #000;
+}
+.✈logitem_header_cell {
+    color: #000;
+    background-image: none;
+    background: none;
+}
+.✈logitem_header_cell.✈active {
+    color: maroon;
+}
+.✈logitem_header_cell:hover {
+    color: maroon;
+    cursor: pointer;
+    background-color: #fff;
+}
+.✈logitem {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    font-size: .9em;
+    white-space: nowrap;
+}
+.✈log_metadata {
+    width: 100%;
+    display: table;
+}
+.✈log_listcontainer {
+    float: left;
+}
+.✈log_info {
+    float: right;
+/*     width: 47%; */
+    margin-right: 0.5em;
+    margin-top: 1.5em;
+}
+.✈log_preview {
+    width: 100%;
+    height: 17em;
+    border: 1px #000 solid;
+}
+/* Effects */
+.✈logitem:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.2);
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -o-transition-property: all;
+    -o-transition-duration: 0.05s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: center center;
+    -khtml-transform-origin: center center;
+    -khtml-transition: all 0.05s ease-in-out;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
+}
+.✈log_pagination {
+    width: 100%;
+    float: right;
+    display: block;
+    font-size: 0.8em;
+    clear: right;
+    margin-top: -1.2em;
+    padding-bottom: .5em;
+}
+.✈log_pagination ul {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+.✈log_pagination li {
+    border: 0;
+    margin:0;
+    padding:0;
+    font-size: 1.4em;
+    list-style: none;
+    margin-right: 0.1em;
+}
+.✈log_pagination a {
+    border: solid 1px #000;
+    margin-right: 0.1em;
+}
+.✈log_pagination .✈previous-off,
+.✈log_pagination .✈next-off {
+    border: solid 1px #DEDEDE;
+    color: #888888;
+    display: block;
+    float: left;
+    font-weight: bold;
+    margin-right: 0.1em;
+    padding: 0 0.1em;
+}
+.✈log_pagination .✈next a,
+.✈log_pagination .✈previous a {
+    font-weight:bold;
+}
+.✈log_pagination a:link,
+.✈log_pagination a:visited {
+    float: left;
+}
+.✈log_pagination a:hover{
+    border: solid 1px #333;
+}
+.✈log_pagination .✈active {
+    background: #333;
+    color: #FFF;
+}
+.✈log_pagination .✈inactive a {
+    border: solid 1px #DEDEDE;
+    color: #888;
+}
+.✈log_actions_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+}

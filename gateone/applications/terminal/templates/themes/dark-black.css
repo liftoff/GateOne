@@ -1,0 +1,166 @@
+@charset "UTF-8";
+/* Terminal dark-black theme */
+.✈terminal {
+    line-height: 1;
+    height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
+    position: absolute;
+    width: 100%;
+    -webkit-transition-property: -webkit-transform, height, width;
+    -webkit-transition-duration: 1s;
+    -webkit-transition-timing-function: ease-in-out;
+    -moz-transition-property: -webkit-transform, height, width;
+    -moz-transition-duration: 1s;
+    -moz-transition-timing-function: ease-in-out;
+    -ms-transition-property: -webkit-transform, height, width;
+    -ms-transition-duration: 1s;
+    -ms-transition-timing-function: ease-in-out;
+    transition-property: -webkit-transform, height, width;
+    transition-duration: 1s;
+    transition-timing-function: ease-in-out;
+}
+.✈inactive span.✈cursor {
+    border: 1px #fff solid;
+    background-color: transparent;
+}
+.✈terminal a {
+    color: #fff;
+}
+.✈terminal a:visited {
+    color: #fff;
+}
+.✈terminal_pre {
+    background-color: #000; /* Black - dark black! */
+    color: #fff;
+    line-height: 1;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding-left: 0.3em;
+    border: none;
+    white-space: pre-wrap;
+    word-break: normal;
+    word-wrap: normal; /* If this gets set to 'break-word' it might as well be 'break-everything' :) */
+    -webkit-transform-origin: left bottom;
+    -moz-transform-origin: left bottom;
+    -ms-transform-origin: left bottom;
+    -o-transform-origin: left bottom;
+    transform-origin: left bottom;
+}
+.✈term_infocontainer {
+    font-family: sans-serif;
+    font-size: 1.6em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900; /* Above dialogs */
+    width: calc(100% - 2em);
+    height: 100%;
+    margin: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+        -moz-box-align: center;
+        -ms-flex-align: center;
+    -webkit-align-items: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -moz-box-pack: center;
+        -ms-flex-pack: center;
+    -webkit-justify-content: center;
+            justify-content: center;
+}
+.✈terminfo {
+    padding: 1em;
+    z-index: 750;
+    border: solid 1px #000;
+    color: #fff;
+    border-radius: 0.5em;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: 50%;
+}
+/* The "reverse" default needs to be set in the theme since the background will vary */
+span.✈reverse { color: #000; background-color: #ccc; } /* Black on White */
+span.✈cursor { color: #000; background-color: #ccc; }
+.✈highlight {
+    background-color: #45BAE7;
+    color: black;
+}
+.✈share_dialog {
+    min-width: 25em;
+    max-height: 50%;
+    padding: 0.5em;
+}
+.✈sharing_table {
+    width: 100%;
+}
+.✈sharing_table td {
+    text-align: center;
+}
+.✈broadcast_url {
+    width: 100%;
+}
+.✈share_id {
+    display: block;
+}
+.✈share_password {
+    width: 100%;
+}
+.✈share_users {
+    margin: 0 auto;
+    width: 100%;
+}
+.✈upload_bell_form {
+    padding: 0.5em;
+}
+.✈share_widget {
+    background-color: transparent;
+    margin: 0;
+}
+.✈share_widget_title {
+    text-decoration: underline;
+}
+.✈share_widget_settings {
+    font-style: italic;
+}
+.✈share_widget_text {
+    font-size: 90%;
+}
+.✈share_widget_button {
+    font-size: 75%;
+    padding: .1em;
+    float: right;
+}
+.✈share_widget_viewers {
+    text-decoration: underline;
+}
+.✈share_widget_viewers:hover {
+    cursor: pointer;
+}
+.✈shared_terminals_dialog {
+    min-width: 45em;
+}
+.✈termdialog {
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+}
+@media only screen and (max-width: 800px) {
+    .✈terminal_pre {
+        /* On mobile devices it's best to let the device's default monospace font handle things */
+        font-family: monospace !important;
+    }
+}
