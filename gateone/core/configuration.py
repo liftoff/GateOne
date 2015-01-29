@@ -1230,6 +1230,8 @@ def combine_css(path, container, settings_dir=None):
         theme_relpath = '/templates/themes/' + theme
         themepath = resource_fn(theme_relpath)
         logger.info(_("Concatenating: %s") % theme_relpath)
+        theme_writers[theme].write(
+            u"\n/* ------ theme_relpath: %s ------ */\n" % theme_relpath)
         theme_writers[theme].write(resource(theme_relpath))
     # NOTE: We skip gateone.css because that isn't used when embedding
     with io.open(path, 'w') as f:
@@ -1249,7 +1251,10 @@ def combine_css(path, container, settings_dir=None):
                     filepath = os.path.join(plugin_theme_path, filename)
                     if filename.endswith('.css'):
                         logger.info(_("Concatenating: %s") % filepath)
-                        f.write(resource(filepath) + u'\n')
+                        theme = os.path.split(filename)[1]
+                        theme_writers[theme].write(
+                            u"\n/* ------ filepath: %s ------ */\n" % filepath)
+                        theme_writers[theme].write(resource(filepath) + u'\n')
             css_dir = resource_fn(plugin_css_path)
             if os.path.isdir(css_dir):
                 filelist = resource_dir(css_dir)
@@ -1258,6 +1263,8 @@ def combine_css(path, container, settings_dir=None):
                     filepath = os.path.join(css_dir, filename)
                     if filename.endswith('.css'):
                         logger.info(_("Concatenating: %s") % filepath)
+                        f.write(
+                            u"\n/* ------ filepath: %s ------ */\n" % filepath)
                         f.write(resource(filepath) + u'\n')
         # Gate One applications
         for application in appslist:
@@ -1274,6 +1281,8 @@ def combine_css(path, container, settings_dir=None):
                     filepath = os.path.join(app_templates_path, filename)
                     if filename.endswith('.css'):
                         logger.info(_("Concatenating: %s") % filepath)
+                        f.write(
+                            u"\n/* ------ filepath: %s ------ */\n" % filepath)
                         f.write(resource(filepath) + u'\n')
             app_themes_path = '/applications/%s/templates/themes' % application
             app_themes_dir = resource_fn(app_themes_path)
@@ -1284,7 +1293,10 @@ def combine_css(path, container, settings_dir=None):
                     filepath = os.path.join(app_themes_path, filename)
                     if filename.endswith('.css'):
                         logger.info(_("Concatenating: %s") % filepath)
-                        f.write(resource(filepath) + u'\n')
+                        theme = os.path.split(filename)[1]
+                        theme_writers[theme].write(
+                            u"\n/* ------ filepath: %s ------ */\n" % filepath)
+                        theme_writers[theme].write(resource(filepath) + u'\n')
             app_settings = all_settings['*'].get(application, None)
             enabled_app_plugins = []
             if app_settings:
@@ -1311,6 +1323,9 @@ def combine_css(path, container, settings_dir=None):
                             filepath = os.path.join(templates_path, filename)
                             if filename.endswith('.css'):
                                 logger.info(_("Concatenating: %s") % filepath)
+                                f.write(
+                                    u"\n/* ------ filepath: %s ------ */\n"
+                                    % filepath)
                                 f.write(resource(filepath) + u'\n')
                     themes_path = plugin_themes_path.format(plugin=plugin)
                     themes_dir = resource_fn(themes_path)
@@ -1321,7 +1336,12 @@ def combine_css(path, container, settings_dir=None):
                             filepath = os.path.join(themes_path, filename)
                             if filename.endswith('.css'):
                                 logger.info(_("Concatenating: %s") % filepath)
-                                f.write(resource(filepath) + u'\n')
+                                theme = os.path.split(filename)[1]
+                                theme_writers[theme].write(
+                                    u"\n/* ------ filepath: %s ------ */\n"
+                                    % filepath)
+                                theme_writers[theme].write(
+                                    resource(filepath) + u'\n')
         f.flush()
     for writer in theme_writers.values():
         writer.flush()
@@ -1336,6 +1356,7 @@ def combine_css(path, container, settings_dir=None):
         container=container,
         url_prefix=url_prefix,
         embedded=embedded)
+    css_data += "\n/* ------ path: %s ------ */\n" % path
     # Overwrite it with the rendered version
     with io.open(path, 'wb') as f:
         f.write(css_data)
@@ -1344,11 +1365,19 @@ def combine_css(path, container, settings_dir=None):
         combined_theme_path = "%s_theme_%s" % (
             path.split('.css')[0], theme)
         template = loader.load(combined_theme_path)
-        css_data = template.generate(
+        css_data = (
+            "\n/* ------ combined_theme_path: %s ------ */\n"
+            % combined_theme_path)
+        css_data += template.generate(
             asis=asis,
             container=container,
             url_prefix=url_prefix,
             embedded=embedded)
+        new_css_data = '@charset "UTF-8";\n'
+        for line in css_data.split('\n'):
+            if '@charset' not in line:
+                new_css_data += line + '\n'
+        css_data = new_css_data
         with io.open(combined_theme_path, 'wb') as f:
             f.write(css_data)
         logger.info(_(

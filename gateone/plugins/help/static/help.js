@@ -85,7 +85,7 @@ GateOne.Base.update(GateOne.Help, {
             I.registerShortcut('KEY_F1',
                 {'modifiers':
                     {'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Help.showHelp()'
+                    'action': 'GateOne.Help.showHelp();'
                 }
             );
         }

@@ -502,7 +502,7 @@ def render_html_playback(golog_path, render_settings=None):
     theme_css_path = os.path.join(temploc, theme_css_file)
     with io.open(theme_css_path, mode='r', encoding='utf-8') as f:
         theme_css = f.read()
-    # Cleanup the CSS files since we're now down with them
+    # Cleanup the CSS files since we're now done with them
     shutil.rmtree(temploc)
     # Colors are easiest since they don't need to be rendered
     colors_css_file = "{0}.css".format(colors)
