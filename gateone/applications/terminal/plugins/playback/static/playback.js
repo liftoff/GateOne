@@ -68,7 +68,7 @@ go.Base.update(GateOne.Playback, {
             prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
             prefsPanelRow.appendChild(prefsPanelPlayback);
             prefsTableDiv2.appendChild(prefsPanelRow);
-            infoPanelSaveRecording.innerHTML = gettext("Export Current Session");
+            infoPanelSaveRecording.innerHTML = gettext("Save Playback");
             infoPanelSaveRecording.title = gettext("Open the current terminal's playback history in a new window (which you can save to a file).");
             infoPanelSaveRecording.onclick = function() {
                 P.saveRecording(localStorage[prefix+'selectedTerminal']);

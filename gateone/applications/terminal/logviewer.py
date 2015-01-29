@@ -484,6 +484,8 @@ def render_html_playback(golog_path, render_settings=None):
         :colors:
             (Default: `"default"`) The text color scheme to use when rendering
             the HTML template.
+
+    .. note:: This function returns a byte string (not a unicode string).
     """
     # Get the necessary variables out of render_settings
     if not render_settings:
@@ -495,8 +497,7 @@ def render_html_playback(golog_path, render_settings=None):
     theme = render_settings.get('theme', 'black')
     temploc = tempfile.mkdtemp(prefix='logviewer') # stores rendered CSS
     # This function renders all themes
-    combine_css(os.path.join(
-        temploc, 'gateone.css'), container, log=False)
+    combine_css(os.path.join(temploc, 'gateone.css'), container)
     theme_css_file = "gateone_theme_{theme}.css".format(theme=theme)
     theme_css_path = os.path.join(temploc, theme_css_file)
     with io.open(theme_css_path, mode='r', encoding='utf-8') as f:
@@ -531,8 +532,8 @@ def render_html_playback(golog_path, render_settings=None):
         preview="false", # Only used by the logging plugin
         recording=json_encode(recording)
     )
-    if not isinstance(playback_html, str):
-        playback_html = playback_html.decode('utf-8')
+    if not isinstance(playback_html, bytes): # It's a Unicode string
+        playback_html = playback_html.encode('utf-8') # Convert to bytes
     return playback_html
 
 def get_terminal_size():
