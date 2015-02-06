@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>The Playback Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
@@ -75,8 +64,8 @@
 <h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
 <p>playback.js - The client-side portion of Gate One's Playback plugin.</p>
 <dl class="function">
-<dt id="GateOne.Playback.addPlaybackControls">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">addPlaybackControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.addPlaybackControls" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Playback.addControls">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">addControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.addControls" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the session playback controls to Gate One's element (<tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -101,9 +90,9 @@
 <span class="c1">// This makes sure our prefs get saved along with everything else</span>
 <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:save_prefs&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">savePrefsCallback</span><span class="p">)</span>
 <span class="c1">// Hide the playback controls when in grid view</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:grid_view:open&quot;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nx">hideControls</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:grid_view:open&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">hideControls</span><span class="p">);</span>
 <span class="c1">// Show the playback controls when no longer in grid view</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:grid_view:close&quot;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nx">showControls</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;go:grid_view:close&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">showControls</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -112,7 +101,7 @@
 <dt id="GateOne.Playback.newTerminalCallback">
 <tt class="descclassname">GateOne.Playback.</tt><tt class="descname">newTerminalCallback</tt><big>(</big><em>term</em>, <em>calledTwice</em><big>)</big><a class="headerlink" href="#GateOne.Playback.newTerminalCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets added to the 'terminal:new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.</p>
-<p>It also calls <a class="reference internal" href="#GateOne.Playback.addPlaybackControls" title="GateOne.Playback.addPlaybackControls"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.addPlaybackControls()</span></tt></a> to make sure they're present only after a new terminal is open.</p>
+<p>It also calls <a class="reference internal" href="#GateOne.Playback.addControls" title="GateOne.Playback.addControls"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.addControls()</span></tt></a> to make sure they're present only after a new terminal is open.</p>
 </dd></dl>
 
 <dl class="function">
@@ -292,7 +281,7 @@ self-contained HTML file that will auto-start playback.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

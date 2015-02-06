@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>The Notice Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
@@ -99,7 +88,7 @@ display a message in the browser:</p>
 display a <em>message</em> to the connected client (browser).  It can be invoked
 like so:</p>
 <pre class="ansi-block literal-block">
-$ echo -e &quot;]_;notice|Text passed to some_function()&quot;
+$ echo -e &quot;\033]_;notice|Text passed to some_function()\007&quot;
 </pre>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -185,7 +174,7 @@ $ echo -e &quot;]_;notice|Text passed to some_function()&quot;
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

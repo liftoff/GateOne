@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>logviewer &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -546,6 +535,8 @@
 <span class="sd">        :colors:</span>
 <span class="sd">            (Default: `&quot;default&quot;`) The text color scheme to use when rendering</span>
 <span class="sd">            the HTML template.</span>
+
+<span class="sd">    .. note:: This function returns a byte string (not a unicode string).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get the necessary variables out of render_settings</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">render_settings</span><span class="p">:</span>
@@ -557,13 +548,12 @@
     <span class="n">theme</span> <span class="o">=</span> <span class="n">render_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;theme&#39;</span><span class="p">,</span> <span class="s">&#39;black&#39;</span><span class="p">)</span>
     <span class="n">temploc</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;logviewer&#39;</span><span class="p">)</span> <span class="c"># stores rendered CSS</span>
     <span class="c"># This function renders all themes</span>
-    <span class="n">combine_css</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">temploc</span><span class="p">,</span> <span class="s">&#39;gateone.css&#39;</span><span class="p">),</span> <span class="n">container</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">combine_css</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temploc</span><span class="p">,</span> <span class="s">&#39;gateone.css&#39;</span><span class="p">),</span> <span class="n">container</span><span class="p">)</span>
     <span class="n">theme_css_file</span> <span class="o">=</span> <span class="s">&quot;gateone_theme_{theme}.css&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="n">theme</span><span class="p">)</span>
     <span class="n">theme_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temploc</span><span class="p">,</span> <span class="n">theme_css_file</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">theme_css_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">theme_css</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="c"># Cleanup the CSS files since we&#39;re now down with them</span>
+    <span class="c"># Cleanup the CSS files since we&#39;re now done with them</span>
     <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">temploc</span><span class="p">)</span>
     <span class="c"># Colors are easiest since they don&#39;t need to be rendered</span>
     <span class="n">colors_css_file</span> <span class="o">=</span> <span class="s">&quot;{0}.css&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
@@ -593,8 +583,8 @@
         <span class="n">preview</span><span class="o">=</span><span class="s">&quot;false&quot;</span><span class="p">,</span> <span class="c"># Only used by the logging plugin</span>
         <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_html</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_html</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span> <span class="c"># It&#39;s a Unicode string</span>
+        <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="c"># Convert to bytes</span>
     <span class="k">return</span> <span class="n">playback_html</span>
 </div>
 <div class="viewcode-block" id="get_terminal_size"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_terminal_size">[docs]</a><span class="k">def</span> <span class="nf">get_terminal_size</span><span class="p">():</span>
@@ -759,7 +749,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

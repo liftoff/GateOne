@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>gateone.js &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -840,14 +829,16 @@
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="GateOne.Utils.cacheFileAction">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">cacheFileAction</tt><big>(</big><em>fileObj</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Utils.cacheFileAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the '<a class="reference external" href="go:cache_file">go:cache_file</a>' WebSocket action; stores the given <em>fileObj</em> in the 'fileCache' database and calls <em>callback</em> when complete.</p>
+<p>If <em>fileObj['kind']</em> is 'html' the file will be stored in the 'html' table otherwise the file will be stored in the 'other' table.</p>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="GateOne.Utils.loadJSAction">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadJSAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadJSAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a JavaScript file sent via the <tt class="xref py py-obj docutils literal"><span class="pre">go:load_js</span></tt> WebSocket action into a &lt;script&gt; tag inside of <tt class="docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nc">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;go:get_js&#39;</span><span class="o">:</span> <span class="s1">&#39;some_script.js&#39;</span><span class="p">}));</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="c1">// NOTE: some_script.js can reside in Gate One&#39;s /static directory or any plugin&#39;s /static directory.</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Plugin .js files take precedence.</span>
-</pre></div>
-</div>
+<dd><p>Loads a JavaScript file sent via the <tt class="xref py py-obj docutils literal"><span class="pre">go:load_js</span></tt> WebSocket action into a &lt;script&gt; tag inside of <tt class="docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt> (not that it matters where it goes).</p>
 <p>If <em>message.cache</em> is <tt class="xref py py-obj docutils literal"><span class="pre">false</span></tt> or <em>noCache</em> is true, will not update the fileCache database with this incoming file.</p>
 </dd></dl>
 
@@ -1814,7 +1805,7 @@
 <dl class="staticmethod">
 <dt id="GateOne.Visual.postInit">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">postInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.postInit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up our default keyboard shortcuts and opens the New Workspace Workspace if no other applications have opened themselves after a short timeout (500ms).</p>
+<dd><p>Sets up our default keyboard shortcuts and opens the application chooser if no other applications have opened themselves after a short timeout (500ms).</p>
 <p>Registers the following keyboard shortcuts:</p>
 <blockquote>
 <div><table border="1" class="docutils">
@@ -1874,14 +1865,15 @@
 
 <dl class="staticmethod">
 <dt id="GateOne.Visual.locationsCheck">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">locationsCheck</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Visual.locationsCheck" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">locationsCheck</tt><big>(</big><em>workspaceNum</em><big>)</big><a class="headerlink" href="#GateOne.Visual.locationsCheck" title="Permalink to this definition">¶</a></dt>
 <dd><p>Will add or remove the locations panel icon to/from the toolbar if the application residing in the current workspace supports locations.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="GateOne.Visual.newWorkspaceWorkspace">
-<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">newWorkspaceWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.newWorkspaceWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the new workspace workspace (akin to a browser's &quot;new tab tab&quot;) that allows users to open applications (and possibly other things in the future).</p>
+<dt id="GateOne.Visual.appChooser">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">appChooser</tt><big>(</big><span class="optional">[</span><em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.appChooser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new application chooser (akin to a browser's &quot;new tab tab&quot;) that displays the application selection screen (and possibly other things in the future).</p>
+<p>If <em>where</em> is undefined a new workspace will be created and the application chooser will be placed there.  If <em>where</em> is <tt class="docutils literal"><span class="pre">false</span></tt> the new application chooser element will be returned without placing it anywhere.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2066,7 +2058,7 @@
 <dt id="GateOne.Visual.newWorkspace">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">newWorkspace</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.newWorkspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new workspace on the grid and returns the DOM node that is the new workspace.</p>
-<p>If the currently-selected workspace happens to be the New Workspace Workspace it will be emptied and returned instead of creating a new one.</p>
+<p>If the currently-selected workspace happens to be the application chooser it will be emptied and returned instead of creating a new one.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -2477,12 +2469,9 @@ Why is this mechanism the opposite of everything else where you call the functio
 <p>If this is the first time we're opening this database a <em>model</em> must be given.  Also, if the database already exists, the <em>model</em> argument will be ignored so it is safe to pass it with every call to this function.</p>
 <p>If provided, the <em>version</em> of the database will be set.  Otherwise it will be set to 1.</p>
 <p>Example usage:</p>
-<div class="highlight-js"><div class="highlight"><pre>
-</pre></div>
-</div>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="kd">var</span> <span class="nx">model</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;BookmarksDB&#39;</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;bookmarks&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;url&quot;</span><span class="p">},</span> <span class="s1">&#39;tags&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;name&quot;</span><span class="p">}}};</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">openDB</span><span class="p">(</span><span class="s1">&#39;somedb&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">)</span> <span class="p">{</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">);},</span> <span class="nx">model</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt;</span> <span class="c1">// Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases[&#39;somedb&#39;]</span>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">model</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;BookmarksDB&#39;</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;bookmarks&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;url&quot;</span><span class="p">},</span> <span class="s1">&#39;tags&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">keyPath</span><span class="o">:</span> <span class="s2">&quot;name&quot;</span><span class="p">}}};</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">openDB</span><span class="p">(</span><span class="s1">&#39;somedb&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">)</span> <span class="p">{</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dbObj</span><span class="p">);},</span> <span class="nx">model</span><span class="p">);</span>
+<span class="c1">// Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases[&#39;somedb&#39;]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2999,7 +2988,7 @@ Why is this mechanism the opposite of everything else where you call the functio
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

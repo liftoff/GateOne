@@ -1138,7 +1138,7 @@ def raw(text, replacement_dict=None):
     equivalents using *replacement_dict*.  If *replacement_dict* is None or
     False the global REPLACEMENT_DICT will be used.  Example::
 
-        >>> test = '\\x1b]0;Some xterm title\x07'
+        >>> test = '\\x1b]0;Some xterm title\\x07'
         >>> print(raw(test))
         '^[]0;Some title^G'
     """

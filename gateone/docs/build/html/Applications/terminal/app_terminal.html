@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>app_terminal.py - Gate One Terminal Application &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
@@ -382,7 +371,7 @@ the usual event method, :meth`self.on`:</p>
 whenever a matching optional escape sequence handler is encountered.
 For example:</p>
 <pre class="ansi-block literal-block">
-$ echo -e &quot;]_;somename|Text passed to some_function()&quot;
+$ echo -e &quot;\033]_;somename|Text passed to some_function()\007&quot;
 </pre>
 <p>Which would result in <tt class="xref py py-func docutils literal"><span class="pre">some_function()</span></tt> being called like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">some_function</span><span class="p">(</span>
@@ -560,7 +549,7 @@ are not found in the settings directory.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

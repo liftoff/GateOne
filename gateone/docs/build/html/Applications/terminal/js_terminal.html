@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>terminal.js &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
@@ -533,6 +522,18 @@ the appropriate message to the Gate One server.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Terminal.recordPanePositions">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">recordPanePositions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.recordPanePositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records the position of each terminal in each <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.Pane()</span></tt> that exists on the page (so they can be resumed properly).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.resumePanePosition">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resumePanePosition</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resumePanePosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses <tt class="docutils literal"><span class="pre">GateOne.Terminal.terminals[term].metadata.panePosition</span></tt> to create a new terminal in that exact spot.  New :js:meth`GateOne.Visual.Pane` objects will be created as necessary to ensure the terminal winds up where it was previously.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Terminal.setModeAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setModeAction</tt><big>(</big><em>modeObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setModeAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the given terminal mode (e.g. application cursor mode aka appmode).  <em>modeObj</em> is expected to be something like this:</p>
@@ -876,7 +877,7 @@ the appropriate message to the Gate One server.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

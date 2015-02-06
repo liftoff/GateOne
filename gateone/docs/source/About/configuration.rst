@@ -35,7 +35,9 @@ The first time you execute gateone.py it will create a default configuration fil
                     "log_file_prefix": "/opt/gateone/logs/webserver.log",
                     "log_to_stderr": null,
                     "logging": "info",
-                    "origins": ["localhost", "127.0.0.1", "enterprise.lan", "enterprise", "enterprise.example.com", "10.1.1.100"],
+                    "origins": [
+                        "localhost", "127.0.0.1", "enterprise",
+                        "enterprise.example.com", "10.1.1.100"],
                     "pid_file": "/tmp/gateone.pid",
                     "port": 443,
                     "session_dir": "/tmp/gateone",
@@ -57,7 +59,7 @@ These options match up directly with Gate One's command line options which you c
 
 .. I had to use actual escape characters below because the :string-escape: option to ansi-block would break on those non-breaking-spaces (non-breaking, get it?  Hah!  I kill me).
 
-.. program-output:: gateone --help
+.. command-output:: gateone --help
 
 These options are detailed below in the format of:
 
@@ -403,7 +405,7 @@ origins
 
 .. code-block:: javascript
 
-    "origins": ["localhost", "127.0.0.1", "enterprise.lan", "enterprise", "enterprise\\..*.com", "10.1.1.100"]
+    "origins": ["localhost", "127.0.0.1", "enterprise", "enterprise\\..*.com", "10.1.1.100"]
 
 .. note:: The way you pass origins on the command line is very different from how they are stored in 10server.conf.  The CLI option uses semicolons to delineate origins whereas the 10server.conf contains an actual JSON array.
 

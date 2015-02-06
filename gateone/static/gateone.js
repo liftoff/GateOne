@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20150129135326";
+GateOne.__commit__ = "20150129172312";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -5687,11 +5687,13 @@ GateOne.Base.update(GateOne.Storage, {
 
         If provided, the *version* of the database will be set.  Otherwise it will be set to 1.
 
-        Example usage::
+        Example usage:
 
-            >>> var model = {'BookmarksDB': {'bookmarks': {keyPath: "url"}, 'tags': {keyPath: "name"}}};
-            >>> GateOne.Storage.openDB('somedb', function(dbObj) {console.log(dbObj);}, model);
-            >>> // Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases['somedb']
+        .. code-block:: javascript
+
+            var model = {'BookmarksDB': {'bookmarks': {keyPath: "url"}, 'tags': {keyPath: "name"}}};
+            GateOne.Storage.openDB('somedb', function(dbObj) {console.log(dbObj);}, model);
+            // Note that after this DB is opened the IDBDatabase object will be available via GateOne.Storage.databases['somedb']
         */
         var S = go.Storage;
         if (S._models[DB]) {

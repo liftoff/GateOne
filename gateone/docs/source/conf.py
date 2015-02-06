@@ -262,7 +262,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = 'Images/ls_logo_1inch_300dpi.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -277,6 +277,42 @@ latex_documents = [
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
 
+# This is the current method (> Sphinx 0.5) of generating the preamble:
+#latex_elements = {
+    #'preamble': '''
+
+     #'''
+#}
+#preamble = '''
+#\makeatletter
+#\ProvideTextCommandDefault\textcommabelow[1]
+  #{\hmode@bgroup\ooalign{\null#1\crcr\hidewidth\raise-.31ex
+   #\hbox{\check@mathfonts\fontsize\ssf@size\z@
+   #\math@fontsfalse\selectfont,}\hidewidth}\egroup}
+#\makeatother
+#\usepackage{newunicodechar}
+#\newunicodechar{Ș}{\textcommabelow S}
+#\newunicodechar{ș}{\textcommabelow s}
+#\newunicodechar{Ț}{\textcommabelow T}
+#\newunicodechar{ț}{\textcommabelow t}
+#'''
+latex_elements = {
+    'papersize':'letterpaper',
+    'pointsize':'10pt',
+    'classoptions': ',openany',
+    'babel': '\\usepackage[english]{babel}',
+    'inputenc': '',
+    'utf8extra': '',
+    #'preamble': preamble
+    'preamble': '''
+        \\usepackage{sphinx}
+        \\hypersetup{unicode=true}
+        \\usepackage{fontspec}
+        \\setsansfont{Ubuntu}
+        \\setromanfont{Ubuntu}
+        \\setmonofont{Ubuntu Mono}
+    '''
+}
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 

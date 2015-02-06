@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>app_terminal &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -80,6 +69,8 @@
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">atexit</span><span class="o">,</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="c"># Pseudo stdlib</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span><span class="p">,</span> <span class="n">resource_listdir</span><span class="p">,</span> <span class="n">resource_string</span>
 
 <span class="c"># Gate One imports</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="n">SESSIONS</span>
@@ -99,10 +90,9 @@
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
-<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span><span class="p">,</span> <span class="n">define</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span><span class="p">,</span> <span class="n">define</span><span class="p">,</span> <span class="n">Error</span>
 
 <span class="c"># Globals</span>
-<span class="n">APPLICATION_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our application</span>
 <span class="n">REGISTERED_HANDLERS</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># So we don&#39;t accidentally re-add handlers</span>
 <span class="n">web_handlers</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Assigned in init()</span>
 
@@ -178,6 +168,14 @@
 <span class="nd">@atexit.register</span>
 <span class="k">def</span> <span class="nf">quit</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">killall</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">Error</span><span class="p">:</span> <span class="c"># options.Error</span>
+        <span class="k">return</span> <span class="c"># Bad command line options provided--let the parent handle it</span>
+    <span class="k">if</span> <span class="n">commands</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">help</span><span class="p">:</span>
+        <span class="c"># Don&#39;t call killall() if the user is invoking gateone --help or a</span>
+        <span class="c"># CLI command like &#39;broadcast&#39; or &#39;termlog&#39;</span>
+        <span class="k">return</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">dtach</span><span class="p">:</span>
         <span class="c"># If we&#39;re not using dtach play it safe by cleaning up any leftover</span>
         <span class="c"># processes.  When passwords are used with the ssh_conenct.py script</span>
@@ -196,14 +194,13 @@
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">prefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefs&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">gateone_js</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">static/gateone.js&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-        <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
-        <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">minified_js_abspath</span><span class="p">,</span> <span class="s">&#39;gateone.min.js&#39;</span><span class="p">)</span>
+        <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;/static/gateone.min.js&#39;</span><span class="p">)</span>
         <span class="c"># Use the minified version if it exists</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">minified_js_abspath</span><span class="p">):</span>
             <span class="n">gateone_js</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">static/gateone.min.js&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-        <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-        <span class="n">index_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="s">&#39;share.html&#39;</span><span class="p">)</span>
+        <span class="n">index_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/templates/index.html&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
             <span class="n">index_path</span><span class="p">,</span>
             <span class="n">share_id</span><span class="o">=</span><span class="n">share_id</span><span class="p">,</span>
@@ -306,19 +303,15 @@
         <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_terminal_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
-        <span class="n">py_plugins</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
-            <span class="n">py_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
-        <span class="n">js_plugins</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">js_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">js_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">js_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">css_plugins</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">css_path</span> <span class="ow">in</span> <span class="n">css_plugins</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">css_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="n">css_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">py_plugins</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
-        <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
+        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">plugin</span><span class="p">:</span>
+                <span class="n">plugin</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">plugin_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)</span> <span class="c"># So there&#39;s consistent ordering</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;Active Terminal Plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">)))</span>
         <span class="c"># Setup some events</span>
@@ -328,9 +321,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># TODO: Keep track of plugins and hooks to determine when they&#39;ve</span>
         <span class="c">#       changed so we can tell clients to pull updates and whatnot</span>
-        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="s">&#39;hooks&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">plugin_hooks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="s">&#39;initialize&#39;</span><span class="p">):</span>
                     <span class="n">plugin</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -408,26 +402,24 @@
 <span class="sd">        Sends the client our standard CSS and JS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Render and send the client our terminal.css</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-        <span class="n">terminal_css</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;terminal.css&#39;</span><span class="p">)</span>
+        <span class="n">terminal_css</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/templates/terminal.css&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">terminal_css</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal.css&quot;</span><span class="p">)</span>
         <span class="c"># Send the client our JavaScript files</span>
-        <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
-        <span class="n">js_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">static_dir</span><span class="p">)</span>
+        <span class="n">js_files</span> <span class="o">=</span> <span class="n">resource_listdir</span><span class="p">(</span><span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/&#39;</span><span class="p">)</span>
         <span class="n">js_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">js_files</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-                <span class="n">js_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+                <span class="n">js_file_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                    <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="s">&#39;terminal.js&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span>
-                    <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;terminal.css&quot;</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;terminal.css&quot;</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="n">fname</span> <span class="o">==</span> <span class="s">&#39;terminal_input.js&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="s">&quot;terminal.js&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_js</span><span class="p">(</span><span class="n">js_file_path</span><span class="p">,</span> <span class="n">requires</span><span class="o">=</span><span class="s">&#39;terminal_input.js&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_plugin_static_files</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">),</span>
-            <span class="n">application</span><span class="o">=</span><span class="s">&quot;terminal&quot;</span><span class="p">,</span>
+            <span class="s">&#39;go_terminal_plugins&#39;</span><span class="p">,</span>
             <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;terminal_input.js&quot;</span><span class="p">])</span>
         <span class="c"># Send the client the 256-color style information and our printing CSS</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send_256_colors</span><span class="p">()</span>
@@ -506,10 +498,13 @@
                 <span class="n">sub_app</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">command</span><span class="p">}</span>
             <span class="k">if</span> <span class="s">&#39;icon&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sub_app</span><span class="p">:</span>
                 <span class="c"># Use the generic one</span>
-                <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-                <span class="n">icon_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;command_icon.svg&#39;</span><span class="p">)</span>
-                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">icon_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">sub_app</span><span class="p">[</span><span class="s">&#39;icon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="n">sub_app</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+                <span class="n">icon_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                    <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;/templates/command_icon.svg&#39;</span><span class="p">)</span>
+                <span class="n">sub_app_icon</span> <span class="o">=</span> <span class="n">resource_string</span><span class="p">(</span>
+                    <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;/templates/command_icon.svg&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">sub_app</span><span class="p">[</span><span class="s">&#39;icon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_app_icon</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="n">sub_app</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
             <span class="n">sub_apps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub_app</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;sub_applications&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
             <span class="n">sub_apps</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
@@ -577,13 +572,14 @@
 <span class="sd">        Returns a JSON-encoded object containing the installed fonts.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.woff_info</span> <span class="kn">import</span> <span class="n">woff_info</span>
-        <span class="n">fonts_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fonts&#39;</span><span class="p">)</span>
-        <span class="n">fonts</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fonts_path</span><span class="p">)</span>
+        <span class="n">fonts</span> <span class="o">=</span> <span class="n">resource_listdir</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/fonts&#39;</span><span class="p">)</span>
         <span class="n">font_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">font</span> <span class="ow">in</span> <span class="n">fonts</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">font</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.woff&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="n">font_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fonts_path</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+            <span class="n">font_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/fonts/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">font</span><span class="p">)</span>
             <span class="n">font_info</span> <span class="o">=</span> <span class="n">woff_info</span><span class="p">(</span><span class="n">font_path</span><span class="p">)</span>
             <span class="k">if</span> <span class="s">&quot;Font Family&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font_info</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
@@ -609,10 +605,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">font_family</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;font_family&#39;</span><span class="p">]</span>
         <span class="n">font_size</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font_size&#39;</span><span class="p">,</span> <span class="s">&#39;90%&#39;</span><span class="p">)</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;font.css&#39;</span>
-        <span class="n">font_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">font_css_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/templates/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">font_family</span> <span class="o">==</span> <span class="s">&#39;monospace&#39;</span><span class="p">:</span>
             <span class="c"># User wants the browser to control the font; real simple:</span>
             <span class="n">rendered_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_style</span><span class="p">(</span>
@@ -624,13 +619,14 @@
                 <span class="n">rendered_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_font&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="kn">from</span> <span class="nn">.woff_info</span> <span class="kn">import</span> <span class="n">woff_info</span>
-        <span class="n">fonts_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fonts&#39;</span><span class="p">)</span>
-        <span class="n">fonts</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fonts_path</span><span class="p">)</span>
+        <span class="n">fonts</span> <span class="o">=</span> <span class="n">resource_listdir</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/fonts&#39;</span><span class="p">)</span>
         <span class="n">woffs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">font</span> <span class="ow">in</span> <span class="n">fonts</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">font</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.woff&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="n">font_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fonts_path</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+            <span class="n">font_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/fonts/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">font</span><span class="p">)</span>
             <span class="n">font_info</span> <span class="o">=</span> <span class="n">woff_info</span><span class="p">(</span><span class="n">font_path</span><span class="p">)</span>
             <span class="k">if</span> <span class="s">&quot;Font Family&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font_info</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
@@ -678,8 +674,9 @@
 <span class="sd">        Returns a JSON-encoded object containing the installed text color</span>
 <span class="sd">        schemes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">colors_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">)</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">colors_path</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">resource_listdir</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/templates/term_colors&#39;</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">colors</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">)]</span>
         <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">]</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:colors_list&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;colors&#39;</span><span class="p">:</span> <span class="n">colors</span><span class="p">}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
@@ -1058,10 +1055,14 @@
 <span class="sd">        without having to worry about figuring out if a new terminal already</span>
 <span class="sd">        exists or not).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">])</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;term&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">highest_term_num</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="c"># TODO: Make these specific to each terminal:</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;rows&#39;</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="mi">24</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;columns&#39;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="mi">80</span>
         <span class="k">if</span> <span class="n">rows</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">cols</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># Something went wrong calculating term size</span>
             <span class="c"># Fall back to a standard default</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="mi">24</span>
@@ -1208,7 +1209,7 @@
             <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">linkpath</span> <span class="o">=</span> <span class="s">&quot;{server_url}downloads&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">server_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
             <span class="c"># Make sure it can generate pretty icons for file downloads</span>
-            <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">icondir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;icons&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">icondir</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;/static/icons&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">resumed_dtach</span><span class="p">:</span>
                 <span class="c"># Send an extra Ctrl-L to refresh the screen and fix the sizing</span>
                 <span class="c"># after it has been reattached.</span>
@@ -1846,7 +1847,7 @@
 
 <span class="sd">        .. ansi-block::</span>
 
-<span class="sd">            $ echo -e &quot;\033]_;somename|Text passed to some_function()\007&quot;</span>
+<span class="sd">            $ echo -e &quot;\\033]_;somename|Text passed to some_function()\\007&quot;</span>
 
 <span class="sd">        Which would result in :func:`some_function` being called like so::</span>
 
@@ -1875,16 +1876,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends the bell sound data to the client in in the form of a data::URI.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bell_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
-        <span class="n">bell_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bell_path</span><span class="p">,</span> <span class="s">&#39;bell.ogg&#39;</span><span class="p">)</span>
+        <span class="n">bell_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/bell.ogg&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">create_data_uri</span><span class="p">(</span><span class="n">bell_path</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="n">MimeTypeFail</span><span class="p">):</span> <span class="c"># There&#39;s always the fallback</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not load bell: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">bell_path</span><span class="p">)</span>
-            <span class="n">fallback_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;fallback_bell.txt&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fallback_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">resource_string</span><span class="p">(</span>
+                <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/fallback_bell.txt&#39;</span><span class="p">)</span>
         <span class="n">mimetype</span> <span class="o">=</span> <span class="n">bell_data_uri</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;terminal:load_bell&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -1899,11 +1898,9 @@
 <span class="sd">        around the limitations of loading remote Web Worker URLs (for embedding</span>
 <span class="sd">        Gate One into other apps).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">static_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
-        <span class="n">webworker_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_url</span><span class="p">,</span> <span class="s">&#39;webworkers&#39;</span><span class="p">,</span> <span class="s">&#39;term_ww.js&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">webworker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">go_process</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:load_webworker&#39;</span><span class="p">:</span> <span class="n">go_process</span><span class="p">}</span>
+        <span class="n">go_process</span> <span class="o">=</span> <span class="n">resource_string</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/webworkers/term_ww.js&#39;</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:load_webworker&#39;</span><span class="p">:</span> <span class="n">go_process</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="TerminalApplication.get_colors"><a class="viewcode-back" href="../Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.get_colors">[docs]</a>    <span class="k">def</span> <span class="nf">get_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
@@ -1922,10 +1919,10 @@
             <span class="c"># So we don&#39;t repeat this message a zillion times in the logs:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logged_css_message</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">return</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-        <span class="n">term_colors_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">)</span>
         <span class="n">colors_filename</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.css&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;colors&quot;</span><span class="p">]</span>
-        <span class="n">colors_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">term_colors_path</span><span class="p">,</span> <span class="n">colors_filename</span><span class="p">)</span>
+        <span class="n">colors_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span>
+            <span class="s">&#39;/templates/term_colors/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">colors_filename</span><span class="p">)</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;term_colors.css&quot;</span> <span class="c"># Make sure it&#39;s the same every time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">colors_path</span><span class="p">,</span>
             <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;text_colors&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
@@ -2542,6 +2539,8 @@
         <span class="n">term_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
         <span class="n">multiplex</span> <span class="o">=</span> <span class="n">term_obj</span><span class="p">[</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
         <span class="n">shared_terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;shared&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">shared_terms</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Nothing to do</span>
         <span class="n">share_obj</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">share_id</span><span class="p">,</span> <span class="n">share_dict</span> <span class="ow">in</span> <span class="n">shared_terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">term_obj</span> <span class="o">==</span> <span class="n">share_dict</span><span class="p">[</span><span class="s">&#39;term_obj&#39;</span><span class="p">]:</span>
@@ -2579,8 +2578,8 @@
         <span class="n">cached_256_colors</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="s">&#39;256_colors.css&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cached_256_colors</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">cached_256_colors</span>
-        <span class="n">colors_json_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="s">&#39;256colors.json&#39;</span><span class="p">)</span>
+        <span class="n">colors_json_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static/256colors.json&#39;</span><span class="p">)</span>
         <span class="n">color_map</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">colors_json_path</span><span class="p">,</span> <span class="n">add_default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="c"># Setup our 256-color support CSS:</span>
         <span class="n">colors_256</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
@@ -2591,10 +2590,10 @@
             <span class="n">bg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.✈bx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">fg_rev</span> <span class="o">=</span><span class="p">(</span>
-                <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.fx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">; color: &quot;</span>
+                <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.✈fx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">; color: &quot;</span>
                 <span class="s">&quot;inherit;}&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
             <span class="n">bg_rev</span> <span class="o">=</span><span class="p">(</span>
-                <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.bx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">; background-color: &quot;</span>
+                <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.✈reverse.✈bx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">; background-color: &quot;</span>
                 <span class="s">&quot;inherit;} &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">color_map</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
             <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg_rev</span><span class="p">,</span> <span class="n">bg_rev</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">cached_256_colors</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -2614,8 +2613,8 @@
 <span class="sd">        using `ApplicationWebSocket.ws.send_css` with the &quot;media&quot; set to</span>
 <span class="sd">        &quot;print&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">print_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;printing&#39;</span><span class="p">,</span> <span class="s">&#39;printing.css&#39;</span><span class="p">)</span>
+        <span class="n">print_css_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/templates/printing/printing.css&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span>
             <span class="n">print_css_path</span><span class="p">,</span> <span class="n">element_id</span><span class="o">=</span><span class="s">&quot;terminal_print_css&quot;</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="s">&quot;print&quot;</span><span class="p">)</span>
 </div>
@@ -2638,13 +2637,14 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">screen</span><span class="p">):</span>
             <span class="c"># This gets rid of images:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">line</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">pympler</span> <span class="kn">import</span> <span class="n">asizeof</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;screen size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">screen</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;renditions size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">renditions</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Total term object size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">term_obj</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;screen size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">screen</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;renditions size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">renditions</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s">&quot;Total term object size: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">asizeof</span><span class="o">.</span><span class="n">asizeof</span><span class="p">(</span><span class="n">term_obj</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># No biggie</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">debug</span><span class="p">()</span> <span class="c"># Do regular debugging as well</span>
@@ -2685,7 +2685,8 @@
 <span class="sd">    Also checks to make sure that the logviewer.py script is executable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">term_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&quot;gateone.terminal&quot;</span><span class="p">)</span>
-    <span class="n">logviewer_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;logviewer.py&#39;</span><span class="p">)</span>
+    <span class="n">logviewer_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+        <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/logviewer.py&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">stat</span>
     <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">logviewer_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXOTH</span><span class="p">):</span>
@@ -2734,18 +2735,19 @@
         <span class="n">terminal_conf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings_path</span><span class="p">,</span> <span class="s">&#39;50terminal.conf&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">terminal_conf_path</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">gateone.core.configuration</span> <span class="kn">import</span> <span class="n">settings_template</span>
-            <span class="c"># TODO: Think about moving 50terminal.conf template into the</span>
-            <span class="c"># terminal application&#39;s directory.</span>
-            <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;settings&#39;</span><span class="p">,</span> <span class="s">&#39;50terminal.conf&#39;</span><span class="p">)</span>
+            <span class="n">template_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span>
+                <span class="s">&#39;/templates/settings/50terminal.conf&#39;</span><span class="p">)</span>
             <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="c"># Update the settings with defaults</span>
+            <span class="n">ssh_connect_path</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span>
+                <span class="s">&#39;/plugins/ssh/scripts/ssh_connect.py&#39;</span><span class="p">)</span>
             <span class="n">default_command</span> <span class="o">=</span> <span class="p">(</span>
-              <span class="n">GATEONE_DIR</span> <span class="o">+</span>
-              <span class="s">&quot;/applications/terminal/plugins/ssh/scripts/ssh_connect.py -S &quot;</span>
+              <span class="s">&quot;{0} -S &quot;</span>
               <span class="s">r&quot;&#39;%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%&#39; --sshfp &quot;</span>
               <span class="s">r&quot;-a &#39;-oUserKnownHostsFile=</span><span class="se">\&quot;</span><span class="s">%USERDIR%/%USER%/.ssh/known_hosts</span><span class="se">\&quot;</span><span class="s">&#39;&quot;</span>
-            <span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ssh_connect_path</span><span class="p">)</span>
             <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
                 <span class="s">&#39;dtach&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
                 <span class="s">&#39;session_logging&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
@@ -2793,36 +2795,29 @@
             <span class="n">term_settings</span><span class="p">[</span><span class="s">&#39;commands&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/ssh/&#39;</span><span class="p">,</span> <span class="s">&#39;/.ssh/&#39;</span><span class="p">)</span>
     <span class="c"># Initialize plugins so we can add their &#39;Web&#39; handlers</span>
     <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;enabled_plugins&#39;</span><span class="p">,</span> <span class="p">[])</span>
-    <span class="n">plugins_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">)</span>
-    <span class="n">plugins</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_applications_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
+    <span class="n">plugins</span> <span class="o">=</span> <span class="n">entry_point_files</span><span class="p">(</span><span class="s">&#39;go_terminal_plugins&#39;</span><span class="p">,</span> <span class="n">enabled_plugins</span><span class="p">)</span>
     <span class="c"># Attach plugin hooks</span>
     <span class="n">plugin_hooks</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">plugin_hooks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># No hooks, no problem</span>
     <span class="c"># Add static handlers for all the JS plugins (primarily for source maps)</span>
     <span class="n">url_prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">][</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-    <span class="n">plugin_dirs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugins_path</span><span class="p">)</span>
-    <span class="c"># Remove anything that isn&#39;t a directory (just in case)</span>
-    <span class="n">plugin_dirs</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">plugin_dirs</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugins_path</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
-    <span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled_plugins</span><span class="p">:</span> <span class="c"># Use all of them</span>
-        <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="n">plugin_dirs</span>
-    <span class="k">for</span> <span class="n">plugin_name</span> <span class="ow">in</span> <span class="n">enabled_plugins</span><span class="p">:</span>
+    <span class="n">plugins</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">plugin_static_url</span> <span class="o">=</span> <span class="s">r&quot;{prefix}terminal/{name}/static/(.*)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">prefix</span><span class="o">=</span><span class="n">url_prefix</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">plugin_name</span><span class="p">)</span>
-        <span class="n">static_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">static_path</span><span class="p">):</span>
-            <span class="n">handler</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">plugin_static_url</span><span class="p">,</span> <span class="n">StaticHandler</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">static_path</span><span class="p">})</span>
-            <span class="k">if</span> <span class="n">handler</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">REGISTERED_HANDLERS</span><span class="p">:</span>
-                <span class="n">REGISTERED_HANDLERS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
-                <span class="n">web_handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">url_prefix</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="p">(</span><span class="n">plugin_static_url</span><span class="p">,</span> <span class="n">StaticHandler</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="s">&#39;/static/&#39;</span><span class="p">,</span>
+            <span class="s">&#39;use_pkg&#39;</span><span class="p">:</span> <span class="n">plugin</span>
+        <span class="p">})</span>
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">REGISTERED_HANDLERS</span><span class="p">:</span>
+            <span class="n">REGISTERED_HANDLERS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+            <span class="n">web_handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
     <span class="c"># Hook up the &#39;Web&#39; handlers so those URLs are immediately available</span>
     <span class="k">for</span> <span class="n">hooks</span> <span class="ow">in</span> <span class="n">plugin_hooks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="s">&#39;Web&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
@@ -2840,7 +2835,7 @@
 <span class="n">web_handlers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
     <span class="s">r&#39;terminal/static/(.*)&#39;</span><span class="p">,</span>
     <span class="n">TermStaticFiles</span><span class="p">,</span>
-    <span class="p">{</span><span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APPLICATION_PATH</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">)}</span>
+    <span class="p">{</span><span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s">&#39;gateone.applications.terminal&#39;</span><span class="p">,</span> <span class="s">&#39;/static&#39;</span><span class="p">)}</span>
 <span class="p">))</span>
 <span class="n">web_handlers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">r&#39;terminal/shared/(.*)&#39;</span><span class="p">,</span> <span class="n">SharedTermHandler</span><span class="p">))</span>
 
@@ -2894,7 +2889,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

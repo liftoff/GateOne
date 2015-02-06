@@ -1,0 +1,206 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Contents}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}About Gate One}{1}{section.1.1}
+\contentsline {subsection}{\numberline {1.1.1}Licensing}{1}{subsection.1.1.1}
+\contentsline {subsubsection}{Open Source License Requirements}{1}{subsubsection*.3}
+\contentsline {subsubsection}{Gate One Commercial Licensing}{2}{subsubsection*.4}
+\contentsline {subsection}{\numberline {1.1.2}Prerequisites}{2}{subsection.1.1.2}
+\contentsline {subsection}{\numberline {1.1.3}Installation}{3}{subsection.1.1.3}
+\contentsline {subsubsection}{RPM-based Linux Distributions}{3}{subsubsection*.5}
+\contentsline {subsubsection}{Debian-based Linux Distributions}{3}{subsubsection*.6}
+\contentsline {subsubsection}{From Source}{3}{subsubsection*.7}
+\contentsline {subsection}{\numberline {1.1.4}Configuration}{3}{subsection.1.1.4}
+\contentsline {subsubsection}{Tornado Framework Options}{6}{subsubsection*.9}
+\contentsline {paragraph}{log\_file\_max\_size}{7}{paragraph*.10}
+\contentsline {paragraph}{log\_file\_num\_backups}{7}{paragraph*.12}
+\contentsline {paragraph}{log\_file\_prefix}{7}{paragraph*.14}
+\contentsline {paragraph}{log\_to\_stderr}{7}{paragraph*.16}
+\contentsline {paragraph}{logging}{7}{paragraph*.18}
+\contentsline {subsubsection}{Global Gate One Options}{8}{subsubsection*.20}
+\contentsline {paragraph}{address}{8}{paragraph*.21}
+\contentsline {paragraph}{api\_keys}{8}{paragraph*.23}
+\contentsline {paragraph}{api\_timestamp\_window}{8}{paragraph*.25}
+\contentsline {paragraph}{auth}{9}{paragraph*.27}
+\contentsline {paragraph}{ca\_certs}{9}{paragraph*.29}
+\contentsline {paragraph}{cache\_dir}{9}{paragraph*.31}
+\contentsline {paragraph}{certificate}{9}{paragraph*.33}
+\contentsline {paragraph}{combine\_css}{9}{paragraph*.35}
+\contentsline {paragraph}{combine\_css\_container}{9}{paragraph*.37}
+\contentsline {paragraph}{combine\_js}{10}{paragraph*.39}
+\contentsline {paragraph}{command}{10}{paragraph*.41}
+\contentsline {paragraph}{config}{10}{paragraph*.43}
+\contentsline {paragraph}{cookie\_secret}{10}{paragraph*.45}
+\contentsline {paragraph}{debug}{10}{paragraph*.47}
+\contentsline {paragraph}{disable\_ssl}{11}{paragraph*.49}
+\contentsline {paragraph}{embedded}{11}{paragraph*.51}
+\contentsline {paragraph}{enable\_unix\_socket}{11}{paragraph*.53}
+\contentsline {paragraph}{gid}{11}{paragraph*.55}
+\contentsline {paragraph}{https\_redirect}{11}{paragraph*.57}
+\contentsline {paragraph}{js\_init}{12}{paragraph*.59}
+\contentsline {paragraph}{keyfile}{12}{paragraph*.61}
+\contentsline {paragraph}{locale}{12}{paragraph*.63}
+\contentsline {paragraph}{new\_api\_key}{12}{paragraph*.65}
+\contentsline {paragraph}{origins}{12}{paragraph*.67}
+\contentsline {paragraph}{pam\_realm}{13}{paragraph*.69}
+\contentsline {paragraph}{pam\_service}{13}{paragraph*.71}
+\contentsline {paragraph}{pid\_file}{13}{paragraph*.73}
+\contentsline {paragraph}{port}{14}{paragraph*.75}
+\contentsline {paragraph}{session\_dir}{14}{paragraph*.77}
+\contentsline {paragraph}{session\_timeout}{14}{paragraph*.79}
+\contentsline {paragraph}{ssl\_auth}{15}{paragraph*.81}
+\contentsline {paragraph}{sso\_realm}{15}{paragraph*.83}
+\contentsline {paragraph}{sso\_service}{15}{paragraph*.85}
+\contentsline {paragraph}{syslog\_facility}{15}{paragraph*.87}
+\contentsline {paragraph}{uid}{15}{paragraph*.89}
+\contentsline {paragraph}{unix\_socket\_path}{16}{paragraph*.91}
+\contentsline {paragraph}{url\_prefix}{16}{paragraph*.93}
+\contentsline {paragraph}{user\_dir}{16}{paragraph*.95}
+\contentsline {paragraph}{user\_logs\_max\_age}{16}{paragraph*.97}
+\contentsline {paragraph}{version}{17}{paragraph*.99}
+\contentsline {subsubsection}{Terminal Application Options}{17}{subsubsection*.101}
+\contentsline {paragraph}{dtach}{17}{paragraph*.102}
+\contentsline {paragraph}{kill}{17}{paragraph*.104}
+\contentsline {paragraph}{session\_logging}{17}{paragraph*.106}
+\contentsline {paragraph}{syslog\_session\_logging}{18}{paragraph*.108}
+\contentsline {section}{\numberline {1.2}Gate One Applications}{18}{section.1.2}
+\contentsline {subsection}{\numberline {1.2.1}Terminal}{18}{subsection.1.2.1}
+\contentsline {subsubsection}{User Guide}{18}{subsubsection*.110}
+\contentsline {paragraph}{The Interface}{18}{paragraph*.111}
+\contentsline {paragraph}{Detailed Interface Overview}{18}{paragraph*.112}
+\contentsline {paragraph}{Keyboard Shortcuts}{20}{paragraph*.113}
+\contentsline {paragraph}{The Toolbar}{20}{paragraph*.114}
+\contentsline {subparagraph}{Close Terminal and New Terminal}{20}{subparagraph*.115}
+\contentsline {subparagraph}{Terminal Info and Tools}{20}{subparagraph*.116}
+\contentsline {subparagraph}{Log Viewer}{20}{subparagraph*.117}
+\contentsline {subparagraph}{Export Current Session}{20}{subparagraph*.118}
+\contentsline {subparagraph}{Monitor for Activity/Inactivity}{22}{subparagraph*.119}
+\contentsline {subparagraph}{SSH Plugin: Duplicate Session}{22}{subparagraph*.120}
+\contentsline {subparagraph}{SSH Plugin: Manage Identities}{22}{subparagraph*.121}
+\contentsline {paragraph}{The SSH Identity Manager also allows you to generate new identities...}{23}{paragraph*.122}
+\contentsline {paragraph}{Upload existing identities...}{23}{paragraph*.123}
+\contentsline {paragraph}{And upload X.509 certificates...}{23}{paragraph*.124}
+\contentsline {subparagraph}{Edit Known Hosts}{23}{subparagraph*.125}
+\contentsline {subparagraph}{The Settings Panel}{25}{subparagraph*.126}
+\contentsline {subparagraph}{Theme}{25}{subparagraph*.127}
+\contentsline {subparagraph}{Color Scheme}{26}{subparagraph*.128}
+\contentsline {subparagraph}{Scrollback Buffer Lines}{26}{subparagraph*.129}
+\contentsline {subparagraph}{Playback Frames}{26}{subparagraph*.130}
+\contentsline {subparagraph}{Terminal Rows and Terminal Columns}{27}{subparagraph*.131}
+\contentsline {subparagraph}{Gate One's Grid}{27}{subparagraph*.132}
+\contentsline {subparagraph}{The Bookmark Manager}{27}{subparagraph*.133}
+\contentsline {subsubsection}{Terminal Developer Documentation}{27}{subsubsection*.134}
+\contentsline {paragraph}{Python Code}{27}{paragraph*.135}
+\contentsline {subparagraph}{\texttt {app\_terminal.py} - Gate One Terminal Application}{27}{subparagraph*.136}
+\contentsline {subparagraph}{Terminal Configuration}{35}{subparagraph*.180}
+\contentsline {subparagraph}{Settings}{35}{subparagraph*.181}
+\contentsline {subparagraph}{\texttt {woff\_info.py} - Python WOFF Font Inspector}{36}{subparagraph*.182}
+\contentsline {paragraph}{JavaScript Code}{37}{paragraph*.186}
+\contentsline {subparagraph}{terminal.js}{37}{subparagraph*.187}
+\contentsline {subparagraph}{terminal\_input.js}{46}{subparagraph*.281}
+\contentsline {paragraph}{Plugin Code}{48}{paragraph*.303}
+\contentsline {subparagraph}{The Bookmarks Plugin}{48}{subparagraph*.304}
+\contentsline {subparagraph}{JavaScript}{48}{subparagraph*.305}
+\contentsline {subparagraph}{Python}{53}{subparagraph*.366}
+\contentsline {subparagraph}{Hooks}{53}{subparagraph*.367}
+\contentsline {subparagraph}{Docstrings}{53}{subparagraph*.368}
+\contentsline {subparagraph}{The Convenience Plugin}{54}{subparagraph*.389}
+\contentsline {subparagraph}{JavaScript}{54}{subparagraph*.390}
+\contentsline {subparagraph}{The Example Plugin}{56}{subparagraph*.414}
+\contentsline {subparagraph}{JavaScript}{56}{subparagraph*.415}
+\contentsline {subparagraph}{Python}{57}{subparagraph*.424}
+\contentsline {subparagraph}{Hooks}{57}{subparagraph*.425}
+\contentsline {subparagraph}{Docstrings}{57}{subparagraph*.426}
+\contentsline {paragraph}{How The WebSocket Hook Works}{58}{paragraph*.431}
+\contentsline {subparagraph}{The Logging Plugin}{58}{subparagraph*.434}
+\contentsline {subparagraph}{JavaScript}{58}{subparagraph*.435}
+\contentsline {subparagraph}{Python}{60}{subparagraph*.455}
+\contentsline {subparagraph}{Hooks}{60}{subparagraph*.456}
+\contentsline {subparagraph}{Docstrings}{60}{subparagraph*.457}
+\contentsline {subparagraph}{The Notice Plugin}{62}{subparagraph*.469}
+\contentsline {subparagraph}{Python}{62}{subparagraph*.470}
+\contentsline {subparagraph}{Hooks}{62}{subparagraph*.471}
+\contentsline {subparagraph}{Docstrings}{63}{subparagraph*.472}
+\contentsline {subparagraph}{The Playback Plugin}{63}{subparagraph*.474}
+\contentsline {subparagraph}{JavaScript}{63}{subparagraph*.475}
+\contentsline {subparagraph}{Python}{64}{subparagraph*.490}
+\contentsline {subparagraph}{Hooks}{64}{subparagraph*.491}
+\contentsline {subparagraph}{Docstrings}{64}{subparagraph*.492}
+\contentsline {subparagraph}{The SSH Plugin}{64}{subparagraph*.495}
+\contentsline {subparagraph}{JavaScript}{64}{subparagraph*.496}
+\contentsline {subparagraph}{Python}{67}{subparagraph*.523}
+\contentsline {subparagraph}{Hooks}{67}{subparagraph*.524}
+\contentsline {subparagraph}{Docstrings}{67}{subparagraph*.525}
+\contentsline {section}{\numberline {1.3}Developer Documentation}{71}{section.1.3}
+\contentsline {subsection}{\numberline {1.3.1}Python Code}{71}{subsection.1.3.1}
+\contentsline {subsubsection}{\texttt {authentication.py} - Authentication Classes}{71}{subsubsection*.566}
+\contentsline {paragraph}{Authentication}{71}{paragraph*.567}
+\contentsline {subparagraph}{None or Anonymous}{71}{subparagraph*.568}
+\contentsline {subparagraph}{Kerberos}{71}{subparagraph*.569}
+\contentsline {subparagraph}{Google Authentication}{72}{subparagraph*.570}
+\contentsline {subparagraph}{API Authentication}{72}{subparagraph*.571}
+\contentsline {paragraph}{Docstrings}{72}{paragraph*.572}
+\contentsline {subsubsection}{\texttt {authorization.py} - Authentication Classes}{74}{subsubsection*.600}
+\contentsline {paragraph}{Authorization}{74}{paragraph*.601}
+\contentsline {paragraph}{Docstrings}{74}{paragraph*.602}
+\contentsline {subsubsection}{\texttt {ctypes\_pam.py} - PAM Authentication Module}{75}{subsubsection*.607}
+\contentsline {paragraph}{PAM Authentication Module for Python}{75}{paragraph*.608}
+\contentsline {subsubsection}{\texttt {pam.py} - A PAM Authentication Module}{75}{subsubsection*.610}
+\contentsline {paragraph}{PAM Authentication Module for Gate One}{75}{paragraph*.611}
+\contentsline {subsubsection}{\texttt {sso.py} - A Tornado Kerberos Single Sign-On Module}{76}{subsubsection*.617}
+\contentsline {paragraph}{About The SSO Module}{76}{paragraph*.618}
+\contentsline {subparagraph}{Troubleshooting}{76}{subparagraph*.619}
+\contentsline {paragraph}{Class Docstrings}{77}{paragraph*.620}
+\contentsline {subsubsection}{\texttt {log.py} - Gate One Logging Module}{78}{subsubsection*.627}
+\contentsline {paragraph}{Logging Module for Gate One}{78}{paragraph*.628}
+\contentsline {subsubsection}{\texttt {logviewer.py} - Session Log Viewer}{79}{subsubsection*.633}
+\contentsline {paragraph}{Log Viewer}{79}{paragraph*.634}
+\contentsline {paragraph}{About Gate One's Log Format}{80}{paragraph*.635}
+\contentsline {paragraph}{Class Docstrings}{80}{paragraph*.636}
+\contentsline {subsubsection}{\texttt {server.py} - Gate One's Core Script}{81}{subsubsection*.648}
+\contentsline {paragraph}{Gate One}{81}{paragraph*.649}
+\contentsline {subparagraph}{Dependencies}{82}{subparagraph*.650}
+\contentsline {subparagraph}{Settings}{82}{subparagraph*.651}
+\contentsline {subparagraph}{File Paths}{86}{subparagraph*.652}
+\contentsline {subparagraph}{Running}{87}{subparagraph*.653}
+\contentsline {subparagraph}{Applications and Plugins}{87}{subparagraph*.654}
+\contentsline {paragraph}{Class Docstrings}{88}{paragraph*.655}
+\contentsline {subsubsection}{\texttt {terminal.py} - A Pure Python Terminal Emulator}{101}{subsubsection*.730}
+\contentsline {subsubsection}{\texttt {termio.py} - Terminal Input/Output Module}{101}{subsubsection*.731}
+\contentsline {subsubsection}{\texttt {utils.py} - Supporting Functions}{101}{subsubsection*.732}
+\contentsline {paragraph}{Gate One Utility Functions and Classes}{101}{paragraph*.733}
+\contentsline {subsection}{\numberline {1.3.2}JavaScript Code}{110}{subsection.1.3.2}
+\contentsline {subsubsection}{gateone.js}{110}{subsubsection*.791}
+\contentsline {subsubsection}{term\_ww.js}{142}{subsubsection*.987}
+\contentsline {subsection}{\numberline {1.3.3}Plugin Code}{142}{subsection.1.3.3}
+\contentsline {subsubsection}{The Help Plugin}{143}{subsubsection*.988}
+\contentsline {paragraph}{JavaScript}{143}{paragraph*.989}
+\contentsline {subsection}{\numberline {1.3.4}Developing Plugins}{143}{subsection.1.3.4}
+\contentsline {subsection}{\numberline {1.3.5}Embeddeding Gate One Into Other Applications}{143}{subsection.1.3.5}
+\contentsline {subsubsection}{Embedding Gate One Into Other Applications}{143}{subsubsection*.997}
+\contentsline {paragraph}{How To Embed Gate One - Chapter 1}{144}{paragraph*.998}
+\contentsline {subparagraph}{Placement}{144}{subparagraph*.999}
+\contentsline {subparagraph}{Include gateone.js}{145}{subparagraph*.1000}
+\contentsline {subparagraph}{Call GateOne.init()}{145}{subparagraph*.1001}
+\contentsline {subparagraph}{Complete Example}{145}{subparagraph*.1002}
+\contentsline {subparagraph}{Try It}{145}{subparagraph*.1003}
+\contentsline {paragraph}{API Authentication}{145}{paragraph*.1004}
+\contentsline {subparagraph}{Enable API Authentication}{146}{subparagraph*.1005}
+\contentsline {subparagraph}{Generate an API Key/Secret}{146}{subparagraph*.1006}
+\contentsline {subparagraph}{Generate An Auth Object}{146}{subparagraph*.1007}
+\contentsline {paragraph}{Example API Authentication Code}{147}{paragraph*.1008}
+\contentsline {subparagraph}{Python}{147}{subparagraph*.1009}
+\contentsline {subparagraph}{PHP}{148}{subparagraph*.1010}
+\contentsline {subparagraph}{Ruby}{148}{subparagraph*.1011}
+\contentsline {section}{\numberline {1.4}Release Notes / Changelog}{148}{section.1.4}
+\contentsline {subsection}{\numberline {1.4.1}0.9}{148}{subsection.1.4.1}
+\contentsline {subsubsection}{Release Date}{148}{subsubsection*.1012}
+\contentsline {subsubsection}{Summary of Changes}{148}{subsubsection*.1013}
+\contentsline {subsection}{\numberline {1.4.2}1.0}{149}{subsection.1.4.2}
+\contentsline {subsubsection}{Release Date}{149}{subsubsection*.1014}
+\contentsline {subsubsection}{Summary of Changes}{149}{subsubsection*.1015}
+\contentsline {subsection}{\numberline {1.4.3}1.1}{150}{subsection.1.4.3}
+\contentsline {subsubsection}{Release Date}{150}{subsubsection*.1016}
+\contentsline {subsubsection}{Summary of Changes}{150}{subsubsection*.1017}
+\contentsline {subsubsection}{Notable Bugs Fixes}{152}{subsubsection*.1018}
+\contentsline {subsubsection}{Other Notable Changes}{153}{subsubsection*.1019}
+\contentsline {chapter}{Python Module Index}{157}{section*.1020}

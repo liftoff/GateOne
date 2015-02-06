@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>gateone.auth.authentication &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
@@ -154,12 +143,12 @@
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">tornado.httpclient</span>
 <span class="kn">import</span> <span class="nn">tornado.gen</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
 
 <span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
 <span class="c"># Globals</span>
-<span class="n">GATEONE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
 <span class="n">SETTINGS_CACHE</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Lists of settings files and their modification times</span>
 <span class="c"># The security stuff below is a work-in-progress.  Likely to change all around.</span>
 
@@ -178,7 +167,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Doesn&#39;t do anything yet</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">settings_dir</span><span class="p">:</span>
-        <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;settings&#39;</span><span class="p">)</span>
+        <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span>
     <span class="k">return</span> <span class="n">user</span>
 
 
@@ -215,7 +204,13 @@
         <span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">additional_attributes</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+            <span class="c"># NOTE: These bytes checks are for Python 2 (not needed in Python 3)</span>
+            <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">):</span>
+                <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">upn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+                <span class="n">user_dir</span> <span class="o">=</span> <span class="n">user_dir</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
                 <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
@@ -364,14 +359,10 @@
             <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
             <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
             <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="s">&#39;https://&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s">&#39;:443/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-                <span class="c"># Get rid of the 443 (it&#39;s assumed since https)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:443&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s">&#39;http://&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s">&#39;:80/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-                <span class="c"># Get rid of the 443 (it&#39;s assumed since https)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:80&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">uri_port</span> <span class="o">=</span> <span class="s">&#39;:{0}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">uri_port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
+            <span class="c"># Get rid of the port (will be added automatically)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">uri_port</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">redirect_uri</span> <span class="o">=</span> <span class="s">&quot;{base_url}auth&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
         <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
@@ -805,7 +796,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>utils.py - Supporting Functions &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -700,7 +689,7 @@ tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
 <dd><p>Returns <em>text</em> as a string with special characters replaced by visible
 equivalents using <em>replacement_dict</em>.  If <em>replacement_dict</em> is None or
 False the global REPLACEMENT_DICT will be used.  Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">]0;Some xterm title&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">]0;Some xterm title</span><span class="se">\x07</span><span class="s">&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">raw</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
 <span class="go">&#39;^[]0;Some title^G&#39;</span>
 </pre></div>
@@ -1026,7 +1015,7 @@ sessions.</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

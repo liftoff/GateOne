@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>gateone.core.utils &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
@@ -865,8 +854,9 @@
 <span class="sd">    :pid_file: The path to Gate One&#39;s PID file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No lieutenant, your processes are already dead.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No lieutenant, your processes are already dead.&quot;</span><span class="p">))</span>
         <span class="k">return</span> <span class="c"># Nothing to do</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Killing all Gate One processes...&quot;</span><span class="p">))</span>
     <span class="n">sessions</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">session_dir</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">):</span>
         <span class="n">pid_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
@@ -982,34 +972,40 @@
 <span class="sd">    ...but this function can return the JS, CSS, and Python modules for any</span>
 <span class="sd">    entry point that uses the same module_name/static/ layout.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">pkg_resources</span>
+    <span class="kn">import</span> <span class="nn">pkg_resources</span><span class="o">,</span> <span class="nn">operator</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled</span><span class="p">:</span>
         <span class="n">enabled</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">plugin_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="n">ep_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">{}</span>
     <span class="p">}</span>
     <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">iter_entry_points</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="n">ep_group</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled</span><span class="p">:</span>
             <span class="k">continue</span> <span class="c"># Not enabled, skip it</span>
-        <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not import entry point module: {0}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">ep_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">module</span>
         <span class="n">static_path</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/static/&#39;</span>
-        <span class="k">if</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">static_path</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">pkg_files</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_listdir</span><span class="p">(</span>
                 <span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">,</span> <span class="s">&#39;/static/&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">pkg_files</span><span class="p">:</span>
-                <span class="n">f_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/static/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
-                    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
-                    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
-    <span class="c"># Sort all plugins alphabetically so the order in which they&#39;re applied can</span>
-    <span class="c"># be controlled somewhat predictably</span>
-    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">plugin_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">plugin_dict</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ep_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ep_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">pkg_files</span><span class="p">:</span>
+            <span class="n">f_path</span> <span class="o">=</span> <span class="s">&quot;/static/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">f</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
+                <span class="n">ep_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
+                <span class="n">ep_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="o">.</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ep_dict</span>
 </div>
 <div class="viewcode-block" id="load_modules"><a class="viewcode-back" href="../../../Developer/utils.html#gateone.core.utils.load_modules">[docs]</a><span class="k">def</span> <span class="nf">load_modules</span><span class="p">(</span><span class="n">modules</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1193,7 +1189,7 @@
 <span class="sd">    equivalents using *replacement_dict*.  If *replacement_dict* is None or</span>
 <span class="sd">    False the global REPLACEMENT_DICT will be used.  Example::</span>
 
-<span class="sd">        &gt;&gt;&gt; test = &#39;\\x1b]0;Some xterm title\x07&#39;</span>
+<span class="sd">        &gt;&gt;&gt; test = &#39;\\x1b]0;Some xterm title\\x07&#39;</span>
 <span class="sd">        &gt;&gt;&gt; print(raw(test))</span>
 <span class="sd">        &#39;^[]0;Some title^G&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1436,21 +1432,14 @@
 <span class="sd">    `cssmin`, respectively.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="c"># Optional:  If slimit is installed Gate One will use it to minify JS and CSS</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">slimit</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">slimit</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="c">#logging.warning(_(</span>
-            <span class="c">#&quot;slimit module not found.  JavaScript will not be minified.&quot;))</span>
-        <span class="c">#logging.info(_(&quot;To install slimit:  sudo pip install slimit&quot;))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">cssmin</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">cssmin</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="c">#logging.warning(_(</span>
-            <span class="c">#&quot;cssmin module not found.  CSS will not be minified.&quot;))</span>
-        <span class="c">#logging.info(_(&quot;To install cssmin:  sudo pip install cssmin&quot;))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -1460,26 +1449,26 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">path_or_fileobj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">data</span>
     <span class="k">if</span> <span class="n">slimit</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;js&#39;</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">slimit</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;min.js&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">slimit</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mangle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;(saved ~</span><span class="si">%s</span><span class="s"> bytes minifying </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;slimit failed trying to minify </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cssmin</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;css&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;min.css&#39;</span><span class="p">):</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">cssmin</span><span class="o">.</span><span class="n">cssmin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;(saved ~</span><span class="si">%s</span><span class="s"> bytes minifying </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">filename</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">))</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;slimit failed trying to minify </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="kn">import</span> <span class="nn">traceback</span>
-            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
-        <span class="k">del</span> <span class="n">slimit</span> <span class="c"># Don&#39;t need this anymore</span>
-    <span class="k">elif</span> <span class="n">cssmin</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;css&#39;</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">cssmin</span><span class="o">.</span><span class="n">cssmin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;(saved ~</span><span class="si">%s</span><span class="s"> bytes minifying </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="p">))</span>
-        <span class="k">del</span> <span class="n">cssmin</span> <span class="c"># Don&#39;t need this anymore</span>
     <span class="k">return</span> <span class="n">out</span>
 
 <span class="c"># This is so we can have the argument below be &#39;minify&#39; (user friendly)</span></div>
@@ -1784,7 +1773,7 @@
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

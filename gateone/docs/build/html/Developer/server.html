@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>server.py - Gate One&#39;s Core Script &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -275,7 +264,9 @@ access and settings.</p>
 </div>
 <p>Running gateone.py with the <tt class="xref py py-obj docutils literal"><span class="pre">--help</span></tt> switch will print the usage information as
 well as descriptions of what each configurable option does:</p>
-<div class="highlight-text"><div class="highlight"><pre>Usage: /usr/local/bin/gateone [OPTIONS]
+<div class="highlight-text"><div class="highlight"><pre>$ gateone --help
+[W 150205 13:58:35 utils:940] Could not import entry point module: gateone.applications.x11
+Usage: /usr/local/bin/gateone [OPTIONS]
 
 Options:
 
@@ -326,7 +317,7 @@ gateone options:
   --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value may contain hostnames/FQDNs (e.g.
                                    foo;foo.bar;) and IP addresses.  This value must contain all the hostnames/IPs that users will use to connect to Gate One.  Alternatively, &#39;*&#39; may be
                                    specified to allow access from anywhere.  NOTE: Using a &#39;*&#39; is only a good idea if you&#39;ve configured Gate One to use API authentication. (default
-                                   localhost;127.0.0.1;enterprise.lan;enterprise;localhost;127.0.0.1)
+                                   localhost;127.0.0.1;enterprise;127.0.1.1)
   --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled. (default enterprise)
   --pam_service                    PAM service to use.  Defaults to &#39;login&#39;. Only relevant if PAM authentication is enabled. (default login)
   --pid_file                       Define the path to the pid file. (default /home/riskable/.gateone/gateone.pid)
@@ -356,10 +347,6 @@ terminal options:
   --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled (default True)
   --syslog_session_logging         If enabled, logs of user sessions will be written to syslog. (default False)
 
-x11 options:
-
-  --xorg_conf                      If provided, will use the specified xorg.conf file when spawning instances of Xorg. (default /home/riskable/.gateone/x11/xorg.conf)
-
 Commands:
 
   Usage: /usr/local/bin/gateone &lt;command&gt; [OPTIONS]
@@ -372,10 +359,6 @@ Commands provided by &#39;gateone&#39;:
   broadcast                        Broadcast messages to users connected to Gate One.
   install_license                  Install a commercial license for Gate One.
   validate_authobj                 Test API authentication by validating a JSON auth object.
-
-Commands provided by &#39;gateone.applications.x11&#39;:
-
-  x11_app                          Adds X11 applications to Gate One.
 
 Commands provided by &#39;gateone.applications.terminal&#39;:
 
@@ -663,6 +646,16 @@ order to support embedding Gate One into other web-based applications.</p>
 controls at the client are unnecessary.</p>
 </div>
 <dl class="method">
+<dt id="gateone.core.server.StaticHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>path</em>, <em>default_filename=None</em>, <em>use_pkg=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called automatically by the Tornado framework when the <a class="reference internal" href="#gateone.core.server.StaticHandler" title="gateone.core.server.StaticHandler"><tt class="xref py py-obj docutils literal"><span class="pre">StaticHandler</span></tt></a>
+class is instantiated; handles the usual arguments with the addition
+of <em>use_pkg</em> which indicates that the static file should attempt to be
+retrieved from that package via the <tt class="xref py py-obj docutils literal"><span class="pre">pkg_resources</span></tt> module instead of
+directly via the filesystem.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gateone.core.server.StaticHandler.set_extra_headers">
 <tt class="descname">set_extra_headers</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler.set_extra_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler.set_extra_headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the Access-Control-Allow-Origin header to allow cross-origin
@@ -679,6 +672,16 @@ into standards mode when content is loaded from intranet sites.</p>
 <dd><p>Replies to OPTIONS requests with the usual stuff (200 status, Allow
 header, etc).  Since this is just the static file handler we don't
 include any extra information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.core.server.StaticHandler.validate_absolute_path">
+<tt class="descname">validate_absolute_path</tt><big>(</big><em>root</em>, <em>absolute_path</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#StaticHandler.validate_absolute_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.StaticHandler.validate_absolute_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of
+<tt class="xref py py-meth docutils literal"><span class="pre">tornado.web.StaticFileHandler.validate_absolute_path()</span></tt>;</p>
+<p>Validate and returns the given <em>absolute_path</em> using <tt class="xref py py-obj docutils literal"><span class="pre">pkg_resources</span></tt>
+if <tt class="docutils literal"><span class="pre">self.use_pkg</span></tt> is set otherwise performs a normal filesystem
+validation.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1356,8 +1359,22 @@ being sent to the client.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gateone.core.server.ApplicationWebSocket.send_file">
+<tt class="descname">send_file</tt><big>(</big><em>filepath</em>, <em>kind='misc'</em>, <em>**metadata</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the client to perform a sync of the file at the given <em>filepath</em>.
+The <em>kind</em> should only be one of 'html' or 'misc' for HTML templates
+and everything else, respectively.</p>
+<p>Any additional keyword arguments provided via <em>metadata</em> will be
+stored in the client-side fileCache database.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This kind of file sending <em>always</em> uses the client-side cache.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="gateone.core.server.ApplicationWebSocket.send_js_or_css">
-<tt class="descname">send_js_or_css</tt><big>(</big><em>paths_or_fileobj</em>, <em>kind</em>, <em>element_id=None</em>, <em>requires=None</em>, <em>media='screen'</em>, <em>filename=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">send_js_or_css</tt><big>(</big><em>paths_or_fileobj</em>, <em>kind</em>, <em>element_id=None</em>, <em>requires=None</em>, <em>media='screen'</em>, <em>filename=None</em>, <em>force=False</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initiates a file synchronization of the given <em>paths_or_fileobj</em> with
 the client to ensure it has the latest version of the file(s).</p>
 <p>The <em>kind</em> argument must be one of 'js' or 'css' to indicate JavaScript
@@ -1374,6 +1391,8 @@ instead of the name of the actual file when file synchronization occurs.
 This is useful for multi-stage processes (e.g. rendering templates)
 where you wish to preserve the original filename.  Just be aware that
 if you do this the given <em>filename</em> must be unique.</p>
+<p>If <em>force</em> is <tt class="docutils literal"><span class="pre">True</span></tt> the file will be synchronized regardless of the
+'send_js' or 'send_css' settings in your global Gate One settings.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1447,11 +1466,11 @@ url_prefix = self.settings[&#39;url_prefix&#39;]
 
 <dl class="method">
 <dt id="gateone.core.server.ApplicationWebSocket.send_plugin_static_files">
-<tt class="descname">send_plugin_static_files</tt><big>(</big><em>plugins_dir</em>, <em>application=None</em>, <em>requires=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_plugin_static_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_plugin_static_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends all plugin .js and .css files to the client that exist inside
-<em>plugins_dir</em>.  Optionally, if <em>application</em> is given the policies that
-apply to the current user for that application will be used to determine
-whether or not a given plugin's static files will be sent.</p>
+<tt class="descname">send_plugin_static_files</tt><big>(</big><em>entry_point</em>, <em>requires=None</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/server.html#ApplicationWebSocket.send_plugin_static_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.server.ApplicationWebSocket.send_plugin_static_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends all plugin .js and .css files to the client that exist inside the
+/static/ directory for given <em>entry_point</em>.  The policies that apply to
+the current user will be used to determine whether and which static
+files will be sent.</p>
 <p>If <em>requires</em> is given it will be passed along to <tt class="xref py py-obj docutils literal"><span class="pre">self.send_js()</span></tt>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1686,7 +1705,7 @@ the updated dict.  Example license dict:</p>
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20150129135326" # Gets replaced by git (holds the date/time)
+__commit__ = "20150129172312" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -239,7 +239,7 @@ in '@company.com' will get access to the "extra" command when using the
 Running gateone.py with the `--help` switch will print the usage information as
 well as descriptions of what each configurable option does:
 
-.. program-output:: gateone --help
+.. command-output:: gateone --help
 
 File Paths
 ----------

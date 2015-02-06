@@ -911,9 +911,13 @@ go.Base.update(go.SSH, {
             privateKeyReader.onload = sendPrivateKey;
             privateKeyReader.readAsText(privFile);
             publicKeyReader.onload = sendPublicKey;
-            publicKeyReader.readAsText(pubFile);
+            if (pubFile) {
+                publicKeyReader.readAsText(pubFile);
+            }
             certificateReader.onload = sendCertificate;
-            certificateReader.readAsText(certFile);
+            if (certFile) {
+                certificateReader.readAsText(certFile);
+            }
             closeDialog();
         }
     },

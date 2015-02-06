@@ -5,18 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-29645087-2']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>Configuration &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
@@ -99,7 +88,9 @@
             <span class="s2">&quot;log_file_prefix&quot;</span><span class="o">:</span> <span class="s2">&quot;/opt/gateone/logs/webserver.log&quot;</span><span class="p">,</span>
             <span class="s2">&quot;log_to_stderr&quot;</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
             <span class="s2">&quot;logging&quot;</span><span class="o">:</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;origins&quot;</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise.lan&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;10.1.1.100&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;origins&quot;</span><span class="o">:</span> <span class="p">[</span>
+                <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;enterprise.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;10.1.1.100&quot;</span><span class="p">],</span>
             <span class="s2">&quot;pid_file&quot;</span><span class="o">:</span> <span class="s2">&quot;/tmp/gateone.pid&quot;</span><span class="p">,</span>
             <span class="s2">&quot;port&quot;</span><span class="o">:</span> <span class="mi">443</span><span class="p">,</span>
             <span class="s2">&quot;session_dir&quot;</span><span class="o">:</span> <span class="s2">&quot;/tmp/gateone&quot;</span><span class="p">,</span>
@@ -122,7 +113,9 @@
 <p class="last">The settings under &quot;gateone&quot; can appear in any order.</p>
 </div>
 <p>These options match up directly with Gate One's command line options which you can view at any time by executing &quot;gateone.py --help&quot;:</p>
-<div class="highlight-text"><div class="highlight"><pre>Usage: /usr/local/bin/gateone [OPTIONS]
+<div class="highlight-text"><div class="highlight"><pre>$ gateone --help
+[W 150205 13:58:35 utils:940] Could not import entry point module: gateone.applications.x11
+Usage: /usr/local/bin/gateone [OPTIONS]
 
 Options:
 
@@ -173,7 +166,7 @@ gateone options:
   --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value may contain hostnames/FQDNs (e.g.
                                    foo;foo.bar;) and IP addresses.  This value must contain all the hostnames/IPs that users will use to connect to Gate One.  Alternatively, &#39;*&#39; may be
                                    specified to allow access from anywhere.  NOTE: Using a &#39;*&#39; is only a good idea if you&#39;ve configured Gate One to use API authentication. (default
-                                   localhost;127.0.0.1;enterprise.lan;enterprise;localhost;127.0.0.1)
+                                   localhost;127.0.0.1;enterprise;127.0.1.1)
   --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled. (default enterprise)
   --pam_service                    PAM service to use.  Defaults to &#39;login&#39;. Only relevant if PAM authentication is enabled. (default login)
   --pid_file                       Define the path to the pid file. (default /home/riskable/.gateone/gateone.pid)
@@ -203,10 +196,6 @@ terminal options:
   --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled (default True)
   --syslog_session_logging         If enabled, logs of user sessions will be written to syslog. (default False)
 
-x11 options:
-
-  --xorg_conf                      If provided, will use the specified xorg.conf file when spawning instances of Xorg. (default /home/riskable/.gateone/x11/xorg.conf)
-
 Commands:
 
   Usage: /usr/local/bin/gateone &lt;command&gt; [OPTIONS]
@@ -219,10 +208,6 @@ Commands provided by &#39;gateone&#39;:
   broadcast                        Broadcast messages to users connected to Gate One.
   install_license                  Install a commercial license for Gate One.
   validate_authobj                 Test API authentication by validating a JSON auth object.
-
-Commands provided by &#39;gateone.applications.x11&#39;:
-
-  x11_app                          Adds X11 applications to Gate One.
 
 Commands provided by &#39;gateone.applications.terminal&#39;:
 
@@ -692,7 +677,7 @@ Meaning, they're not tied to specific applications or plugins.</p>
 <tt class="descname">--origins</tt><tt class="descclassname">=string (semicolon-separated origins)</tt><a class="headerlink" href="#cmdoption--origins" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;origins&quot;</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise.lan&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise\\..*.com&quot;</span><span class="p">,</span> <span class="s2">&quot;10.1.1.100&quot;</span><span class="p">]</span>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;origins&quot;</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise\\..*.com&quot;</span><span class="p">,</span> <span class="s2">&quot;10.1.1.100&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1219,7 +1204,7 @@ Oct  1 19:18:22 gohost gateone: ANONYMOUS 1: #033]_;ssh|user&#64;somehost:22#007
 
     <div class="footer">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

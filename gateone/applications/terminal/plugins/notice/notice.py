@@ -45,7 +45,7 @@ def notice_esc_seq_handler(self, message, term=None, multiplex=None):
 
     .. ansi-block::
 
-        $ echo -e "\033]_;notice|Text passed to some_function()\007"
+        $ echo -e "\\033]_;notice|Text passed to some_function()\\007"
 
     .. seealso::
 

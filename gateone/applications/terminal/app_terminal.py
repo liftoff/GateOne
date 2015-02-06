@@ -39,7 +39,7 @@ from gateone.applications.terminal.policy import terminal_policies
 
 # 3rd party imports
 from tornado.escape import json_decode
-from tornado.options import options, define
+from tornado.options import options, define, Error
 
 # Globals
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
@@ -117,7 +117,10 @@ def timeout_session(session):
 @atexit.register
 def quit():
     from gateone.core.utils import killall
-    commands = options.parse_command_line()
+    try:
+        commands = options.parse_command_line()
+    except Error: # options.Error
+        return # Bad command line options provided--let the parent handle it
     if commands or options.help:
         # Don't call killall() if the user is invoking gateone --help or a
         # CLI command like 'broadcast' or 'termlog'
@@ -1793,7 +1796,7 @@ class TerminalApplication(GOApplication):
 
         .. ansi-block::
 
-            $ echo -e "\033]_;somename|Text passed to some_function()\007"
+            $ echo -e "\\033]_;somename|Text passed to some_function()\\007"
 
         Which would result in :func:`some_function` being called like so::
 

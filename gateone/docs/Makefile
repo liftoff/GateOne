@@ -100,7 +100,8 @@ latex:
 latexpdf:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+# 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	cd build/latex; xelatex *.tex # Use xelatex to support more fonts
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 text:
