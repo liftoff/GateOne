@@ -572,7 +572,6 @@ def main(args=sys.argv):
         cli_command = "termlog "
     usage = '\t%prog {0}[options] <log file>'.format(cli_command)
     parser = OptionParser(usage=usage, version=__version__)
-    parser.disable_interspersed_args()
     parser.add_option("-f", "--flat",
         dest="flat",
         default=False,
@@ -618,6 +617,8 @@ def main(args=sys.argv):
         print("ERROR: You must specify a log file to view.")
         parser.print_help()
         sys.exit(1)
+    if args[0].endswith('logviewer.py'):
+        args.pop(0) # Didn't get filtered out automatically for some reason
     log_path = args[0]
     if not os.path.exists(log_path):
         print("ERROR: %s does not exist" % log_path)
@@ -625,7 +626,7 @@ def main(args=sys.argv):
     sys_stdout = sys.stdout
     if bytes != str: # Python 3
         sys_stdout = sys.stdout.buffer
-    sys.stdout.flush() # Make sure it's empty before writing to the buffer
+    sys_stdout.flush() # Make sure it's empty before writing to the buffer
     try:
         if options.metadata:
             import json

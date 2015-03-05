@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20150129172312" # Gets replaced by git (holds the date/time)
+__commit__ = "20150205214929" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -1536,9 +1536,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         parsed_origin = urlparse(origin)
         self.origin = parsed_origin.netloc.lower()
         host = self.request.headers.get("Host")
-        if self.origin == host:
-            # Origins match so there's nothing to check, really
-            return True
+        if self.origin == host: # Reality check: Do we care?
+            # If the origin matches the "Host" header it means that the user is
+            # legitimately accessing Gate One directly.  We really only need to
+            # worry about origins if the connection is coming from some external
+            # site (e.g. to prevent spear phishing attacks; XSS and whatnot).
+            return True # Origin check successful; no need to continue
         if 'origins' in self.settings.get('cli_overrides', ''):
             # If given on the command line, always use those origins
             valid_origins = self.settings['origins']
@@ -1559,6 +1562,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 if match:
                     valid = True
                     break
+        if not valid:
+            logging.error("Origin check failed for: %s" % origin)
         return valid
 
     def open(self):

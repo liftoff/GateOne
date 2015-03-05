@@ -48,6 +48,7 @@ RUN apt-get -y \
     python-pam \
     python-dev \
     git \
+    telnet \
     openssh-client && \
     apt-get -y clean && \
     apt-get -q -y autoremove
