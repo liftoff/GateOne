@@ -839,8 +839,11 @@ def main():
                         url = None
                         raw_input(invalid_hostname_err)
                 else:
-                    url = None
-                    raw_input(invalid_hostname_err)
+                    if valid_ip(host):
+                        validated = True
+                    else:
+                        url = None
+                        raw_input(invalid_hostname_err)
         validated = False
         if options.auth_only:
             port = options.default_port
