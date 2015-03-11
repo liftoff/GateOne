@@ -467,8 +467,17 @@ def openssh_connect(
     os.chmod(script_path, 0o700) # 0700 for good security practices
     # Execute then immediately quit so we don't use up any more memory than we
     # need.
-    os.execvpe('/bin/sh', [
-        '-c', script_path, '&&', 'rm', '-f', script_path], env)
+    
+    # setup default execvpe args
+    args = ['-c', script_path, '&&', 'rm', '-f', script_path]
+    
+    # if we detect /bin/sh linked to busybox then make sure we insert the 'sh'
+    # at the beginning of the args list
+    if os.path.realpath('/bin/sh').endswith('busybox'):
+        args.insert(0, 'sh')
+    
+    os.execvpe('/bin/sh', args, env)
+    
     os._exit(0)
 
 def telnet_connect(user, host, port=23, env=None):
