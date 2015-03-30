@@ -628,7 +628,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Attached to the `input` event on `GateOne.Terminal.Input.inputNode`; sends its contents.  If the user is in the middle of composing text via an `IME <http://en.wikipedia.org/wiki/Input_method>`_ it will wait until their composition is complete before sending the characters.
         */
-        logDebug("go.Terminal.Input.onInput()");
+        logDebug("go.Terminal.Input.onInput()", e);
         var inputNode = t.Input.inputNode,
             value = inputNode.value;
         if (!t.Input.composition) {

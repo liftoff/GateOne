@@ -39,7 +39,7 @@ GateOne.Base.update(GateOne.Input, {
         window.addEventListener('keyup', go.Input.onGlobalKeyUp, true);
         go.node.addEventListener('keydown', go.Input.onKeyDown, true);
         go.node.addEventListener('keyup', go.Input.onKeyUp, true);
-        // Add some useful touchscreen events
+        // Add some useful touchscreen events (temporarily disabled since they aren't working in all situations yet)
 //         if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
 //             v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch workspaces.");
 // //             var style = window.getComputedStyle(go.node, null);
@@ -99,6 +99,7 @@ GateOne.Base.update(GateOne.Input, {
         }
         return out;
     },
+    // TODO: See if we can better differentiate between the left and right versions of modifiers
     specialKeys: { // Note: Copied from MochiKit.Signal
     // Also note:  This lookup table is expanded further on in the code
         0: { // DOM_KEY_LOCATION_STANDARD
@@ -154,8 +155,66 @@ GateOne.Base.update(GateOne.Input, {
             221: 'KEY_RIGHT_SQUARE_BRACKET',
             222: 'KEY_APOSTROPHE',
             225: 'KEY_ALT_GRAPH',
-            229: 'KEY_COMPOSE' // NOTE: Firefox doesn't register a key code for the compose key!
+            229: 'KEY_COMPOSE', // NOTE: Firefox doesn't register a key code for the compose key!
         // undefined: 'KEY_UNKNOWN'
+        // NOTE: These are the new DOM Level 3 standard key.code names (if it's a 'code' why is it a string?  Sigh)
+        //       It *may* be necessary to use these soon so I'm leaving them here just in case...
+//             'Backspace': 'KEY_BACKSPACE',
+//             'Tab': 'KEY_TAB',
+//             'NumLock': 'KEY_NUM_PAD_CLEAR',
+//             'Enter': 'KEY_ENTER',
+//             'ShiftLeft': 'KEY_SHIFT',
+//             'ShiftRight': 'KEY_SHIFT',
+//             'ControlLeft': 'KEY_CTRL',
+//             'ControlRight': 'KEY_CTRL',
+//             'AltLeft': 'KEY_ALT',
+//             'AltRight': 'KEY_ALT',
+//             'Pause': 'KEY_PAUSE',
+//             'CapsLock': 'KEY_CAPS_LOCK',
+//             'Escape': 'KEY_ESCAPE',
+//             'Space': 'KEY_SPACEBAR',
+//             'PageUp': 'KEY_PAGE_UP',
+//             'PageDown': 'KEY_PAGE_DOWN',
+//             'End': 'KEY_END',
+//             'Home': 'KEY_HOME',
+//             'ArrowLeft': 'KEY_ARROW_LEFT',
+//             'ArrowUp': 'KEY_ARROW_UP',
+//             'ArrowRight': 'KEY_ARROW_RIGHT',
+//             'ArrowDown': 'KEY_ARROW_DOWN',
+//             'PrintScreen': 'KEY_PRINT_SCREEN', // Might actually be the code for F13
+//             'PrintScreen': 'KEY_PRINT_SCREEN',
+//             'Insert': 'KEY_INSERT',
+//             'Delete': 'KEY_DELETE',
+//             'Semicolon': 'KEY_SEMICOLON', // weird, for Safari and IE only
+//             'Equal': 'KEY_EQUALS_SIGN', // Strange: In Firefox this is 61, in Chrome it is 187
+//             'OSLeft': 'KEY_WINDOWS_LEFT',
+//             'OSRight': 'KEY_WINDOWS_RIGHT',
+//             'Select': 'KEY_SELECT',
+//             'NumpadMultiply': 'KEY_NUM_PAD_ASTERISK',
+//             'NumpadAdd': 'KEY_NUM_PAD_PLUS_SIGN',
+//             'NumpadSubtract': 'KEY_NUM_PAD_HYPHEN-MINUS', // Strange: Firefox has this the regular hyphen key (i.e. not the one on the num pad)
+//             'NumpadDecimal': 'KEY_NUM_PAD_FULL_STOP',
+//             'Slash': 'KEY_NUM_PAD_SOLIDUS',
+//             'NumLock': 'KEY_NUM_LOCK',
+//             'ScrollLock': 'KEY_SCROLL_LOCK',
+//             'Subtrac': 'KEY_HYPHEN-MINUS', // No idea why Firefox uses this keycode instead of 189
+//             'VolumeDown': 'KEY_MEDIA_VOLUME_DOWN',
+//             'VolumeUp': 'KEY_MEDIA_VOLUME_UP',
+//             'MediaTrackPrevious': 'KEY_MEDIA_PREVIOUS_TRACK',
+//             'MediaPlayPause': 'KEY_MEDIA_PLAY_PAUSE',
+//             'Semicolon': 'KEY_SEMICOLON',
+//             'Equal': 'KEY_EQUALS_SIGN',
+//             'Comma': 'KEY_COMMA',
+//             'Subtract': 'KEY_HYPHEN-MINUS',
+//             'Period': 'KEY_FULL_STOP',
+//             'Slash': 'KEY_SOLIDUS',
+//             'Backquote': 'KEY_GRAVE_ACCENT',
+//             'BracketLeft': 'KEY_LEFT_SQUARE_BRACKET',
+//             'Backslash': 'KEY_REVERSE_SOLIDUS',
+//             'BracketRight': 'KEY_RIGHT_SQUARE_BRACKET',
+//             'Quote': 'KEY_APOSTROPHE',
+//             'AltGraph': 'KEY_ALT_GRAPH',
+//             'Compose': 'KEY_COMPOSE'
         },
         // Sigh, I wish browsers actually implemented these two:
 //         1: {}, // DOM_KEY_LOCATION_LEFT
@@ -211,6 +270,7 @@ GateOne.Base.update(GateOne.Input, {
 
             {
                 type: e.type, // Just preserves it
+                location: e.location, // Also preserves it
                 code: key_code, // Tries event.code before falling back to event.keyCode
                 string: 'KEY_<key string>'
             }
@@ -220,11 +280,16 @@ GateOne.Base.update(GateOne.Input, {
                 type: e.type,
                 location: (e.location || e.keyLocation || 0)
             };
+        if (e.key) { // DOM3 FTW!  This works regardless of the event type.  How awesome is that?!?  :)
+            k.code = e.key.charCodeAt(0);
+            k.string = e.key;
+            return k;
+        }
         if (e.type == 'keydown' || e.type == 'keyup') {
-            k.code = e.code || e.keyCode;
+            k.code = e.charCode || e.keyCode;
             // Try the location-specific key string first, then the default location (0), then the Mac version, then finally give up
             specialKeys = I.specialKeys[k.location] || I.specialKeys[0];
-            k.string = specialKeys[k.code] || I.specialMacKeys[k.code] || 'KEY_UNKNOWN';
+            k.string = specialKeys[k.code] || I.specialMacKeys[k.code] || String.fromCharCode(k.code) || 'KEY_UNKNOWN';
             return k;
         } else if (typeof(e.charCode) != 'undefined' && e.charCode !== 0 && !I.specialMacKeys[e.charCode]) {
             k.code = e.charCode;

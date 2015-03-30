@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20150205214929";
+GateOne.__commit__ = "20150304214958";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4011,7 +4011,8 @@ GateOne.Base.update(GateOne.Visual, {
 
         .. tip:: If you wish to use your own workspace-switching animation just write your own function to handle it and call `GateOne.Events.off('go:switch_workspace', GateOne.Visual.slideToWorkspace); GateOne.Events.on('go:switch_workspace', yourFunction);`
         */
-        logDebug('switchWorkspace(' + workspace + ')');
+        var activeWS = localStorage[go.prefs.prefix+'selectedWorkspace'];
+        logDebug('switchWorkspace(' + workspace + '), active workspace: ' + activeWS);
         go.Events.trigger('go:switch_workspace', workspace);
         // NOTE: The following *must* come after the tiggered event above!
         localStorage[go.prefs.prefix+'selectedWorkspace'] = workspace;
@@ -4086,6 +4087,7 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
+            activeWS = localStorage[go.prefs.prefix+'selectedWorkspace'],
             count = 0,
             wPX = 0,
             hPX = 0,
@@ -4122,7 +4124,18 @@ GateOne.Base.update(GateOne.Visual, {
                 // Move each workspace into position
                 if (wsNode.id == prefix + 'workspace' + workspace) { // Apply to the workspace we're switching to
                     if (!go.prefs.disableTransitions) {
-                        wsNode.addEventListener(v.transitionEndName, v._slideEndForeground, false);
+                        if (activeWS != workspace) {
+                            wsNode.addEventListener(v.transitionEndName, v._slideEndForeground, false);
+                        } else {
+                            // This will not result in a transition so no transitionEnd event.  We have to force/fake it:
+                            setTimeout(function(e) {
+                                v.disableTransitions(wsNode);
+                                v.applyTransform(wsNode, 'translate(0px, 0px)');
+                                wsNode.style.display = ''; // Reset
+                                v.transitioning = false;
+                                go.Events.trigger("go:ws_transitionend", wsNode);
+                            }, 1050);
+                        }
                     }
                     v.applyTransform(wsNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
                     if (go.prefs.disableTransitions) {
@@ -4137,6 +4150,7 @@ GateOne.Base.update(GateOne.Visual, {
                         v._slideEndBackground({'target': wsNode});
                     }
                 }
+                console.log("wsNode.id: ", wsNode.id, " wsPX: ", wPX, "hPX: ", hPX);
             });
         }, 10);
     },

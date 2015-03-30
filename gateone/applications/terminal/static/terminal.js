@@ -2143,7 +2143,9 @@ go.Base.update(GateOne.Terminal, {
             setKeyboardValue(term);
             // Wrapping this in a timeout seems to resolve the issue where sometimes it isn't scrolled to the bottom when you switch
             setTimeout(function() {
-                u.scrollToBottom(go.Terminal.terminals[term].node);
+                if (go.Terminal.terminals[term].node) {
+                    u.scrollToBottom(go.Terminal.terminals[term].node);
+                }
             }, 50);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
