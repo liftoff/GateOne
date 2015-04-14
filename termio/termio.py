@@ -100,7 +100,7 @@ import os, sys, time, struct, io, gzip, re, logging, signal
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import izip
-from multiprocessing import Process
+from concurrent.futures import ProcessPoolExecutor
 from json import loads as json_decode
 from json import dumps as json_encode
 
@@ -191,16 +191,17 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     """
     Retrieves or creates/updates the metadata inside of *golog_path*.
 
-    If *force_update* the metadata inside the golog will be updated even if it
-    already exists.
+    If *force_update* is ``True`` the metadata inside the golog will be updated
+    even if it already exists.
 
     .. note::
 
         All logs will need "fixing" the first time they're enumerated like this
-        since they won't have an end_date.  Fortunately we only need to do this
-        once per golog.
+        since they won't have an 'end_date''.  Fortunately we only need to do
+        this once per golog.
     """
-    logging.debug('get_or_update_metadata(%s, %s, %s)' % (golog_path, user, force_update))
+    logging.debug(
+        'get_or_update_metadata(%s, %s, %s)' % (golog_path, user, force_update))
     if not os.path.getsize(golog_path): # 0 bytes
         return # Nothing to do
     try:
@@ -384,9 +385,26 @@ class BaseMultiplex(object):
     :additional_metadata: *dict* - Anything in this dict will be included in the metadata frame of the log file.  Can only be key:value strings.
     :encoding: *string* - The encoding to use when writing or reading output.
     :debug: *boolean* - Used by the `expect` methods...  If set, extra debugging information will be output whenever a regular expression is matched.
+
+    Multiplex instances support the following callbacks which will be called
+    when their respective events occur:
+
+        * CALLBACK_UPDATE - Called when there's new output from the underlying program.
+        * CALLBACK_EXIT - Called when the underlying program exits/terminates.
+        * CALLBACK_LOG_FINALIZED - Called when the log has completed being processed (after the ``terminate()`` function is called).
+
+    These callbacks can be used by attaching functions to the instance like so::
+
+        m = MultiplexPOSIXIOLoop('top')
+        m.add_callback(m.CALLBACK_EXIT, some_function, unique_id)
+
+    In the above example `some_function()` would be called after the underlying
+    program exits.  The given 'unique_id' is optional and can be used to remove
+    the callback later using the `BaseMultiplex.remove_callback` method.
     """
     CALLBACK_UPDATE = 1 # Screen update
     CALLBACK_EXIT = 2   # When the underlying program exits
+    CALLBACK_LOG_FINALIZED = 3 # When the log is done being processed/finalized
 
     def __init__(self,
             cmd,
@@ -433,6 +451,7 @@ class BaseMultiplex(object):
         self.callbacks = { # Defaults do nothing which saves some conditionals
             self.CALLBACK_UPDATE: {},
             self.CALLBACK_EXIT: {},
+            self.CALLBACK_LOG_FINALIZED: {},
         }
         # Configure syslog logging
         self.user = user
@@ -1477,7 +1496,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.scheduler.stop()
         # NOTE: Without this 'del' we end up with a memory leak every time
         # a new instance of Multiplex is created.  Apparently the references
-        # inside of PeriodicCallback pointing to self prevent proper garbage
+        # inside of PeriodicCallback pointing to self prevents proper garbage
         # collection.
         del self.scheduler
         try:
@@ -1517,10 +1536,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         if self.exitfunc:
             self.exitfunc(self, self.exitstatus)
             self.exitfunc = None
+        # Need to preserve finalize callbacks just until this func completes:
+        finalize_callbacks = self.callbacks[self.CALLBACK_LOG_FINALIZED]
         # Reset all callbacks so there's nothing to prevent GC
         self.callbacks = {
             self.CALLBACK_UPDATE: {},
             self.CALLBACK_EXIT: {},
+            self.CALLBACK_LOG_FINALIZED: {},
         }
         # Commented this out so that you can see what was in the terminal
         # emulator after the process terminates.
@@ -1534,11 +1556,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.log.close() # Write it out
         logging.info(_("Finalizing {path} (pid: {pid})").format(
             path=self.log_path, pid=self.pid))
-        PROC = Process(
-            target=get_or_update_metadata,
-            args=(self.log_path, self.user),
-            kwargs={'force_update': True})
-        PROC.start()
+        with ProcessPoolExecutor(max_workers=1) as pool:
+            f = pool.submit(get_or_update_metadata, self.log_path, self.user)
+            for callback in finalize_callbacks.values():
+                f.add_done_callback(callback)
 
     def _ioloop_read_handler(self, fd, event):
         """

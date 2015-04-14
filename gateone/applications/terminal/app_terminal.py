@@ -907,6 +907,7 @@ class TerminalApplication(GOApplication):
                 instance.
         """
         import termio
+        cls = TerminalApplication
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
         shell_command = policies.get('shell_command', None)
