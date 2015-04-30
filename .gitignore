@@ -2,3 +2,14 @@
 *.kate-swp
 .DS_Store
 .directory
+ENTRY_POINTS.txt
+build/
+cache/
+conf.d/
+dist/
+gateone.egg-info/
+gateone/static/test.txt
+get-pip.py
+logs/
+ssl/
+
