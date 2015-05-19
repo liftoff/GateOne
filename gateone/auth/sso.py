@@ -184,7 +184,7 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
         `self.settings['sso_realm']`.
         """
         auth_decoded = base64.decodestring(auth_header[6:])
-        username, password = auth_decoded.split(':', 2)
+        username, password = auth_decoded.split(':', 1)
         try:
             kerberos.checkPassword(
                 username,
