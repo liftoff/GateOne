@@ -4437,9 +4437,18 @@ def main(installed=True):
         if go_settings.get('enable_unix_socket', False):
             https_server.add_socket(
                 tornado.netutil.bind_unix_socket(
-                    go_settings['unix_socket_path']))
-            logger.info(_("Listening on Unix socket '{socketpath}'".format(
-                socketpath=go_settings['unix_socket_path'])))
+                    go_settings['unix_socket_path'],
+                    # Tornado uses octal encoding
+                    int(go_settings['unix_socket_mode'], 8)
+                )
+            )
+            logger.info(_(
+                "Listening on Unix socket '{socketpath}' ({socketmode})"
+                .format(
+                  socketpath=go_settings['unix_socket_path'],
+                  socketmode=go_settings['unix_socket_mode']
+                )
+            ))
         address = none_fix(go_settings['address'])
         if address:
             for addr in address.split(';'):
