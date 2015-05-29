@@ -164,7 +164,23 @@ except ImportError: # Python <2.7 didn't have OrderedDict in collections
         logging.error(
             "...or download it from http://pypi.python.org/pypi/ordereddict")
         sys.exit(1)
-from itertools import imap, izip
+try:
+    from itertools import imap, izip
+except ImportError:  # Python 3 doesn't have imap or izip in itertool
+    imap = map
+    izip = zip
+try:
+    xrange = xrange
+except NameError:  # Python 3 doesn't have xrange()
+    xrange = range
+try:
+    unichr = unichr
+except NameError:  # Python 3 doesn't have unichr()
+    unichr = chr
+try:
+    basestring = basestring
+except NameError:  # Python 3 doesn't have basestring
+    basestring = (str, bytes)
 
 # Inernationalization support
 _ = str # So pyflakes doesn't complain
@@ -2811,7 +2827,7 @@ class Terminal(object):
                         else:
                             logging.warning(_(
                                 "Warning: No ESC sequence handler for %s"
-                                % `self.esc_buffer`
+                                % repr(self.esc_buffer)
                             ))
                             self.esc_buffer = ''
                     continue # We're done here
