@@ -1,15 +1,10 @@
 /*
   Description:
-    Place this JavaScript on your website to have your own secret Gate One
-    terminal drop into view when you press the ESC key!  Just update the goURL
-    variable below to point to your Gate One server and add your web site's
-    URL to the 'origins' setting in Gate One's server.conf.
-
-    NOTE:  The 'origins' setting protects you...  Don't just put '*'!
-
-    Author:  Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
+    Paste the following code into the JavaScript console on any website to
+    have your own Gate One server available in an instant by pressing the ESC
+    key.
 */
-// Wrapped so we don't poison the global namespace
+// Don't poison the global namespace
 (function(window, undefined) {
 "use strict";
 
@@ -17,15 +12,15 @@
 var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
 
 // URL of your Gate One server
-var goURL = "https://localhost/";
-// var goURLs = [ // Pick one at random (load balance like liftoffsoftware.com)
-//     "http://gateone9.rs.liftoffsoftware.com/",
-//     "http://gateone10.rs.liftoffsoftware.com/"
-// ];
-// var randomIndex = Math.floor(Math.random() * goURLs.length);
-// var goURL = goURLs[randomIndex];
-var goJSPath = goURL + "static/gateone.js";
-// var goJSPath = "http://c306286.r86.cf1.rackcdn.com/gateone.min.js";
+var goURL = "http://localhost/";
+/*var goURLs = [ // Pick one at random
+    "http://gateone1.ln.liftoffsoftware.com/",
+];*/
+/*var randomIndex = Math.floor(Math.random() * goURLs.length);
+var goURL = goURLs[randomIndex];*/
+// var goJSPath = goURL + "static/gateone.js";
+//var goJSPath = "http://c306286.r86.cf1.rackcdn.com/gateone.min.js";
+var goJSPath = "/static/gateone.js";
 var escTimer = null; // Will be assigned below
 var ESC = String.fromCharCode(27); // Just a shortcut
 var gateone_js = null; // Gets set below
@@ -34,12 +29,12 @@ var gateone_js = null; // Gets set below
 var goDiv = document.createElement('div');
 goDiv.id = 'gateone';
 goDiv.style.opacity = 0; // Keep it hidden for now
-goDiv.style.zIndex = -999; // This ensures it isn't invisibly hovering over everything causing input issues
+goDiv.style.zIndex = 100; // This ensures it isn't invisibly hovering over everything causing input issues
 document.body.appendChild(goDiv);
 
 var showGateOne = function() {
     // Slide Gate One into view
-    goDiv.style.zIndex = 9999;
+    GateOne.Utils.showElement(goDiv);
     setTimeout(function() {
         GateOne.Visual.displayMessage('Press ESC twice in rapid succession to send Gate One away.');
     }, 1000);
@@ -47,7 +42,7 @@ var showGateOne = function() {
         // Need a short delay for the transform to apply to goDiv before we change it
         GateOne.Visual.applyTransform(goDiv, 'translateY(0)'); // Scale it into view
         document.body.removeEventListener("keydown", toggleGateOne, true); // Gate One will call toggleGateOne() on its own now
-        GateOne.Input.capture(); // Start capturing keystrokes
+        GateOne.Terminal.Input.capture(); // Start capturing keystrokes
         GateOne.Visual.updateDimensions(); // Re-send the dimensions in case the browser got resized
         GateOne.Net.sendDimensions();
     }, 10);
@@ -58,10 +53,10 @@ var hideGateOne = function() {
         clearTimeout(escTimer);
         escTimer = null;
         // This is a double-tap.  Hide Gate One
-        GateOne.Input.disableCapture(); // Stop capturing keystrokes
+        GateOne.Terminal.Input.disableCapture(); // Stop capturing keystrokes
         GateOne.Visual.applyTransform(goDiv, 'translateY(-100%)');
         setTimeout(function() {
-            goDiv.style.zIndex = -9999;
+            GateOne.Utils.hideElement(goDiv);
         }, 1100);
         document.body.addEventListener("keydown", toggleGateOne, true); // So the user can bring back Gate One
     } else {
@@ -75,8 +70,7 @@ var hideGateOne = function() {
 var sendESC = function() {
     // Sends the regular ESC keystroke to the Gate One server
     GateOne.Visual.displayMessage('Press ESC twice in rapid succession to send Gate One away.');
-    GateOne.Input.queue(ESC);
-    GateOne.Net.sendChars();
+    GateOne.Terminal.sendString(ESC);
     escTimer = null;
 }
 
@@ -86,19 +80,23 @@ var loadGateOne = function() {
     gateone_js.setAttribute('src', goJSPath);
     gateone_js.setAttribute('type', 'text/javascript');
     gateone_js.onload = function(e) {
-        GateOne.init({'url': goURL, 'goDiv': '#gateone', 'fillContainer': false, 'theme': 'black', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'height': '100%', 'width': '100%', 'position': 'fixed', 'background-color': 'rgba(34, 34, 34, 0.85)'}});
-        GateOne.Input.registerShortcut('KEY_ESCAPE', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': false}, 'action': toggleGateOne});
-        // Have to give the browser a moment to complete the init process before we disableCapture()
-        GateOne.Input.disableCapture();
-        goDiv.style.opacity = 1; // No need to keep it like this once everything is done loading
-        document.activeElement.blur();
-        GateOne.Terminal.newTermCallbacks.push(showGateOne);
+	// NOTE: fontSize is set to 120% below because the liftoffsoftware.com Drupal theme has kind of a tiny default font size
+        GateOne.init({'url': goURL, 'goDiv': '#gateone', 'fillContainer': false, 'theme': 'black', 'fontSize': '120%', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'height': '100%', 'width': '100%', 'position': 'fixed', 'background-color': 'rgba(34, 34, 34, 0.85)', 'z-index': '100'}});
+        GateOne.Base.superSandbox("terminal", ["GateOne.Input", "GateOne.Terminal", "GateOne.Terminal.Input"], function(window, undefined) {
+            GateOne.Input.registerShortcut('KEY_ESCAPE', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': false}, 'action': toggleGateOne});
+            // Have to give the browser a moment to complete the init process before we disableCapture()
+            GateOne.Terminal.Input.disableCapture();
+            goDiv.style.opacity = 1; // No need to keep it like this once everything is done loading
+            document.activeElement.blur();
+            GateOne.Events.on("terminal:new_terminal", showGateOne);
+            //GateOne.Terminal.newTermCallbacks.push(showGateOne);
+        });
     }
     setTimeout(function() {
         // For some reason, if I don't wrap this in a timeout Firefox won't load the script
         document.body.appendChild(gateone_js);
     }, 10);
-}
+};
 
 var toggleGateOne = function(e) {
     // Press ESC to show Gate One.  Quake-style!
@@ -107,7 +105,7 @@ var toggleGateOne = function(e) {
         // Not loaded yet...  Load it
         if (e.keyCode == 27) { // ESC key
             if (!WebSocket) {
-                alert("Sorry, your browser doesn't support WebSockets so Gate One won't work.  Gate One is known to work wonderfully in Chrome and Firefox and should also work in Opera and IE 10+.");
+                alert("Sorry, your browser doesn't support WebSockets so the demo won't work.  Gate One is known to work wonderfully in Chrome and Firefox and should also work in Opera and IE 10 (when it is officially out).");
                 return;
             }
             loadGateOne();
@@ -115,7 +113,7 @@ var toggleGateOne = function(e) {
         return;
     }
     var key = GateOne.Input.key(e);
-    if (goDiv.style.zIndex == "-999") {
+    if (!GateOne.Utils.isVisible(goDiv)) {
         if (key.string == 'KEY_ESCAPE') {
             e.preventDefault();
             showGateOne();
