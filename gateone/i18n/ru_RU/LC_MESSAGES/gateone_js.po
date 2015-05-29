@@ -21,78 +21,78 @@ msgstr ""
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:459
 msgid "Synchronization Complete"
-msgstr ""
+msgstr "Синхронизация завершена"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:466
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:474
 msgid "Missing bookmark icons will be retrieved in the background"
-msgstr ""
+msgstr "Недостающие значки закладок будут загружены в фоновом режиме"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:473
 msgid "First-Time Synchronization Complete"
-msgstr ""
+msgstr "Первая синхронизация завершена"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:499
 msgid " tags were renamed."
-msgstr ""
+msgstr " тагов было переименовано."
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:512
 msgid " bookmarks were deleted or marked as such."
-msgstr ""
+msgstr " закладок было удалено или помечено на удаление"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1694
 msgid "Submit"
-msgstr ""
+msgstr "Отправить"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1695
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1846
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2466
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2532
 msgid "Cancel"
-msgstr ""
+msgstr "Отмена"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:1845
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2465
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 #: gateone/applications/terminal/plugins/bookmarks/static/bookmarks.js:2531
 msgid "Go"
-msgstr ""
+msgstr "Вперед"
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:495
 msgid "Are you sure you wish to delete this identity?"
-msgstr ""
+msgstr "Вы уверены, что хотите удалить эту identity?"
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:497
 msgid ""
 "An X.509 certificate may be uploaded to add to this identity.  If one "
 "already exists, the existing certificate will be overwritten."
-msgstr ""
+msgstr "Сертификат X.509 может быть загружен для добавления к данной identity. Если он уже существует, существующий сертификат будет перезаписан."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:986
 msgid ""
 "The private key for this SSH identity is protected by a passphrase.  "
 "Please enter the passphrase so a public key can be generated."
-msgstr ""
+msgstr "Cекретный ключ для этой SSH identity защищен ключевой фразой. Пожалуйста, введите ключевую фразу для создания открытого ключа."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:987
 msgid ""
 "<b>NOTE:</b> This passphrase will only be used to extract the public key "
 "and will not be stored."
-msgstr ""
+msgstr "<b> ПРИМЕЧАНИЕ: </b> Эта ключевая фраза будет использована только для извлечения открытого ключа и не будет сохранена."
 
 #: gateone/applications/terminal/plugins/ssh/static/ssh.js:988
 msgid "Passphrase"
-msgstr ""
+msgstr "Ключевая фраза"
 
 #: gateone/applications/terminal/static/terminal.js:87
 msgid "Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume."
-msgstr ""
+msgstr "Вывод терминала был приостановлен (Ctrl-S). Нажмите Ctrl-Q для возобновления."
 
 #: gateone/applications/terminal/static/terminal.js:125
 msgid "WARNING: Problematic Browser Extension Detected"
-msgstr ""
+msgstr "ПРЕДУПРЕЖДЕНИЕ: Обнаружено проблемное расширение браузера"
 
 #: gateone/applications/terminal/static/terminal.js:126
 msgid ""
@@ -102,414 +102,415 @@ msgid ""
 " are phone numbers are being converted into clickable links).  Please "
 "disable the 'Clickable Links' feature of the extension, turn it off for "
 "this web site (if possible), or disable it entirely.</p>"
-msgstr ""
+msgstr "<p> <b> Предупреждение: </b> было обнаружено расширение, которое может привести к серьезным негативным последствиям для производительности (Google Voice). Это расширение модифицирует страницу при каждом обновлении экрана. Пожалуйста, отключите в нем опцию 'Clickable Links' либо отключите расширение для данного сайта (или совсем).</p>"
 
 #: gateone/applications/terminal/static/terminal.js:203
 msgid "Click to edit.  Leave blank for default."
-msgstr ""
+msgstr "Нажмите для редактирования. Оставьте пустым для значения по умолчанию."
 
 #: gateone/applications/terminal/static/terminal.js:208
 msgid "<b>Connected Since:</b> "
-msgstr ""
+msgstr "<b>Подсоединен с:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:209
 msgid "<b>Rows:</b> "
-msgstr ""
+msgstr "<b>Строки:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:211
 msgid "<b>Columns:</b> "
-msgstr ""
+msgstr "<b>Колонки:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:213
 msgid "<b>Backspace Key:</b> "
-msgstr ""
+msgstr "<b>Клавиша Backspace:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:225
 msgid "<b>Encoding:</b> "
-msgstr ""
+msgstr "<b>Кодировка:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:232
 msgid "<b>Keyboard Mode</b>"
-msgstr ""
+msgstr "<b>Режим клавиатуры</b>"
 
 #: gateone/applications/terminal/static/terminal.js:268
 msgid "Monitor for Activity<br />"
-msgstr ""
+msgstr "Монитор для активности<br />"
 
 #: gateone/applications/terminal/static/terminal.js:269
 msgid "Monitor for "
-msgstr ""
+msgstr "Монитор для "
 
 #: gateone/applications/terminal/static/terminal.js:270
 msgid "Seconds of Inactivity"
-msgstr ""
+msgstr "Секунд простоя"
 
 #: gateone/applications/terminal/static/terminal.js:296
 msgid "Now monitoring for inactivity in terminal: "
-msgstr ""
+msgstr "Теперь наблюдаю простой в терминале: "
 
 #: gateone/applications/terminal/static/terminal.js:360
 msgid "Terminal Sharing"
-msgstr ""
+msgstr "Общий терминал"
 
 #: gateone/applications/terminal/static/terminal.js:361
 msgid "Opens up the terminal sharing control panel for this terminal."
-msgstr ""
+msgstr "Открывает панель управления общим терминалом для этого терминала"
 
 #: gateone/applications/terminal/static/terminal.js:366
 msgid "Rescue Terminal"
-msgstr ""
+msgstr "Спасти терминал"
 
 #: gateone/applications/terminal/static/terminal.js:367
 msgid ""
 "Attempts to rescue a hung terminal by performing a terminal reset; the "
 "equivalent of executing the 'reset' command."
-msgstr ""
+msgstr "Попытка спасти зависший терминал при помощи сброса терминала. Эквивалент запуска команды 'reset'."
 
 #: gateone/applications/terminal/static/terminal.js:409
 msgid "Attempting to download our WebWorker..."
-msgstr ""
+msgstr "Попытка загрузить наш WebWorker"
 
 #: gateone/applications/terminal/static/terminal.js:645
 msgid "<b>Font:</b> "
-msgstr ""
+msgstr "<b>Шрифт:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:646
 #: gateone/static/gateone.js:657 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:657
 #: gateone/tests/hello_embedded/static/gateone.js:657
 msgid "<b>Font Size:</b> "
-msgstr ""
+msgstr "<b>Размер шрифта:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:647
 msgid "<b>Color Scheme:</b> "
-msgstr ""
+msgstr "<b>Цветовая схема:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:648
 msgid "<b>Disable Selected Text Highlighting:</b> "
-msgstr ""
+msgstr "<b>Отключить подсветку выделенного текста:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:649
 msgid "<b>Disable Bell Sound:</b> "
-msgstr ""
+msgstr "<b>Отключить звук терминала:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:650
 msgid "Configure"
-msgstr ""
+msgstr "Настроить"
 
 #: gateone/applications/terminal/static/terminal.js:651
 msgid "<b>Bell Sound:</b> "
-msgstr ""
+msgstr "<b>Звук терминала:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:670
 msgid "<b>Scrollback Buffer Lines:</b> "
-msgstr ""
+msgstr "<b>Строк в буфере экрана:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:672
 msgid "<b>Terminal Rows:</b> "
-msgstr ""
+msgstr "<b>Строк в терминале:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:674
 msgid "<b>Terminal Columns:</b> "
-msgstr ""
+msgstr "<b>Колонок в терминале:</b> "
 
 #: gateone/applications/terminal/static/terminal.js:711
 msgid "monospace (let browser decide)"
-msgstr ""
+msgstr "моноширинный (пусть браузер решает)"
 
 #: gateone/applications/terminal/static/terminal.js:988
 msgid "Use GateOne.Events.on('terminal:send_dimensions', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Events.on('terminal:send_dimensions', func)."
 
 #: gateone/applications/terminal/static/terminal.js:1264
 msgid "Backspace difference detected; switching to ^?"
-msgstr ""
+msgstr "Обнаружено изменение кода стирания символа: переключаюсь на ^?"
 
 #: gateone/applications/terminal/static/terminal.js:1268
 msgid "Backspace difference detected; switching to ^H"
-msgstr ""
+msgstr "Обнаружено изменение кода стирания символа: переключаюсь на ^H"
 
 #: gateone/applications/terminal/static/terminal.js:1363
 msgid "Use GateOne.Events.on('terminal:term_updated', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Events.on('terminal:term_updated', func)."
 
 #: gateone/applications/terminal/static/terminal.js:1424
 msgid "WARNING: The rate limiter was engaged on terminal: "
-msgstr ""
+msgstr "ПРЕДУПРЕЖДЕНИЕ: В терминале включено ограничение скорости: "
 
 #: gateone/applications/terminal/static/terminal.js:1424
 msgid ".  Output will be severely slowed until you press a key (e.g. Ctrl-C)."
-msgstr ""
+msgstr ".  Вывод будет серьезно замедлен, пока вы не нажмете что-то (например Ctrl-C)."
 
 #: gateone/applications/terminal/static/terminal.js:1876
 msgid "Use GateOne.Events.on('terminal:new_terminal', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Events.on('terminal:new_terminal', func)."
 
 #: gateone/applications/terminal/static/terminal.js:1953
 msgid "Use GateOne.Events.on('terminal:term_closed', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Events.on('terminal:term_closed', func)."
 
 #: gateone/applications/terminal/static/terminal.js:2028
 msgid "GateOne.Terminal.setTerminal() got an invalid term number: "
-msgstr ""
+msgstr "GateOne.Terminal.setTerminal() получил неправильный номер терминала:"
 
 #: gateone/applications/terminal/static/terminal.js:2270
 msgid "Terminal Application Panel"
-msgstr ""
+msgstr "Панель приложения терминала"
 
 #: gateone/applications/terminal/static/terminal.js:2337
 msgid "Upload Bell Sound"
-msgstr ""
+msgstr "Загрузить звук термниала"
 
 #: gateone/applications/terminal/static/terminal.js:2634
 msgid "Terminal: "
-msgstr ""
+msgstr "Терминал:"
 
 #: gateone/applications/terminal/static/terminal.js:2634
 msgid " has been relocated to location: "
-msgstr ""
+msgstr " перемещен в местоположение:"
 
 #: gateone/applications/terminal/static/terminal.js:2668
 msgid "Deleting scollback buffer for non-existent terminal: "
-msgstr ""
+msgstr "Удаляю буфер экрана для несуществующего терминала: "
 
 #: gateone/applications/terminal/static/terminal.js:2700
 msgid "Use GateOne.Events.on('terminal:term_reattach', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Events.on('terminal:term_reattach', func)."
 
 #: gateone/applications/terminal/static/terminal.js:2938
 msgid ""
 "<p style=\"width: 18em;\">Words or phrases you would like to remain "
 "persistently highlighted in terminals</p>"
-msgstr ""
+msgstr "<p style=\"width: 18em;\">Слова или фразы, котрые вы хотите видеть "
+"постоянно подсвеченными в терминалах</p>"
 
 #: gateone/applications/terminal/static/terminal.js:2960
 msgid "<a onclick=\"GateOne.Terminal.unhighlightWord();\">Remove</a>"
-msgstr ""
+msgstr "<a onclick=\"GateOne.Terminal.unhighlightWord();\">Удалить</a>"
 
 #: gateone/applications/terminal/static/terminal.js:2968
 msgid "Word Highlighting "
-msgstr ""
+msgstr "Подсветка слов "
 
 #: gateone/applications/terminal/static/terminal.js:2992
 msgid ""
 "<thead><tr "
 "class='✈table_row'><th>Word</th><th>Global</th><th>Remove</th></tr></thead>"
-msgstr ""
+msgstr "<thead><tr class='table_row'><th>Слово</th><th>Глобально</th><th>Удалить</th></tr></thead>"
 
 #: gateone/applications/terminal/static/terminal.js:3007
 msgid "Terminal Output Suspended"
-msgstr ""
+msgstr "Вывод терминала приостановлен"
 
 #: gateone/applications/terminal/static/terminal.js:3072
 msgid "Anyone (Broadcast)"
-msgstr ""
+msgstr "Всем (широковещательное)"
 
 #: gateone/applications/terminal/static/terminal.js:3073
 msgid "Authenticated Users"
-msgstr ""
+msgstr "Авторизованные пользователи"
 
 #: gateone/applications/terminal/static/terminal.js:3076
 msgid "The Share ID is used to generate the broadcast URL."
-msgstr ""
+msgstr "Данный общий ID использован при создании широковещательного URL."
 
 #: gateone/applications/terminal/static/terminal.js:3086
 msgid "Generate a new share ID (the last part of the broadcast URL)"
-msgstr ""
+msgstr "Создать новый общий ID (последняя часть широковещательного URL)"
 
 #: gateone/applications/terminal/static/terminal.js:3111
 #: gateone/applications/terminal/static/terminal.js:3514
 msgid "User"
-msgstr ""
+msgstr "Пользователь"
 
 #: gateone/applications/terminal/static/terminal.js:3112
 #: gateone/applications/terminal/static/terminal.js:3515
 msgid "IP Address"
-msgstr ""
+msgstr "IP адрес"
 
 #: gateone/applications/terminal/static/terminal.js:3113
 msgid "Read"
-msgstr ""
+msgstr "Чтение"
 
 #: gateone/applications/terminal/static/terminal.js:3114
 #: gateone/applications/terminal/static/terminal.js:3517
 msgid "Write"
-msgstr ""
+msgstr "Запись"
 
 #: gateone/applications/terminal/static/terminal.js:3169
 msgid "Terminal Sharing: "
-msgstr ""
+msgstr "Общий терминал: "
 
 #: gateone/applications/terminal/static/terminal.js:3200
 #: gateone/applications/terminal/static/terminal.js:3570
 msgid "Terminal is no longer shared: "
-msgstr ""
+msgstr "Терминал больше не является общим"
 
 #: gateone/applications/terminal/static/terminal.js:3258
 msgid "Share ID:"
-msgstr ""
+msgstr "Общий ID:"
 
 #: gateone/applications/terminal/static/terminal.js:3260
 msgid "Broadcast URL:"
-msgstr ""
+msgstr "Широковещательный URL:"
 
 #: gateone/applications/terminal/static/terminal.js:3262
 msgid "Password:"
-msgstr ""
+msgstr "Пароль:"
 
 #: gateone/applications/terminal/static/terminal.js:3267
 msgid "Apply"
-msgstr ""
+msgstr "Применить"
 
 #: gateone/applications/terminal/static/terminal.js:3268
 msgid "Done"
-msgstr ""
+msgstr "Закончить"
 
 #: gateone/applications/terminal/static/terminal.js:3269
 msgid "Generate New Share ID"
-msgstr ""
+msgstr "Создать новый общий ID"
 
 #: gateone/applications/terminal/static/terminal.js:3405
 msgid "Shared terminals are available (click the magnifying glass icon)."
-msgstr ""
+msgstr "Доступны общие терминалы (кликните по значку лупы))"
 
 #: gateone/applications/terminal/static/terminal.js:3432
 msgid "Owner"
-msgstr ""
+msgstr "Владелец"
 
 #: gateone/applications/terminal/static/terminal.js:3433
 #: gateone/static/gateone.js:3083 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3083
 #: gateone/tests/hello_embedded/static/gateone.js:3083
 msgid "Title"
-msgstr ""
+msgstr "Заголовок"
 
 #: gateone/applications/terminal/static/terminal.js:3434
 msgid "Write Access"
-msgstr ""
+msgstr "Доступ на запись"
 
 #: gateone/applications/terminal/static/terminal.js:3435
 msgid "Password"
-msgstr ""
+msgstr "Пароль"
 
 #: gateone/applications/terminal/static/terminal.js:3436
 #: gateone/applications/terminal/static/terminal.js:3451
 msgid "View"
-msgstr ""
+msgstr "Вид"
 
 #: gateone/applications/terminal/static/terminal.js:3474
 msgid "Error: You must enter a password to view this shared terminal"
-msgstr ""
+msgstr "ОшибкаЖ Вы должны указать пароль для просмотра общего терминала"
 
 #: gateone/applications/terminal/static/terminal.js:3488
 msgid "Shared Terminals"
-msgstr ""
+msgstr "Общие терминалы"
 
 #: gateone/applications/terminal/static/terminal.js:3516
 msgid "Authenticated"
-msgstr ""
+msgstr "Авторизованные"
 
 #: gateone/applications/terminal/static/terminal.js:3548
 msgid "Terminal Viewers: "
-msgstr ""
+msgstr "Терминал смотрят: "
 
 #: gateone/applications/terminal/static/terminal.js:3573
 msgid "Settings"
-msgstr ""
+msgstr "Параметры"
 
 #: gateone/applications/terminal/static/terminal.js:3575
 msgid "Terminal Sharing Info"
-msgstr ""
+msgstr "Инфо об общем терминале"
 
 #: gateone/applications/terminal/static/terminal.js:3576
 msgid "Viewers: "
-msgstr ""
+msgstr "Зрители: "
 
 #: gateone/applications/terminal/static/terminal_input.js:408
 msgid "Text copied to clipboard."
-msgstr ""
+msgstr "Текст скопирован в буфер."
 
 #: gateone/applications/terminal/static/terminal_input.js:713
 msgid "NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode."
-msgstr ""
+msgstr "ЗАМЕТКА: Быстрое двойное нажатие F11 включает/выключает полноэкранный режим."
 
 #: gateone/applications/terminal/static/terminal_input.js:948
 #: gateone/static/gateone.js:3912 gateone/tests/chat/static/gateone.js:3912
 #: gateone/tests/hello_embedded/static/gateone.js:3912
 msgid "Ninja Mode disabled."
-msgstr ""
+msgstr "Режим ниндзя выключен."
 
 #: gateone/applications/terminal/static/terminal_input.js:954
 #: gateone/static/gateone.js:3916 gateone/tests/chat/static/gateone.js:3916
 #: gateone/tests/hello_embedded/static/gateone.js:3916
 msgid "Ninja Mode!  Gate One has become hidden."
-msgstr ""
+msgstr "Режим ниндзя! Gate One скрыт."
 
 #: gateone/applications/x11/static/x11.js:900
 msgid ""
 "Browser does not support Web Worker transferable objects.  X11 "
 "performance will be (slightly) reduced."
-msgstr ""
+msgstr "Браузер не поддерживает передаваемые объекты Web-Worker. Производительность X11 будет (немного) уменьшена"
 
 #: gateone/plugins/editor/static/editor.js:45
 msgid "CodeMirror editor mode could not be found: "
-msgstr ""
+msgstr "Режим редактирования CodeMirror не найден:"
 
 #: gateone/plugins/editor/static/editor.js:74
 #: gateone/plugins/editor/static/editor.js:120
 msgid "Specified CodeMirror mode is invalid: "
-msgstr ""
+msgstr "Неправильный режим CodeMirror: "
 
 #: gateone/plugins/editor/static/editor.js:81
 #: gateone/plugins/editor/static/editor.js:127
 msgid "Took too long waiting for the given CodeMirror mode."
-msgstr ""
+msgstr "Ожидание режима CodeMirror заняло слишком много времени."
 
 #: gateone/plugins/help/static/help.js:49
 msgid "Gate One Help"
-msgstr ""
+msgstr "Справка Gate One"
 
 #: gateone/plugins/help/static/help.js:50
 msgid "Contents"
-msgstr ""
+msgstr "Содержание"
 
 #: gateone/plugins/help/static/help.js:52
 msgid "About Gate One"
-msgstr ""
+msgstr "О продукте"
 
 #: gateone/plugins/help/static/help.js:54
 msgid "Gate One's Documentation"
-msgstr ""
+msgstr "Документация Gate One"
 
 #: gateone/plugins/help/static/help.js:63
 msgid "<b>Gate One Help:</b>"
-msgstr ""
+msgstr "<b>Справка Gate One:</b>"
 
 #: gateone/plugins/help/static/help.js:99
 msgid "<b>Version:</b> "
-msgstr ""
+msgstr "<b>Версия:</b> "
 
 #: gateone/plugins/help/static/help.js:112
 msgid "Gate One is a web-based application gateway..."
-msgstr ""
+msgstr "Gate One - это веб-шлюз для приложений..."
 
 #: gateone/plugins/help/static/help.js:113
 msgid "Dismiss"
-msgstr ""
+msgstr "Закрыть"
 
 #: gateone/plugins/help/static/help.js:115
 msgid "Welcome to Gate One"
-msgstr ""
+msgstr "Добро пожаловать в Gate One"
 
 #: gateone/plugins/help/static/help.js:157
 msgid "Haven't implemented the DOM option in this function yet, sorry!"
-msgstr ""
+msgstr "Извините, функции данного элемента DOM пока не реализованы!"
 
 #: gateone/static/gateone.js:478 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:478
 #: gateone/tests/hello_embedded/static/gateone.js:478
 msgid "Browser failed WebSocket support check."
-msgstr ""
+msgstr "Браузер не прошел тест на поддержку WebSocket."
 
 #: gateone/static/gateone.js:479 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:479
@@ -518,18 +519,18 @@ msgid ""
 "Sorry but your web browser does not appear to support WebSockets.  Gate "
 "One requires WebSockets in order to (efficiently) communicate with the "
 "server."
-msgstr ""
+msgstr "К сожалению, похоже, ваш браузер не поддерживает WebSockets. Gate One требуется WebSockets для того, чтобы (эффективно) общаться с сервером."
 
 #: gateone/static/gateone.js:496 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:496
 #: gateone/tests/hello_embedded/static/gateone.js:496
 msgid "Browser failed Blob support check."
-msgstr ""
+msgstr "Браузер не прошел тест на поддержку Blob."
 
 #: gateone/static/gateone.js:502 gateone/tests/chat/static/gateone.js:502
 #: gateone/tests/hello_embedded/static/gateone.js:502
 msgid "Browser failed window.URL object support check."
-msgstr ""
+msgstr "Браузер не прошел тест на поддержку window.URL"
 
 #: gateone/static/gateone.js:503 gateone/tests/chat/static/gateone.js:503
 #: gateone/tests/hello_embedded/static/gateone.js:503
@@ -538,7 +539,8 @@ msgid ""
 "href='https://developer.mozilla.org/en-"
 "US/docs/DOM/window.URL.createObjectURL'>window.URL</a> object.  Some "
 "features related to saving files will not work."
-msgstr ""
+msgstr "Похоже, ваш браузер не поддерживает свойство <a href='https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL'>window.URL</a>. Некоторые функции, связанные с сохранением файлов, не будут работать."
+
 
 #: gateone/static/gateone.js:508 gateone/tests/chat/static/gateone.js:508
 #: gateone/tests/hello_embedded/static/gateone.js:508
@@ -548,17 +550,18 @@ msgid ""
 "\n"
 "\n"
 "Gate One will not be loaded."
-msgstr ""
+msgstr "К сожалению, ваш браузер не поддерживает некоторые функции, необходимые для запуска Gate One: \n\n\nGate One не будет загружен."
+
 
 #: gateone/static/gateone.js:523 gateone/tests/chat/static/gateone.js:523
 #: gateone/tests/hello_embedded/static/gateone.js:523
 msgid "Don't display this warning again"
-msgstr ""
+msgstr "Больше не показывать это предупреждение"
 
 #: gateone/static/gateone.js:572 gateone/tests/chat/static/gateone.js:572
 #: gateone/tests/hello_embedded/static/gateone.js:572
 msgid "Using API authentiation object: "
-msgstr ""
+msgstr "Использую объект API аутентификации: "
 
 #: gateone/static/gateone.js:635 gateone/static/gateone.js:649
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:635
@@ -566,81 +569,81 @@ msgstr ""
 #: gateone/tests/hello_embedded/static/gateone.js:635
 #: gateone/tests/hello_embedded/static/gateone.js:649
 msgid "Preferences"
-msgstr ""
+msgstr "Настройки"
 
 #: gateone/static/gateone.js:656 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:656
 #: gateone/tests/hello_embedded/static/gateone.js:656
 msgid "<b>Theme:</b> "
-msgstr ""
+msgstr "<b>Тема:</b> "
 
 #: gateone/static/gateone.js:658 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:658
 #: gateone/tests/hello_embedded/static/gateone.js:658
 msgid "<b>Disable CSS3 Transitions:</b> "
-msgstr ""
+msgstr "<b>Отключить CSS3 переходы:</b> "
 
 #: gateone/static/gateone.js:875 gateone/tests/chat/static/gateone.js:875
 #: gateone/tests/hello_embedded/static/gateone.js:875
 msgid "Application could not be found: "
-msgstr ""
+msgstr "Приложение не найдено: "
 
 #: gateone/static/gateone.js:881 gateone/tests/chat/static/gateone.js:881
 #: gateone/tests/hello_embedded/static/gateone.js:881
 msgid "Application does not have a __new__() method:"
-msgstr ""
+msgstr "У приложения нет метода __new__():"
 
 #: gateone/static/gateone.js:943 gateone/tests/chat/static/gateone.js:943
 #: gateone/tests/hello_embedded/static/gateone.js:943
 msgid "ms, Average: "
-msgstr ""
+msgstr "мс, Среднее:"
 
 #: gateone/static/gateone.js:1585 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:1585
 #: gateone/tests/hello_embedded/static/gateone.js:1585
 msgid "Error loading stylesheet: "
-msgstr ""
+msgstr "Ошибка при загрузке таблицы стилей"
 
 #: gateone/static/gateone.js:2252 gateone/tests/chat/static/gateone.js:2252
 #: gateone/tests/hello_embedded/static/gateone.js:2252
 msgid "No log destination named: "
-msgstr ""
+msgstr "Не указано назначение логов: "
 
 #: gateone/static/gateone.js:2371 gateone/tests/chat/static/gateone.js:2371
 #: gateone/tests/hello_embedded/static/gateone.js:2371
 msgid "A keepalive ping has timed out.  Attempting to reconnect..."
-msgstr ""
+msgstr "Таймаут попытки пинга. Пытаюсь восстановить соединение..."
 
 #: gateone/static/gateone.js:2380 gateone/tests/chat/static/gateone.js:2380
 #: gateone/tests/hello_embedded/static/gateone.js:2380
 msgid "Use GateOne.Terminal.Input.sendChars() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.Input.sendChars()."
 
 #: gateone/static/gateone.js:2389 gateone/tests/chat/static/gateone.js:2389
 #: gateone/tests/hello_embedded/static/gateone.js:2389
 msgid "Use GateOne.Terminal.sendString() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.sendString()."
 
 #: gateone/static/gateone.js:2443 gateone/tests/chat/static/gateone.js:2443
 #: gateone/tests/hello_embedded/static/gateone.js:2443
 msgid "Pinging Gate One server took longer than "
-msgstr ""
+msgstr "Пинг сервера Gate One занял более "
 
 #: gateone/static/gateone.js:2443 gateone/tests/chat/static/gateone.js:2443
 #: gateone/tests/hello_embedded/static/gateone.js:2443
 msgid "ms.  Attempting to reconnect..."
-msgstr ""
+msgstr "мс. Пытаюсь восстановить соединение..."
 
 #: gateone/static/gateone.js:2461 gateone/tests/chat/static/gateone.js:2461
 #: gateone/tests/hello_embedded/static/gateone.js:2461
 msgid "PONG: Gate One server round-trip latency: "
-msgstr ""
+msgstr "ОТВЕТ: время ответа сервера Gate One: "
 
 #: gateone/static/gateone.js:2491 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2491
 #: gateone/tests/hello_embedded/static/gateone.js:2491
 msgid "Authentication Failure"
-msgstr ""
+msgstr "В доступе отказано"
 
 #: gateone/static/gateone.js:2491 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2491
@@ -648,18 +651,18 @@ msgstr ""
 msgid ""
 "The authentication object was denied by the server.  Click OK to reload "
 "the page."
-msgstr ""
+msgstr "Объект аутентификации не принят сервером. Нажмите OK для обновления страницы."
 
 #: gateone/static/gateone.js:2512 gateone/tests/chat/static/gateone.js:2512
 #: gateone/tests/hello_embedded/static/gateone.js:2512
 msgid "Use GateOne.Terminal.sendDimensions() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.sendDimensions()."
 
 #: gateone/static/gateone.js:2539 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2539
 #: gateone/tests/hello_embedded/static/gateone.js:2539
 msgid "Attempting to connect to the Gate One server..."
-msgstr ""
+msgstr "Попытка соединения с сервером Gate One..."
 
 #: gateone/static/gateone.js:2564 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2564
@@ -667,67 +670,67 @@ msgstr ""
 msgid ""
 "An SSL certificate must be accepted by your browser to continue.  Please "
 "click <a href='' target='_blank'>here</a> to be redirected."
-msgstr ""
+msgstr "SSL сертификат должен быть установлен в вашем браузере. Нажмите <a href='' target='_blank'>здесь</a> для перехода."
 
 #: gateone/static/gateone.js:2628 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2628
 #: gateone/tests/hello_embedded/static/gateone.js:2628
 msgid "WebSocket Closed"
-msgstr ""
+msgstr "WebSocket закрыт"
 
 #: gateone/static/gateone.js:2658 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:2658
 #: gateone/tests/hello_embedded/static/gateone.js:2658
 msgid "The WebSocket has been disconnected."
-msgstr ""
+msgstr "Данный WebSocket отсоединен."
 
 #: gateone/static/gateone.js:2767 gateone/tests/chat/static/gateone.js:2767
 #: gateone/tests/hello_embedded/static/gateone.js:2767
 msgid "<b>Message From Gate One Server:</b> "
-msgstr ""
+msgstr "<b>Сообщение от сервера Gate One:</b> "
 
 #: gateone/static/gateone.js:2785 gateone/tests/chat/static/gateone.js:2785
 #: gateone/tests/hello_embedded/static/gateone.js:2785
 msgid "Your session has timed out.  Reload the page to reconnect to Gate One."
-msgstr ""
+msgstr "Ваша сессия устарела. Обновите страницу для повторного соединения с Gate One."
 
 #: gateone/static/gateone.js:2814 gateone/tests/chat/static/gateone.js:2814
 #: gateone/tests/hello_embedded/static/gateone.js:2814
 msgid "Use GateOne.Terminal.setTerminal() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.setTerminal()."
 
 #: gateone/static/gateone.js:2823 gateone/tests/chat/static/gateone.js:2823
 #: gateone/tests/hello_embedded/static/gateone.js:2823
 msgid "Use GateOne.Terminal.killTerminal() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.killTerminal()."
 
 #: gateone/static/gateone.js:2832 gateone/tests/chat/static/gateone.js:2832
 #: gateone/tests/hello_embedded/static/gateone.js:2832
 msgid "Use GateOne.Terminal.refresh() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.refresh()."
 
 #: gateone/static/gateone.js:2841 gateone/tests/chat/static/gateone.js:2841
 #: gateone/tests/hello_embedded/static/gateone.js:2841
 msgid "Use GateOne.Terminal.fullRefresh() instead."
-msgstr ""
+msgstr "Используйте вместо этого GateOne.Terminal.fullRefresh()."
 
 #: gateone/static/gateone.js:3080 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3080
 #: gateone/tests/hello_embedded/static/gateone.js:3080
 msgid "Location"
-msgstr ""
+msgstr "Местоположение"
 
 #: gateone/static/gateone.js:3081 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3081
 #: gateone/tests/hello_embedded/static/gateone.js:3081
 msgid "Application(s)"
-msgstr ""
+msgstr "Приложения"
 
 #: gateone/static/gateone.js:3082 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3082
 #: gateone/tests/hello_embedded/static/gateone.js:3082
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: gateone/static/gateone.js:3088 gateone/static/gateone.js:3111
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:3088
@@ -735,19 +738,19 @@ msgstr ""
 #: gateone/tests/hello_embedded/static/gateone.js:3088
 #: gateone/tests/hello_embedded/static/gateone.js:3111
 msgid "Locations"
-msgstr ""
+msgstr "Местоположения"
 
 #: gateone/static/gateone.js:3284 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3284
 #: gateone/tests/hello_embedded/static/gateone.js:3284
 msgid "Skipping adding the icon for "
-msgstr ""
+msgstr "Не добавляю значок для "
 
 #: gateone/static/gateone.js:3284 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3284
 #: gateone/tests/hello_embedded/static/gateone.js:3284
 msgid ".  Took too long to load dependencies."
-msgstr ""
+msgstr ". Загрузке зависимостей заняла слишком много времени."
 
 #: gateone/static/gateone.js:3400 gateone/static/gateone.js:3405
 #: gateone/tests/chat/static/gateone.js:3400
@@ -755,12 +758,12 @@ msgstr ""
 #: gateone/tests/hello_embedded/static/gateone.js:3400
 #: gateone/tests/hello_embedded/static/gateone.js:3405
 msgid "New Workspace Workspace"
-msgstr ""
+msgstr "Новое рабочее место"
 
 #: gateone/static/gateone.js:3415 gateone/tests/chat/static/gateone.js:3415
 #: gateone/tests/hello_embedded/static/gateone.js:3415
 msgid "New Workspace - Applications"
-msgstr ""
+msgstr "Новое рабочее место - Приложения"
 
 #: gateone/static/gateone.js:5279 gateone/static/gateone.js:5313
 #: gateone/static/gateone.min.js:1 gateone/tests/chat/static/gateone.js:5279
@@ -768,66 +771,66 @@ msgstr ""
 #: gateone/tests/hello_embedded/static/gateone.js:5279
 #: gateone/tests/hello_embedded/static/gateone.js:5313
 msgid "Failed to load database: "
-msgstr ""
+msgstr "Ошибка загрузки БД: "
 
 #: gateone/static/gateone.js:5356 gateone/tests/chat/static/gateone.js:5356
 #: gateone/tests/hello_embedded/static/gateone.js:5356
 msgid " does not exist in: "
-msgstr ""
+msgstr " не существует в: "
 
 #: gateone/static/gateone.js:5498 gateone/tests/chat/static/gateone.js:5498
 #: gateone/tests/hello_embedded/static/gateone.js:5498
 msgid "Deleting expired file: "
-msgstr ""
+msgstr "Удаляю устаревший файл: "
 
 #: gateone/static/gateone.js:5532 gateone/tests/chat/static/gateone.js:5532
 #: gateone/tests/hello_embedded/static/gateone.js:5532
 msgid ""
 " is cached but is older than what's on the server.  Requesting an updated"
 " version..."
-msgstr ""
+msgstr " загружен, но старше того, что находится на сервере. Запрашиваю обновленную версию..."
 
 #: gateone/static/gateone.js:5540 gateone/tests/chat/static/gateone.js:5540
 #: gateone/tests/hello_embedded/static/gateone.js:5540
 msgid "This file requires a certain script be loaded first: "
-msgstr ""
+msgstr "Перед использованием этого файла требуется загрузить некоторый скрипт: "
 
 #: gateone/static/gateone.js:5548 gateone/tests/chat/static/gateone.js:5548
 #: gateone/tests/hello_embedded/static/gateone.js:5548
 msgid "Failed to load "
-msgstr ""
+msgstr "Ошибка загрузки "
 
 #: gateone/static/gateone.js:5548 gateone/tests/chat/static/gateone.js:5548
 #: gateone/tests/hello_embedded/static/gateone.js:5548
 msgid ".  Took too long waiting for: "
-msgstr ""
+msgstr ". Превышено время ожидания: "
 
 #: gateone/static/gateone.js:5575 gateone/tests/chat/static/gateone.js:5575
 #: gateone/tests/hello_embedded/static/gateone.js:5575
 msgid " is not cached.  Requesting..."
-msgstr ""
+msgstr " не загружен. Запрашиваю..."
 
 #: gateone/static/gateone.js:5635 gateone/tests/chat/static/gateone.js:5635
 #: gateone/tests/hello_embedded/static/gateone.js:5635
 msgid "You must create a database model before creating a new database."
-msgstr ""
+msgstr "Перед созданием БД нужно создать модель БД."
 
 #: gateone/static/gateone.js:5654 gateone/tests/chat/static/gateone.js:5654
 #: gateone/tests/hello_embedded/static/gateone.js:5654
 msgid "Removing obsolete object store (self-cleanup): "
-msgstr ""
+msgstr "Удаляю устаревшие объекты из реестра (автоочистка): "
 
 #: gateone/static/gateone.js:5665 gateone/tests/chat/static/gateone.js:5665
 #: gateone/tests/hello_embedded/static/gateone.js:5665
 msgid " database creation/upgrade complete"
-msgstr ""
+msgstr " создание/обновление БД закончено"
 
 #: gateone/static/gateone.js:5700 gateone/tests/chat/static/gateone.js:5700
 #: gateone/tests/hello_embedded/static/gateone.js:5700
 msgid ""
 ": The database needs to be created or updated.  Creating/upgrading "
 "database..."
-msgstr ""
+msgstr ": Требуется создать или обновить БД. Делаю это..."
 
 #: gateone/static/gateone.js:5707 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:5707
@@ -835,81 +838,81 @@ msgstr ""
 msgid ""
 "Please close other tabs connected to this server and reload this page so "
 "we may upgrade the IndexedDB database."
-msgstr ""
+msgstr "Пожалуйста, закройте остальные вкладки, соединенные с данным сервером и обновите страницу, чтобы мы обновили БД IndexedDB."
 
 #: gateone/static/gateone.js:5732 gateone/tests/chat/static/gateone.js:5732
 #: gateone/tests/hello_embedded/static/gateone.js:5732
 msgid ""
 "GateOne.Storage.openDB(): No database upgrade necessary.  Calling "
 "callback..."
-msgstr ""
+msgstr "GateOne.Storage.openDB(): Обновление БД не требуется. Вызов события..."
 
 #: gateone/static/gateone.js:5745 gateone/tests/chat/static/gateone.js:5745
 #: gateone/tests/hello_embedded/static/gateone.js:5745
 msgid ""
 "GateOne.Storage.openDB(): IndexedDB is unavailable.  Falling back to "
 "localStorage..."
-msgstr ""
+msgstr "GateOne.Storage.openDB(): IndexedDB недоступна. Возвращаюсь к localStorage..."
 
 #: gateone/static/gateone.js:5768 gateone/tests/chat/static/gateone.js:5768
 #: gateone/tests/hello_embedded/static/gateone.js:5768
 msgid "Clearing entire indexedDB: "
-msgstr ""
+msgstr "Полностью очищаю indexedDB: "
 
 #: gateone/static/gateone.js:5771 gateone/tests/chat/static/gateone.js:5771
 #: gateone/tests/hello_embedded/static/gateone.js:5771
 msgid "Clearing indexedDB store: "
-msgstr ""
+msgstr "Очищаю реестр indexedDB: "
 
 #: gateone/static/gateone.js:5777 gateone/tests/chat/static/gateone.js:5777
 #: gateone/tests/hello_embedded/static/gateone.js:5777
 msgid "store deleted"
-msgstr ""
+msgstr "реестр удален"
 
 #: gateone/static/gateone.js:5780 gateone/tests/chat/static/gateone.js:5780
 #: gateone/tests/hello_embedded/static/gateone.js:5780
 msgid "database deleted"
-msgstr ""
+msgstr "БД удалена"
 
 #: gateone/static/gateone.js:5916 gateone/tests/chat/static/gateone.js:5916
 #: gateone/tests/hello_embedded/static/gateone.js:5916
 msgid "Use GateOne.Events.on('go:user_login', func) instead."
-msgstr ""
+msgstr "Используйте вместо этого Use GateOne.Events.on('go:user_login', func)."
 
 #: gateone/static/gateone.js:5948 gateone/tests/chat/static/gateone.js:5948
 #: gateone/tests/hello_embedded/static/gateone.js:5948
 msgid "Logout Response: "
-msgstr ""
+msgstr "Отклик на попытку выхода: "
 
 #: gateone/static/gateone.js:5951 gateone/tests/chat/static/gateone.js:5951
 #: gateone/tests/hello_embedded/static/gateone.js:5951
 msgid "You have been logged out.  Redirecting to: "
-msgstr ""
+msgstr "Вы вышли. Перенаправление на: "
 
 #: gateone/static/gateone.js:6212 gateone/tests/chat/static/gateone.js:6212
 #: gateone/tests/hello_embedded/static/gateone.js:6212
 msgid "Events now use prefixes such as 'go:' or 'terminal:'."
-msgstr ""
+msgstr "Теперь события используют префиксы типа 'go:' или 'terminal:'."
 
 #: gateone/static/gateone.min.js:1
 msgid "Application, '' could not be found."
-msgstr ""
+msgstr "Приложение '' не найдено."
 
 #: gateone/static/gateone.min.js:1
 msgid "Application, '' does not have a __new__() method."
-msgstr ""
+msgstr "В приложении '' нет метода __new__()."
 
 #: gateone/static/gateone_input.js:494 gateone/static/gateone_input.js:559
 msgid "Overwriting existing shortcut for: "
-msgstr ""
+msgstr "Перезаписываю существующее сочетание клавиш для: "
 
 #: gateone/static/gateone_utils_extra.js:244
 msgid "Error getting em dimensions (probably just a hidden terminal): "
-msgstr ""
+msgstr "Ошибка при получении размера в em (вероятно, просто невидимый терминал): "
 
 #: gateone/static/gateone_utils_extra.js:433
 msgid "JavaScript Load Error"
-msgstr ""
+msgstr "Ошибка загрузки JavaScript"
 
 #: gateone/static/gateone_utils_extra.js:433
 msgid ""
@@ -917,17 +920,18 @@ msgid ""
 "Click OK to open a new tab/window where you can accept the Gate One "
 "server's SSL certificate.  If the page doesn't load it means the Gate One"
 " server is currently unavailable."
-msgstr ""
+msgstr "Это могло случиться, если вы еще не добавили в браузер SSL сертификат Gate One.  Нажмите ОК для открытия вкладки, в которой вы сможете добавить сертификат сервера Gate One.  Если страница не загрузится, значит сервер Gate One в данный момент недоступен."
+
 
 #: gateone/static/gateone_visual_extra.js:278
 msgid "Yes"
-msgstr ""
+msgstr "Да"
 
 #: gateone/static/gateone_visual_extra.js:279
 msgid "No"
-msgstr ""
+msgstr "Нет"
 
 #: gateone/static/gateone_visual_extra.js:572
 msgid "GateOne.Visual.table(): You must pass in settings['id'] to this function."
-msgstr ""
+msgstr "GateOne.Visual.table(): Вы должны передать settings['ID'] в эту функцию."
 
