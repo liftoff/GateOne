@@ -397,12 +397,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.focus();
     },
     onCopy: function() {
-        /**:GateOne.Terminal.Input.onCopy()
+        /**:GateOne.Terminal.Input.onCopy(e)
 
         Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).  Also displays a message to the user letting them know that the text was copied successfully (because having your highlighted text suddenly disappear isn't that intuitive).
         */
         if (go.User.activeApplication == 'Terminal') {
             setTimeout(function() {
+                // For some reason we have to remove the current selection for Firefox to bring the pastearea to the foreground (so the user can right-click to paste):
+                window.getSelection().removeAllRanges();
                 u.showElements('.✈pastearea');
             }, 50);
             v.displayMessage(gettext("Text copied to clipboard."));

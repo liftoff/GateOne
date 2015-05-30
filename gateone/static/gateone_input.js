@@ -26,6 +26,7 @@ I.globalShortcuts = {}; // Global shortcuts added via registerGlobalShortcut() w
 I.handledGlobal = false; // Used to detect when a global shortcut needs to override a local (regular) one.
 GateOne.Base.update(GateOne.Input, {
     /**:GateOne.Input
+
     GateOne.Input is in charge of all keyboard input as well as copy & paste stuff and touch events.
     */
     init: function() {
@@ -65,8 +66,11 @@ GateOne.Base.update(GateOne.Input, {
     },
     modifiers: function(e) {
         /**:GateOne.Input.modifiers(e)
+
         Given an event object, returns an object representing the state of all modifier keys that were held during the event:
+
         .. code-block:: javascript
+
             {
                 altgr: boolean,
                 shift: boolean,
@@ -266,8 +270,11 @@ GateOne.Base.update(GateOne.Input, {
     },
     key: function(e) {
         /**:GateOne.Input.key(e)
+
         Given an event object, returns an object:
+
         .. code-block:: javascript
+
             {
                 type: e.type, // Just preserves it
                 location: e.location, // Also preserves it
@@ -304,9 +311,12 @@ GateOne.Base.update(GateOne.Input, {
         return undefined;
     },
     mouse: function(e) {
-        /**:GateOne.Input.kmouseey(e)
+        /**:GateOne.Input.mouse(e)
+
         Given an event object, returns an object:
+
         .. code-block:: javascript
+
             {
                 type:   e.type, // Just preserves it
                 left:   boolean,
@@ -342,6 +352,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     onKeyUp: function(e) {
         /**:GateOne.Input.onKeyUp(e)
+
         Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
         */
         var key = I.key(e),
@@ -358,7 +369,9 @@ GateOne.Base.update(GateOne.Input, {
     },
     onKeyDown: function(e) {
         /**:GateOne.Input.onKeyDown(e)
+
         Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
+
         Triggers the `go:keydown` event with keystroke appended to the end of the event (in lower case).
         */
         // NOTE:  In order for e.preventDefault() to work in canceling browser keystrokes like Ctrl-C it must be called before keyup.
@@ -377,6 +390,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     onGlobalKeyUp: function(e) {
         /**:GateOne.Input.onGlobalKeyUp(e)
+
         This gets attached to the 'keyup' event on `document.body`.  Triggers the `global:keyup` event with keystroke appended to the end of the event (in lower case).
         */
         var key = I.key(e),
@@ -386,6 +400,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     onGlobalKeyDown: function(e) {
         /**:GateOne.Input.onGlobalKeyDown(e)
+
         Handles global keystroke events (i.e. those attached to the window object).
         */
         var key = I.key(e),
@@ -396,6 +411,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     execKeystroke: function(e, /*opt*/global) {
         /**:GateOne.Input.execKeystroke(e, global)
+
         Executes the keystroke or shortcut associated with the given keydown event (*e*).  If *global* is true, will only execute global shortcuts (no regular keystroke overrides).
         */
         logDebug('execKeystroke(global=='+global+')');
@@ -500,13 +516,17 @@ GateOne.Base.update(GateOne.Input, {
     },
     registerShortcut: function(keyString, shortcutObj) {
         /**:GateOne.Input.registerShortcut(keyString, shortcutObj)
+
         :param string keyString: The KEY_<key> that will invoke this shortcut.
         :param object shortcutObj: A JavaScript object containing two properties:  'modifiers' and 'action'.  See above for their format.
         **shortcutObj**
-            :param action: A string to be eval()'d or a function to be executed when the provided key combination is pressed.
-            :param modifiers: An object containing the modifier keys that must be pressed for the shortcut to be called.  Example: `{"ctrl": true, "alt": true, "meta": false, "shift": false}`.
+        :param action: A string to be eval()'d or a function to be executed when the provided key combination is pressed.
+        :param modifiers: An object containing the modifier keys that must be pressed for the shortcut to be called.  Example: `{"ctrl": true, "alt": true, "meta": false, "shift": false}`.
+
         Registers the given *shortcutObj* for the given *keyString* by adding a new object to :js:attr:`GateOne.Input.shortcuts`.  Here's an example:
+
         .. code-block:: javascript
+
             GateOne.Input.registerShortcut('KEY_ARROW_LEFT', {
                 'modifiers': {
                     'ctrl': true,
@@ -517,8 +537,11 @@ GateOne.Base.update(GateOne.Input, {
                 },
                 'action': 'GateOne.Visual.slideLeft()' // Can be an eval() string or a function
             });
+
         You don't have to provide *all* modifiers when registering a shortcut.  The following would be equivalent to the above:
+
         .. code-block:: javascript
+
             GateOne.Input.registerShortcut('KEY_ARROW_LEFT', {
                 'modifiers': {
                     'ctrl': true,
@@ -526,9 +549,13 @@ GateOne.Base.update(GateOne.Input, {
                 },
                 'action': GateOne.Visual.slideLeft // Also demonstrating that you can pass a function instead of a string
             });
+
         Shortcuts registered via this function will only be usable when Gate One is active on the web page in which it is embedded.  For shortcuts that need to *always* be usable see :js:meth:`GateOne.Input.registerGlobalShortcut`.
+
         Optionally, you may also specify a condition or Array of conditions to be met for the shortcut to be executed.  For example:
+
         .. code-block:: javascript
+
             GateOne.Input.registerShortcut('KEY_ARROW_LEFT', {
                 'modifiers': {
                     'ctrl': true,
@@ -537,6 +564,7 @@ GateOne.Base.update(GateOne.Input, {
                 'conditions': [myCheckFunction, 'GateOne.Terminal.MyPlugin.isAlive'],
                 'action': GateOne.Visual.slideLeft
             });
+
         In the example above the ``GateOne.Visual.slideLeft`` function would only be executed if ``myCheckFunction()`` returned ``true`` and if 'GateOne.Terminal.MyPlugin.isAlive' existed and also evaluated to ``true``.
         */
         var match, conditionsMatch, overwrote;
@@ -576,6 +604,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     unregisterShortcut: function(keyString, shortcutObj) {
         /**:GateOne.Input.unregisterShortcut(keyString, shortcutObj)
+
         Removes the shortcut associated with the given *keyString* and *shortcutObj*.
         */
         var match;
@@ -599,7 +628,9 @@ GateOne.Base.update(GateOne.Input, {
     },
     registerGlobalShortcut: function(keyString, shortcutObj) {
         /**:GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
+
         Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus.
+
         .. note:: This function only matters when Gate One is embedded into another application.
         */
         var match, overwrote;
@@ -637,6 +668,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     unregisterGlobalShortcut: function(keyString, shortcutObj) {
         /**:GateOne.Input.unregisterGlobalShortcut(keyString, shortcutObj)
+
         Removes the shortcut associated with the given *keyString* and *shortcutObj*.
         */
         var match;
@@ -660,7 +692,9 @@ GateOne.Base.update(GateOne.Input, {
     },
     humanReadableShortcut: function(name, modifiers) {
         /**:GateOne.Input.humanReadableShortcut(name, modifiers)
+
         Given a key *name* such as 'KEY_DELETE' (or just 'G') and a *modifiers* object, returns a human-readable string.  Example:
+
             >>> GateOne.Input.humanReadableShortcut('KEY_DELETE', {"ctrl": true, "alt": true, "meta": false, "shift": false});
             Ctrl-Alt-Delete
         */
@@ -679,7 +713,9 @@ GateOne.Base.update(GateOne.Input, {
     },
     humanReadableShortcutList: function(shortcuts) {
         /**:GateOne.Input.humanReadableShortcutList(shortcuts)
+
         Given a list of *shortcuts* (e.g. `GateOne.Input.shortcuts`), returns an Array of keyboard shortcuts suitable for inclusion in a table.  Example:
+
             >>> GateOne.Input.humanReadableShortcutList(GateOne.Input.shortcuts);
             [['Ctrl-Alt-G', 'Grid View'], ['Ctrl-Alt-N', 'New Workspace']]
         */
