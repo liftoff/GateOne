@@ -239,8 +239,11 @@ GateOne.Base.update(GateOne.Input, {
             'Slash': 'KEY_SOLIDUS',
             'Backquote': 'KEY_GRAVE_ACCENT',
             'BracketLeft': 'KEY_LEFT_SQUARE_BRACKET',
+            // For some reason Firefox doesn't provide special names for the brackets:
+            '[': 'KEY_LEFT_SQUARE_BRACKET',
             'Backslash': 'KEY_REVERSE_SOLIDUS',
             'BracketRight': 'KEY_RIGHT_SQUARE_BRACKET',
+            ']': 'KEY_RIGHT_SQUARE_BRACKET',
             'Quote': 'KEY_APOSTROPHE',
             'AltGraph': 'KEY_ALT_GRAPH',
             'Compose': 'KEY_COMPOSE'
@@ -357,7 +360,7 @@ GateOne.Base.update(GateOne.Input, {
         */
         var key = I.key(e),
             modifiers = I.modifiers(e);
-        logDebug('onKeyUp()');
+        logDebug('onKeyUp()', e);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             I.metaHeld = false;
         }

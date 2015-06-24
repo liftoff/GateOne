@@ -614,7 +614,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
         var key = I.key(e),
             modifiers = I.modifiers(e);
-        logDebug('GateOne.Terminal.Input.onKeyUp()');
+        logDebug('GateOne.Terminal.Input.onKeyUp()', e);
         if (!t.Input.composition) {
             // If a non-shift modifier was depressed, emulate the given keystroke:
             if (!(modifiers.alt || modifiers.ctrl || modifiers.meta)) {
@@ -662,7 +662,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         For the Terminal application, executes the keystroke or shortcut associated with the given keydown event (*e*).
         */
-        logDebug('GateOne.Terminal.Input.execKeystroke()');
+        logDebug('GateOne.Terminal.Input.execKeystroke()', e);
         var key = I.key(e),
             modifiers = I.modifiers(e);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
