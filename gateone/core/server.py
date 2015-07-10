@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20150529200856" # Gets replaced by git (holds the date/time)
+__commit__ = "20150624125036" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2095,8 +2095,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 expiration = (
                     float(total_seconds(convert_to_timedelta(expiration)))
                     / float(86400))
-                auth_data = self.get_secure_cookie("gateone_user",
-                    value=settings['auth'], max_age_days=expiration)
+                try:
+                    auth_data = self.get_secure_cookie("gateone_user",
+                        value=settings['auth'], max_age_days=expiration)
+                except TypeError:
+                    self.auth_log.error(_(
+                        "Received strange data when performing "
+                        "authentication.  Did you forget to set 'api' in "
+                        "20authentication.conf?"))
+                    return
                 # NOTE:  This will override whatever is in the cookie.
                 # Why?  Because we'll eventually transition to not using cookies
                 if auth_data:
@@ -2126,6 +2133,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 #self.close() # Close the WebSocket
         elif auth_method and auth_method == 'api':
             if 'auth' in list(settings.keys()):
+                print("auth settings: %s" % repr(settings['auth']))
                 if not isinstance(settings['auth'], dict):
                     settings['auth'] = json_decode(settings['auth'])
                 user = self.api_auth(settings['auth'])

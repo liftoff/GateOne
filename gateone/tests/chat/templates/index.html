@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="nav">
-      <b>{{ current_user["name"] }}</b> -
+      <b>{{ current_user }}</b> -
       <a href="/auth/logout">{{ _("Sign out") }}</a>
     </div>
     <div id="chatbox">
@@ -23,6 +23,7 @@
               <td><input name="body" id="message" style="width:500px"/></td>
               <td style="padding-left:5px">
                 <input type="submit" value="{{ _("Post") }}"/>
+                <input type="submit" id="newterm" value="Create Terminal" onclick="GateOne.Terminal.newTerminal(); GateOne.Utils.removeElement('#newterm');" />
                 <input type="hidden" name="next" value="{{ request.path }}"/>
                 {% module xsrf_form_html() %}
               </td>
@@ -46,7 +47,8 @@
             fillContainer: true,
             auth: authObj,
             showToolbar: false, // Hide the toolbar but still show the title
-            theme: 'black'
+            theme: 'black',
+            embedded: true
         });
         // Using 'fillContainer: true' to make it easy to size the #gateone element (it will fill whatever you put it in)
     }

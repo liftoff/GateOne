@@ -41,8 +41,8 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
-            (r"/auth/login", AuthLoginHandler),
-            (r"/auth/logout", AuthLogoutHandler),
+            (r"/auth/login", LoginHandler),
+            #(r"/auth/logout", AuthLogoutHandler),
             (r"/a/message/new", MessageNewHandler),
             (r"/a/message/updates", MessageUpdatesHandler),
         ]
@@ -51,7 +51,7 @@ class Application(tornado.web.Application):
             login_url="/auth/login",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies=True,
+            xsrf_cookies=False,
             debug=True,
             autoescape="xhtml_escape"
         )
@@ -69,8 +69,9 @@ class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.get_current_user()
+        print("User joined chat: %s" % user)
         api_key = self.settings['cookie_secret']
-        upn = user['email']
+        upn = user
         # Make a note that this is a quick way to generate a JS-style epoch:
         timestamp = str(int(time.time()) * 1000)
         auth_obj = {
@@ -82,8 +83,8 @@ class MainHandler(BaseHandler):
             'api_version': '1.0' # Won't change (for now)
         }
         secret = 'secret' # Whatever is in server.conf for our API key
-        # For this app I'm using the convenient _create_signature() method but
-        # it is trivial to implement the same exact thing in just about any
+        # For this app I'm using the convenient _create_signature_v1() method
+        # but it is trivial to implement the same exact thing in just about any
         # language. Here's the function (so you don't have to look it up =):
         #
         # def _create_signature(secret, *parts):
@@ -95,7 +96,7 @@ class MainHandler(BaseHandler):
         # function just ensures that the encoding is UTF-8.  In most cases you
         # won't have to worry about stuff like that since these values will most
         # likely just be ASCII.
-        signature = tornado.web._create_signature(
+        signature = tornado.web._create_signature_v1(
             secret,
             api_key,
             upn,
@@ -149,7 +150,7 @@ class MessageNewHandler(BaseHandler, MessageMixin):
     def post(self):
         message = {
             "id": str(uuid.uuid4()),
-            "from": self.current_user["first_name"],
+            "from": self.current_user,
             "body": self.get_argument("body"),
         }
         message["html"] = self.render_string("message.html", message=message)
@@ -176,25 +177,17 @@ class MessageUpdatesHandler(BaseHandler, MessageMixin):
     def on_connection_close(self):
         self.cancel_wait(self.on_new_messages)
 
-
-class AuthLoginHandler(BaseHandler, tornado.auth.GoogleMixin):
-    @tornado.web.asynchronous
+class LoginHandler(BaseHandler):
     def get(self):
-        if self.get_argument("openid.mode", None):
-            self.get_authenticated_user(self.async_callback(self._on_auth))
-            return
-        self.authenticate_redirect(ax_attrs=["name","email"])
+        self.write('<html><body><form action="/auth/login" method="post">'
+                   'Your Name: <input type="text" name="name">'
+                   '<input type="submit" value="Sign in">'
+                   '</form></body></html>')
 
-    def _on_auth(self, user):
-        if not user:
-            raise tornado.web.HTTPError(500, "Google auth failed")
-        self.set_secure_cookie("user", tornado.escape.json_encode(user))
+    def post(self):
+        user_name = self.get_argument("name")
+        self.set_secure_cookie("user", tornado.escape.json_encode(user_name))
         self.redirect("/")
-
-class AuthLogoutHandler(BaseHandler):
-    def get(self):
-        self.clear_cookie("user")
-        self.write("You are now logged out")
 
 def main():
     tornado.options.parse_command_line()

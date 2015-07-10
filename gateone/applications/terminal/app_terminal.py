@@ -28,7 +28,7 @@ from gateone.core.server import ApplicationWebSocket
 from gateone.auth.authorization import require, authenticated
 from gateone.auth.authorization import applicable_policies, policies
 from gateone.core.configuration import get_settings, RUDict
-from gateone.core.utils import cmd_var_swap, json_encode
+from gateone.core.utils import cmd_var_swap, json_encode, generate_session_id
 from gateone.core.utils import mkdir_p, entry_point_files
 from gateone.core.utils import process_opt_esc_sequence, bind, MimeTypeFail
 from gateone.core.utils import short_hash, create_data_uri, which
@@ -235,14 +235,14 @@ class TerminalApplication(GOApplication):
             'terminal:permissions': self.permissions,
             'terminal:new_share_id': self.new_share_id,
             'terminal:share_user_list': self.share_user_list,
-            #'terminal:unshare_terminal': self.unshare_terminal,
             'terminal:enumerate_commands': self.enumerate_commands,
             'terminal:enumerate_fonts': self.enumerate_fonts,
             'terminal:enumerate_colors': self.enumerate_colors,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
             'terminal:detach_shared_terminal': self.detach_shared_terminal,
-            #'terminal:set_sharing_permissions': self.set_sharing_permissions,
+            'terminal:start_capture': self.start_capture,
+            'terminal:stop_capture': self.stop_capture,
             'terminal:debug_terminal': self.debug_terminal
         })
         if 'terminal' not in self.ws.persist:
@@ -1272,6 +1272,69 @@ class TerminalApplication(GOApplication):
         self.write_message(message)
 
     @require(authenticated(), policies('terminal'))
+    def start_capture(self, term=None):
+        """
+        Starts capturing output for the terminal given via *term*.
+        The output will be saved to a temporary file and delivered to the client
+        when `TerminalApplication.stop_capture` is called.
+
+        If no *term* is given the currently-selected terminal will be used.
+        """
+        self.term_log.debug("start_capture(%s)" % repr(term))
+        from tempfile import NamedTemporaryFile
+        from .term_utils import capture_stream
+        if not term:
+            term = self.current_term
+        # Make a temporary file to save the terminal's output
+        capture_file = NamedTemporaryFile(prefix="go_term_cap", delete=False)
+        capture_path = capture_file.name
+        # Don't need the object anymore since we'll be using io.open():
+        capture_file.close() # Will get deleted in stop_capture()
+        capture_func = partial(capture_stream, self)
+        term_obj = self.loc_terms[term]
+        term_obj["capture"] = {
+            "output": io.open(capture_path, 'a', encoding="utf-8"),
+            "capture_func": capture_func # So we can call self.off() with it
+        }
+        self.on("terminal:refresh_screen", capture_func)
+
+    def stop_capture(self, term):
+        """
+        Stops capturing output for the given *term* by closing the open file
+        object and deleting the "capture" dict from the current instance of
+        `TerminalApplication.loc_terms[term]`.  The captured data will be sent
+        to the client via the 'terminal:captured_data' WebSocket action which
+        will included a dict like so::
+
+            {
+                "term": 1,
+                "data": "$ ls\nfile1 file2\n$ "
+            }
+        """
+        self.term_log.debug("stop_capture(%s)" % term)
+        if term not in self.loc_terms:
+            return # Nothing to do
+        term_obj = self.loc_terms[term]
+        if 'capture' not in term_obj:
+            return # Nothing to do
+        capture = term_obj["capture"]["output"]
+        capture_path = capture.name
+        capture.flush()
+        capture.close()
+        capture_func = term_obj["capture"]["capture_func"]
+        self.off("terminal:refresh_screen", capture_func)
+        capture_data = open(capture_path, 'rb').read()
+        capture_dict = {
+            'term': term,
+            'data': capture_data
+        }
+        # Cleanup
+        os.remove(capture_path)
+        del term_obj["capture"]
+        message = {'terminal:captured_data': capture_dict}
+        self.write_message(message)
+
+    @require(authenticated(), policies('terminal'))
     def swap_terminals(self, settings):
         """
         Swaps the numbers of *settings['term1']* and *settings['term2']*.
@@ -1624,6 +1687,12 @@ class TerminalApplication(GOApplication):
         too).
 
         If *full*, send the whole screen (not just the difference).
+
+        The *stream* argument is meant to contain the raw character stream that
+        resulted in the terminal screen being updated.  It is only used to pass
+        the data through to the 'terminal:refresh_screen' event.  This event is
+        and that raw data is used by the `TerminalApplication.start_capture` and
+        `TerminalApplication.stop_capture` methods.
         """
         # Commented this out because it was getting annoying.
         # Note to self: add more levels of debugging beyond just "debug".

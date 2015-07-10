@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20150529200856";
+GateOne.__commit__ = "20150624125036";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -4150,7 +4150,6 @@ GateOne.Base.update(GateOne.Visual, {
                         v._slideEndBackground({'target': wsNode});
                     }
                 }
-                console.log("wsNode.id: ", wsNode.id, " wsPX: ", wPX, "hPX: ", hPX);
             });
         }, 10);
     },

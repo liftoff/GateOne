@@ -430,6 +430,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:encoding', go.Terminal.termEncodingAction);
         go.Net.addAction('terminal:keyboard_mode', go.Terminal.termKeyboardModeAction);
         go.Net.addAction('terminal:shared_terminals', go.Terminal.sharedTerminalsAction);
+        go.Net.addAction('terminal:captured_data', go.Terminal.capturedData);
         go.Terminal.createPrefsPanel();
         E.on("go:panel_toggle:in", updatePrefsfunc);
         E.on("go:restore_defaults", function() {
@@ -3704,6 +3705,34 @@ go.Base.update(GateOne.Terminal, {
         }
         nonblankLines = screen.slice((lastLine - n)+1, lastLine+1)
         return nonblankLines;
+    },
+    startCapture: function(term) {
+        /**:GateOne.Terminal.startCapture(term)
+
+        Starts capturing terminal output for the given *term*.  The :js:func:`GateOne.Terminal.stopCapture` function can be called to stop the capture and send the captured data to the client via the 'terminal:captured_data' WebSocket action.  This WebSocket action gets attached to :js:func:`GateOne.Terminal.capturedData` which will call the 'terminal:captured_data' event passing the terminal number and the captured data as the only arguments.
+        */
+        term = term || localStorage[prefix+'selectedTerminal'];
+        go.ws.send(JSON.stringify({'terminal:start_capture': term}));
+    },
+    stopCapture: function(term) {
+        /**:GateOne.Terminal.stopCapture(term)
+
+        Stops capturing output on the given *term*.
+        */
+        term = term || localStorage[prefix+'selectedTerminal'];
+        go.ws.send(JSON.stringify({'terminal:stop_capture': term}));
+    },
+    capturedData: function(message) {
+        /**:GateOne.Terminal.capturedData(message)
+
+        Attached to the 'terminal:captured_data' WebSocket action; triggers the 'terminal:captured_data' event like so:
+
+        .. code-block:: javascript
+
+            GateOne.Events.trigger('terminal:captured_data', term, data);
+        */
+        var term = message.term, data = message.data;
+        E.trigger("terminal:captured_data", term, data);
     }
 });
 

@@ -13,7 +13,7 @@ __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Standard library imports
-import os, io
+import os, io, re
 
 # Gate One imports
 from gateone.core.utils import json_encode
@@ -78,3 +78,28 @@ def restore_term_settings(location, session):
             os.remove(settings_path)
             return {}
     return settings
+
+def capture_stream(self, term, stream=None):
+    """
+    Captures the raw output *stream* of the given *term* to the file object
+    defined in the current instance of
+    `TerminalApplication.loc_terms[term]["temp_capture"]`.
+
+    This function gets assigned to the "terminal:refresh_screen" event (that's
+    how it works).
+    """
+    esc_sequence = re.compile( # Behold my regex-fu!
+        r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
+    csi_sequence = re.compile(r'\x1b\[([?A-Za-z0-9;@:\!]*?)([A-Za-z@_])')
+    title_sequence = re.compile(r'\x1b\][0-2]\;(.*?)(\x07|\x1b\\)')
+    specials = re.compile(r'[\x7f\x08]')
+    if stream:
+        # Remove formatting and other unnecessary escape sequences
+        stream = stream.decode('utf-8') # Make it a proper unicode string
+        stream = title_sequence.sub('', stream) # Remove terminal title seq
+        stream = esc_sequence.sub('', stream) # Remove regular esc sequences
+        stream = csi_sequence.sub('', stream) # Remove formatting sequences
+        stream = specials.sub('', stream) # Backspace chars and newlines
+        stream = stream.replace('\r\n', '\n') # Fix ^M
+        term_obj = self.loc_terms[term]
+        term_obj["capture"]["output"].write(stream)

@@ -609,7 +609,10 @@ def pua_counter():
     successive call.  If this is a narrow Python build the tail end of Plane 15
     will be used as a fallback (with a lot less characters).
 
-    .. note:: Meant to be used as references to non-text objects in the screen array() (since it can only contain unicode characters)
+    .. note::
+
+        Meant to be used as references to non-text objects in the screen array()
+        (since it can only contain unicode characters)
     """
     if SPECIAL == 1048576: # Not a narrow build of Python
         n = SPECIAL # U+100000 or unichr(SPECIAL) (start of Plane 16)
