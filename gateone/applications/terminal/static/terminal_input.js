@@ -956,6 +956,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         'KEY_8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32), 'ctrl-shift': String.fromCharCode(32)},
         'KEY_9': {'alt': ESC+"9", 'ctrl': "9", 'ctrl-shift': "9"},
         'KEY_0': {'alt': ESC+"0", 'ctrl': "0", 'ctrl-shift': "0"},
+        'KEY_G': {'altgr': "@"},
         // NOTE to self: xterm/vt100/vt220, for 'linux' (and possibly others) use [[A, [[B, [[C, [[D, and [[E
         'KEY_F1': {'default': ESC+"OP", 'alt': ESC+"O3P", 'sco': ESC+"[M", 'sco-ctrl': ESC+"[k"},
         'KEY_F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q", 'sco': ESC+"[N", 'sco-ctrl': ESC+"[l"},
@@ -1058,9 +1059,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         'KEY_FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
         'KEY_SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
         'KEY_GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},
-        'KEY_LEFT_SQUARE_BRACKET':  {'alt': ESC+"[", 'alt-shift': ESC+"{", 'ctrl': ESC},
-        'KEY_REVERSE_SOLIDUS':  {'alt': ESC+"\\", 'alt-shift': ESC+"|", 'ctrl': String.fromCharCode(28)},
-        'KEY_RIGHT_SQUARE_BRACKET':  {'alt': ESC+"]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
+        'KEY_LEFT_SQUARE_BRACKET':  {'altgr': "[", 'alt-shift': ESC+"{", 'ctrl': ESC},
+        'KEY_REVERSE_SOLIDUS':  {'altgr': "|", 'altgr-shift': "\\"},
+        'KEY_RIGHT_SQUARE_BRACKET':  {'altgr': "]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
         'KEY_APOSTROPHE': {'alt': ESC+"'", 'alt-shift': ESC+'"'}
     }
 });
