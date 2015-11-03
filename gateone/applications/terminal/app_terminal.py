@@ -2845,6 +2845,8 @@ def init(settings):
     for hooks in plugin_hooks.values():
         if 'Web' in hooks:
             for handler in hooks['Web']:
+                if not handler[0].startswith(url_prefix): # Fix it
+                    handler = (url_prefix + handler[0].lstrip('/'), handler[1])
                 if handler in REGISTERED_HANDLERS:
                     continue # Already registered this one
                 else:

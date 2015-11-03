@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20151103081614" # Gets replaced by git (holds the date/time)
+__commit__ = "20151103083231" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -995,7 +995,6 @@ class MainHandler(BaseHandler):
     """
     @tornado.web.authenticated
     @tornado.web.addslash
-    # TODO: Get this auto-minifying gateone.js
     def get(self):
         # Set our server header so it doesn't say TornadoServer/<version>
         hostname = os.uname()[1]
@@ -3717,7 +3716,7 @@ class GateOneApp(tornado.web.Application):
             (r"%sstatic/(.*)" % url_prefix, StaticHandler, {"path": static_url}
         ))
         # Hook up the hooks
-        for plugin_name, hooks in PLUGIN_HOOKS.items():
+        for hooks in PLUGIN_HOOKS.values():
             if 'Web' in hooks:
                 # Apply the plugin's Web handlers
                 fixed_hooks = []
