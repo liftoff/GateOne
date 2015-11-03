@@ -135,6 +135,8 @@ GateOne.Base.update(GateOne.Input, {
             109: 'KEY_NUM_PAD_HYPHEN-MINUS', // Strange: Firefox has this the regular hyphen key (i.e. not the one on the num pad)
             110: 'KEY_NUM_PAD_FULL_STOP',
             111: 'KEY_NUM_PAD_SOLIDUS',
+            123: 'KEY_LEFT_CURLY_BRACKET',
+            125: 'KEY_RIGHT_CURLY_BRACKET',
             144: 'KEY_NUM_LOCK',
             145: 'KEY_SCROLL_LOCK',
             173: 'KEY_HYPHEN-MINUS', // No idea why Firefox uses this keycode instead of 189
