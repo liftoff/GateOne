@@ -745,6 +745,7 @@ class TerminalApplication(GOApplication):
                 terminals.update({
                     term: {
                         'metadata': self.loc_terms[term]['metadata'],
+                        'command': self.loc_terms[term]['command'],
                         'title': self.loc_terms[term]['title']
                     }})
                 share_id = self.loc_terms[term].get('share_id', None)
@@ -776,9 +777,11 @@ class TerminalApplication(GOApplication):
                                 continue
                             data = term_settings[self.ws.location][str(term)]
                             metadata = data.get('metadata', {})
+                            command = data.get('command', None)
                             title = data.get('title', 'Gate One')
                             terminals.update({term: {
                                 'metadata': metadata,
+                                'command': command,
                                 'title': title
                             }})
         self.trigger('terminal:terminals', terminals)
@@ -1211,7 +1214,8 @@ class TerminalApplication(GOApplication):
         # Calling save_term_settings() after the event is fired so that plugins
         # can modify the metadata before it gets saved.
         self.save_term_settings(
-            term, {'metadata': self.loc_terms[term]['metadata']})
+            term, {'command': command,
+                   'metadata': self.loc_terms[term]['metadata']})
 
     @require(authenticated(), policies('terminal'))
     def set_term_encoding(self, settings):

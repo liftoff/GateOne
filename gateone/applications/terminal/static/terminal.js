@@ -2655,7 +2655,7 @@ go.Base.update(GateOne.Terminal, {
 
         If this is a new session (and we're not in embedded mode), a new terminal will be created.
         */
-        var newTermSettings, metadata,
+        var newTermSettings, command, metadata,
             termNumbers = [],
             reattachCallbacks = false,
             terminalDB = S.dbObject('terminal');
@@ -2694,10 +2694,11 @@ go.Base.update(GateOne.Terminal, {
                         var shareID = terminals[termNum].share_id;
                         if (!go.Terminal.terminals[termNum]) {
                             metadata = terminals[termNum].metadata || {};
+                            command = terminals[termNum].command || null;
                             if (metadata.resumeEvent) {
                                 E.trigger(metadata.resumeEvent, termNum, terminals[termNum]);
                             } else {
-                                go.Terminal.newTerminal(termNum, {'metadata': metadata});
+                                go.Terminal.newTerminal(termNum, {'command': command, 'metadata': metadata});
                             }
                             go.Terminal.lastTermNumber = termNum;
                         }

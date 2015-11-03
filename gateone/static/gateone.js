@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20150624125036";
+GateOne.__commit__ = "20150710195622";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -358,6 +358,7 @@ This object holds all of Gate One's preferences.  Both those things that are mea
     goDiv: '#gateone', // Default element to place gateone inside.
     keepaliveInterval: 60000, // How often we try to ping the Gate One server to check for a connection problem.
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
+    showAppChooser: true, // Whether or not to show the application chooser
     showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
     skipChecks: false, // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures).
@@ -377,6 +378,7 @@ Properties in this object will get ignored when :js:attr:`GateOne.prefs` is save
     fillContainer: null,
     goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
     prefix: null,
+    showAppChooser: null,
     showTitle: null,
     showToolbar: null,
     skipChecks: null,
@@ -453,7 +455,8 @@ var go = GateOne.Base.update(GateOne, {
         var go = GateOne,
             u = go.Utils,
             criticalFailure = false,
-            missingCapabilities = [],
+            missingCapabilities = [], setting,
+            queryPrefs = JSON.parse(u.getQueryVariable('go_prefs') || '{}'),
             parseResponse = function(response) {
                 if (response == 'authenticated') {
                     // Connect (GateOne.initialize() will be called after the connection is made)
@@ -465,8 +468,12 @@ var go = GateOne.Base.update(GateOne, {
                 }
             };
         // Update GateOne.prefs with the settings provided in the calling page
-        for (var setting in prefs) {
+        for (setting in prefs) {
             go.prefs[setting] = prefs[setting];
+        }
+        // Now apply any settings given via query string params
+        for (setting in queryPrefs) {
+            go.prefs[setting] = queryPrefs[setting];
         }
         // Make our prefix unique to our location
         go.prefs.prefix += go.location + '_';
@@ -3165,8 +3172,13 @@ GateOne.Base.update(GateOne.Visual, {
         Creates a new application chooser (akin to a browser's "new tab tab") that displays the application selection screen (and possibly other things in the future).
 
         If *where* is undefined a new workspace will be created and the application chooser will be placed there.  If *where* is ``false`` the new application chooser element will be returned without placing it anywhere.
+
+        .. note:: The application chooser can be disabled by setting ``GateOne.prefs.showAppChooser = false`` or by passing 'go_prefs={"showAppChooser":false}' via the URL query string.
         */
         logDebug("GateOne.Visual.appChooser()");
+        if (!go.prefs.showAppChooser) {
+            return;
+        }
         var u = go.Utils,
             v = go.Visual,
             E = go.Events,

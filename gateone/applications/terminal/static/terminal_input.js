@@ -697,7 +697,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.queue(c);
             },
             term = localStorage[prefix+'selectedTerminal'];
-        logDebug("emulateKey() term: " +term+ ", key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
+        logDebug("emulateKey() term: " + term + ", key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         t.Input.sentBackspace = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && t.Input.F11 === true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.

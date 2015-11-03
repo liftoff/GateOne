@@ -271,6 +271,7 @@ GateOne.Base.update(GateOne.Input, {
         63302: 'KEY_INSERT',
         63272: 'KEY_DELETE'
     },
+    // TODO: Get this returning the new KeyboardEvent.code instead of the charCode (for key.code)
     key: function(e) {
         /**:GateOne.Input.key(e)
 
