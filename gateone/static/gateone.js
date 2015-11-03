@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20150710195622";
+GateOne.__commit__ = "20151103081614";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -5310,7 +5310,7 @@ GateOne.Storage.dbObject = function(DB) {
                     return;
                 }
                 setTimeout(function() {
-                    go.Storage.get(storeName, key, callback);
+                    self.get(storeName, key, callback);
                 }, 10);
                 go.Storage.failCount[DB] += 1;
                 return;
