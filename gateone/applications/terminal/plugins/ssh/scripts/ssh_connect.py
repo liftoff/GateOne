@@ -471,7 +471,7 @@ def openssh_connect(
     args = ['-c', script_path, '&&', 'rm', '-f', script_path]
     # if we detect /bin/sh linked to busybox then make sure we insert the 'sh'
     # at the beginning of the args list
-    if os.path.realpath('/bin/sh').endswith('busybox'):
+    if os.path.islink('/bin/sh'):
         args.insert(0, 'sh')
     os.execvpe('/bin/sh', args, env)
     os._exit(0)

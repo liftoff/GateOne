@@ -149,7 +149,7 @@ class SharedTermHandler(BaseHandler):
         if os.path.exists(minified_js_abspath):
             gateone_js = "%sstatic/gateone.min.js" % self.settings['url_prefix']
         index_path = resource_filename(
-            'gateone.applications.terminal', '/templates/index.html')
+            'gateone.applications.terminal', '/templates/share.html')
         self.render(
             index_path,
             share_id=share_id,
