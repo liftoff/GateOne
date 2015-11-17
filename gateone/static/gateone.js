@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20151103085733";
+GateOne.__commit__ = "20151112095820";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3173,11 +3173,17 @@ GateOne.Base.update(GateOne.Visual, {
 
         If *where* is undefined a new workspace will be created and the application chooser will be placed there.  If *where* is ``false`` the new application chooser element will be returned without placing it anywhere.
 
-        .. note:: The application chooser can be disabled by setting ``GateOne.prefs.showAppChooser = false`` or by passing 'go_prefs={"showAppChooser":false}' via the URL query string.
+        .. note:: The application chooser can be disabled by setting ``GateOne.prefs.showAppChooser = false`` or by passing 'go_prefs={"showAppChooser":false}' via the URL query string.  If ``GateOne.prefs.showAppChooser`` is an integer the application chooser will be prevented from being shown that many times before resuming the default behavior (shown).
         */
         logDebug("GateOne.Visual.appChooser()");
         if (!go.prefs.showAppChooser) {
             return;
+        }
+        if (!(isNaN(go.prefs.showAppChooser))) { // It's a number
+            go.prefs.showAppChooser -= 1;
+            if (go.prefs.showAppChooser <= 0) {
+                go.prefs.showAppChooser = true; // Reset to default (show)
+            }
         }
         var u = go.Utils,
             v = go.Visual,
