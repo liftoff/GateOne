@@ -12,18 +12,19 @@ Hooks
 This Python plugin file implements the following hooks::
 
     hooks = {
-        'Web': [(r"/ssh", KnownHostsHandler)],
         'WebSocket': {
-            'ssh_get_connect_string': get_connect_string,
-            'ssh_execute_command': ws_exec_command,
-            'ssh_get_identities': get_identities,
-            'ssh_get_public_key': get_public_key,
-            'ssh_get_private_key': get_private_key,
-            'ssh_get_host_fingerprint': get_host_fingerprint,
-            'ssh_gen_new_keypair': generate_new_keypair,
-            'ssh_store_id_file': store_id_file,
-            'ssh_delete_identity': delete_identity,
-            'ssh_set_default_identities': set_default_identities
+            'terminal:ssh_get_known_hosts': get_known_hosts,
+            'terminal:ssh_save_known_hosts': save_known_hosts,
+            'terminal:ssh_get_connect_string': get_connect_string,
+            'terminal:ssh_execute_command': ws_exec_command,
+            'terminal:ssh_get_identities': get_identities,
+            'terminal:ssh_get_public_key': get_public_key,
+            'terminal:ssh_get_private_key': get_private_key,
+            'terminal:ssh_get_host_fingerprint': get_host_fingerprint,
+            'terminal:ssh_gen_new_keypair': generate_new_keypair,
+            'terminal:ssh_store_id_file': store_id_file,
+            'terminal:ssh_delete_identity': delete_identity,
+            'terminal:ssh_set_default_identities': set_default_identities
         },
         'Escape': opt_esc_handler,
         'Events': {
@@ -76,7 +77,6 @@ VALID_PRIVATE_KEY = valid = re.compile(
     re.MULTILINE|re.DOTALL)
 TIMER = None # Used to store temporary, cancellable timeouts
 # TODO: make execute_command() a user-configurable option...  So it will automatically run whatever command(s) the user likes whenever they connect to a given server.  Differentiate between when they connect and when they start up a master or slave channel.
-# TODO: Make it so that equivalent KnownHostsHandler functionality works over the WebSocket.
 
 # Exceptions
 class SSHMultiplexingException(Exception):
@@ -381,60 +381,109 @@ def ws_exec_command(self, settings):
         self.write_message(message)
 
 # Handlers
-class KnownHostsHandler(BaseHandler):
-    """
-    This handler allows the client to view, edit, and upload the known_hosts
-    file associated with their user account.
-    """
-    @tornado.web.authenticated
-    def get(self):
-        """
-        Determine what the user is asking for and call the appropriate method.
-        """ # NOTE: Just dealing with known_hosts for now but keys are next
-        get_kh = self.get_argument('known_hosts', None)
-        if get_kh:
-            self._return_known_hosts()
+#class KnownHostsHandler(BaseHandler):
+    #"""
+    #This handler allows the client to view, edit, and upload the known_hosts
+    #file associated with their user account.
+    #"""
+    #@tornado.web.authenticated
+    #def get(self):
+        #"""
+        #Determine what the user is asking for and call the appropriate method.
+        #""" # NOTE: Just dealing with known_hosts for now but keys are next
+        #get_kh = self.get_argument('known_hosts', None)
+        #if get_kh:
+            #self._return_known_hosts()
 
-    @tornado.web.authenticated
-    def post(self):
-        """
-        Determine what the user is updating by checking the given arguments and
-        proceed with the update.
-        """
-        known_hosts = self.get_argument('known_hosts', None)
-        if known_hosts:
-            kh = self.request.body
-            self._save_known_hosts(kh)
+    #@tornado.web.authenticated
+    #def post(self):
+        #"""
+        #Determine what the user is updating by checking the given arguments and
+        #proceed with the update.
+        #"""
+        #known_hosts = self.get_argument('known_hosts', None)
+        #if known_hosts:
+            #kh = self.request.body
+            #self._save_known_hosts(kh)
 
-    def _return_known_hosts(self):
-        """Returns the user's known_hosts file in text/plain format."""
-        user = self.current_user['upn']
-        ssh_log.debug("known_hosts requested by %s" % user)
-        users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
-        users_ssh_dir = os.path.join(users_dir, '.ssh')
-        kh_path = os.path.join(users_ssh_dir, 'known_hosts')
-        known_hosts = ""
-        if os.path.exists(kh_path):
-            known_hosts = open(kh_path).read()
-        self.set_header ('Content-Type', 'text/plain')
-        self.write(known_hosts)
+    #def _return_known_hosts(self):
+        #"""Returns the user's known_hosts file in text/plain format."""
+        #user = self.current_user['upn']
+        #ssh_log.debug("known_hosts requested by %s" % user)
+        #users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+        #users_ssh_dir = os.path.join(users_dir, '.ssh')
+        #kh_path = os.path.join(users_ssh_dir, 'known_hosts')
+        #known_hosts = ""
+        #if os.path.exists(kh_path):
+            #known_hosts = open(kh_path).read()
+        #self.set_header ('Content-Type', 'text/plain')
+        #self.write(known_hosts)
 
-    def _save_known_hosts(self, known_hosts):
-        """Save the given *known_hosts* file."""
-        user = self.current_user['upn']
-        users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
-        users_ssh_dir = os.path.join(users_dir, '.ssh')
-        kh_path = os.path.join(users_ssh_dir, 'known_hosts')
-        # Letting Tornado's exception handler deal with errors here
-        with io.open(kh_path, 'wb') as f:
-            f.write(known_hosts)
-        self.write("success")
+    #def _save_known_hosts(self, known_hosts):
+        #"""Save the given *known_hosts* file."""
+        #print("known_hosts: %s" % known_hosts)
+        #user = self.current_user['upn']
+        #users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+        #users_ssh_dir = os.path.join(users_dir, '.ssh')
+        #if not os.path.isdir(users_ssh_dir): # Make .ssh dir if not present
+            #mkdir_p(users_ssh_dir)
+            #os.chmod(users_ssh_dir, 0o700)
+        #kh_path = os.path.join(users_ssh_dir, 'known_hosts')
+        ## Letting Tornado's exception handler deal with errors here
+        #with io.open(kh_path, 'wb') as f:
+            #print("Writing known hosts: %s" % kh_path)
+            #f.write(known_hosts)
+        #self.write("success")
 
 """
 WebSocket Commands
 ------------------
 """
 # WebSocket commands (not the same as handlers)
+def get_known_hosts(self):
+    """
+    Attached to the (server-side) `terminal:ssh_get_known_hosts` WebSocket
+    action; returns the current user's known_hosts file.
+    """
+    user = self.current_user['upn']
+    ssh_log.debug("known_hosts requested by %s" % user)
+    users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+    users_ssh_dir = os.path.join(users_dir, '.ssh')
+    kh_path = os.path.join(users_ssh_dir, 'known_hosts')
+    known_hosts = ""
+    if os.path.exists(kh_path):
+        known_hosts = open(kh_path).read()
+    message = {
+        'terminal:sshjs_known_hosts': {
+            'known_hosts': known_hosts
+        }
+    }
+    self.write_message(message)
+
+def save_known_hosts(self, known_hosts):
+    """
+    Attached to the (server-side) `terminal:ssh_save_known_hosts` WebSocket
+    action; saves the given *known_hosts* (string) to the user's known_hosts
+    file.
+    """
+    user = self.current_user['upn']
+    ssh_log.debug("known_hosts updated by %s" % user)
+    users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+    users_ssh_dir = os.path.join(users_dir, '.ssh')
+    if not os.path.isdir(users_ssh_dir): # Make .ssh dir if not present
+        mkdir_p(users_ssh_dir)
+        os.chmod(users_ssh_dir, 0o700)
+    kh_path = os.path.join(users_ssh_dir, 'known_hosts')
+    try:
+        with io.open(kh_path, 'wb') as f:
+            f.write(known_hosts)
+    except Exception as e:
+        error_msg = _("Exception trying to save known_hosts file: %s" % e)
+        ssh_log.error(error_msg)
+        self.write_message(_(
+            "An error was encountered trying to save the known_hosts file.  "
+            "See server logs for details."))
+
 def get_connect_string(self, term):
     """
     Attached to the (server-side) `terminal:ssh_get_connect_string` WebSocket
@@ -1161,8 +1210,10 @@ def initialize(self):
     self.on('terminal:authenticate', bind(create_user_ssh_dir, self))
 
 hooks = {
-    'Web': [(r"/ssh", KnownHostsHandler)],
+    #'Web': [(r"/ssh", KnownHostsHandler)],
     'WebSocket': {
+        'terminal:ssh_get_known_hosts': get_known_hosts,
+        'terminal:ssh_save_known_hosts': save_known_hosts,
         'terminal:ssh_get_connect_string': get_connect_string,
         'terminal:ssh_execute_command': ws_exec_command,
         'terminal:ssh_get_identities': get_identities,

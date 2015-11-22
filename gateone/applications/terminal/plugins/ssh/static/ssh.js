@@ -39,6 +39,7 @@ go.Base.update(go.SSH, {
             GateOne.Net.addAction('terminal:sshjs_delete_identity_complete', GateOne.SSH.deleteCompleteAction);
             GateOne.Net.addAction('terminal:sshjs_cmd_output', GateOne.SSH.commandCompleted);
             GateOne.Net.addAction('terminal:sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
+            GateOne.Net.addAction('terminal:sshjs_known_hosts', GateOne.SSH.handleKnownHosts);
             GateOne.Events.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         */
         var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
@@ -81,7 +82,8 @@ go.Base.update(go.SSH, {
             };
         prefsPanelKnownHosts.innerHTML = gettext("Edit Known Hosts");
         prefsPanelKnownHosts.onclick = function() {
-            u.xhrGet(go.prefs.url+'ssh?known_hosts=True', go.SSH.updateKH);
+            // Ask the server to send us the known_hosts file:
+            go.ws.send(JSON.stringify({"terminal:ssh_get_known_hosts": null}));
         }
         infoPanelManageIdentities.innerHTML = gettext("Manage Identities");
         infoPanelManageIdentities.onclick = function() {
@@ -134,6 +136,7 @@ go.Base.update(go.SSH, {
         go.Net.addAction('terminal:sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('terminal:sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('terminal:sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
+        go.Net.addAction('terminal:sshjs_known_hosts', go.SSH.handleKnownHosts);
         if (!go.prefs.broadcastTerminal) {
             E.on("terminal:new_terminal", go.SSH.autoConnect);
             E.on("terminal:new_terminal", go.SSH.getConnectString);
@@ -1102,19 +1105,21 @@ go.Base.update(go.SSH, {
         }
         go.Terminal.newTerminal();
     },
-    updateKH: function(known_hosts) {
-        /**:GateOne.SSH.updateKH(known_hosts)
+    handleKnownHosts: function(message) {
+        /**:GateOne.SSH.handleKnownHosts(message)
 
-        Updates the sshKHTextArea with the given *known_hosts* file.
-
-        .. note:: Meant to be used as a callback function passed to :js:meth:`GateOne.Utils.xhrGet`.
+        Updates the sshKHTextArea with the contents of *message['known_hosts']*.
         */
         var sshKHTextArea = u.getNode('#'+prefix+'ssh_kh_textarea'),
+            storeEditor = function(cm) {
+                // Stores the instance of CodeMirror as GateOne.SSH.khEditor
+                go.SSH.khEditor = cm;
+            },
             enableEditor = function() {
                 // Add the Editor so we get line numbers
-                go.Editor.fromTextArea(u.getNode("#go_default_ssh_kh_textarea"), { lineNumbers: true, lineWrapping: true, tabindex: 1, autofocus: true });
+                go.Editor.fromTextArea(u.getNode("#go_default_ssh_kh_textarea"), {lineNumbers: true, lineWrapping: true, tabindex: 1, autofocus: true}, storeEditor);
             };
-        sshKHTextArea.value = known_hosts;
+        sshKHTextArea.value = message.known_hosts;
         // Now show the panel
         v.togglePanel('#'+prefix+'panel_known_hosts', enableEditor);
     },
@@ -1154,28 +1159,11 @@ go.Base.update(go.SSH, {
         form.onsubmit = function(e) {
             // Submit the modified known_hosts file to the server and notify when complete
             e.preventDefault(); // Don't actually submit
-            var kh = u.getNode('#'+prefix+'ssh_kh_textarea').value,
-                xhr = new XMLHttpRequest(),
-                handleStateChange = function(e) {
-                    var status = null;
-                    try {
-                        status = parseInt(e.target.status);
-                    } catch(e) {
-                        return;
-                    }
-                    if (e.target.readyState == 4 && status == 200 && e.target.responseText) {
-                        v.displayMessage(gettext("SSH Plugin: known_hosts saved."));
-                        // Hide the panel
-                        v.togglePanel('#'+prefix+'panel_known_hosts');
-                    }
-                };
-            if (xhr.addEventListener) {
-                xhr.addEventListener('readystatechange', handleStateChange, false);
-            } else {
-                xhr.onreadystatechange = handleStateChange;
-            }
-            xhr.open('POST', go.prefs.url+'ssh?known_hosts=True', true);
-            xhr.send(kh);
+            var kh = GateOne.SSH.khEditor.getValue();
+            go.ws.send(JSON.stringify({'terminal:ssh_save_known_hosts': kh}));
+            v.displayMessage(gettext("SSH Plugin: known_hosts saved."));
+            // Hide the panel
+            v.togglePanel('#'+prefix+'panel_known_hosts');
         }
         form.appendChild(sshHeader);
         form.appendChild(sshKHTextArea);
@@ -1198,25 +1186,35 @@ go.Base.update(go.SSH, {
         The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
         */
         // Example message: {"sshjs_display_fingerprint": {"result": "Success", "fingerprint": "cc:2f:b9:4f:f6:c0:e5:1d:1b:7a:86:7b:ff:86:97:5b"}}
+        console.log('message:', message);
         if (message['result'] == 'Success') {
             var fingerprint = message['fingerprint'],
                 hexes = fingerprint.split(':'),
                 text = '',
                 colorized = '',
-                count = 0;
-            colorized += '<span style="color: #';
-            hexes.forEach(function(hex) {
-                if (count == 3 || count == 6 || count == 9 || count == 12) {
-                    colorized += '">' + text + '</span><span style="color: #' + hex;
-                    text = hex;
-                } else if (count == 15) {
-                    colorized += '">' + text + '</span><span style="text-decoration: underline">' + hex + '</span>';
-                } else {
-                    colorized += hex;
-                    text += hex;
-                }
-                count += 1;
-            });
+                count = 0,
+                temp;
+            if (fingerprint.indexOf('ECDSA') == -1) { // Old fashioned fingerprint
+                colorized += '<span style="color: #';
+                hexes.forEach(function(hex) {
+                    if (count == 3 || count == 6 || count == 9 || count == 12) {
+                        colorized += '">' + text + '</span><span style="color: #' + hex;
+                        text = hex;
+                    } else if (count == 15) {
+                        colorized += '">' + text + '</span><span style="text-decoration: underline">' + hex + '</span>';
+                    } else {
+                        colorized += hex;
+                        text += hex;
+                    }
+                    count += 1;
+                });
+            } else {
+                temp = fingerprint.split(':')[1]; // Just the fingerprint part
+                colorized = fingerprint.split(':')[0] + ':<br>' + temp.substring(0, temp.length - 8); // All but the last 8 chars which we'll highlight
+                colorized += '<span style="color: #0ACD24">'; // A nice bright green for the last few bits
+                colorized += temp.substr(temp.length - 8);
+                colorized += '</span>';
+            }
             v.displayMessage('<i>' + message['host'] + '</i>: ' + colorized);
         }
     },
