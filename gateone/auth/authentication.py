@@ -2,13 +2,7 @@
 #
 #       Copyright 2013 Liftoff Software Corporation
 #
-
-# Meta
-__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-
-__doc__ = """\
-.. _auth.py:
+""".. _auth.py:
 
 Authentication
 ==============
@@ -73,10 +67,14 @@ Docstrings
 """
 
 # Import stdlib stuff
-import os, re, logging, json
+import os
+import re
+import logging
+import json
 try:
     from urllib import quote
-except ImportError: # Python 3
+except ImportError:
+    # Python 3
     from urllib.parse import quote
 
 # Import our own stuff
@@ -94,14 +92,20 @@ import tornado.httpclient
 import tornado.gen
 from tornado.options import options
 
+# Meta
+__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
+__author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
+
 # Localization support
 _ = get_translation()
 
 # Globals
-SETTINGS_CACHE = {} # Lists of settings files and their modification times
+# Lists of settings files and their modification times
 # The security stuff below is a work-in-progress.  Likely to change all around.
+SETTINGS_CACHE = {}
 
 auth_log = go_logger('gateone.auth')
+
 
 # Helper functions
 def additional_attributes(user, settings_dir=None):
@@ -131,11 +135,11 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         expiration = self.settings.get('auth_timeout', "14d")
         # Need the expiration in days (which is a bit silly but whatever):
         expiration = (
-            float(total_seconds(convert_to_timedelta(expiration)))
-            / float(86400))
+            float(total_seconds(convert_to_timedelta(expiration))) / 86400.0)
         user_json = self.get_secure_cookie(
             "gateone_user", max_age_days=expiration)
-        if not user_json: return None
+        if not user_json:
+            return None
         user = tornado.escape.json_decode(user_json)
         # Add the IP attribute
         user['ip_address'] = self.request.remote_ip
@@ -146,14 +150,15 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         Called immediately after a user authenticates successfully.  Saves
         session information in the user's directory.  Expects *user* to be a
         dict containing a 'upn' value representing the username or
-        userPrincipalName. e.g. 'user@REALM' or just 'someuser'.  Any additional
-        values will be attached to the user object/cookie.
+        userPrincipalName. e.g. 'user@REALM' or just 'someuser'.
+        Any additional values will be attached to the user object/cookie.
         """
         logging.debug("user_login(%s)" % user['upn'])
         user.update(additional_attributes(user))
         # Make a directory to store this user's settings/files/logs/etc
         try:
-            # NOTE: These bytes checks are for Python 2 (not needed in Python 3)
+            # NOTE: These bytes checks are for Python 2
+            # (not needed in Python 3)
             upn = user['upn']
             if isinstance(user['upn'], bytes):
                 upn = user['upn'].decode('utf-8')
@@ -177,8 +182,9 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             session_data = open(session_file).read()
             try:
                 session_info = tornado.escape.json_decode(session_data)
-            except ValueError: # Something wrong with the file
-                session_file_exists = False # Overwrite it below
+            except ValueError:
+                # Something wrong with the file, overwrite it below
+                session_file_exists = False
         if not session_file_exists:
             with open(session_file, 'w') as f:
                 # Save it so we can keep track across multiple clients
@@ -206,6 +212,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         else:
             self.write(self.settings['url_prefix'])
             self.finish()
+
 
 class NullAuthHandler(BaseAuthHandler):
     """
@@ -263,10 +270,11 @@ class NullAuthHandler(BaseAuthHandler):
         self.set_secure_cookie(
             "gateone_user", tornado.escape.json_encode(session_info))
 
+
 class APIAuthHandler(BaseAuthHandler):
     """
-    A handler that always reports 'unauthenticated' since API-based auth doesn't
-    use auth handlers.
+    A handler that always reports 'unauthenticated'
+    since API-based auth doesn't use auth handlers.
     """
     @tornado.web.asynchronous
     def get(self):
@@ -341,9 +349,8 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleOAuth2Mixin):
                 raise tornado.web.HTTPError(500, 'Google auth failed')
             access_token = str(user['access_token'])
             http_client = self.get_auth_http_client()
-            response =  yield http_client.fetch(
-                'https://www.googleapis.com/oauth2/v1/userinfo?access_token='
-                +access_token)
+            url = 'https://www.googleapis.com/oauth2/v1/userinfo?access_token='
+            response = yield http_client.fetch(url + access_token)
             if not response:
                 self.clear_all_cookies()
                 raise tornado.web.HTTPError(500, 'Google auth failed')
@@ -376,13 +383,15 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleOAuth2Mixin):
         #    'id': '999999999999999999999',
         #    'family_name': 'Schmoe',
         #    'link': 'https://plus.google.com/999999999999999999999'}
-        user['upn'] = user['email'] # Use the email for the upn
+        # Use the email for the upn
+        user['upn'] = user['email']
         self.user_login(user)
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
         else:
             self.redirect(self.settings['url_prefix'])
+
 
 class SSLAuthHandler(BaseAuthHandler):
     """
@@ -404,21 +413,26 @@ class SSLAuthHandler(BaseAuthHandler):
         a format more suitable for a user dict.
         """
         import re
-        # Can't have any of these in the upn because we name a directory with it
+        # Can't have any of these in the upn
+        # because we name a directory with it
         bad_chars = re.compile(r'[\/\\\$\;&`\!\*\?\|<>\n]')
-        user = {'notAfter': cert['notAfter']} # This one is the most direct
+        # This one is the most direct
+        user = {'notAfter': cert['notAfter']}
         for item in cert['subject']:
             for key, value in item:
                 user.update({key: value})
-        cn = user['commonName'] # Use the commonName as the UPN
-        cn = bad_chars.sub('.', cn) # Replace bad chars with dots
+        # Use the commonName as the UPN
+        cn = user['commonName']
+        # Replace bad chars with dots
+        cn = bad_chars.sub('.', cn)
         # Try to use the 'issuer' to add more depth to the CN
-        if 'issuer' in cert: # This will only be there if you're using Python 3
+        # This will only be there if you're using Python 3
+        if 'issuer' in cert:
             for item in cert['issuer']:
                 for key, value in item:
                     if key == 'organizationName':
-                        # Yeah this can get long but that's OK (it's better than
-                        # conflicts)
+                        # Yeah this can get long but that's OK
+                        # (it's better than conflicts)
                         cn = "%s@%s" % (cn, value)
                         break
                         # Should wind up as something like this:
@@ -437,7 +451,7 @@ class SSLAuthHandler(BaseAuthHandler):
         """
         check = self.get_argument("check", None)
         if check:
-            self.set_header ('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Origin', '*')
             user = self.get_current_user()
             if user:
                 logging.debug('SSLAuthHandler: user is authenticated')
@@ -470,6 +484,7 @@ class SSLAuthHandler(BaseAuthHandler):
 KerberosAuthHandler = None
 try:
     from gateone.auth.sso import KerberosAuthMixin
+
     class KerberosAuthHandler(BaseAuthHandler, KerberosAuthMixin):
         """
         Handles authenticating users via Kerberos/GSSAPI/SSO.
@@ -478,8 +493,8 @@ try:
         def get(self):
             """
             Checks the user's request header for the proper Authorization data.
-            If it checks out the user will be logged in via _on_auth().  If not,
-            the browser will be redirected to login.
+            If it checks out the user will be logged in via _on_auth().
+            If not, the browser will be redirected to login.
             """
             check = self.get_argument("check", None)
             self.set_header('Access-Control-Allow-Origin', '*')
@@ -489,7 +504,8 @@ try:
                     logging.debug('KerberosAuthHandler: user is authenticated')
                     self.write('authenticated')
                 else:
-                    logging.debug('KerberosAuthHandler: user is NOT authenticated')
+                    logging.debug('KerberosAuthHandler: '
+                                  'user is NOT authenticated')
                     self.write('unauthenticated')
                 self.finish()
                 return
@@ -512,19 +528,22 @@ try:
             user = {'upn': user}
             # This takes care of the user's settings dir and their session info
             self.user_login(user)
-            # TODO: Add some LDAP or local DB lookups here to add more detail to user objects
+            # TODO: Add some LDAP or local DB lookups here
+            # to add more detail to user objects
             next_url = self.get_argument("next", None)
             if next_url:
                 self.redirect(next_url)
             else:
                 self.redirect(self.settings['url_prefix'])
 except ImportError:
-    pass # No SSO available.
+    # No SSO available.
+    pass
 
 # Add our PAMAuthHandler if it's available
 PAMAuthHandler = None
 try:
     from gateone.auth.pam import PAMAuthMixin
+
     class PAMAuthHandler(BaseAuthHandler, PAMAuthMixin):
         """
         Handles authenticating users via PAM.
@@ -533,8 +552,8 @@ try:
         def get(self):
             """
             Checks the user's request header for the proper Authorization data.
-            If it checks out the user will be logged in via _on_auth().  If not,
-            the browser will be redirected to login.
+            If it checks out the user will be logged in via _on_auth().
+            If not, the browser will be redirected to login.
             """
             check = self.get_argument("check", None)
             self.set_header('Access-Control-Allow-Origin', '*')
@@ -574,13 +593,16 @@ try:
             else:
                 self.redirect(self.settings['url_prefix'])
 except ImportError:
-    pass # No PAM auth available.
+    # No PAM auth available.
+    pass
+
 
 class CASAuthHandler(BaseAuthHandler):
     """
     CAS authentication handler.
     """
     cas_user_regex = re.compile(r'<cas:user>(.*)</cas:user>')
+
     def initialize(self):
         """
         Print out helpful error messages if the requisite settings aren't
@@ -606,7 +628,7 @@ class CASAuthHandler(BaseAuthHandler):
             url_prefix=self.settings['url_prefix'])
         check = self.get_argument("check", None)
         if check:
-            self.set_header ('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Origin', '*')
             user = self.get_current_user()
             if user:
                 logging.debug('CASAuthHandler: user is authenticated')
@@ -645,14 +667,16 @@ class CASAuthHandler(BaseAuthHandler):
             cas_server += '/'
         service_url = "%sauth" % self.base_url
         next_url = self.get_argument('next', None)
-	next_param = ""
-	if next_url:
-		next_param = "?next=" + quote(next_url)
-        redirect_url = '%slogin?service=%s%s' % (cas_server, quote(service_url), quote(next_param))
-        logging.debug("Redirecting to CAS URL: %s" % redirect_url)
-        self.redirect(redirect_url)
-        if callback:
-            callback()
+        next_param = ""
+        if next_url:
+            next_param = "?next=" + quote(next_url)
+            redirect_url = ('%slogin?service=%s%s'
+                            % (cas_server, quote(service_url),
+                               quote(next_param)))
+            logging.debug("Redirecting to CAS URL: %s" % redirect_url)
+            self.redirect(redirect_url)
+            if callback:
+                callback()
 
     def get_authenticated_user(self, server_ticket):
         """
@@ -666,23 +690,19 @@ class CASAuthHandler(BaseAuthHandler):
         if not cas_server.endswith('/'):
             cas_server += '/'
         service_url = "%sauth" % self.base_url
-        #validate the ST
+        # validate the ST
         validate_suffix = 'proxyValidate'
         if cas_version == 1:
             validate_suffix = 'validate'
         next_url = self.get_argument('next', None)
-	next_param = ""
-	if next_url:
-		next_param = "?next=" + quote(next_url)
-        validate_url = (
-            cas_server +
-            validate_suffix +
-            '?service=' +
-            quote(service_url) +
-	    quote(next_param) +
-            '&ticket=' +
-            quote(server_ticket)
-        )
+        next_param = ""
+        if next_url:
+            next_param = "?next=" + quote(next_url)
+            validate_url = (cas_server + validate_suffix +
+                            '?service=' + quote(service_url) +
+                            quote(next_param) +
+                            '&ticket=' + quote(server_ticket)
+                            )
         logging.debug("Fetching CAS URL: %s" % validate_url)
         validate_cert = False
         if ca_certs:
