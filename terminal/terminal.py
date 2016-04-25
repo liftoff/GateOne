@@ -166,9 +166,9 @@ except ImportError: # Python <2.7 didn't have OrderedDict in collections
         sys.exit(1)
 try:
     from itertools import imap, izip
-except ImportError:  # Python 3 doesn't have imap or izip in itertool
-    imap = map
-    izip = zip
+    pass
+except ImportError: # Python 3 doesn't have imap or izip in itertool
+    imap, izip = map, zip
 try:
     xrange = xrange
 except NameError:  # Python 3 doesn't have xrange()
