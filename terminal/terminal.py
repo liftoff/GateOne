@@ -178,7 +178,8 @@ except NameError:  # Python 3 doesn't have basestring
     basestring = (str, bytes)
 try:
     from itertools import imap, izip
-except ImportError:  # Python 3 doesn't have imap or izip in itertool
+except ImportError:
+    # Python 3 doesn't have imap or izip in itertool
     imap, izip = map, zip
 
 # Inernationalization support
