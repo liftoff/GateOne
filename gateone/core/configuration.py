@@ -3,6 +3,8 @@
 #       Copyright 2013 Liftoff Software Corporation
 
 # Meta
+from gateone.core.utils import ProcessLock
+
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __doc__ = """
 .. _settings.py:
@@ -956,6 +958,7 @@ def remove_trailing_commas(json_like):
     """
     return trailing_commas_re.sub("}", json_like)
 
+
 def get_settings(path, add_default=True):
     """
     Reads any and all *.conf files containing JSON (JS-style comments are OK)
@@ -1024,6 +1027,29 @@ def get_settings(path, add_default=True):
                     # Couldn't parse the exception message for line/column info
                     pass # No big deal; the user will figure it out eventually
     return settings
+
+
+def get_api_keys(options):
+    """
+    Reads only 30api_keys.conf files containing JSON (JS-style comments are OK)
+    inside *path* and returns them as an :class:`RUDict`.  Optionally, *path*
+    may be a specific file (as opposed to just a directory).
+    """
+    api_keys_conf = os.path.join(options.settings_dir, '30api_keys.conf')
+    api_keys = {}
+    ProcessLock.lock(options.session_dir)
+    with io.open(api_keys_conf, encoding='utf-8') as f:
+        # Remove comments
+        almost_json = remove_comments(f.read())
+        proper_json = remove_trailing_commas(almost_json)
+        # Remove blank/empty lines
+        proper_json = os.linesep.join([
+            s for s in proper_json.splitlines() if s.strip()])
+
+        api_keys.update(json_decode(proper_json)['*']['gateone']['api_keys'])
+    ProcessLock.unlock()
+    return api_keys
+
 
 def options_to_settings(options):
     """

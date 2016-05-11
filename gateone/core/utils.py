@@ -1679,3 +1679,17 @@ def create_signature(*parts, **kwargs):
 if MACOS or OPENBSD: # Apply BSD-specific stuff
     kill_dtached_proc = kill_dtached_proc_bsd
     killall = killall_bsd
+
+
+class ProcessLock(object):
+
+    __lockfd = None
+
+    @staticmethod
+    def lock(session_dir):
+        ProcessLock.__lockfd = open(os.path.join(session_dir, 'processlock'), 'a+')
+        fcntl.flock(ProcessLock.__lockfd, fcntl.LOCK_EX)
+
+    @staticmethod
+    def unlock():
+        fcntl.flock(ProcessLock.__lockfd, fcntl.LOCK_UN)

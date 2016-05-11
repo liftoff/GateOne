@@ -409,7 +409,7 @@ from .utils import json_encode, recursive_chown, ChownError, get_or_cache
 from .utils import write_pid, read_pid, remove_pid, drop_privileges
 from .utils import check_write_permissions, valid_hostname
 from .utils import total_seconds, MEMO, bind
-from .configuration import apply_cli_overrides, define_options, SettingsError
+from .configuration import apply_cli_overrides, define_options, SettingsError, get_api_keys
 from .configuration import get_settings
 from onoff import OnOffMixin
 
@@ -1940,6 +1940,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.write_message(json_encode(reauth))
             return False
         try:
+            self.settings['api_keys'] = get_api_keys(options)
             secret = self.settings['api_keys'][api_key]
         except KeyError:
             self.auth_log.error(_(
