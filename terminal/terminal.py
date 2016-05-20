@@ -165,11 +165,6 @@ except ImportError: # Python <2.7 didn't have OrderedDict in collections
             "...or download it from http://pypi.python.org/pypi/ordereddict")
         sys.exit(1)
 try:
-    from itertools import imap, izip
-except ImportError:  # Python 3 doesn't have imap or izip in itertool
-    imap = map
-    izip = zip
-try:
     xrange = xrange
 except NameError:  # Python 3 doesn't have xrange()
     xrange = range
@@ -3716,7 +3711,10 @@ class Terminal(object):
 
             :coordinates: Should be something like, 'row;col' (1-based) but, 'row', 'row;', and ';col' are also valid (assumes 1 on missing value).
 
-        .. note:: If coordinates is '' (an empty string), the cursor will be moved to the top left (1;1).
+        .. note::
+
+            If coordinates is '' (an empty string), the cursor will be moved to
+            the top left (1;1).
         """
         # NOTE: Since this is 1-based we have to subtract 1 from everything to
         #       match how we store these values internally.

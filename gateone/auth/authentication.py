@@ -606,7 +606,7 @@ class CASAuthHandler(BaseAuthHandler):
             url_prefix=self.settings['url_prefix'])
         check = self.get_argument("check", None)
         if check:
-            self.set_header ('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Origin', '*')
             user = self.get_current_user()
             if user:
                 logging.debug('CASAuthHandler: user is authenticated')
@@ -645,9 +645,9 @@ class CASAuthHandler(BaseAuthHandler):
             cas_server += '/'
         service_url = "%sauth" % self.base_url
         next_url = self.get_argument('next', None)
-	next_param = ""
-	if next_url:
-		next_param = "?next=" + quote(next_url)
+        next_param = ""
+        if next_url:
+            next_param = "?next=" + quote(next_url)
         redirect_url = '%slogin?service=%s%s' % (cas_server, quote(service_url), quote(next_param))
         logging.debug("Redirecting to CAS URL: %s" % redirect_url)
         self.redirect(redirect_url)
@@ -671,15 +671,15 @@ class CASAuthHandler(BaseAuthHandler):
         if cas_version == 1:
             validate_suffix = 'validate'
         next_url = self.get_argument('next', None)
-	next_param = ""
-	if next_url:
-		next_param = "?next=" + quote(next_url)
+        next_param = ""
+        if next_url:
+            next_param = "?next=" + quote(next_url)
         validate_url = (
             cas_server +
             validate_suffix +
             '?service=' +
             quote(service_url) +
-	    quote(next_param) +
+            quote(next_param) +
             '&ticket=' +
             quote(server_ticket)
         )
