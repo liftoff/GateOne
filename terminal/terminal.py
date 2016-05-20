@@ -152,6 +152,7 @@ from array import array
 from datetime import datetime, timedelta
 from functools import partial
 from collections import defaultdict
+from itertools import imap, izip
 try:
     from collections import OrderedDict
 except ImportError: # Python <2.7 didn't have OrderedDict in collections
