@@ -573,6 +573,7 @@ GateOne.Base.update(GateOne.Input, {
 
         In the example above the ``GateOne.Visual.slideLeft`` function would only be executed if ``myCheckFunction()`` returned ``true`` and if 'GateOne.Terminal.MyPlugin.isAlive' existed and also evaluated to ``true``.
         */
+        go.Logging.deprecated("GateOne.Input.registerShortcut", gettext("Use GateOne.Events.on() with keydown or keyup events like 'go:keydown:<key/keystroke>' instead."));
         var match, conditionsMatch, overwrote;
         // Add any missing modifiers so we can perform easy true/false checks
         shortcutObj.modifiers.altgr = shortcutObj.modifiers.altgr || false;
@@ -639,6 +640,7 @@ GateOne.Base.update(GateOne.Input, {
 
         .. note:: This function only matters when Gate One is embedded into another application.
         */
+        go.Logging.deprecated("GateOne.Input.registerGlobalShortcut", gettext("Use GateOne.Events.on() with keydown or keyup events like 'go:keydown:<key/keystroke>' instead."));
         var match, overwrote;
         // Add any missing modifiers so we can perform easy true/false checks
         shortcutObj.modifiers.altgr = shortcutObj.modifiers.altgr || false;

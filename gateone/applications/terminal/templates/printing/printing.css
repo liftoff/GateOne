@@ -13,7 +13,7 @@ hr {
     background-color: white;
     padding: 0;
     z-index: 0;
-    font-size: 0.8em;
+    font-size: 1em;
     color: black;
     width: 100%;
     margin: 0;
@@ -46,7 +46,7 @@ textarea {
 }
 .✈terminal_pre {
     font-family: monospace;
-    font-size: 1em;
+    font-size: 12pt;
     line-height: 1;
     width: 100%;
     overflow: visible;
@@ -55,15 +55,22 @@ textarea {
     margin: 0;
     padding: 0;
     float: none;
-    white-space: pre-wrap;
+    white-space: normal;
     -webkit-transform: none !important;
     -moz-transform: none !important;
     -ms-transform: none !important;
     -o-transform: none !important;
     transform: none !important;
+    page-break-inside: avoid;
 }
+.✈terminal_pre span:empty { display: none; }
+.✈terminal_pre span { white-space: pre-wrap; }
+/* Commented this out because it doesn't seem to work to hide empty scrollback lines: */
+/*span.✈scrollback { white-space: normal; }
+span.✈sbline:after { content: "\a"; }*/
 span.cursor { color: #fff; background-color: #000; }
 span.reverse { background-color: #aaa; color: #fff; }
+.✈grid { width: 100% !important; }
 .✈toolbar {
     display: none;
 }
@@ -98,16 +105,16 @@ span.reverse { background-color: #aaa; color: #fff; }
     -o-transform-origin: right top;
     transform: rotate(90deg);
     transform-origin: right top;
-    right: 1em; /* This will get overridden by a px value calculated based on the width of the scrollbar */
+    right: 0;
     bottom: 0;
     color: black;
-    position: absolute;
+    display: inline;
     font-family: sans-serif;
     font-style: italic;
-    font-size: 1.3em;
+    font-size: 24pt;
     opacity: 0.5;
     font-weight: bold;
-    margin-bottom: -1em;
+    margin-bottom: 0.5em;
     z-index: 10;
 }
 .✈notice {
@@ -293,6 +300,9 @@ span.reverse { background-color: #aaa; color: #fff; }
     text-align: right;
     vertical-align: top;
     width: 50%; /* Ensures things are centered */
+}
+.✈IME {
+    display: none !important; /* Hide the input method entry field */
 }
 /* SVG Styling */
 .✈stop1 { stop-color: #636466; }

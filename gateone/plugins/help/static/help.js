@@ -81,13 +81,8 @@ GateOne.Base.update(GateOne.Help, {
             v.togglePanel('#'+GateOne.prefs.prefix+'panel_help'); // Scale away, scale away, scale away.
         }
         if (!go.prefs.embedded) {
-            // Register our keyboard shortcut (Alt-F1)
-            I.registerShortcut('KEY_F1',
-                {'modifiers':
-                    {'ctrl': false, 'alt': false, 'meta': false, 'shift': true},
-                    'action': 'GateOne.Help.showHelp();'
-                }
-            );
+            // Register our keyboard shortcut (Shift-F1)
+            E.on("go:keydown:shift-f1", function() { GateOne.Help.showHelp(); });
         }
     },
     aboutGateOne: function() { //

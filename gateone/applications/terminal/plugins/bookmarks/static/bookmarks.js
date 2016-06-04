@@ -167,7 +167,7 @@ go.Base.update(GateOne.Bookmarks, {
         go.Net.addAction('terminal:bookmarks_renamed_tags', b.tagRenameComplete);
         // Setup a keyboard shortcut so bookmarks can be keyboard-navigable
         if (!go.prefs.embedded) {
-            go.Input.registerGlobalShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
+            E.on("go:keydown:ctrl-alt-b", toggleBookmarks);
             // Setup a callback that synchronizes the user's bookmarks everything is done loading
             go.Events.on("go:js_loaded", b.userLoginSync);
         }

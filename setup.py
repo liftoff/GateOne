@@ -335,7 +335,7 @@ if PYTHON3:
         for path in sys.path:
             try:
                 files = os.listdir(path)
-            except NotADirectoryError:
+            except (NotADirectoryError, FileNotFoundError):
                 continue
             for f in files:
                 if 'gateone' in f: # Found an installation

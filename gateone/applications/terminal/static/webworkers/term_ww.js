@@ -115,8 +115,8 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
         }
     }
     for (var i=0; i<scrollback.length; i++) {
-        if (scrollback[i].indexOf("<span>") != 0) {
-            scrollback[i] = '<span>' + scrollback[i] + '</span>';
+        if (scrollback[i].indexOf("<span") != 0) {
+            scrollback[i] = '<span class="✈sbline">' + scrollback[i] + '</span>';
         }
     }
     textTransforms['contenteditable cursor'] = {

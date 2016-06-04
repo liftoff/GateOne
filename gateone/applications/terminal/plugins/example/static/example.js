@@ -58,7 +58,7 @@ go.Base.update(GateOne.Terminal.Example, { // Everything that we want to be avai
         }
         // Let's attach the load graph toggle to a keyboard shortcut too:
         if (!go.prefs.embedded) { // Only enable if not in embedded mode (best practices)
-            go.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.Example.toggleLoadGraph()'}); // L for 'load'
+            E.on("terminal:keydown:ctrl-alt-l", function() { Example.toggleLoadGraph(); }); // L for 'load'
         }
         // Add the 'top top' button (not going to bother with a keyboard shortcut on this one)
         infoPanelTopButton.innerHTML = "Top Widget";

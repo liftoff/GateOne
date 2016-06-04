@@ -142,7 +142,7 @@ go.Base.update(go.SSH, {
             E.on("terminal:new_terminal", go.SSH.getConnectString);
         }
         if (!go.prefs.embedded) {
-            go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
+            E.on("terminal:keydown:ctrl-alt-d", function() { go.SSH.duplicateSession(localStorage[prefix+"selectedTerminal"]); });
         }
     },
     postInit: function() {

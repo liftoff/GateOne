@@ -83,7 +83,7 @@ var loadGateOne = function() {
 	// NOTE: fontSize is set to 120% below because the liftoffsoftware.com Drupal theme has kind of a tiny default font size
         GateOne.init({'url': goURL, 'goDiv': '#gateone', 'fillContainer': false, 'theme': 'black', 'fontSize': '120%', 'style': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0, 'height': '100%', 'width': '100%', 'position': 'fixed', 'background-color': 'rgba(34, 34, 34, 0.85)', 'z-index': '100'}});
         GateOne.Base.superSandbox("terminal", ["GateOne.Input", "GateOne.Terminal", "GateOne.Terminal.Input"], function(window, undefined) {
-            GateOne.Input.registerShortcut('KEY_ESCAPE', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': false}, 'action': toggleGateOne});
+            GateOne.Events.on("go:keydown:esc", toggleGateOne);
             // Have to give the browser a moment to complete the init process before we disableCapture()
             GateOne.Terminal.Input.disableCapture();
             goDiv.style.opacity = 1; // No need to keep it like this once everything is done loading

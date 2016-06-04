@@ -623,7 +623,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.inputNode.value = ""; // Keep it empty until needed
             }
         }
-        E.trigger("terminal:onkeyup:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
+        E.trigger("terminal:keyup:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
     },
     onInput: function(e) {
         /**:GateOne.Terminal.Input.onInput(e)
@@ -654,7 +654,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // Global shortcuts take precedence
             return;
         }
-        E.trigger("terminal:onkeydown:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
+        E.trigger("terminal:keydown:" + I.humanReadableShortcut(key.string, modifiers).toLowerCase(), e);
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {

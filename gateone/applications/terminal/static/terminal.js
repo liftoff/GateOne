@@ -64,7 +64,7 @@ t.terminals = { // For keeping track of running terminals
     }
 };
 // These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
-t.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
+t.colAdjust = 4; // The scrollbar (4 chars of width is usually enough)
 t.rowAdjust = 0; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
@@ -375,22 +375,14 @@ go.Base.update(GateOne.Terminal, {
         }
         // Register our keyboard shortcuts
         if (!go.prefs.embedded) {
-            I.registerShortcut('KEY_P', {
-                    'modifiers': {'ctrl': false, 'alt': false, 'meta': true, 'shift': false},
-                    'action': 'GateOne.Terminal.printScreen();',
-                    'conditions': [go.Terminal.isActive] // So we don't clobber some other app's stuff
-                });
+            // Pseudo print dialog
+            E.on("terminal:keydown:meta-p", function() { GateOne.Terminal.printScreen(); });
             // Helpful message so the user doesn't get confused as to why their terminal stopped working:
-            I.registerShortcut('KEY_S', {
-                    'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();',
-                    'conditions': [go.Terminal.isActive] // So we don't display the message in other applications
-                });
+            E.on("terminal:keydown:ctrl-s", function() {
+                GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();
+            });
             // Ctrl-Alt-P to open a popup terminal
-            I.registerGlobalShortcut('KEY_P', {
-                    'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
-                    'action': 'GateOne.Terminal.popupTerm(null, {"global": false});' // May change to global: true later
-                });
+            E.on("go:keydown:ctrl-alt-p", function() { GateOne.Terminal.popupTerm(null, {"global": false}); });
             E.on("terminal:new_terminal", go.Terminal.showIcons);
             E.on("go:ws_transitionend", transitionEndFunc);
         }
@@ -409,7 +401,7 @@ go.Base.update(GateOne.Terminal, {
         logDebug(gettext("Attempting to download our WebWorker..."));
         go.ws.send(JSON.stringify({'terminal:get_webworker': null}));
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
-        go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
+        E.on("terminal:keydown:shift-insert", go.Terminal.paste);
         // Register our actions
         go.Net.addAction('terminal:commands_list', go.Terminal.enumerateCommandsAction);
         go.Net.addAction('terminal:fonts_list', go.Terminal.enumerateFontsAction);
@@ -1179,7 +1171,8 @@ go.Base.update(GateOne.Terminal, {
             screenSpan = go.Terminal.terminals[term].screenNode,
             terminalNode = go.Terminal.terminals[term].terminal,
             where = go.Terminal.terminals[term].where,
-            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust;
+            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
+            colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust;
         if (!termPre) {
             return; // Can happen for the same reason as above
         }
@@ -1191,10 +1184,10 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
 //                 termPre.style.height = 'auto'; // For some reason if you don't set this the terminal may appear waaay above where it is supposed to.
-                var nodeHeight = screenSpan.offsetHeight + (emDimensions.h * rowAdjust), // The +em height compensates for the presence of the playback controls
-                    nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
+                var nodeHeight = screenSpan.offsetHeight - (emDimensions.h * rowAdjust), // The +em height compensates for the presence of the playback controls
+                    nodeWidth = screenSpan.offsetWidth - (emDimensions.w * colAdjust); // Making room for the toolbar
                 if (nodeHeight < where.offsetHeight) { // Resize to fit
-                    var scaleY = (where.offsetHeight /(emDimensions.h * (go.prefs.rows + go.Terminal.rowAdjust))),
+                    var scaleY = (where.offsetHeight / (emDimensions.h * (go.prefs.rows + go.Terminal.rowAdjust))),
                         scaleX = (where.offsetWidth / (emDimensions.w * (go.prefs.columns + go.Terminal.colAdjust))),
                         transform = transform = "scale(" + scaleX + ", " + scaleY + ")";
                     v.applyTransform(termPre, transform);
@@ -1655,7 +1648,7 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is provided, the created terminal will use that number.
 
-        If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example::
+        If *settings* (object) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example::
 
             > // Creates a new terminal that spawns whatever command is set as 'login' in Gate One's settings:
             > GateOne.Terminal.newTerminal(null, {'command': 'login'});
@@ -1848,7 +1841,7 @@ go.Base.update(GateOne.Terminal, {
         } else {
             // Pre-fill the scrollback buffer so terminals stay bottom-aligned when scaled (hard-set rows/columns)
             for (var i=0; i<go.prefs.scrollback; i++) {
-                go.Terminal.terminals[term].scrollback[i] = ' \n';
+                go.Terminal.terminals[term].scrollback[i] = '';
             }
         }
         termPre.appendChild(screenSpan);
@@ -1969,7 +1962,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.switchTerminal(termNum);
         }
     },
-    popupTerm: function(/*opt*/term, /*opt*/options) {
+    popupTerm: function(/*opt*/term, /*opt*/options, /*opt*/termSettings) {
         /**:GateOne.Terminal.popupTerm([term])
 
         Opens a dialog with a terminal contained within.  If *term* is given the created terminal will use that number.
@@ -1980,6 +1973,8 @@ go.Base.update(GateOne.Terminal, {
             :where: If provided the popup terminal will be placed within the given element.
 
         If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.
+
+        If *termSettings* are provided they will be passed to :js:func:`GateOne.Terminal.newTerminal` when called.
         */
         term = term || go.Terminal.lastTermNumber + 1;
         options = options || {};
@@ -2009,6 +2004,7 @@ go.Base.update(GateOne.Terminal, {
                     E.off('terminal:term_closed', termQuitFunc);
                 }
             };
+        termSettings = termSettings || {};
         if (!where) { // If the location cannot be found just make a global pop-up terminal
             options.global = true;
         }
@@ -2018,7 +2014,15 @@ go.Base.update(GateOne.Terminal, {
         where = u.getNode(where);
         closeDialog = v.dialog("Pop-up Terminal", content, {'where': where, 'events': {'closed': closeFunc, 'resized': resizeFunc}, 'style': {'width': '60%', 'height': '50%'}, 'class': '✈popupterm'});
         E.on('terminal:term_closed', termQuitFunc);
-        go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup", 'where': where.id || where.className}, 'style': {'width': '100%', 'height': '100%'}}, content);
+        termSettings.noAdjust = true;
+        termSettings.metadata = termSettings.metadata || {};
+        termSettings.metadata.resumeEvent = "terminal:resume_popup";
+        termSettings.metadata.where = where.id || where.className;
+        termSettings.style = termSettings.style || {};
+        termSettings.style.width = '100%';
+        termSettings.style.height = '100%';
+//         go.Terminal.newTerminal(term, {'noAdjust': true, 'metadata': {'resumeEvent': "terminal:resume_popup", 'where': where.id || where.className}, 'style': {'width': '100%', 'height': '100%'}}, content);
+        go.Terminal.newTerminal(term, termSettings, content);
         setTimeout(function() {
             // popup terminals need a moment before they're ready for a dimensions check
             t.sendDimensions(term);
@@ -2250,16 +2254,16 @@ go.Base.update(GateOne.Terminal, {
         var term = term || localStorage[prefix+'selectedTerminal'],
             scrollbackHTML = "",
             scrollbackNode = go.Terminal.terminals[term].scrollbackNode;
-        if (scrollbackNode) {
-            scrollbackHTML = scrollbackNode.innerHTML;
-            scrollbackNode.innerHTML = ""; // Empty it out
-        }
+//         if (scrollbackNode) {
+//             scrollbackHTML = scrollbackNode.innerHTML;
+//             scrollbackNode.innerHTML = ""; // Empty it out
+//         }
         // The print dialog does strange things to the order of things in terms of input/key events so we have to temporarily disableCapture()
         go.Terminal.Input.disableCapture();
         window.print();
-        if (scrollbackNode) {
-            scrollbackNode.innerHTML = scrollbackHTML; // Put it back
-        }
+//         if (scrollbackNode) {
+//             scrollbackNode.innerHTML = scrollbackHTML; // Put it back
+//         }
         // Re-enable capturing of keyboard input
         go.Terminal.Input.capture();
         setTimeout(function() {
