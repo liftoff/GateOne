@@ -1,5 +1,5 @@
 .ansi-block {
-    background-color: #222;
+    background-color: #222 !important;
     color: #fff;
     white-space: pre-line !important;
     word-wrap: break-word;

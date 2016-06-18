@@ -1,11 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <script type="text/javascript">
 
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-29645087-2']);
@@ -17,55 +17,202 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
     </script>
-    <title>Configuration &mdash; Gate One 1.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.2.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
-    <link rel="up" title="About Gate One" href="index.html" />
-    <link rel="next" title="Gate One Applications" href="../Applications/index.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="../Applications/index.html" title="Gate One Applications"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="installation.html" title="Installation"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">About Gate One</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration &mdash; Gate One 1.2.0 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html"/>
+        <link rel="up" title="About Gate One" href="index.html"/>
+        <link rel="next" title="Gate One Applications" href="../Applications/index.html"/>
+        <link rel="prev" title="Installation" href="installation.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Gate One
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">About Gate One</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="licensing.html">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tornado-framework-options">Tornado Framework Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#log-file-max-size">log_file_max_size</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-file-num-backups">log_file_num_backups</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-file-prefix">log_file_prefix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-to-stderr">log_to_stderr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logging">logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#global-gate-one-options">Global Gate One Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#address">address</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api-keys">api_keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api-timestamp-window">api_timestamp_window</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#auth">auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-certs">ca_certs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cache-dir">cache_dir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#certificate">certificate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#combine-css">combine_css</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#combine-css-container">combine_css_container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#combine-js">combine_js</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#command">command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config">config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cookie-secret">cookie_secret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#debug">debug</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#disable-ssl">disable_ssl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#embedded">embedded</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enable-unix-socket">enable_unix_socket</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gid">gid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#https-redirect">https_redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#js-init">js_init</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#keyfile">keyfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#locale">locale</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#new-api-key">new_api_key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#origins">origins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pam-realm">pam_realm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pam-service">pam_service</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pid-file">pid_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#port">port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#session-dir">session_dir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#session-timeout">session_timeout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ssl-auth">ssl_auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sso-realm">sso_realm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sso-service">sso_service</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#syslog-facility">syslog_facility</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#uid">uid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unix-socket-path">unix_socket_path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#url-prefix">url_prefix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#user-dir">user_dir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#user-logs-max-age">user_logs_max_age</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#version">version</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#terminal-application-options">Terminal Application Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dtach">dtach</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kill">kill</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#session-logging">session_logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#syslog-session-logging">syslog_session_logging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Applications/index.html">Gate One Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Developer/index.html">Developer Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ReleaseNotes/index.html">Release Notes / Changelog</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Gate One</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">About Gate One</a> &raquo;</li>
+      
+    <li>Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/About/configuration.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="configuration">
 <span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
@@ -125,7 +272,7 @@
 </div>
 <p>These options match up directly with Gate One's command line options which you can view at any time by executing &quot;gateone.py --help&quot;:</p>
 <div class="highlight-text"><div class="highlight"><pre>$ gateone --help
-[E 160618 13:51:47 __init__:18] In order to use the X11 application you must install the xpyb module.  This can usually be handled via:  sudo pip install xpyb ||  sudo apt-get install python-xpyb
+[E 160618 14:04:28 __init__:18] In order to use the X11 application you must install the xpyb module.  This can usually be handled via:  sudo pip install xpyb ||  sudo apt-get install python-xpyb
 Usage: /usr/local/bin/gateone [OPTIONS]
 
 Options:
@@ -174,26 +321,28 @@ gateone options:
   --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is &#39;en_US&#39; in your current shell). (default en_US)
   --multiprocessing_workers        The number of processes to spawn use when using multiprocessing. Default is: &lt;number of cores&gt; + 1.  Set to 0 to disable multiprocessing.
   --new_api_key                    Generate a new API key that an external application can use to embed Gate One. (default False)
-  --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value may contain hostnames/FQDNs (e.g. foo;foo.bar;) and IP addresses.  This value must contain all the hostnames/IPs that
-                                   users will use to connect to Gate One.  Alternatively, &#39;*&#39; may be  specified to allow access from anywhere.  NOTE: Using a &#39;*&#39; is only a good idea if you&#39;ve configured Gate One to use API authentication. (default
-                                   localhost;127.0.0.1;somehost.example.com;somehost;127.0.1.1)
+  --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value may contain hostnames/FQDNs (e.g. foo;foo.bar;) and IP addresses.  This
+                                   value must contain all the hostnames/IPs that users will use to connect to Gate One.  Alternatively, &#39;*&#39; may be  specified to allow access from anywhere.  NOTE: Using a &#39;*&#39; is only a good idea
+                                   if you&#39;ve configured Gate One to use API authentication. (default localhost;127.0.0.1;somehost.example.com;somehost;127.0.1.1)
   --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled. (default somehost)
   --pam_service                    PAM service to use.  Defaults to &#39;login&#39;. Only relevant if PAM authentication is enabled. (default login)
   --pid_file                       Define the path to the pid file. (default /home/riskable/.gateone/gateone.pid)
   --port                           Run on the given port. (default 10443)
   --session_dir                    Path to the location where session information will be stored. (default /home/riskable/.gateone/sessions)
-  --session_timeout                Amount of time that a session is allowed to idle before it is killed.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Set to &#39;0&#39; to disable the ability to resume sessions. (default 5d)
+  --session_timeout                Amount of time that a session is allowed to idle before it is killed.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Set to &#39;0&#39; to disable the
+                                   ability to resume sessions. (default 5d)
   --settings_dir                   Path to the settings directory. (default /home/riskable/.gateone/conf.d)
-  --ssl_auth                       Enable the use of client SSL (X.509) certificates as a secondary authentication factor (the configured &#39;auth&#39; type will come after SSL auth).  May be one of &#39;none&#39;, &#39;optional&#39;, or &#39;required&#39;.  NOTE: Only works if the &#39;ca_certs&#39; option
-                                   is configured. (default none)
+  --ssl_auth                       Enable the use of client SSL (X.509) certificates as a secondary authentication factor (the configured &#39;auth&#39; type will come after SSL auth).  May be one of &#39;none&#39;, &#39;optional&#39;, or &#39;required&#39;.
+                                   NOTE: Only works if the &#39;ca_certs&#39; option is configured. (default none)
   --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients.  Only relevant if Kerberos authentication is enabled.
   --sso_service                    Kerberos service (aka application) to use.  Only relevant if Kerberos authentication is enabled. (default HTTP)
-  --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.
-                                   (default daemon)
+  --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7,
+                                   lpr, mail, news, syslog, user, uucp. (default daemon)
   --uid                            Drop privileges and run Gate One as this user/uid. (default 1000)
   --unix_socket_mode               Unix socket mode (if --enable_unix_socket=True). (default 0600)
   --unix_socket_path               Path to the Unix socket (if --enable_unix_socket=True). (default /tmp/gateone.sock)
-  --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. &#39;/gateone/&#39;.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path. (default /)
+  --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. &#39;/gateone/&#39;.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
+                                   (default /)
   --user_dir                       Path to the location where user files will be stored. (default /home/riskable/.gateone)
   --user_logs_max_age              Maximum length of time to keep any given user log before it is automatically removed. (default 30d)
   --version                        Display version information.
@@ -209,17 +358,18 @@ Commands:
 
   Usage: /usr/local/bin/gateone &lt;command&gt; [OPTIONS]
 
-  GateOne supports many different CLI &#39;commands&#39; which can be used to invoke special functionality provided by plugins and applications (and application&#39;s plugins).  Each command can have it&#39;s own options and most will have a --help function of their own.
-
-Commands provided by &#39;gateone.applications.terminal&#39;:
-
-  termlog                          View terminal session logs.
+  GateOne supports many different CLI &#39;commands&#39; which can be used to invoke special functionality provided by plugins and applications (and application&#39;s plugins).  Each command can have it&#39;s own options and most will have a
+  --help function of their own.
 
 Commands provided by &#39;gateone&#39;:
 
   broadcast                        Broadcast messages to users connected to Gate One.
   install_license                  Install a commercial license for Gate One.
   validate_authobj                 Test API authentication by validating a JSON auth object.
+
+Commands provided by &#39;gateone.applications.terminal&#39;:
+
+  termlog                          View terminal session logs.
 
 Example command usage:
 
@@ -1089,133 +1239,72 @@ Oct  1 19:18:22 gohost gateone: ANONYMOUS 1: #033]_;ssh|user&#64;somehost:22#007
 </div>
 
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Configuration</a><ul>
-<li><a class="reference internal" href="#tornado-framework-options">Tornado Framework Options</a><ul>
-<li><a class="reference internal" href="#log-file-max-size">log_file_max_size</a></li>
-<li><a class="reference internal" href="#log-file-num-backups">log_file_num_backups</a></li>
-<li><a class="reference internal" href="#log-file-prefix">log_file_prefix</a></li>
-<li><a class="reference internal" href="#log-to-stderr">log_to_stderr</a></li>
-<li><a class="reference internal" href="#logging">logging</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#global-gate-one-options">Global Gate One Options</a><ul>
-<li><a class="reference internal" href="#address">address</a></li>
-<li><a class="reference internal" href="#api-keys">api_keys</a></li>
-<li><a class="reference internal" href="#api-timestamp-window">api_timestamp_window</a></li>
-<li><a class="reference internal" href="#auth">auth</a></li>
-<li><a class="reference internal" href="#ca-certs">ca_certs</a></li>
-<li><a class="reference internal" href="#cache-dir">cache_dir</a></li>
-<li><a class="reference internal" href="#certificate">certificate</a></li>
-<li><a class="reference internal" href="#combine-css">combine_css</a></li>
-<li><a class="reference internal" href="#combine-css-container">combine_css_container</a></li>
-<li><a class="reference internal" href="#combine-js">combine_js</a></li>
-<li><a class="reference internal" href="#command">command</a></li>
-<li><a class="reference internal" href="#config">config</a></li>
-<li><a class="reference internal" href="#cookie-secret">cookie_secret</a></li>
-<li><a class="reference internal" href="#debug">debug</a></li>
-<li><a class="reference internal" href="#disable-ssl">disable_ssl</a></li>
-<li><a class="reference internal" href="#embedded">embedded</a></li>
-<li><a class="reference internal" href="#enable-unix-socket">enable_unix_socket</a></li>
-<li><a class="reference internal" href="#gid">gid</a></li>
-<li><a class="reference internal" href="#https-redirect">https_redirect</a></li>
-<li><a class="reference internal" href="#js-init">js_init</a></li>
-<li><a class="reference internal" href="#keyfile">keyfile</a></li>
-<li><a class="reference internal" href="#locale">locale</a></li>
-<li><a class="reference internal" href="#new-api-key">new_api_key</a></li>
-<li><a class="reference internal" href="#origins">origins</a></li>
-<li><a class="reference internal" href="#pam-realm">pam_realm</a></li>
-<li><a class="reference internal" href="#pam-service">pam_service</a></li>
-<li><a class="reference internal" href="#pid-file">pid_file</a></li>
-<li><a class="reference internal" href="#port">port</a></li>
-<li><a class="reference internal" href="#session-dir">session_dir</a></li>
-<li><a class="reference internal" href="#session-timeout">session_timeout</a></li>
-<li><a class="reference internal" href="#ssl-auth">ssl_auth</a></li>
-<li><a class="reference internal" href="#sso-realm">sso_realm</a></li>
-<li><a class="reference internal" href="#sso-service">sso_service</a></li>
-<li><a class="reference internal" href="#syslog-facility">syslog_facility</a></li>
-<li><a class="reference internal" href="#uid">uid</a></li>
-<li><a class="reference internal" href="#unix-socket-path">unix_socket_path</a></li>
-<li><a class="reference internal" href="#url-prefix">url_prefix</a></li>
-<li><a class="reference internal" href="#user-dir">user_dir</a></li>
-<li><a class="reference internal" href="#user-logs-max-age">user_logs_max_age</a></li>
-<li><a class="reference internal" href="#version">version</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#terminal-application-options">Terminal Application Options</a><ul>
-<li><a class="reference internal" href="#dtach">dtach</a></li>
-<li><a class="reference internal" href="#kill">kill</a></li>
-<li><a class="reference internal" href="#session-logging">session_logging</a></li>
-<li><a class="reference internal" href="#syslog-session-logging">syslog_session_logging</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="installation.html"
-                        title="previous chapter">Installation</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="../Applications/index.html"
-                        title="next chapter">Gate One Applications</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/About/configuration.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../Applications/index.html" class="btn btn-neutral float-right" title="Gate One Applications" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="../Applications/index.html" title="Gate One Applications"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="installation.html" title="Installation"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="index.html" >About Gate One</a> &raquo;</li> 
-      </ul>
-    </div>
+  
 
-    <div class="footer" role="contentinfo">
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
-    </div>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.2.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
 <script type="text/javascript">
 window.onload = function(e) {
     // Make our collapseindex elements actually collapsible
@@ -1238,5 +1327,6 @@ window.onload = function(e) {
 }
 </script>
 
-  </body>
+
+</body>
 </html>
