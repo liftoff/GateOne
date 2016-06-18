@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>gateone.auth.authentication &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/ansi.css" type="text/css" />
     
@@ -28,8 +39,8 @@
     <link rel="top" title="Gate One 1.2.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -38,106 +49,106 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <h1>Source code for gateone.auth.authentication</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#</span>
-<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
-<span class="c">#</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1">#       Copyright 2013 Liftoff Software Corporation</span>
+<span class="c1">#</span>
 
-<span class="c"># Meta</span>
-<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+<span class="c1"># Meta</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
-<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s">.. _auth.py:</span>
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">.. _auth.py:</span>
 
-<span class="s">Authentication</span>
-<span class="s">==============</span>
-<span class="s">This module contains Gate One&#39;s authentication classes.  They map to Gate One&#39;s</span>
-<span class="s">--auth configuration option like so:</span>
+<span class="s2">Authentication</span>
+<span class="s2">==============</span>
+<span class="s2">This module contains Gate One&#39;s authentication classes.  They map to Gate One&#39;s</span>
+<span class="s2">--auth configuration option like so:</span>
 
-<span class="s">=============== ===================</span>
-<span class="s">--auth=none     NullAuthHandler</span>
-<span class="s">--auth=kerberos KerberosAuthHandler</span>
-<span class="s">--auth=google   GoogleAuthHandler</span>
-<span class="s">--auth=pam      PAMAuthHandler</span>
-<span class="s">--auth=api      APIAuthHandler</span>
-<span class="s">=============== ===================</span>
+<span class="s2">=============== ===================</span>
+<span class="s2">--auth=none     NullAuthHandler</span>
+<span class="s2">--auth=kerberos KerberosAuthHandler</span>
+<span class="s2">--auth=google   GoogleAuthHandler</span>
+<span class="s2">--auth=pam      PAMAuthHandler</span>
+<span class="s2">--auth=api      APIAuthHandler</span>
+<span class="s2">=============== ===================</span>
 
-<span class="s">.. note:: API authentication is handled inside of :ref:`gateone.py`</span>
+<span class="s2">.. note:: API authentication is handled inside of :ref:`gateone.py`</span>
 
-<span class="s">None or Anonymous</span>
-<span class="s">-----------------</span>
-<span class="s">By default Gate One will not authenticate users.  This means that user sessions</span>
-<span class="s">will be tied to their browser cookie and users will not be able to resume their</span>
-<span class="s">sessions from another computer/browser.  Most useful for situations where</span>
-<span class="s">session persistence and logging aren&#39;t important.</span>
+<span class="s2">None or Anonymous</span>
+<span class="s2">-----------------</span>
+<span class="s2">By default Gate One will not authenticate users.  This means that user sessions</span>
+<span class="s2">will be tied to their browser cookie and users will not be able to resume their</span>
+<span class="s2">sessions from another computer/browser.  Most useful for situations where</span>
+<span class="s2">session persistence and logging aren&#39;t important.</span>
 
-<span class="s">*All* users will show up as ANONYMOUS using this authentication type.</span>
+<span class="s2">*All* users will show up as ANONYMOUS using this authentication type.</span>
 
-<span class="s">Kerberos</span>
-<span class="s">--------</span>
-<span class="s">Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall</span>
-<span class="s">back to HTTP Basic authentication if GSSAPI auth fails.  This authentication</span>
-<span class="s">type can be integrated into any Kerberos infrastructure including Windows</span>
-<span class="s">Active Directory.</span>
+<span class="s2">Kerberos</span>
+<span class="s2">--------</span>
+<span class="s2">Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall</span>
+<span class="s2">back to HTTP Basic authentication if GSSAPI auth fails.  This authentication</span>
+<span class="s2">type can be integrated into any Kerberos infrastructure including Windows</span>
+<span class="s2">Active Directory.</span>
 
-<span class="s">It is great for both transparent authentication and being able to tie sessions</span>
-<span class="s">and logs to specific users within your organization (compliance).</span>
+<span class="s2">It is great for both transparent authentication and being able to tie sessions</span>
+<span class="s2">and logs to specific users within your organization (compliance).</span>
 
-<span class="s">.. note::</span>
+<span class="s2">.. note::</span>
 
-<span class="s">    The sso.py module itself has extensive documentation on this authentication</span>
-<span class="s">    type.</span>
+<span class="s2">    The sso.py module itself has extensive documentation on this authentication</span>
+<span class="s2">    type.</span>
 
-<span class="s">Google Authentication</span>
-<span class="s">---------------------</span>
-<span class="s">If you want persistent user sessions but don&#39;t care to run your own</span>
-<span class="s">authentication infrastructure this authentication type is for you.  Assuming,</span>
-<span class="s">of course, that your Gate One server and clients will have access to the</span>
-<span class="s">Internet.</span>
+<span class="s2">Google Authentication</span>
+<span class="s2">---------------------</span>
+<span class="s2">If you want persistent user sessions but don&#39;t care to run your own</span>
+<span class="s2">authentication infrastructure this authentication type is for you.  Assuming,</span>
+<span class="s2">of course, that your Gate One server and clients will have access to the</span>
+<span class="s2">Internet.</span>
 
-<span class="s">.. note::</span>
+<span class="s2">.. note::</span>
 
-<span class="s">    This authentication type is perfect if you&#39;re using Chromebooks (Chrome OS</span>
-<span class="s">    devices).</span>
+<span class="s2">    This authentication type is perfect if you&#39;re using Chromebooks (Chrome OS</span>
+<span class="s2">    devices).</span>
 
-<span class="s">API Authentication</span>
-<span class="s">------------------</span>
-<span class="s">API-based authentication is actually handled in gateone.py but we still need</span>
-<span class="s">*something* to exist at the /auth URL that will always return the</span>
-<span class="s">&#39;unauthenticated&#39; response.  This ensures that no one can authenticate</span>
-<span class="s">themselves by visiting that URL manually.</span>
+<span class="s2">API Authentication</span>
+<span class="s2">------------------</span>
+<span class="s2">API-based authentication is actually handled in gateone.py but we still need</span>
+<span class="s2">*something* to exist at the /auth URL that will always return the</span>
+<span class="s2">&#39;unauthenticated&#39; response.  This ensures that no one can authenticate</span>
+<span class="s2">themselves by visiting that URL manually.</span>
 
-<span class="s">Docstrings</span>
-<span class="s">==========</span>
-<span class="s">&quot;&quot;&quot;</span>
+<span class="s2">Docstrings</span>
+<span class="s2">==========</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-<span class="c"># Import stdlib stuff</span>
+<span class="c1"># Import stdlib stuff</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">json</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">quote</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c"># Python 3</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c1"># Python 3</span>
     <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
 
-<span class="c"># Import our own stuff</span>
+<span class="c1"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">convert_to_timedelta</span>
 <span class="kn">from</span> <span class="nn">gateone.core.utils</span> <span class="kn">import</span> <span class="n">total_seconds</span>
 <span class="kn">from</span> <span class="nn">gateone.core.locale</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="kn">from</span> <span class="nn">gateone.core.log</span> <span class="kn">import</span> <span class="n">go_logger</span>
 
-<span class="c"># 3rd party imports</span>
+<span class="c1"># 3rd party imports</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.auth</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
@@ -145,16 +156,16 @@
 <span class="kn">import</span> <span class="nn">tornado.gen</span>
 <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">options</span>
 
-<span class="c"># Localization support</span>
+<span class="c1"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
-<span class="c"># Globals</span>
-<span class="n">SETTINGS_CACHE</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Lists of settings files and their modification times</span>
-<span class="c"># The security stuff below is a work-in-progress.  Likely to change all around.</span>
+<span class="c1"># Globals</span>
+<span class="n">SETTINGS_CACHE</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Lists of settings files and their modification times</span>
+<span class="c1"># The security stuff below is a work-in-progress.  Likely to change all around.</span>
 
-<span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth&#39;</span><span class="p">)</span>
+<span class="n">auth_log</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s1">&#39;gateone.auth&#39;</span><span class="p">)</span>
 
-<span class="c"># Helper functions</span>
+<span class="c1"># Helper functions</span>
 <div class="viewcode-block" id="additional_attributes"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.additional_attributes">[docs]</a><span class="k">def</span> <span class="nf">additional_attributes</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">settings_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a *user* dict, return a dict containing any additional attributes</span>
@@ -165,33 +176,33 @@
 <span class="sd">        This function doesn&#39;t actually work yet (support for attribute repos</span>
 <span class="sd">        like LDAP is forthcoming).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Doesn&#39;t do anything yet</span>
+    <span class="c1"># Doesn&#39;t do anything yet</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">settings_dir</span><span class="p">:</span>
         <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">settings_dir</span>
-    <span class="k">return</span> <span class="n">user</span>
+    <span class="k">return</span> <span class="n">user</span></div>
 
 
-<span class="c"># Authentication classes</span></div>
+<span class="c1"># Authentication classes</span>
 <div class="viewcode-block" id="BaseAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The base class for all Gate One authentication handlers.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">set_default_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;GateOne&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">,</span> <span class="s1">&#39;GateOne&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseAuthHandler.get_current_user"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
-        <span class="n">expiration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auth_timeout&#39;</span><span class="p">,</span> <span class="s">&quot;14d&quot;</span><span class="p">)</span>
-        <span class="c"># Need the expiration in days (which is a bit silly but whatever):</span>
+        <span class="n">expiration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auth_timeout&#39;</span><span class="p">,</span> <span class="s2">&quot;14d&quot;</span><span class="p">)</span>
+        <span class="c1"># Need the expiration in days (which is a bit silly but whatever):</span>
         <span class="n">expiration</span> <span class="o">=</span> <span class="p">(</span>
             <span class="nb">float</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">(</span><span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">expiration</span><span class="p">)))</span>
             <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="mi">86400</span><span class="p">))</span>
         <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span>
-            <span class="s">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">max_age_days</span><span class="o">=</span><span class="n">expiration</span><span class="p">)</span>
+            <span class="s2">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">max_age_days</span><span class="o">=</span><span class="n">expiration</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
         <span class="n">user</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
-        <span class="c"># Add the IP attribute</span>
-        <span class="n">user</span><span class="p">[</span><span class="s">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
-        <span class="k">return</span> <span class="n">user</span>
-</div>
+        <span class="c1"># Add the IP attribute</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;ip_address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="k">return</span> <span class="n">user</span></div>
+
 <div class="viewcode-block" id="BaseAuthHandler.user_login"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.user_login">[docs]</a>    <span class="k">def</span> <span class="nf">user_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called immediately after a user authenticates successfully.  Saves</span>
@@ -200,64 +211,64 @@
 <span class="sd">        userPrincipalName. e.g. &#39;user@REALM&#39; or just &#39;someuser&#39;.  Any additional</span>
 <span class="sd">        values will be attached to the user object/cookie.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;user_login(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">])</span>
         <span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">additional_attributes</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
-        <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
+        <span class="c1"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c"># NOTE: These bytes checks are for Python 2 (not needed in Python 3)</span>
-            <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">):</span>
-                <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
-            <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">upn</span><span class="p">)</span>
+            <span class="c1"># NOTE: These bytes checks are for Python 2 (not needed in Python 3)</span>
+            <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">):</span>
+                <span class="n">upn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">upn</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-                <span class="n">user_dir</span> <span class="o">=</span> <span class="n">user_dir</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">user_dir</span> <span class="o">=</span> <span class="n">user_dir</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Creating user directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
                 <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o700</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                <span class="s">&quot;You&#39;re trying to use non-ASCII user information on a system &quot;</span>
-                <span class="s">&quot;that has the locale set to ASCII (or similar).  Please change&quot;</span>
-                <span class="s">&quot;your system&#39;s locale to something that supports Unicode &quot;</span>
-                <span class="s">&quot;characters. &quot;</span><span class="p">))</span>
+                <span class="s2">&quot;You&#39;re trying to use non-ASCII user information on a system &quot;</span>
+                <span class="s2">&quot;that has the locale set to ASCII (or similar).  Please change&quot;</span>
+                <span class="s2">&quot;your system&#39;s locale to something that supports Unicode &quot;</span>
+                <span class="s2">&quot;characters. &quot;</span><span class="p">))</span>
             <span class="k">return</span>
-        <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s">&#39;session&#39;</span><span class="p">)</span>
+        <span class="n">session_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="s1">&#39;session&#39;</span><span class="p">)</span>
         <span class="n">session_file_exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">session_file_exists</span><span class="p">:</span>
             <span class="n">session_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">session_info</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">session_data</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c"># Something wrong with the file</span>
-                <span class="n">session_file_exists</span> <span class="o">=</span> <span class="bp">False</span> <span class="c"># Overwrite it below</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c1"># Something wrong with the file</span>
+                <span class="n">session_file_exists</span> <span class="o">=</span> <span class="bp">False</span> <span class="c1"># Overwrite it below</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">session_file_exists</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="c"># Save it so we can keep track across multiple clients</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c1"># Save it so we can keep track across multiple clients</span>
                 <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">(),</span>
+                    <span class="s1">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">(),</span>
                 <span class="p">}</span>
                 <span class="n">session_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">)</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span>
-            <span class="s">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
-</div>
+            <span class="s2">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="BaseAuthHandler.user_logout"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.BaseAuthHandler.user_logout">[docs]</a>    <span class="k">def</span> <span class="nf">user_logout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">redirect</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called immediately after a user logs out, cleans up the user&#39;s session</span>
 <span class="sd">        information and optionally, redirects them to *redirect* (URL).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_logout(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;user_logout(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">redirect</span><span class="p">:</span>
-            <span class="c"># Try getting it from the query string</span>
-            <span class="n">redirect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;redirect&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="c1"># Try getting it from the query string</span>
+            <span class="n">redirect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;redirect&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">redirect</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">redirect</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
-</div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span></div></div>
+
 <div class="viewcode-block" id="NullAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.NullAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">NullAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A handler for when no authentication method is chosen (i.e. --auth=none).</span>
@@ -269,30 +280,30 @@
 <span class="sd">        Sets the &#39;gateone_user&#39; cookie with a new random session ID</span>
 <span class="sd">        (*go_session*) and sets *go_upn* to &#39;ANONYMOUS&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">}</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;upn&#39;</span><span class="p">:</span> <span class="s1">&#39;ANONYMOUS&#39;</span><span class="p">}</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="c"># This lets any origin check if the user has been authenticated</span>
-            <span class="c"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="c1"># This lets any origin check if the user has been authenticated</span>
+            <span class="c1"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
             <span class="k">return</span>
-        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">])</span>
             <span class="k">return</span>
-        <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+        <span class="c1"># This takes care of the user&#39;s settings dir and their session info</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-</div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div>
+
 <div class="viewcode-block" id="NullAuthHandler.user_login"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.NullAuthHandler.user_login">[docs]</a>    <span class="k">def</span> <span class="nf">user_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is an override of BaseAuthHandler since anonymous auth is special.</span>
@@ -300,20 +311,20 @@
 <span class="sd">        cookie.  This is to ensure that anonymous users can&#39;t access each</span>
 <span class="sd">        other&#39;s sessions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;NullAuthHandler.user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
-        <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NullAuthHandler.user_login(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">])</span>
+        <span class="c1"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Creating user directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
             <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o700</span><span class="p">)</span>
         <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
+            <span class="s1">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
         <span class="p">}</span>
         <span class="n">session_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span>
-            <span class="s">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
-</div></div>
+            <span class="s2">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span></div></div>
+
 <div class="viewcode-block" id="APIAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.APIAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">APIAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A handler that always reports &#39;unauthenticated&#39; since API-based auth doesn&#39;t</span>
@@ -325,23 +336,23 @@
 <span class="sd">        Deletes the &#39;gateone_user&#39; cookie and handles some other situations for</span>
 <span class="sd">        backwards compatibility.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Get rid of the cookie no matter what (API auth doesn&#39;t use cookies)</span>
+        <span class="c1"># Get rid of the cookie no matter what (API auth doesn&#39;t use cookies)</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="c"># This lets any origin check if the user has been authenticated</span>
-            <span class="c"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
-            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="c1"># This lets any origin check if the user has been authenticated</span>
+            <span class="c1"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">])</span>
                 <span class="k">return</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;APIAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;APIAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span></div></div>
 
-</div></div>
+
 <div class="viewcode-block" id="GoogleAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">GoogleAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">GoogleOAuth2Mixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Google authentication handler using Tornado&#39;s built-in GoogleOAuth2Mixin</span>
@@ -354,87 +365,87 @@
 <span class="sd">        other values that might be attached to the user object given to us by</span>
 <span class="sd">        Google.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s2">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
             <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
-            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-        <span class="n">uri_port</span> <span class="o">=</span> <span class="s">&#39;:{0}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">])</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">],</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span>
+        <span class="n">uri_port</span> <span class="o">=</span> <span class="s1">&#39;:{0}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">uri_port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span>
-            <span class="c"># Get rid of the port (will be added automatically)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">uri_port</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">redirect_uri</span> <span class="o">=</span> <span class="s">&quot;{base_url}auth&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="c1"># Get rid of the port (will be added automatically)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">uri_port</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">redirect_uri</span> <span class="o">=</span> <span class="s2">&quot;{base_url}auth&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;GoogleAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;GoogleAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;GoogleAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;GoogleAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
             <span class="k">return</span>
-        <span class="n">logout_url</span> <span class="o">=</span> <span class="s">&quot;https://accounts.google.com/Logout&quot;</span>
-        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">logout_url</span> <span class="o">=</span> <span class="s2">&quot;https://accounts.google.com/Logout&quot;</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">logout_url</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;code&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
             <span class="n">user</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span>
                 <span class="n">redirect_uri</span><span class="o">=</span><span class="n">redirect_uri</span><span class="p">,</span>
-                <span class="n">code</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;code&#39;</span><span class="p">))</span>
+                <span class="n">code</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">))</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_cookies</span><span class="p">()</span>
-                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&#39;Google auth failed&#39;</span><span class="p">)</span>
-            <span class="n">access_token</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;access_token&#39;</span><span class="p">])</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;Google auth failed&#39;</span><span class="p">)</span>
+            <span class="n">access_token</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">])</span>
             <span class="n">http_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_auth_http_client</span><span class="p">()</span>
             <span class="n">response</span> <span class="o">=</span>  <span class="k">yield</span> <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span>
-                <span class="s">&#39;https://www.googleapis.com/oauth2/v1/userinfo?access_token=&#39;</span>
+                <span class="s1">&#39;https://www.googleapis.com/oauth2/v1/userinfo?access_token=&#39;</span>
                 <span class="o">+</span><span class="n">access_token</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_cookies</span><span class="p">()</span>
-                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&#39;Google auth failed&#39;</span><span class="p">)</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;Google auth failed&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">authorize_redirect</span><span class="p">(</span>
                 <span class="n">redirect_uri</span><span class="o">=</span><span class="n">redirect_uri</span><span class="p">,</span>
-                <span class="n">client_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;google_oauth&#39;</span><span class="p">][</span><span class="s">&#39;key&#39;</span><span class="p">],</span>
-                <span class="n">scope</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">],</span>
-                <span class="n">response_type</span><span class="o">=</span><span class="s">&#39;code&#39;</span><span class="p">,</span>
-                <span class="n">extra_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;approval_prompt&#39;</span><span class="p">:</span> <span class="s">&#39;auto&#39;</span><span class="p">})</span>
-</div>
+                <span class="n">client_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;google_oauth&#39;</span><span class="p">][</span><span class="s1">&#39;key&#39;</span><span class="p">],</span>
+                <span class="n">scope</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">],</span>
+                <span class="n">response_type</span><span class="o">=</span><span class="s1">&#39;code&#39;</span><span class="p">,</span>
+                <span class="n">extra_params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;approval_prompt&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">})</span></div>
+
 <div class="viewcode-block" id="GoogleAuthHandler._on_auth"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.GoogleAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Just a continuation of the get() method (the final step where it</span>
 <span class="sd">        actually sets the cookie).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;GoogleAuthHandler.on_auth(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;GoogleAuthHandler.on_auth(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Google auth failed&quot;</span><span class="p">))</span>
-        <span class="c"># NOTE: Google auth &#39;user&#39; will be a dict like so:</span>
-        <span class="c"># user = {&#39;given_name&#39;: &#39;Joe&#39;,</span>
-        <span class="c">#    &#39;verified_email&#39;: True,</span>
-        <span class="c">#    &#39;hd&#39;: &#39;example.com&#39;,</span>
-        <span class="c">#    &#39;gender&#39;: &#39;male&#39;,</span>
-        <span class="c">#    &#39;email&#39;: &#39;joe.schmoe@example.com&#39;,</span>
-        <span class="c">#    &#39;name&#39;: &#39;Joe Schmoe&#39;,</span>
-        <span class="c">#    &#39;picture&#39;: &#39;https://lh6.googleusercontent.com/path/to/some.jpg&#39;,</span>
-        <span class="c">#    &#39;id&#39;: &#39;999999999999999999999&#39;,</span>
-        <span class="c">#    &#39;family_name&#39;: &#39;Schmoe&#39;,</span>
-        <span class="c">#    &#39;link&#39;: &#39;https://plus.google.com/999999999999999999999&#39;}</span>
-        <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="c"># Use the email for the upn</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Google auth failed&quot;</span><span class="p">))</span>
+        <span class="c1"># NOTE: Google auth &#39;user&#39; will be a dict like so:</span>
+        <span class="c1"># user = {&#39;given_name&#39;: &#39;Joe&#39;,</span>
+        <span class="c1">#    &#39;verified_email&#39;: True,</span>
+        <span class="c1">#    &#39;hd&#39;: &#39;example.com&#39;,</span>
+        <span class="c1">#    &#39;gender&#39;: &#39;male&#39;,</span>
+        <span class="c1">#    &#39;email&#39;: &#39;joe.schmoe@example.com&#39;,</span>
+        <span class="c1">#    &#39;name&#39;: &#39;Joe Schmoe&#39;,</span>
+        <span class="c1">#    &#39;picture&#39;: &#39;https://lh6.googleusercontent.com/path/to/some.jpg&#39;,</span>
+        <span class="c1">#    &#39;id&#39;: &#39;999999999999999999999&#39;,</span>
+        <span class="c1">#    &#39;family_name&#39;: &#39;Schmoe&#39;,</span>
+        <span class="c1">#    &#39;link&#39;: &#39;https://plus.google.com/999999999999999999999&#39;}</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">]</span> <span class="c1"># Use the email for the upn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-</div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div></div>
+
 <div class="viewcode-block" id="SSLAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">SSLAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SSL Certificate-based  authentication handler.  Can only be used if the</span>
@@ -446,39 +457,39 @@
 <span class="sd">        Print out helpful error messages if the requisite settings aren&#39;t</span>
 <span class="sd">        configured.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;ca_certs&quot;</span><span class="p">,</span> <span class="s">&quot;CA Certificates File&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;ssl_auth&quot;</span><span class="p">,</span> <span class="s">&quot;SSL Authentication (&#39;required&#39;)&quot;</span><span class="p">)</span>
-</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s2">&quot;ca_certs&quot;</span><span class="p">,</span> <span class="s2">&quot;CA Certificates File&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s2">&quot;ssl_auth&quot;</span><span class="p">,</span> <span class="s2">&quot;SSL Authentication (&#39;required&#39;)&quot;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="SSLAuthHandler._convert_certificate"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler._convert_certificate">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cert</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the certificate format returned by get_ssl_certificate() into</span>
 <span class="sd">        a format more suitable for a user dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">re</span>
-        <span class="c"># Can&#39;t have any of these in the upn because we name a directory with it</span>
-        <span class="n">bad_chars</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;[\/</span><span class="se">\\</span><span class="s">\$\;&amp;`\!\*\?\|&lt;&gt;\n]&#39;</span><span class="p">)</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notAfter&#39;</span><span class="p">:</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;notAfter&#39;</span><span class="p">]}</span> <span class="c"># This one is the most direct</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]:</span>
+        <span class="c1"># Can&#39;t have any of these in the upn because we name a directory with it</span>
+        <span class="n">bad_chars</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;[\/</span><span class="se">\\</span><span class="s1">\$\;&amp;`\!\*\?\|&lt;&gt;\n]&#39;</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;notAfter&#39;</span><span class="p">:</span> <span class="n">cert</span><span class="p">[</span><span class="s1">&#39;notAfter&#39;</span><span class="p">]}</span> <span class="c1"># This one is the most direct</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
                 <span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
-        <span class="n">cn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;commonName&#39;</span><span class="p">]</span> <span class="c"># Use the commonName as the UPN</span>
-        <span class="n">cn</span> <span class="o">=</span> <span class="n">bad_chars</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="n">cn</span><span class="p">)</span> <span class="c"># Replace bad chars with dots</span>
-        <span class="c"># Try to use the &#39;issuer&#39; to add more depth to the CN</span>
-        <span class="k">if</span> <span class="s">&#39;issuer&#39;</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">:</span> <span class="c"># This will only be there if you&#39;re using Python 3</span>
-            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;issuer&#39;</span><span class="p">]:</span>
+        <span class="n">cn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;commonName&#39;</span><span class="p">]</span> <span class="c1"># Use the commonName as the UPN</span>
+        <span class="n">cn</span> <span class="o">=</span> <span class="n">bad_chars</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">cn</span><span class="p">)</span> <span class="c1"># Replace bad chars with dots</span>
+        <span class="c1"># Try to use the &#39;issuer&#39; to add more depth to the CN</span>
+        <span class="k">if</span> <span class="s1">&#39;issuer&#39;</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">:</span> <span class="c1"># This will only be there if you&#39;re using Python 3</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s1">&#39;issuer&#39;</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;organizationName&#39;</span><span class="p">:</span>
-                        <span class="c"># Yeah this can get long but that&#39;s OK (it&#39;s better than</span>
-                        <span class="c"># conflicts)</span>
-                        <span class="n">cn</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">@</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;organizationName&#39;</span><span class="p">:</span>
+                        <span class="c1"># Yeah this can get long but that&#39;s OK (it&#39;s better than</span>
+                        <span class="c1"># conflicts)</span>
+                        <span class="n">cn</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
                         <span class="k">break</span>
-                        <span class="c"># Should wind up as something like this:</span>
-                        <span class="c">#   John William Smith-Doe@ACME Widget Corporation, LLC</span>
-                        <span class="c"># So that would be used in the users dir like so:</span>
-                        <span class="c">#   /opt/gateone/users/John William Smith-Doe... etc</span>
-        <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cn</span>
-        <span class="k">return</span> <span class="n">user</span>
-</div>
+                        <span class="c1"># Should wind up as something like this:</span>
+                        <span class="c1">#   John William Smith-Doe@ACME Widget Corporation, LLC</span>
+                        <span class="c1"># So that would be used in the users dir like so:</span>
+                        <span class="c1">#   /opt/gateone/users/John William Smith-Doe... etc</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cn</span>
+        <span class="k">return</span> <span class="n">user</span></div>
+
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="SSLAuthHandler.get"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.SSLAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -486,38 +497,38 @@
 <span class="sd">        other values that might be attached to the user&#39;s client SSL</span>
 <span class="sd">        certificate.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSLAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;SSLAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSLAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;SSLAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
             <span class="k">return</span>
-        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="c"># Extract the user&#39;s information from their certificate</span>
+        <span class="c1"># Extract the user&#39;s information from their certificate</span>
         <span class="n">cert</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_ssl_certificate</span><span class="p">()</span>
         <span class="n">bincert</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_ssl_certificate</span><span class="p">(</span><span class="n">binary_form</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/cert.der&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bincert</span><span class="p">)</span>
+        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/cert.der&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bincert</span><span class="p">)</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_certificate</span><span class="p">(</span><span class="n">cert</span><span class="p">)</span>
-        <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+        <span class="c1"># This takes care of the user&#39;s settings dir and their session info</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div></div>
 
-<span class="c"># Add our KerberosAuthHandler if sso is available</span></div></div>
+<span class="c1"># Add our KerberosAuthHandler if sso is available</span>
 <span class="n">KerberosAuthHandler</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">gateone.auth.sso</span> <span class="kn">import</span> <span class="n">KerberosAuthMixin</span>
@@ -532,47 +543,47 @@
 <span class="sd">            If it checks out the user will be logged in via _on_auth().  If not,</span>
 <span class="sd">            the browser will be redirected to login.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
                 <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;KerberosAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;KerberosAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;KerberosAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;KerberosAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
                 <span class="k">return</span>
-            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
                 <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="k">return</span>
-            <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
+            <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Authorization&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
                 <span class="k">return</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
-</div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span></div>
+
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos auth failed&quot;</span><span class="p">))</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span>
-            <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Kerberos auth failed&quot;</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span>
+            <span class="c1"># This takes care of the user&#39;s settings dir and their session info</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-            <span class="c"># TODO: Add some LDAP or local DB lookups here to add more detail to user objects</span>
-            <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="c1"># TODO: Add some LDAP or local DB lookups here to add more detail to user objects</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">pass</span> <span class="c"># No SSO available.</span>
+    <span class="k">pass</span> <span class="c1"># No SSO available.</span>
 
-<span class="c"># Add our PAMAuthHandler if it&#39;s available</span>
+<span class="c1"># Add our PAMAuthHandler if it&#39;s available</span>
 <span class="n">PAMAuthHandler</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">gateone.auth.pam</span> <span class="kn">import</span> <span class="n">PAMAuthMixin</span>
@@ -587,51 +598,51 @@
 <span class="sd">            If it checks out the user will be logged in via _on_auth().  If not,</span>
 <span class="sd">            the browser will be redirected to login.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
                 <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;PAMAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;PAMAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;PAMAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;PAMAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
                 <span class="k">return</span>
-            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
                 <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="k">return</span>
-            <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
+            <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Authorization&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
                 <span class="k">return</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
-</div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span></div>
+
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;PAM auth failed&quot;</span><span class="p">))</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span>
-            <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;PAM auth failed&quot;</span><span class="p">))</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span>
+            <span class="c1"># This takes care of the user&#39;s settings dir and their session info</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;PAMAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
-            <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;PAMAuthHandler user: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">pass</span> <span class="c"># No PAM auth available.</span>
+    <span class="k">pass</span> <span class="c1"># No PAM auth available.</span>
 
 <div class="viewcode-block" id="CASAuthHandler"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">CASAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CAS authentication handler.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cas_user_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;&lt;cas:user&gt;(.*)&lt;/cas:user&gt;&#39;</span><span class="p">)</span>
+    <span class="n">cas_user_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;&lt;cas:user&gt;(.*)&lt;/cas:user&gt;&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="CASAuthHandler.initialize"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Print out helpful error messages if the requisite settings aren&#39;t</span>
@@ -640,9 +651,9 @@
 <span class="sd">        NOTE: It won&#39;t hurt anything to override this method in your</span>
 <span class="sd">        RequestHandler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;cas_server&quot;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;CAS Server URL&quot;</span><span class="p">))</span>
-        <span class="c"># The cas_version is optional</span>
-</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s2">&quot;cas_server&quot;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;CAS Server URL&quot;</span><span class="p">))</span></div>
+        <span class="c1"># The cas_version is optional</span>
+
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="CASAuthHandler.get"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -650,35 +661,35 @@
 <span class="sd">        other values that might be attached to the user object given to us by</span>
 <span class="sd">        Google.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="s2">&quot;{protocol}://{host}:{port}{url_prefix}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">protocol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
             <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">],</span>
-            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">],</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;CASAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;CASAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;authenticated&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;CASAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;CASAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;unauthenticated&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
             <span class="k">return</span>
-        <span class="n">logout_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/logout&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
-        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">logout_url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/logout&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s1">&#39;gateone_user&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">logout_url</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="n">server_ticket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;ticket&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">server_ticket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s1">&#39;ticket&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">server_ticket</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="n">server_ticket</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
-</div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="CASAuthHandler.authenticate_redirect"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.authenticate_redirect">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate_redirect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Redirects to the authentication URL for this CAS service.</span>
@@ -691,48 +702,57 @@
 <span class="sd">        all those attributes for your app, you can request fewer with</span>
 <span class="sd">        the ax_attrs keyword argument.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
-            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span>
-        <span class="n">service_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
-        <span class="n">redirect_url</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">login?service=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cas_server</span><span class="p">,</span> <span class="n">quote</span><span class="p">(</span><span class="n">service_url</span><span class="p">))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Redirecting to CAS URL: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">redirect_url</span><span class="p">)</span>
+        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s1">&#39;/&#39;</span>
+        <span class="n">service_url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_param</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">next_param</span> <span class="o">=</span> <span class="s2">&quot;?next=&quot;</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="n">redirect_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">login?service=</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cas_server</span><span class="p">,</span> <span class="n">quote</span><span class="p">(</span><span class="n">service_url</span><span class="p">),</span> <span class="n">quote</span><span class="p">(</span><span class="n">next_param</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Redirecting to CAS URL: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">redirect_url</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">redirect_url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-            <span class="n">callback</span><span class="p">()</span>
-</div>
+            <span class="n">callback</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="CASAuthHandler.get_authenticated_user"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler.get_authenticated_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_ticket</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Requests the user&#39;s information from the CAS server using the given</span>
 <span class="sd">        *server_ticket* and calls ``self._on_auth`` with the resulting user</span>
 <span class="sd">        dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cas_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_server&#39;</span><span class="p">)</span>
-        <span class="n">ca_certs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cas_ca_certs&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
-            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span>
-        <span class="n">service_url</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
-        <span class="c">#validate the ST</span>
-        <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s">&#39;proxyValidate&#39;</span>
+        <span class="n">cas_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cas_version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">cas_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cas_server&#39;</span><span class="p">)</span>
+        <span class="n">ca_certs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cas_ca_certs&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cas_server</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">cas_server</span> <span class="o">+=</span> <span class="s1">&#39;/&#39;</span>
+        <span class="n">service_url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">auth&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span>
+        <span class="c1">#validate the ST</span>
+        <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s1">&#39;proxyValidate&#39;</span>
         <span class="k">if</span> <span class="n">cas_version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s">&#39;validate&#39;</span>
+            <span class="n">validate_suffix</span> <span class="o">=</span> <span class="s1">&#39;validate&#39;</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_param</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">next_param</span> <span class="o">=</span> <span class="s2">&quot;?next=&quot;</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
         <span class="n">validate_url</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">cas_server</span> <span class="o">+</span>
             <span class="n">validate_suffix</span> <span class="o">+</span>
-            <span class="s">&#39;?service=&#39;</span> <span class="o">+</span>
+            <span class="s1">&#39;?service=&#39;</span> <span class="o">+</span>
             <span class="n">quote</span><span class="p">(</span><span class="n">service_url</span><span class="p">)</span> <span class="o">+</span>
-            <span class="s">&#39;&amp;ticket=&#39;</span> <span class="o">+</span>
+            <span class="n">quote</span><span class="p">(</span><span class="n">next_param</span><span class="p">)</span> <span class="o">+</span>
+            <span class="s1">&#39;&amp;ticket=&#39;</span> <span class="o">+</span>
             <span class="n">quote</span><span class="p">(</span><span class="n">server_ticket</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Fetching CAS URL: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">validate_url</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Fetching CAS URL: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">validate_url</span><span class="p">)</span>
         <span class="n">validate_cert</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="n">ca_certs</span><span class="p">:</span>
             <span class="n">validate_cert</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">http_client</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpclient</span><span class="o">.</span><span class="n">AsyncHTTPClient</span><span class="p">()</span>
         <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span>
-            <span class="n">validate_url</span><span class="p">,</span> <span class="n">validate_cert</span><span class="o">=</span><span class="n">validate_cert</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
-</div>
+            <span class="n">validate_url</span><span class="p">,</span> <span class="n">validate_cert</span><span class="o">=</span><span class="n">validate_cert</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="CASAuthHandler._on_auth"><a class="viewcode-back" href="../../../Developer/authentication.html#gateone.auth.authentication.CASAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Just a continuation of the get() method (the final step where it</span>
@@ -743,27 +763,27 @@
         <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
             <span class="n">userid</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">userid</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;CAS authentication failed&quot;</span><span class="p">))</span>
-        <span class="c"># NOTE: Do we ever get anything more than the userid from a CAS server?</span>
-        <span class="c"># Needs more research and probably proper XML parsing...</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">userid</span><span class="p">}</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;CAS authentication failed&quot;</span><span class="p">))</span>
+        <span class="c1"># NOTE: Do we ever get anything more than the userid from a CAS server?</span>
+        <span class="c1"># Needs more research and probably proper XML parsing...</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;upn&#39;</span><span class="p">:</span> <span class="n">userid</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;url_prefix&#39;</span><span class="p">])</span></div></div>
 </pre></div>
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../../index.html">
               <img class="logo" src="../../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
       <input type="text" name="q" />
@@ -780,7 +800,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -789,14 +809,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

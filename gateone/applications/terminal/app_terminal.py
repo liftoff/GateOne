@@ -1310,10 +1310,7 @@ class TerminalApplication(GOApplication):
         to the client via the 'terminal:captured_data' WebSocket action which
         will included a dict like so::
 
-            {
-                "term": 1,
-                "data": "$ ls\nfile1 file2\n$ "
-            }
+            {"term": 1, "data": "$ ls\nfile1 file2\n$ " }
         """
         self.term_log.debug("stop_capture(%s)" % term)
         if term not in self.loc_terms:

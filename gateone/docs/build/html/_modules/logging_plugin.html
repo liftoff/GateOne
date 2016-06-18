@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>logging_plugin &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     
@@ -28,8 +39,8 @@
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -38,67 +49,67 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <h1>Source code for logging_plugin</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#</span>
-<span class="c">#       Copyright 2013 Liftoff Software Corporation</span>
-<span class="c">#</span>
-<span class="c"># NOTE:  Named logging_plugin.py instead of &quot;logging.py&quot; to avoid conflicts</span>
-<span class="c">#        with the existing logging module</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1">#       Copyright 2013 Liftoff Software Corporation</span>
+<span class="c1">#</span>
+<span class="c1"># NOTE:  Named logging_plugin.py instead of &quot;logging.py&quot; to avoid conflicts</span>
+<span class="c1">#        with the existing logging module</span>
 
-<span class="c"># TODO: Fix the flat log viewing format.  Doesn&#39;t look quite right.</span>
-<span class="c"># TODO: Write search functions.</span>
-<span class="c"># TODO: Add some search indexing capabilities so that search will be fast.</span>
-<span class="c"># TODO: Write a handler that displays a page where users can drag &amp; drop .golog files to have them played back in their browser.</span>
+<span class="c1"># TODO: Fix the flat log viewing format.  Doesn&#39;t look quite right.</span>
+<span class="c1"># TODO: Write search functions.</span>
+<span class="c1"># TODO: Add some search indexing capabilities so that search will be fast.</span>
+<span class="c1"># TODO: Write a handler that displays a page where users can drag &amp; drop .golog files to have them played back in their browser.</span>
 
-<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s">logging_plugin.py - A plugin for Gate One that provides logging-related</span>
-<span class="s">functionality.</span>
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">logging_plugin.py - A plugin for Gate One that provides logging-related</span>
+<span class="s2">functionality.</span>
 
-<span class="s">Hooks</span>
-<span class="s">-----</span>
-<span class="s">This Python plugin file implements the following hooks::</span>
+<span class="s2">Hooks</span>
+<span class="s2">-----</span>
+<span class="s2">This Python plugin file implements the following hooks::</span>
 
-<span class="s">    hooks = {</span>
-<span class="s">        &#39;WebSocket&#39;: {</span>
-<span class="s">            &#39;logging_get_logs&#39;: enumerate_logs,</span>
-<span class="s">            &#39;logging_get_log_flat&#39;: retrieve_log_flat,</span>
-<span class="s">            &#39;logging_get_log_playback&#39;: retrieve_log_playback,</span>
-<span class="s">            &#39;logging_get_log_file&#39;: save_log_playback,</span>
-<span class="s">        },</span>
-<span class="s">        &#39;Events&#39;: {</span>
-<span class="s">            &#39;terminal:authenticate&#39;: send_logging_css_template</span>
-<span class="s">        }</span>
-<span class="s">    }</span>
+<span class="s2">    hooks = {</span>
+<span class="s2">        &#39;WebSocket&#39;: {</span>
+<span class="s2">            &#39;logging_get_logs&#39;: enumerate_logs,</span>
+<span class="s2">            &#39;logging_get_log_flat&#39;: retrieve_log_flat,</span>
+<span class="s2">            &#39;logging_get_log_playback&#39;: retrieve_log_playback,</span>
+<span class="s2">            &#39;logging_get_log_file&#39;: save_log_playback,</span>
+<span class="s2">        },</span>
+<span class="s2">        &#39;Events&#39;: {</span>
+<span class="s2">            &#39;terminal:authenticate&#39;: send_logging_css_template</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
 
-<span class="s">Docstrings</span>
-<span class="s">----------</span>
-<span class="s">&quot;&quot;&quot;</span>
+<span class="s2">Docstrings</span>
+<span class="s2">----------</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-<span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
-<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GNU AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="c1"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;GNU AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
-<span class="c"># Python stdlib</span>
+<span class="c1"># Python stdlib</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
 
-<span class="c"># Our stuff</span>
+<span class="c1"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">GATEONE_DIR</span>
 <span class="kn">from</span> <span class="nn">gateone.auth.authorization</span> <span class="kn">import</span> <span class="n">applicable_policies</span>
 <span class="kn">from</span> <span class="nn">gateone.applications.terminal.logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span>
@@ -109,43 +120,43 @@
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
-<span class="c"># Tornado stuff</span>
+<span class="c1"># Tornado stuff</span>
 <span class="kn">import</span> <span class="nn">tornado.template</span>
 <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
 
-<span class="c"># TODO: Make the log retrieval functions work incrementally as logs are read so they don&#39;t have to be stored entirely in memory before being sent to the client.</span>
+<span class="c1"># TODO: Make the log retrieval functions work incrementally as logs are read so they don&#39;t have to be stored entirely in memory before being sent to the client.</span>
 
-<span class="c"># Globals</span>
-<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to this plugin&#39;s directory</span>
-<span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
-<span class="n">PROCS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># For tracking/cancelling background processes</span>
-<span class="c"># Matches Gate One&#39;s special optional escape sequence (ssh plugin only)</span>
+<span class="c1"># Globals</span>
+<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Path to this plugin&#39;s directory</span>
+<span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s2">u&quot;</span><span class="se">\U000f0f0f</span><span class="s2">&quot;</span> <span class="c1"># The character used to separate frames in the log</span>
+<span class="n">PROCS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># For tracking/cancelling background processes</span>
+<span class="c1"># Matches Gate One&#39;s special optional escape sequence (ssh plugin only)</span>
 <span class="n">RE_OPT_SSH_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="s">r&#39;.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
-<span class="c"># Matches an xterm title sequence</span>
+    <span class="s1">r&#39;.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+<span class="c1"># Matches an xterm title sequence</span>
 <span class="n">RE_TITLE_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="s">r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="s1">r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
 
-<span class="c"># Helper functions</span>
+<span class="c1"># Helper functions</span>
 <div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the rendered 256-color CSS.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colors_256_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_256_colors</span><span class="p">()</span>
     <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">colors_256_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
-    <span class="n">cached_filename</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colors_256_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">),</span> <span class="n">mtime</span><span class="p">)</span>
-    <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache_dir&#39;</span><span class="p">]</span>
+    <span class="n">cached_filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colors_256_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span> <span class="n">mtime</span><span class="p">)</span>
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;cache_dir&#39;</span><span class="p">]</span>
     <span class="n">cached_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">cached_filename</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cached_file_path</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cached_file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">colors_256</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Debug mode is enabled</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="s">&#39;256_colors.css&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># Debug mode is enabled</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="s1">&#39;256_colors.css&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">colors_256</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">colors_256</span>
+    <span class="k">return</span> <span class="n">colors_256</span></div>
 
-<span class="c"># WebSocket commands (not the same as handlers)</span></div>
+<span class="c1"># WebSocket commands (not the same as handlers)</span>
 <div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it</span>
@@ -154,43 +165,43 @@
 <span class="sd">    Log objects will be returned to the client one at a time by sending</span>
 <span class="sd">    &#39;logging_log&#39; actions to the client over the WebSocket (*self*).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;enumerate_logs(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
-    <span class="c"># Sometimes IOLoop detects multiple events on the fd before we&#39;ve finished</span>
-    <span class="c"># doing a get() from the queue.  This variable is used to ensure we don&#39;t</span>
-    <span class="c"># send the client duplicates:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">term_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;enumerate_logs(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+    <span class="c1"># Sometimes IOLoop detects multiple events on the fd before we&#39;ve finished</span>
+    <span class="c1"># doing a get() from the queue.  This variable is used to ensure we don&#39;t</span>
+    <span class="c1"># send the client duplicates:</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c"># NOTE: self.policy represents the user&#39;s specific settings</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">[</span><span class="s">&#39;session_logging&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;NOTE: User session logging is disabled.  To enable it, set &quot;</span>
-            <span class="s">&quot;&#39;session_logging = True&#39; in your server.conf.&quot;</span><span class="p">)}</span>
+    <span class="c1"># NOTE: self.policy represents the user&#39;s specific settings</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">[</span><span class="s1">&#39;session_logging&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+            <span class="s2">&quot;NOTE: User session logging is disabled.  To enable it, set &quot;</span>
+            <span class="s2">&quot;&#39;session_logging = True&#39; in your server.conf.&quot;</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        <span class="k">return</span> <span class="c"># Nothing left to do</span>
-    <span class="n">view_logs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;view_logs&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="c1"># Nothing left to do</span>
+    <span class="n">view_logs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;view_logs&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">view_logs</span><span class="p">:</span>
-        <span class="c"># TODO: Make it so that users don&#39;t even see the log viewer if they don&#39;t have this setting</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;NOTE: Your access to the log viewer has been restricted.&quot;</span><span class="p">)}</span>
+        <span class="c1"># TODO: Make it so that users don&#39;t even see the log viewer if they don&#39;t have this setting</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+            <span class="s2">&quot;NOTE: Your access to the log viewer has been restricted.&quot;</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        <span class="k">return</span> <span class="c"># Nothing left to do</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
+        <span class="k">return</span> <span class="c1"># Nothing left to do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c1"># &quot;User&#39;s dir&quot;</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">else</span><span class="p">:</span> <span class="c"># Cancel anything that&#39;s already running</span>
-        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># Cancel anything that&#39;s already running</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span>
             <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="c"># process was already terminated...  Nothing to do</span>
+                <span class="c1"># process was already terminated...  Nothing to do</span>
                 <span class="k">pass</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">_enumerate_logs</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">users_dir</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -199,36 +210,36 @@
 <span class="sd">        file descriptor events.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="c">#self.term_log.debug(&#39;message: %s&#39; % message)</span>
-        <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&#39;complete&#39;</span><span class="p">:</span>
+        <span class="c1">#self.term_log.debug(&#39;message: %s&#39; % message)</span>
+        <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s1">&#39;complete&#39;</span><span class="p">:</span>
             <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
             <span class="n">total_bytes</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
+            <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
             <span class="n">log_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">log_files</span><span class="p">:</span>
                 <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
                 <span class="n">total_bytes</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
             <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s">&#39;total_logs&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_files</span><span class="p">),</span>
-                <span class="s">&#39;total_bytes&#39;</span><span class="p">:</span> <span class="n">total_bytes</span>
+                <span class="s1">&#39;total_logs&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_files</span><span class="p">),</span>
+                <span class="s1">&#39;total_bytes&#39;</span><span class="p">:</span> <span class="n">total_bytes</span>
             <span class="p">}</span>
-            <span class="c"># This signals to the client that we&#39;re done</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_logs_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+            <span class="c1"># This signals to the client that we&#39;re done</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:logging_logs_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">message</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="c"># Keep track of how many/how much</span>
+            <span class="c1"># Keep track of how many/how much</span>
             <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
-                <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="c"># No need to keep old stuff hanging around</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="c1"># No need to keep old stuff hanging around</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-    <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
-    <span class="c"># underlying fd that you can access via the _reader:</span>
+    <span class="c1"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
+    <span class="c1"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
-    <span class="c"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</div>
+    <span class="c1"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="_enumerate_logs"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">_enumerate_logs</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">users_dir</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enumerates all of the user&#39;s logs and sends the client a &quot;logging_logs&quot;</span>
@@ -238,30 +249,30 @@
 <span class="sd">    `MySQL &lt;http://en.wikipedia.org/wiki/MySQL&gt;`_: limit=&quot;5,10&quot; will retrieve</span>
 <span class="sd">    logs 5-10.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
+    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
     <span class="n">log_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">)</span>
-    <span class="n">log_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">log_files</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.golog&#39;</span><span class="p">)]</span> <span class="c"># Only gologs</span>
-    <span class="n">log_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># Should put them in order by date</span>
-    <span class="n">log_files</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span> <span class="c"># Make the newest ones first</span>
+    <span class="n">log_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">log_files</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.golog&#39;</span><span class="p">)]</span> <span class="c1"># Only gologs</span>
+    <span class="n">log_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c1"># Should put them in order by date</span>
+    <span class="n">log_files</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span> <span class="c1"># Make the newest ones first</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">log_files</span><span class="p">:</span>
         <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Getting metadata from: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">log_path</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting metadata from: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_path</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
-            <span class="k">continue</span> <span class="c"># Something wrong with this log; skip</span>
+            <span class="k">continue</span> <span class="c1"># Something wrong with this log; skip</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="p">:</span>
-            <span class="c"># Broken log file -- may be being written to</span>
-            <span class="k">continue</span> <span class="c"># Just skip it</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_log&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+            <span class="c1"># Broken log file -- may be being written to</span>
+            <span class="k">continue</span> <span class="c1"># Just skip it</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:logging_log&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
         <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        <span class="c"># If we go too quick sometimes the IOLoop will miss a message</span>
+        <span class="c1"># If we go too quick sometimes the IOLoop will miss a message</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
-    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s">&#39;complete&#39;</span><span class="p">)</span>
-</div>
+    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;complete&#39;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`</span>
@@ -276,28 +287,28 @@
 <span class="sd">    :arg settings[&#39;theme&#39;]: The CSS theme to use when generating output.</span>
 <span class="sd">    :arg settings[&#39;where&#39;]: Whether or not the result should go into a new window or an iframe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">else</span><span class="p">:</span> <span class="c"># Cancel anything that&#39;s already running</span>
-        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># Cancel anything that&#39;s already running</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span>
             <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="c"># process was already terminated...  Nothing to do</span>
+                <span class="c1"># process was already terminated...  Nothing to do</span>
                 <span class="k">pass</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">_retrieve_log_flat</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -308,12 +319,12 @@
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-    <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
-    <span class="c"># underlying fd that you can access via the _reader:</span>
+    <span class="c1"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
+    <span class="c1"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
-    <span class="c"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</div>
+    <span class="c1"># We tell the IOLoop to watch this fd to see if data is ready in the queue.</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="_retrieve_log_flat"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_flat</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes the given *log_filename* to *queue* in a flat format equivalent to::</span>
@@ -324,35 +335,35 @@
 <span class="sd">    *theme_css* to use when generating the HTML output.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-        <span class="s">&#39;log&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-        <span class="s">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="p">}</span>
-    <span class="c"># Local variables</span>
+    <span class="c1"># Local variables</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">spanstrip</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\s+\&lt;\/span\&gt;$&#39;</span><span class="p">)</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span>
-    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;log_filename&#39;</span><span class="p">]</span>
-    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
+    <span class="n">spanstrip</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;\s+\&lt;\/span\&gt;$&#39;</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;log_filename&#39;</span><span class="p">]</span>
+    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
     <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log_filename</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_path</span><span class="p">):</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Success&quot;</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Success&quot;</span>
         <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-        <span class="c"># Use the terminal emulator to create nice HTML-formatted output</span>
+        <span class="c1"># Use the terminal emulator to create nice HTML-formatted output</span>
         <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span>
         <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">io_obj</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
         <span class="n">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">io_obj</span><span class="p">)</span>
         <span class="n">io_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="c"># Needed to emulate an actual term</span>
-        <span class="n">flattened_log</span> <span class="o">=</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="c"># NOTE: Using chunking below to emulate how a stream might actually be</span>
-        <span class="c"># written to the terminal emulator.  This is to prevent the emulator</span>
-        <span class="c"># from thinking that any embedded files (like PDFs) are never going to</span>
-        <span class="c"># end.</span>
+        <span class="c1"># Needed to emulate an actual term</span>
+        <span class="n">flattened_log</span> <span class="o">=</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># NOTE: Using chunking below to emulate how a stream might actually be</span>
+        <span class="c1"># written to the terminal emulator.  This is to prevent the emulator</span>
+        <span class="c1"># from thinking that any embedded files (like PDFs) are never going to</span>
+        <span class="c1"># end.</span>
         <span class="k">def</span> <span class="nf">chunker</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;Produce `n`-character chunks from `s`.&quot;&quot;&quot;</span>
             <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
@@ -360,49 +371,49 @@
         <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunker</span><span class="p">(</span><span class="n">flattened_log</span><span class="p">,</span> <span class="mi">499</span><span class="p">):</span>
             <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
         <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
-        <span class="c"># Join them together</span>
+        <span class="c1"># Join them together</span>
         <span class="n">log_lines</span> <span class="o">=</span> <span class="n">scrollback</span> <span class="o">+</span> <span class="n">screen</span>
-        <span class="c"># rstrip the lines</span>
+        <span class="c1"># rstrip the lines</span>
         <span class="n">log_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">log_lines</span><span class="p">]</span>
-        <span class="c"># Fix things like &quot;&lt;span&gt;whatever [lots of whitespace]    &lt;/span&gt;&quot;</span>
+        <span class="c1"># Fix things like &quot;&lt;span&gt;whatever [lots of whitespace]    &lt;/span&gt;&quot;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">log_lines</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spanstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&quot;&lt;/span&gt;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
-        <span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span> <span class="c"># Ensure the function below works...</span>
-        <span class="n">term</span><span class="o">.</span><span class="n">close_captured_fds</span><span class="p">()</span> <span class="c"># Force clean up open file descriptors</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spanstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&lt;/span&gt;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span> <span class="c1"># Ensure the function below works...</span>
+        <span class="n">term</span><span class="o">.</span><span class="n">close_captured_fds</span><span class="p">()</span> <span class="c1"># Force clean up open file descriptors</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_log_flat&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</div>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:logging_log_flat&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_playback` via a</span>
 <span class="sd">    :py:class:`multiprocessing.Process` so it doesn&#39;t cause the</span>
 <span class="sd">    :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
         <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">else</span><span class="p">:</span> <span class="c"># Cancel anything that&#39;s already running</span>
-        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># Cancel anything that&#39;s already running</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span>
             <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="c"># process was already terminated...  Nothing to do</span>
+                <span class="c1"># process was already terminated...  Nothing to do</span>
                 <span class="k">pass</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">_retrieve_log_playback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -413,11 +424,11 @@
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-    <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
-    <span class="c"># underlying fd that you can access via the _reader:</span>
+    <span class="c1"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
+    <span class="c1"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</div>
+    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="_retrieve_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_retrieve_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes a JSON-encoded message to the client containing the log in a</span>
@@ -444,85 +455,85 @@
 <span class="sd">    It is expected that the client will create a new window with the result of</span>
 <span class="sd">    this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#print(&quot;Running retrieve_log_playback(%s)&quot; % settings);</span>
-    <span class="k">if</span> <span class="s">&#39;where&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span> <span class="c"># Avoids a KeyError if it is missing</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s">&#39;where&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c1">#print(&quot;Running retrieve_log_playback(%s)&quot; % settings);</span>
+    <span class="k">if</span> <span class="s1">&#39;where&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span> <span class="c1"># Avoids a KeyError if it is missing</span>
+        <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;where&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-        <span class="s">&#39;html&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="c"># Will be replace with the rendered template</span>
-        <span class="s">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s">&#39;where&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;where&#39;</span><span class="p">]</span> <span class="c"># Just gets passed as-is back to the client</span>
+        <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;html&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># Will be replace with the rendered template</span>
+        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;where&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;where&#39;</span><span class="p">]</span> <span class="c1"># Just gets passed as-is back to the client</span>
     <span class="p">}</span>
-    <span class="c"># Local variables</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span>
-    <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span>
-    <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span>
-    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;log_filename&#39;</span><span class="p">]</span>
-    <span class="c"># Important paths</span>
-    <span class="c"># NOTE: Using os.path.join() in case Gate One can actually run on Windows</span>
-    <span class="c"># some day.</span>
-    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
+    <span class="c1"># Local variables</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">]</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;log_filename&#39;</span><span class="p">]</span>
+    <span class="c1"># Important paths</span>
+    <span class="c1"># NOTE: Using os.path.join() in case Gate One can actually run on Windows</span>
+    <span class="c1"># some day.</span>
+    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
     <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log_filename</span><span class="p">)</span>
-    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-    <span class="c"># recording format:</span>
-    <span class="c"># {&quot;screen&quot;: [log lines], &quot;time&quot;:&quot;2011-12-20T18:00:01.033Z&quot;}</span>
-    <span class="c"># Actual method logic</span>
+    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s1">&#39;templates&#39;</span><span class="p">)</span>
+    <span class="c1"># recording format:</span>
+    <span class="c1"># {&quot;screen&quot;: [log lines], &quot;time&quot;:&quot;2011-12-20T18:00:01.033Z&quot;}</span>
+    <span class="c1"># Actual method logic</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_path</span><span class="p">):</span>
-        <span class="c"># First we setup the basics</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
+        <span class="c1"># First we setup the basics</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;rows&#39;</span><span class="p">]</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;columns&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="c"># Log was created before rows/cols metadata was included via termio.py</span>
-        <span class="c"># Use some large values to ensure nothing wraps and hope for the best:</span>
+        <span class="c1"># Log was created before rows/cols metadata was included via termio.py</span>
+        <span class="c1"># Use some large values to ensure nothing wraps and hope for the best:</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="mi">40</span>
             <span class="n">cols</span> <span class="o">=</span> <span class="mi">500</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Success&quot;</span> <span class="c"># TODO: Add more error checking</span>
-        <span class="c"># NOTE: Using Loader() directly here because I was getting strange EOF</span>
-        <span class="c"># errors trying to do it the other way :)</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Success&quot;</span> <span class="c1"># TODO: Add more error checking</span>
+        <span class="c1"># NOTE: Using Loader() directly here because I was getting strange EOF</span>
+        <span class="c1"># errors trying to do it the other way :)</span>
         <span class="n">loader</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
-        <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;playback_log.html&#39;</span><span class="p">)</span>
-        <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;false&#39;</span>
-        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;where&#39;</span><span class="p">]:</span>
-            <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;true&#39;</span>
+        <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;playback_log.html&#39;</span><span class="p">)</span>
+        <span class="n">preview</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;where&#39;</span><span class="p">]:</span>
+            <span class="n">preview</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
             <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
         <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
             <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
-            <span class="n">theme</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;theme_css&#39;</span><span class="p">],</span>
-            <span class="n">colors</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;colors_css&#39;</span><span class="p">],</span>
-            <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">],</span>
+            <span class="n">theme</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;theme_css&#39;</span><span class="p">],</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;colors_css&#39;</span><span class="p">],</span>
+            <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;256_colors&#39;</span><span class="p">],</span>
             <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span>
             <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_html</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">playback_html</span>
+            <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_html</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">playback_html</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_log_playback&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</div>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:logging_log_playback&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`</span>
 <span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GATEONE_DIR</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;256_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROC</span>
     <span class="n">PROC</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_save_log_playback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>
-    <span class="n">PROC</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># We don&#39;t care if this gets terminated mid-process.</span>
+    <span class="n">PROC</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span> <span class="c1"># We don&#39;t care if this gets terminated mid-process.</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -533,12 +544,12 @@
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-    <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
-    <span class="c"># underlying fd that you can access via the _reader:</span>
+    <span class="c1"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
+    <span class="c1"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
     <span class="n">PROC</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-    <span class="k">return</span>
-</div>
+    <span class="k">return</span></div>
+
 <div class="viewcode-block" id="_save_log_playback"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin._save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">_save_log_playback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes a JSON-encoded message to the client containing the log in a</span>
@@ -567,88 +578,88 @@
 <span class="sd">    It is expected that the client will create a new window with the result of</span>
 <span class="sd">    this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#print(&quot;Running retrieve_log_playback(%s)&quot; % settings);</span>
+    <span class="c1">#print(&quot;Running retrieve_log_playback(%s)&quot; % settings);</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&quot;Success&quot;</span><span class="p">,</span>
-        <span class="s">&#39;mimetype&#39;</span><span class="p">:</span> <span class="s">&#39;text/html&#39;</span><span class="p">,</span>
-        <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="c"># Will be replace with the rendered template</span>
+        <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="s2">&quot;Success&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;mimetype&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># Will be replace with the rendered template</span>
     <span class="p">}</span>
-    <span class="c"># Local variables</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span>
-    <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span>
-    <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span>
-    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;log_filename&#39;</span><span class="p">]</span>
-    <span class="n">short_logname</span> <span class="o">=</span> <span class="n">log_filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.golog&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="n">short_logname</span>
-    <span class="c"># Important paths</span>
-    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
+    <span class="c1"># Local variables</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;users_dir&#39;</span><span class="p">]</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">]</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;log_filename&#39;</span><span class="p">]</span>
+    <span class="n">short_logname</span> <span class="o">=</span> <span class="n">log_filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.golog&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.html&quot;</span> <span class="o">%</span> <span class="n">short_logname</span>
+    <span class="c1"># Important paths</span>
+    <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
     <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">log_filename</span><span class="p">)</span>
-    <span class="c">#templates_path = os.path.join(gateone_dir, &#39;templates&#39;)</span>
-    <span class="c">#colors_path = os.path.join(templates_path, &#39;term_colors&#39;)</span>
-    <span class="c">#themes_path = os.path.join(templates_path, &#39;themes&#39;)</span>
-    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-    <span class="c"># recording format:</span>
-    <span class="c"># {&quot;screen&quot;: [log lines], &quot;time&quot;:&quot;2011-12-20T18:00:01.033Z&quot;}</span>
-    <span class="c"># Actual method logic</span>
+    <span class="c1">#templates_path = os.path.join(gateone_dir, &#39;templates&#39;)</span>
+    <span class="c1">#colors_path = os.path.join(templates_path, &#39;term_colors&#39;)</span>
+    <span class="c1">#themes_path = os.path.join(templates_path, &#39;themes&#39;)</span>
+    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s1">&#39;templates&#39;</span><span class="p">)</span>
+    <span class="c1"># recording format:</span>
+    <span class="c1"># {&quot;screen&quot;: [log lines], &quot;time&quot;:&quot;2011-12-20T18:00:01.033Z&quot;}</span>
+    <span class="c1"># Actual method logic</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_path</span><span class="p">):</span>
-        <span class="c"># Next we render the theme and color templates so we can pass them to</span>
-        <span class="c"># our final template</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+        <span class="c1"># Next we render the theme and color templates so we can pass them to</span>
+        <span class="c1"># our final template</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;columns&#39;</span><span class="p">]</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;rows&#39;</span><span class="p">]</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;columns&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="c"># Log was created before rows/cols metadata was included via termio.py</span>
-        <span class="c"># Use some large values to ensure nothing wraps and hope for the best:</span>
+        <span class="c1"># Log was created before rows/cols metadata was included via termio.py</span>
+        <span class="c1"># Use some large values to ensure nothing wraps and hope for the best:</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="mi">40</span>
             <span class="n">cols</span> <span class="o">=</span> <span class="mi">500</span>
-        <span class="c"># NOTE: &#39;colors&#39; are customizable but colors_256 is universal.  That&#39;s</span>
-        <span class="c"># why they&#39;re separate.</span>
-        <span class="c"># Lastly we render the actual HTML template file</span>
-        <span class="c"># NOTE: Using Loader() directly here because I was getting strange EOF</span>
-        <span class="c"># errors trying to do it the other way :)</span>
+        <span class="c1"># NOTE: &#39;colors&#39; are customizable but colors_256 is universal.  That&#39;s</span>
+        <span class="c1"># why they&#39;re separate.</span>
+        <span class="c1"># Lastly we render the actual HTML template file</span>
+        <span class="c1"># NOTE: Using Loader() directly here because I was getting strange EOF</span>
+        <span class="c1"># errors trying to do it the other way :)</span>
         <span class="n">loader</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
-        <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;playback_log.html&#39;</span><span class="p">)</span>
+        <span class="n">playback_template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;playback_log.html&#39;</span><span class="p">)</span>
         <span class="n">recording</span> <span class="o">=</span> <span class="n">render_log_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
-        <span class="n">preview</span> <span class="o">=</span> <span class="s">&#39;false&#39;</span>
+        <span class="n">preview</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
         <span class="n">playback_html</span> <span class="o">=</span> <span class="n">playback_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
             <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
-            <span class="n">theme</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;theme_css&#39;</span><span class="p">],</span>
-            <span class="n">colors</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;colors_css&#39;</span><span class="p">],</span>
-            <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;256_colors&#39;</span><span class="p">],</span>
+            <span class="n">theme</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;theme_css&#39;</span><span class="p">],</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;colors_css&#39;</span><span class="p">],</span>
+            <span class="n">colors_256</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;256_colors&#39;</span><span class="p">],</span>
             <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span>
             <span class="n">recording</span><span class="o">=</span><span class="n">json_encode</span><span class="p">(</span><span class="n">recording</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">playback_html</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">playback_html</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;ERROR: Log not found&quot;</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;go:save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
 
-<span class="c"># Temporarily disabled while I work around the problem of gzip files not being</span>
-<span class="c"># downloadable over the websocket.</span>
-<span class="c">#def get_log_file(self, log_filename):</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#Returns the given *log_filename* (as a regular file) so the user can save it</span>
-    <span class="c">#to disk.</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#user = self.current_user[&#39;upn&#39;]</span>
-    <span class="c">#logging.debug(&quot;%s: get_log_file(%s)&quot; % (user, log_filename))</span>
-    <span class="c">#users_dir = os.path.join(self.ws.settings[&#39;user_dir&#39;], user) # &quot;User&#39;s dir&quot;</span>
-    <span class="c">#users_log_dir = os.path.join(users_dir, &#39;logs&#39;)</span>
-    <span class="c">#log_path = os.path.join(users_log_dir, log_filename)</span>
-    <span class="c">#out_dict = {&#39;result&#39;: &#39;Success&#39;}</span>
-    <span class="c">#if os.path.exists(log_path):</span>
-        <span class="c">#with open(log_path) as f:</span>
-            <span class="c">#out_dict[&#39;data&#39;] = f.read()</span>
-    <span class="c">#else:</span>
-        <span class="c">#out_dict[&#39;result&#39;] = _(</span>
-            <span class="c">#&#39;SSH Plugin Error: Log not found at %s&#39; % log_path)</span>
-    <span class="c">#message = {&#39;save_file&#39;: out_dict}</span>
-    <span class="c">#self.write_message(message)</span>
-</div>
+<span class="c1"># Temporarily disabled while I work around the problem of gzip files not being</span>
+<span class="c1"># downloadable over the websocket.</span>
+<span class="c1">#def get_log_file(self, log_filename):</span>
+    <span class="c1">#&quot;&quot;&quot;</span>
+    <span class="c1">#Returns the given *log_filename* (as a regular file) so the user can save it</span>
+    <span class="c1">#to disk.</span>
+    <span class="c1">#&quot;&quot;&quot;</span>
+    <span class="c1">#user = self.current_user[&#39;upn&#39;]</span>
+    <span class="c1">#logging.debug(&quot;%s: get_log_file(%s)&quot; % (user, log_filename))</span>
+    <span class="c1">#users_dir = os.path.join(self.ws.settings[&#39;user_dir&#39;], user) # &quot;User&#39;s dir&quot;</span>
+    <span class="c1">#users_log_dir = os.path.join(users_dir, &#39;logs&#39;)</span>
+    <span class="c1">#log_path = os.path.join(users_log_dir, log_filename)</span>
+    <span class="c1">#out_dict = {&#39;result&#39;: &#39;Success&#39;}</span>
+    <span class="c1">#if os.path.exists(log_path):</span>
+        <span class="c1">#with open(log_path) as f:</span>
+            <span class="c1">#out_dict[&#39;data&#39;] = f.read()</span>
+    <span class="c1">#else:</span>
+        <span class="c1">#out_dict[&#39;result&#39;] = _(</span>
+            <span class="c1">#&#39;SSH Plugin Error: Log not found at %s&#39; % log_path)</span>
+    <span class="c1">#message = {&#39;save_file&#39;: out_dict}</span>
+    <span class="c1">#self.write_message(message)</span>
+
 <div class="viewcode-block" id="session_logging_check"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.session_logging_check">[docs]</a><span class="k">def</span> <span class="nf">session_logging_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Attached to the `terminal:session_logging_check` WebSocket action; replies</span>
@@ -662,31 +673,31 @@
 <span class="sd">        always-empty log viewer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">policy</span> <span class="o">=</span> <span class="n">applicable_policies</span><span class="p">(</span>
-        <span class="s">&#39;terminal&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
-    <span class="n">session_logging</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;session_logging&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="s1">&#39;terminal&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefs</span><span class="p">)</span>
+    <span class="n">session_logging</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session_logging&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">session_logging</span><span class="p">:</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:logging_sessions_disabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</div>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:logging_sessions_disabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="send_logging_css_template"><a class="viewcode-back" href="../Applications/terminal/plugin_logging.html#logging_plugin.send_logging_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_logging_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends our logging.css template to the client using the &#39;load_style&#39;</span>
 <span class="sd">    WebSocket action.  The rendered template will be saved in Gate One&#39;s</span>
 <span class="sd">    &#39;cache_dir&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;logging.css&#39;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span>
-</div>
+    <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s1">&#39;templates&#39;</span><span class="p">,</span> <span class="s1">&#39;logging.css&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span></div>
+
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;terminal:logging_get_logs&#39;</span><span class="p">:</span> <span class="n">enumerate_logs</span><span class="p">,</span>
-        <span class="s">&#39;terminal:logging_get_log_flat&#39;</span><span class="p">:</span> <span class="n">retrieve_log_flat</span><span class="p">,</span>
-        <span class="s">&#39;terminal:logging_get_log_playback&#39;</span><span class="p">:</span> <span class="n">retrieve_log_playback</span><span class="p">,</span>
-        <span class="s">&#39;terminal:logging_get_log_file&#39;</span><span class="p">:</span> <span class="n">save_log_playback</span><span class="p">,</span>
-        <span class="s">&#39;terminal:session_logging_check&#39;</span><span class="p">:</span> <span class="n">session_logging_check</span><span class="p">,</span>
+    <span class="s1">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;terminal:logging_get_logs&#39;</span><span class="p">:</span> <span class="n">enumerate_logs</span><span class="p">,</span>
+        <span class="s1">&#39;terminal:logging_get_log_flat&#39;</span><span class="p">:</span> <span class="n">retrieve_log_flat</span><span class="p">,</span>
+        <span class="s1">&#39;terminal:logging_get_log_playback&#39;</span><span class="p">:</span> <span class="n">retrieve_log_playback</span><span class="p">,</span>
+        <span class="s1">&#39;terminal:logging_get_log_file&#39;</span><span class="p">:</span> <span class="n">save_log_playback</span><span class="p">,</span>
+        <span class="s1">&#39;terminal:session_logging_check&#39;</span><span class="p">:</span> <span class="n">session_logging_check</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_logging_css_template</span>
+    <span class="s1">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_logging_css_template</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -694,12 +705,12 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -716,7 +727,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -725,14 +736,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

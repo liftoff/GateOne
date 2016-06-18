@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>The Help Plugin &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="Embedding Gate One Into Other Applications" href="embedding.html" />
     <link rel="prev" title="term_ww.js" href="js_go_process.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,15 +57,15 @@
         <li class="right" >
           <a href="js_go_process.html" title="term_ww.js"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="the-help-plugin">
 <h1>The Help Plugin<a class="headerlink" href="#the-help-plugin" title="Permalink to this headline">¶</a></h1>
@@ -62,21 +73,21 @@
 <h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
 <dl class="attribute">
 <dt id="GateOne.Help">
-<tt class="descclassname">GateOne.</tt><tt class="descname">Help</tt><a class="headerlink" href="#GateOne.Help" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.</code><code class="descname">Help</code><a class="headerlink" href="#GateOne.Help" title="Permalink to this definition">¶</a></dt>
 <dd><p>A global Gate One plugin for providing helpful/useful information to the user.</p>
 <dl class="staticmethod">
 <dt id="GateOne.Help.aboutGateOne">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">aboutGateOne</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Help.</code><code class="descname">aboutGateOne</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the Gate One version/credits.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Help.addHelpSection">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">addHelpSection</tt><big>(</big><em>section</em>, <em>title</em>, <em>action</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.addHelpSection" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Help.</code><code class="descname">addHelpSection</code><span class="sig-paren">(</span><em>section</em>, <em>title</em>, <em>action</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.addHelpSection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds help to the Help panel under the given <em>section</em> using the given <em>title</em>.  The <em>title</em> will be a link that performs one of the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li>If <em>action</em> is a URL, <a class="reference internal" href="#GateOne.Help.showHelpSection" title="GateOne.Help.showHelpSection"><tt class="xref js js-meth docutils literal"><span class="pre">showHelpSection()</span></tt></a> will be called to load the content at that URL.</li>
+<li>If <em>action</em> is a URL, <a class="reference internal" href="#GateOne.Help.showHelpSection" title="GateOne.Help.showHelpSection"><code class="xref js js-meth docutils literal"><span class="pre">showHelpSection()</span></code></a> will be called to load the content at that URL.</li>
 <li>If <em>action</em> is a DOM node it will be displayed to the user (in the help panel).</li>
 </ul>
 </div></blockquote>
@@ -89,25 +100,25 @@
 
 <dl class="staticmethod">
 <dt id="GateOne.Help.init">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the help panel and registers the <tt class="kbd docutils literal"><span class="pre">Shift-F1</span></tt> (show help) and <tt class="kbd docutils literal"><span class="pre">Ctrl-S</span></tt> (displays helpful message about suspended terminal output) keyboard shortcuts.</p>
+<code class="descclassname">GateOne.Help.</code><code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the help panel and registers the <code class="kbd docutils literal"><span class="pre">Shift-F1</span></code> (show help) and <code class="kbd docutils literal"><span class="pre">Ctrl-S</span></code> (displays helpful message about suspended terminal output) keyboard shortcuts.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Help.showFirstTimeDialog">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showFirstTimeDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Help.</code><code class="descname">showFirstTimeDialog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pops up a dialog for first-time users that shows them the basics of Gate One.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Help.showHelp">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelp</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showHelp" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Help.</code><code class="descname">showHelp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.showHelp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the help panel.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="GateOne.Help.showHelpSection">
-<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelpSection</tt><big>(</big><em>helpURL</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Help.showHelpSection" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Help.</code><code class="descname">showHelpSection</code><span class="sig-paren">(</span><em>helpURL</em><span class="optional">[</span>, <em>callback</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Help.showHelpSection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows the given help information (<em>helpURL</em>) by sliding out whatever is in the help panel and sliding in the new help text.</p>
 <p>If <em>callback</em> is given it will be called after the content is loaded.</p>
 </dd></dl>
@@ -121,7 +132,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
@@ -140,12 +151,14 @@
   <h4>Next topic</h4>
   <p class="topless"><a href="embedding.html"
                         title="next chapter">Embedding Gate One Into Other Applications</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/plugin_help.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/Developer/plugin_help.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -162,7 +175,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -177,14 +190,14 @@
         <li class="right" >
           <a href="js_go_process.html" title="term_ww.js"
              >previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

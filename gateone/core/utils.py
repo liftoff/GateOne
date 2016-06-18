@@ -534,7 +534,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
         f.write(OpenSSL.crypto.dump_privatekey(
             OpenSSL.crypto.FILETYPE_PEM, pkey))
     cert = OpenSSL.crypto.X509()
-    cert.set_serial_number(random.randint(0, sys.maxint))
+    cert.set_serial_number(random.randint(0, sys.maxsize))
     cert.gmtime_adj_notBefore(0)
     if notAfter:
         cert.gmtime_adj_notAfter(notAfter)

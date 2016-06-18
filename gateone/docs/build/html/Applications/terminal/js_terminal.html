@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>terminal.js &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="terminal_input.js" href="js_terminal_input.html" />
     <link rel="prev" title="woff_info.py - Python WOFF Font Inspector" href="woff_info.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,24 +57,24 @@
         <li class="right" >
           <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="terminal-js">
 <span id="terminal-javascript"></span><h1>terminal.js<a class="headerlink" href="#terminal-js" title="Permalink to this headline">¶</a></h1>
 <p>Gate One's bundled Terminal application JavaScript (<a class="reference external" href="https://github.com/liftoff/GateOne/blob/master/gateone/applications/terminal/static/terminal.js">source</a>).</p>
 <dl class="function">
 <dt id="GateOne.Terminal.__new__">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">__new__</tt><big>(</big><em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.__new__" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">__new__</code><span class="sig-paren">(</span><em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.__new__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -79,80 +90,80 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.hasVoiceExt">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">hasVoiceExt</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.hasVoiceExt" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function returns <tt class="docutils literal"><span class="pre">true</span></tt> if an extension is detected that converts phone numbers into clickable links (e.g. Google Voice).  Such browser extensions can have a <em>severe</em> negative performance impact while using terminals (every screen update requires a re-scan of the entire page!).</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">hasVoiceExt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.hasVoiceExt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns <code class="docutils literal"><span class="pre">true</span></code> if an extension is detected that converts phone numbers into clickable links (e.g. Google Voice).  Such browser extensions can have a <em>severe</em> negative performance impact while using terminals (every screen update requires a re-scan of the entire page!).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.dbReady">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">dbReady</tt><big>(</big><em>db</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.dbReady" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets <tt class="docutils literal"><span class="pre">GateOne.Terminal.dbReady</span> <span class="pre">=</span> <span class="pre">true</span></tt> so that we know when the 'terminal' database is available &amp; ready (indexedDB databases are async).</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">dbReady</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.dbReady" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <code class="docutils literal"><span class="pre">GateOne.Terminal.dbReady</span> <span class="pre">=</span> <span class="pre">true</span></code> so that we know when the 'terminal' database is available &amp; ready (indexedDB databases are async).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.createPrefsPanel">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">createPrefsPanel</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.createPrefsPanel" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">createPrefsPanel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.createPrefsPanel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the terminal preferences and adds them to the global preferences panel.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.enumerateCommandsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">enumerateCommandsAction</tt><big>(</big><em>messageObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.enumerateCommandsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the 'terminal:commands_list' WebSocket action; stores <em>messageObj['commands']</em> in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.commandsList</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">enumerateCommandsAction</code><span class="sig-paren">(</span><em>messageObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.enumerateCommandsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the 'terminal:commands_list' WebSocket action; stores <em>messageObj['commands']</em> in <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.commandsList</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.enumerateFontsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">enumerateFontsAction</tt><big>(</big><em>messageObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.enumerateFontsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server and stores the list in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.fontsList</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">enumerateFontsAction</code><span class="sig-paren">(</span><em>messageObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.enumerateFontsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the 'terminal:fonts_list' WebSocket action; updates the preferences panel with the list of fonts stored on the server and stores the list in <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.fontsList</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.enumerateColorsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">enumerateColorsAction</tt><big>(</big><em>messageObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.enumerateColorsAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">enumerateColorsAction</code><span class="sig-paren">(</span><em>messageObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.enumerateColorsAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the 'terminal:colors_list' WebSocket action; updates the preferences panel with the list of text color schemes stored on the server.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.onResizeEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">onResizeEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.onResizeEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:update_dimensions</span></tt> event; calls <a class="reference internal" href="#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></tt></a> for all terminals to ensure the new dimensions get applied.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">onResizeEvent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.onResizeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:update_dimensions</span></code> event; calls <a class="reference internal" href="#GateOne.Terminal.sendDimensions" title="GateOne.Terminal.sendDimensions"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.sendDimensions()</span></code></a> for all terminals to ensure the new dimensions get applied.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.reconnectEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reconnectEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.reconnectEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:connnection_established</span></tt> event; closes all open terminals so that <a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></tt></a> can do its thing.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">reconnectEvent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.reconnectEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:connnection_established</span></code> event; closes all open terminals so that <a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></code></a> can do its thing.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.connectionError">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">connectionError</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.connectionError" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">connectionError</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.connectionError" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function gets attached to the &quot;<a class="reference external" href="go:connection_error">go:connection_error</a>&quot; event; closes all open terminals.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.getOpenTerminals">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">getOpenTerminals</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.getOpenTerminals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Requests a list of open terminals on the server via the 'terminal:get_terminals' WebSocket action.  The server will respond with a 'terminal:terminals' WebSocket action message which calls <a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></tt></a>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">getOpenTerminals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.getOpenTerminals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests a list of open terminals on the server via the 'terminal:get_terminals' WebSocket action.  The server will respond with a 'terminal:terminals' WebSocket action message which calls <a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sendString">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sendString</tt><big>(</big><em>chars</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.sendString" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sendString</code><span class="sig-paren">(</span><em>chars</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sendString" title="Permalink to this definition">¶</a></dt>
 <dd><p>Like sendChars() but for programmatic use.  <em>chars</em> will be sent to <em>term</em> on the server.</p>
 <p>If <em>term</em> is not given the currently-selected terminal will be used.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.killTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">killTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.killTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">killTerminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.killTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the server got close the given <em>term</em> and kill the underlying process.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.refresh">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">refresh</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.refresh" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">refresh</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the Gate One server to send a screen refresh (using the diff method).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -162,76 +173,76 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.fullRefresh">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">fullRefresh</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.fullRefresh" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">fullRefresh</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.fullRefresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the Gate One server to send a full screen refresh to the client for the given <em>term</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.loadFont">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">loadFont</tt><big>(</big><em>font</em><span class="optional">[</span>, <em>size</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.loadFont" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells the server to perform a sync of the given <em>font</em> with the client.  If <em>font</em> is not given, will load the font set in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.font</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">loadFont</code><span class="sig-paren">(</span><em>font</em><span class="optional">[</span>, <em>size</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.loadFont" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server to perform a sync of the given <em>font</em> with the client.  If <em>font</em> is not given, will load the font set in <code class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.font</span></code>.</p>
 <p>Optionally, a <em>size</em> may be chosen.  It must be a valid CSS 'font-size' value such as '0.9em', '90%', '12pt', etc.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.loadTextColors">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">loadTextColors</tt><big>(</big><em>colors</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.loadTextColors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells the server to perform a sync of the given <em>colors</em> (terminal text colors) with the client.  If <em>colors</em> is not given, will load the colors set in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.colors</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">loadTextColors</code><span class="sig-paren">(</span><em>colors</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.loadTextColors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server to perform a sync of the given <em>colors</em> (terminal text colors) with the client.  If <em>colors</em> is not given, will load the colors set in <code class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.colors</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.displayTermInfo">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">displayTermInfo</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.displayTermInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">displayTermInfo</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.displayTermInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the given term's information as a psuedo tooltip that eventually fades away.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sendDimensions">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sendDimensions</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">[</span>, <em>ctrl_l</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.sendDimensions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sendDimensions</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">[</span>, <em>ctrl_l</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sendDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detects and sends the given term's dimensions (rows/columns) to the server.</p>
 <p>If no <em>term</em> is given it will send the dimensions of the currently-selected terminal to the server which will be applied to all terminals.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setTitle">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setTitle</tt><big>(</big><em>term</em>, <em>text</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setTitle" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setTitle</code><span class="sig-paren">(</span><em>term</em>, <em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setTitle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the visible title of <em>term</em> to <em>text</em> appropriately based on whether or not this is a popup terminal or just a regular one.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This function does <em>not</em> set the 'title' or 'X11Title' attributes of the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]</span></tt> object.  That is handled by <a class="reference internal" href="#GateOne.Terminal.setTitleAction" title="GateOne.Terminal.setTitleAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTitleAction()</span></tt></a>.</p>
+<p class="last">This function does <em>not</em> set the 'title' or 'X11Title' attributes of the <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]</span></code> object.  That is handled by <a class="reference internal" href="#GateOne.Terminal.setTitleAction" title="GateOne.Terminal.setTitleAction"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.setTitleAction()</span></code></a>.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setTitleAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setTitleAction</tt><big>(</big><em>titleObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setTitleAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setTitleAction</code><span class="sig-paren">(</span><em>titleObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setTitleAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the title of <em>titleObj.term</em> to <em>titleObj.title</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.resizeAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resizeAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resizeAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the server sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:resize</span></tt> WebSocket action.  Sets the 'rows' and 'columns' values inside <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message.term]</span></tt> and sets the same values inside the Info &amp; Tools panel.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">resizeAction</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.resizeAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the server sends the <code class="xref py py-obj docutils literal"><span class="pre">terminal:resize</span></code> WebSocket action.  Sets the 'rows' and 'columns' values inside <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[message.term]</span></code> and sets the same values inside the Info &amp; Tools panel.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.paste">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">paste</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.paste" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">paste</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.paste" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.writeScrollback">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">writeScrollback</tt><big>(</big><em>term</em>, <em>scrollback</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.writeScrollback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">writeScrollback</code><span class="sig-paren">(</span><em>term</em>, <em>scrollback</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.writeScrollback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the given <em>scrollback</em> buffer for the given <em>term</em> to localStorage.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.applyScreen">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">applyScreen</tt><big>(</big><em>screen</em><span class="optional">[</span>, <em>term</em><span class="optional">[</span>, <em>noUpdate</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.applyScreen" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">applyScreen</code><span class="sig-paren">(</span><em>screen</em><span class="optional">[</span>, <em>term</em><span class="optional">[</span>, <em>noUpdate</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.applyScreen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses <em>screen</em> (array of HTML-formatted lines) to update <em>term</em>.</p>
-<p>If <em>term</em> is omitted <tt class="xref py py-obj docutils literal"><span class="pre">localStorage[prefix+selectedTerminal]</span></tt> will be used.</p>
-<p>If <em>noUpdate</em> is <tt class="docutils literal"><span class="pre">true</span></tt> the array that holds the current screen in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals</span></tt> will not be updated (useful for temporary screen replacements).</p>
+<p>If <em>term</em> is omitted <code class="xref py py-obj docutils literal"><span class="pre">localStorage[prefix+selectedTerminal]</span></code> will be used.</p>
+<p>If <em>noUpdate</em> is <code class="docutils literal"><span class="pre">true</span></code> the array that holds the current screen in <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals</span></code> will not be updated (useful for temporary screen replacements).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Lines in <em>screen</em> that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).</p>
@@ -240,25 +251,25 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.alignTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">alignTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.alignTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">alignTerminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.alignTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses a CSS3 transform to move the terminal &lt;pre&gt; element upwards just a bit so that the scrollback buffer isn't visislbe unless you actually scroll.  This improves the terminal's overall appearance considerably because the bottoms of characters in the scollback buffer tend to look like graphical glitches.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.termUpdateFromWorker">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">termUpdateFromWorker</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.termUpdateFromWorker" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function gets assigned to the <tt class="xref js js-meth docutils literal"><span class="pre">termUpdatesWorker.onmessage()</span></tt> event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the &quot;terminal:term_updated&quot; event passing the terminal number as the only argument.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">termUpdateFromWorker</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.termUpdateFromWorker" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets assigned to the <code class="xref js js-meth docutils literal"><span class="pre">termUpdatesWorker.onmessage()</span></code> event; Whenever the WebWorker completes processing of the incoming screen it posts the result to this function.  It takes care of updating the terminal on the page, storing the scrollback buffer, and finally triggers the &quot;terminal:term_updated&quot; event passing the terminal number as the only argument.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.loadWebWorkerAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">loadWebWorkerAction</tt><big>(</big><em>source</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.loadWebWorkerAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">loadWebWorkerAction</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.loadWebWorkerAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads our Web Worker given it's <em>source</em> (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.updateTerminalAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">updateTerminalAction</tt><big>(</big><em>termUpdateObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.updateTerminalAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">updateTerminalAction</code><span class="sig-paren">(</span><em>termUpdateObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.updateTerminalAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes the updated screen information from <em>termUpdateObj</em> and posts it to the 'term_ww.js' Web Worker to be processed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -268,28 +279,28 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.notifyInactivity">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">notifyInactivity</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.notifyInactivity" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">notifyInactivity</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.notifyInactivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Notifies the user of inactivity in <em>term</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.notifyActivity">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">notifyActivity</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.notifyActivity" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">notifyActivity</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.notifyActivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Notifies the user of activity in <em>term</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.newPastearea">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">newPastearea</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.newPastearea" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">newPastearea</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.newPastearea" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a 'pastearea' (textarea) element meant for placement above terminals for the purpose of enabling proper copy &amp; paste.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.newTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">newTerminal</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">[</span>, <em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.newTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">newTerminal</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">[</span>, <em>settings</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.newTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a new terminal to the grid and starts updates with the server.</p>
 <p>If <em>term</em> is provided, the created terminal will use that number.</p>
-<p>If <em>settings</em> (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example:</p>
+<p>If <em>settings</em> (object) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="o">&gt;</span> <span class="c1">// Creates a new terminal that spawns whatever command is set as &#39;login&#39; in Gate One&#39;s settings:</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">newTerminal</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="o">:</span> <span class="s1">&#39;login&#39;</span><span class="p">});</span>
 </pre></div>
@@ -300,16 +311,16 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.closeTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTerminal</tt><big>(</big><em>term</em><span class="optional">[</span>, <em>noCleanup</em><span class="optional">[</span>, <em>message</em><span class="optional">[</span>, <em>sendKill</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.closeTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">closeTerminal</code><span class="sig-paren">(</span><em>term</em><span class="optional">[</span>, <em>noCleanup</em><span class="optional">[</span>, <em>message</em><span class="optional">[</span>, <em>sendKill</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.closeTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
 <li><strong>term</strong> (<em>number</em>) -- The terminal to close.</li>
-<li><strong>noCleanup</strong> (<em>boolean</em>) -- If <tt class="docutils literal"><span class="pre">true</span></tt> the terminal's metadata in localStorage/IndexedDB (i.e. scrollback buffer) will not be removed.</li>
+<li><strong>noCleanup</strong> (<em>boolean</em>) -- If <code class="docutils literal"><span class="pre">true</span></code> the terminal's metadata in localStorage/IndexedDB (i.e. scrollback buffer) will not be removed.</li>
 <li><strong>message</strong> (<em>string</em>) -- An optional message to display to the user after the terminal is close.</li>
-<li><strong>sendKill</strong> (<em>boolean</em>) -- If undefined or <tt class="docutils literal"><span class="pre">true</span></tt>, will tell the server to kill the process associated with the given <em>term</em> (i.e. close it for real).</li>
+<li><strong>sendKill</strong> (<em>boolean</em>) -- If undefined or <code class="docutils literal"><span class="pre">true</span></code>, will tell the server to kill the process associated with the given <em>term</em> (i.e. close it for real).</li>
 </ul>
 </td>
 </tr>
@@ -320,7 +331,7 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.popupTerm">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">popupTerm</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.popupTerm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">popupTerm</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.popupTerm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens a dialog with a terminal contained within.  If <em>term</em> is given the created terminal will use that number.</p>
 <p>The <em>options</em> argument may contain the following:</p>
 <blockquote>
@@ -328,7 +339,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">global:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">true</span></tt> the dialog will be appended to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></tt> (e.g. #gateone) instead of the current workspace.</td>
+<tr class="field-odd field"><th class="field-name">global:</th><td class="field-body">If <code class="docutils literal"><span class="pre">true</span></code> the dialog will be appended to <code class="xref py py-obj docutils literal"><span class="pre">GateOne.node</span></code> (e.g. #gateone) instead of the current workspace.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">where:</th><td class="field-body">If provided the popup terminal will be placed within the given element.</td>
 </tr>
@@ -336,116 +347,117 @@
 </table>
 </div></blockquote>
 <p>If the terminal inside the dialog ends it will be closed automatically.  If the user closes the dialog the terminal will be closed automatically as well.</p>
+<p>If <em>termSettings</em> are provided they will be passed to <a class="reference internal" href="#GateOne.Terminal.newTerminal" title="GateOne.Terminal.newTerminal"><code class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.newTerminal()</span></code></a> when called.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the 'selectedTerminal' value in <tt class="xref py py-obj docutils literal"><span class="pre">localStorage</span></tt> and sends the 'terminal:set_terminal' WebSocket action to the server to let it know which terminal is currently active.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setTerminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setTerminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'selectedTerminal' value in <code class="xref py py-obj docutils literal"><span class="pre">localStorage</span></code> and sends the 'terminal:set_terminal' WebSocket action to the server to let it know which terminal is currently active.</p>
 <p>This function triggers the 'terminal:set_terminal' event passing the terminal number as the only argument.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.switchTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">switchTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.switchTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.setTerminal(*term*)</span></tt> then triggers the 'terminal:switch_terminal' event passing <em>term</em> as the only argument.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">switchTerminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.switchTerminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.setTerminal(*term*)</span></code> then triggers the 'terminal:switch_terminal' event passing <em>term</em> as the only argument.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setActive">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setActive</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.setActive" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setActive</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setActive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the '✈inactive' class from the given <em>term</em>.</p>
 <p>If <em>term</em> is not given the currently-selected terminal will be used.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.isActive">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">isActive</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.isActive" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="docutils literal"><span class="pre">true</span></tt> if a terminal is the current application (selected by the user)</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">isActive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.isActive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">true</span></code> if a terminal is the current application (selected by the user)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.switchTerminalEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">switchTerminalEvent</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.switchTerminalEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets attached to the 'terminal:switch_terminal' event in <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.init()</span></tt>; performs a number of actions whenever the user changes the current terminal.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">switchTerminalEvent</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.switchTerminalEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to the 'terminal:switch_terminal' event in <code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.init()</span></code>; performs a number of actions whenever the user changes the current terminal.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.switchWorkspaceEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">switchWorkspaceEvent</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.switchWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">switchWorkspaceEvent</code><span class="sig-paren">(</span><em>workspace</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.switchWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called whenever Gate One switches to a new workspace; checks whether or not this workspace is home to a terminal and calls switchTerminalEvent() on said terminal (to make sure input is enabled and it is scrolled to the bottom).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.workspaceClosedEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">workspaceClosedEvent</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.workspaceClosedEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:close_workspace</span></tt> event; closes any terminals that are attached to the given <em>workspace</em>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">workspaceClosedEvent</code><span class="sig-paren">(</span><em>workspace</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.workspaceClosedEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:close_workspace</span></code> event; closes any terminals that are attached to the given <em>workspace</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.swappedWorkspacesEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">swappedWorkspacesEvent</tt><big>(</big><em>ws1</em>, <em>ws2</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.swappedWorkspacesEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:swapped_workspaces</span></tt> event; updates <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals</span></tt> with the correct workspace attributes if either contains terminals.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">swappedWorkspacesEvent</code><span class="sig-paren">(</span><em>ws1</em>, <em>ws2</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.swappedWorkspacesEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:swapped_workspaces</span></code> event; updates <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals</span></code> with the correct workspace attributes if either contains terminals.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.printScreen">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">printScreen</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.printScreen" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">printScreen</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.printScreen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints <em>just</em> the screen (no scrollback) of the given <em>term</em>.  If <em>term</em> is not provided the currently-selected terminal will be used.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.hideIcons">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">hideIcons</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.hideIcons" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">hideIcons</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.hideIcons" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hides the Terminal's toolbar icons (i.e. when another application is running).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.showIcons">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">showIcons</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.showIcons" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">showIcons</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.showIcons" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows (unhides) the Terminal's toolbar icons (i.e. when another application is running).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.bellAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">bellAction</tt><big>(</big><em>bellObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.bellAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">bellAction</code><span class="sig-paren">(</span><em>bellObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.bellAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the 'terminal:bell' WebSocket action; plays a bell sound and pops up a message indiciating which terminal issued a bell.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.playBell">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">playBell</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.playBell" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">playBell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.playBell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays the bell sound without any visual notification.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.updateDimensions">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">updateDimensions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.updateDimensions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">updateDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.updateDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets attached to the &quot;<a class="reference external" href="go:update_dimensions">go:update_dimensions</a>&quot; event which gets called whenever the window is resized.  It makes sure that all the terminal containers are of the correct dimensions.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.enableScrollback">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">enableScrollback</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.enableScrollback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces the contents of the selected/active terminal scrollback buffer with the complete latest scrollback buffer from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[*term*]</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">enableScrollback</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.enableScrollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the contents of the selected/active terminal scrollback buffer with the complete latest scrollback buffer from <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[*term*]</span></code>.</p>
 <p>If <em>term</em> is given, only ensable scrollback for that terminal.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.toggleScrollback">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">toggleScrollback</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.toggleScrollback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">toggleScrollback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.toggleScrollback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enables or disables the scrollback buffer (to hide or show the scrollbars).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.clearScrollback">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">clearScrollback</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.clearScrollback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">clearScrollback</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.clearScrollback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Empties the scrollback buffer for the given <em>term</em> in memory, in localStorage, and in the DOM.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.clearScreen">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">clearScreen</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.clearScreen" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">clearScreen</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.clearScreen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clears the screen of the given <em>term</em> in memory and in the DOM.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -455,25 +467,25 @@
 
 <dl class="function">
 <dt id="GateOne.Terminal.getLocations">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">getLocations</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.getLocations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:get_locations</span></tt> WebSocket action to the server.  This will ultimately trigger the <a class="reference internal" href="#GateOne.Terminal.locationsAction" title="GateOne.Terminal.locationsAction"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.locationsAction()</span></tt></a> function.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">getLocations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.getLocations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the <code class="xref py py-obj docutils literal"><span class="pre">terminal:get_locations</span></code> WebSocket action to the server.  This will ultimately trigger the <a class="reference internal" href="#GateOne.Terminal.locationsAction" title="GateOne.Terminal.locationsAction"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.locationsAction()</span></code></a> function.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.locationsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">locationsAction</tt><big>(</big><em>locations</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.locationsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:term_locations</span></tt> WebSocket action, triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:term_locations</span></tt> event (in case someone wants to do something with that information).</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">locationsAction</code><span class="sig-paren">(</span><em>locations</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.locationsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">terminal:term_locations</span></code> WebSocket action, triggers the <code class="xref py py-obj docutils literal"><span class="pre">terminal:term_locations</span></code> event (in case someone wants to do something with that information).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.relocateWorkspaceEvent">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">relocateWorkspaceEvent</tt><big>(</big><em>workspace</em>, <em>location</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.relocateWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:relocate_workspace</span></tt> event; calls <a class="reference internal" href="#GateOne.Terminal.relocateTerminal" title="GateOne.Terminal.relocateTerminal"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.relocateTerminal()</span></tt></a> if the given <em>workspace</em> has a terminal contained within it.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">relocateWorkspaceEvent</code><span class="sig-paren">(</span><em>workspace</em>, <em>location</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.relocateWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:relocate_workspace</span></code> event; calls <a class="reference internal" href="#GateOne.Terminal.relocateTerminal" title="GateOne.Terminal.relocateTerminal"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.relocateTerminal()</span></code></a> if the given <em>workspace</em> has a terminal contained within it.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.relocateTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">relocateTerminal</tt><big>(</big><em>term</em>, <em>location</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.relocateTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">relocateTerminal</code><span class="sig-paren">(</span><em>term</em>, <em>location</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.relocateTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -492,50 +504,50 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.changeLocation">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">changeLocation</tt><big>(</big><em>location</em><span class="optional">[</span>, <em>settings</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.changeLocation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">go:set_location</span></tt> event, removes all terminals from the current view and opens up all the terminals at the new <em>location</em>.  If there are currently no terminals at <em>location</em> a new terminal will be opened automatically.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">changeLocation</code><span class="sig-paren">(</span><em>location</em><span class="optional">[</span>, <em>settings</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.changeLocation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">go:set_location</span></code> event, removes all terminals from the current view and opens up all the terminals at the new <em>location</em>.  If there are currently no terminals at <em>location</em> a new terminal will be opened automatically.</p>
 <p>To neglect opening a new terminal automatically provide a settings object like so:</p>
-<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">changeLocation</span><span class="p">(</span><span class="s1">&#39;window2&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;new_term&#39;</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span><span class="err">`</span><span class="p">);</span>
+<div class="highlight-jscon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">changeLocation</span><span class="p">(</span><span class="s1">&#39;window2&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;new_term&#39;</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span><span class="sb">`);</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.reconnectTerminalAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reconnectTerminalAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.reconnectTerminalAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the server reports that the terminal number supplied via the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:new_terminal</span></tt> WebSocket action already exists.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">reconnectTerminalAction</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.reconnectTerminalAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the server reports that the terminal number supplied via the <code class="xref py py-obj docutils literal"><span class="pre">terminal:new_terminal</span></code> WebSocket action already exists.</p>
 <p>This method also gets called when a terminal is moved from one 'location' to another.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.moveTerminalAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">moveTerminalAction</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.moveTerminalAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:term_moved</span></tt> WebSocket Action, closes the given <em>term</em> with a slightly different message than closeTerminal().</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">moveTerminalAction</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.moveTerminalAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">terminal:term_moved</span></code> WebSocket Action, closes the given <em>term</em> with a slightly different message than closeTerminal().</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.reattachTerminalsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">reattachTerminalsAction</tt><big>(</big><em>terminals</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.reattachTerminalsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after we authenticate to the server, this function is attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:terminals</span></tt> WebSocket action which is the server's way of notifying the client that there are existing terminals.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">reattachTerminalsAction</code><span class="sig-paren">(</span><em>terminals</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.reattachTerminalsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after we authenticate to the server, this function is attached to the <code class="xref py py-obj docutils literal"><span class="pre">terminal:terminals</span></code> WebSocket action which is the server's way of notifying the client that there are existing terminals.</p>
 <p>If we're reconnecting to an existing session, running terminals will be recreated/reattached.</p>
 <p>If this is a new session (and we're not in embedded mode), a new terminal will be created.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.recordPanePositions">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">recordPanePositions</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.recordPanePositions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Records the position of each terminal in each <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.Pane()</span></tt> that exists on the page (so they can be resumed properly).</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">recordPanePositions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.recordPanePositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records the position of each terminal in each <code class="xref js js-meth docutils literal"><span class="pre">GateOne.Visual.Pane()</span></code> that exists on the page (so they can be resumed properly).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.resumePanePosition">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resumePanePosition</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resumePanePosition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uses <tt class="docutils literal"><span class="pre">GateOne.Terminal.terminals[term].metadata.panePosition</span></tt> to create a new terminal in that exact spot.  New :js:meth`GateOne.Visual.Pane` objects will be created as necessary to ensure the terminal winds up where it was previously.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">resumePanePosition</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.resumePanePosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses <code class="docutils literal"><span class="pre">GateOne.Terminal.terminals[term].metadata.panePosition</span></code> to create a new terminal in that exact spot.  New :js:meth`GateOne.Visual.Pane` objects will be created as necessary to ensure the terminal winds up where it was previously.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setModeAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setModeAction</tt><big>(</big><em>modeObj</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.setModeAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setModeAction</code><span class="sig-paren">(</span><em>modeObj</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setModeAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the given terminal mode (e.g. application cursor mode aka appmode).  <em>modeObj</em> is expected to be something like this:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;mode&#39;</span><span class="o">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;term&#39;</span><span class="o">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;bool&#39;</span><span class="o">:</span> <span class="kc">true</span><span class="p">}</span>
 </pre></div>
@@ -544,7 +556,7 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.registerTextTransform">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">registerTextTransform</tt><big>(</big><em>name</em>, <em>pattern</em>, <em>newString</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.registerTextTransform" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">registerTextTransform</code><span class="sig-paren">(</span><em>name</em>, <em>pattern</em>, <em>newString</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.registerTextTransform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a new or replaces an existing text transformation to GateOne.Terminal.textTransforms using <em>pattern</em> and <em>newString</em> with the given <em>name</em>.  Example:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">pattern</span> <span class="o">=</span> <span class="sr">/(\bIM\d{9,10}\b)/g</span><span class="p">,</span>
     <span class="nx">newString</span> <span class="o">=</span> <span class="s2">&quot;&lt;a href=&#39;https://support.company.com/tracker?ticket=$1&#39; target=&#39;new&#39;&gt;$1&lt;/a&gt;&quot;</span><span class="p">;</span>
@@ -572,19 +584,19 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.unregisterTextTransform">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">unregisterTextTransform</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.unregisterTextTransform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the given text transform from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.textTransforms</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">unregisterTextTransform</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.unregisterTextTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given text transform from <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.textTransforms</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.resetTerminalAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">resetTerminalAction</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.resetTerminalAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">resetTerminalAction</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.resetTerminalAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clears the screen and the scrollback buffer of the given <em>term</em> (in memory, localStorage, and in the DOM).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.termEncodingAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">termEncodingAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.termEncodingAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">termEncodingAction</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.termEncodingAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles the 'terminal:encoding' WebSocket action that tells us the encoding that is set for a given terminal.  The expected message format:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -606,7 +618,7 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.termKeyboardModeAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">termKeyboardModeAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.termKeyboardModeAction" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">termKeyboardModeAction</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.termKeyboardModeAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles the 'terminal:keyboard_mode' WebSocket action that tells us the keyboard mode that is set for a given terminal.  The expected message format:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -628,7 +640,7 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.xtermEncode">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">xtermEncode</tt><big>(</big><em>number</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.xtermEncode" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">xtermEncode</code><span class="sig-paren">(</span><em>number</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.xtermEncode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encodes the given <em>number</em> into a single character using xterm's encoding scheme.  e.g. to convert mouse coordinates for use in an escape sequence.</p>
 <p>The xterm encoding scheme takes the ASCII value of (<em>number</em> + 32).  So the number one would be ! (exclamation point), the number two would be &quot; (double-quote), the number three would be # (hash), and so on.</p>
 <div class="admonition note">
@@ -639,9 +651,9 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.highlight">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">highlight</tt><big>(</big><em>text</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.highlight" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">highlight</code><span class="sig-paren">(</span><em>text</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.highlight" title="Permalink to this definition">¶</a></dt>
 <dd><p>Highlights all occurrences of the given <em>text</em> inside the given <em>term</em> by wrapping it in a span like so:</p>
-<div class="highlight-html"><div class="highlight"><pre><span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;✈highlight&quot;</span><span class="nt">&gt;</span>text<span class="nt">&lt;/span&gt;</span>
+<div class="highlight-html"><div class="highlight"><pre><span class="p">&lt;</span><span class="nt">span</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;✈highlight&quot;</span><span class="p">&gt;</span>text<span class="p">&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>
 </pre></div>
 </div>
 <p>If <em>term</em> is not provided the currently-selected terminal will be used.</p>
@@ -649,47 +661,47 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.unHighlight">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">unHighlight</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.unHighlight" title="Permalink to this definition">¶</a></dt>
-<dd><p>Undoes the results of <a class="reference internal" href="#GateOne.Terminal.highlight" title="GateOne.Terminal.highlight"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.highlight()</span></tt></a>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">unHighlight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.unHighlight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undoes the results of <a class="reference internal" href="#GateOne.Terminal.highlight" title="GateOne.Terminal.highlight"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Terminal.highlight()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="GateOne.Terminal.highlightTexts">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">highlightTexts</tt><a class="headerlink" href="#GateOne.Terminal.highlightTexts" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">highlightTexts</code><a class="headerlink" href="#GateOne.Terminal.highlightTexts" title="Permalink to this definition">¶</a></dt>
 <dd><p>An object that holds all the words the user wishes to stay persistently highlighted (even after screen updates and whatnot) across all terminals.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Word highlighting that is specific to individual terminals is stored in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]</span></tt>.</p>
+<p class="last">Word highlighting that is specific to individual terminals is stored in <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]</span></code>.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.highlightDialog">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">highlightDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.highlightDialog" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">highlightDialog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.highlightDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens a dialog where users can add/remove text they would like to be highlighted on a semi-permanent basis (e.g. even after a screen update).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.showSuspended">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">showSuspended</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.showSuspended" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">showSuspended</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.showSuspended" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a little widget in the terminal that indicates that output has been suspended.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.scrollPageUp">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">scrollPageUp</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.scrollPageUp" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">scrollPageUp</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.scrollPageUp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scrolls the given <em>term</em> one page up.  If <em>term</em> is not given the currently-selected terminal will be used.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.scrollPageDown">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">scrollPageDown</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.scrollPageDown" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">scrollPageDown</code><span class="sig-paren">(</span><span class="optional">[</span><em>term</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.scrollPageDown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scrolls the given <em>term</em> one page up.  If <em>term</em> is not given the currently-selected terminal will be used.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.chooser">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">chooser</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.chooser" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">chooser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.chooser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pops up a dialog where the user can immediately switch to any terminal in any 'location'.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -699,7 +711,7 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sharePermissions">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharePermissions</tt><big>(</big><em>term</em>, <em>permissions</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharePermissions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sharePermissions</code><span class="sig-paren">(</span><em>term</em>, <em>permissions</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sharePermissions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the sharing <em>permissions</em> of the given <em>term</em>.  The <em>permissions</em> must be an object that contains one or both of the following:</p>
 <blockquote>
 <div><table class="docutils field-list" frame="void" rules="none">
@@ -729,19 +741,19 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.shareDialog">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareDialog</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareDialog" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">shareDialog</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.shareDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens a dialog where the user can share a terminal or modify the permissions on a terminal that is already shared.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.setShareID">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">setShareID</tt><big>(</big><em>term</em><span class="optional">[</span>, <em>shareID</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.setShareID" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">setShareID</code><span class="sig-paren">(</span><em>term</em><span class="optional">[</span>, <em>shareID</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.setShareID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the share ID of the given <em>term</em>.  If a <em>shareID</em> is not provided one will be generated automatically (by the server).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.attachSharedTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">attachSharedTerminal</tt><big>(</big><em>shareID</em><span class="optional">[</span>, <em>password</em><span class="optional">[</span>, <em>metadata</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.attachSharedTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">attachSharedTerminal</code><span class="sig-paren">(</span><em>shareID</em><span class="optional">[</span>, <em>password</em><span class="optional">[</span>, <em>metadata</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.attachSharedTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens the terminal associated with the given <em>shareID</em>.</p>
 <p>If a <em>password</em> is given it will be used to attach to the shared terminal.</p>
 <p>If <em>metadata</em> is given it will be passed to the server to be used for extra logging and providing additional details about who is connecting to shared terminals.</p>
@@ -749,69 +761,90 @@ the appropriate message to the Gate One server.</p>
 
 <dl class="function">
 <dt id="GateOne.Terminal.detachSharedTerminal">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">detachSharedTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.detachSharedTerminal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">detachSharedTerminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.detachSharedTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the server that we no longer wish to view the terminal associated with the given <em>term</em> (local terminal number).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.listSharedTerminals">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">listSharedTerminals</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.listSharedTerminals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sens the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:list_shared_terminals</span></tt> WebSocket action to the server which will reply with the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> WebSocket action (if the user is allowed to list shared terminals).</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">listSharedTerminals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.listSharedTerminals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sens the <code class="xref py py-obj docutils literal"><span class="pre">terminal:list_shared_terminals</span></code> WebSocket action to the server which will reply with the <code class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></code> WebSocket action (if the user is allowed to list shared terminals).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sharedTerminalsAction">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTerminalsAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attached to the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> WebSocket action; stores the list of terminals that have been shared with the user in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></tt> and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></tt> event.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sharedTerminalsAction</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the <code class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></code> WebSocket action; stores the list of terminals that have been shared with the user in <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></code> and triggers the <code class="xref py py-obj docutils literal"><span class="pre">terminal:shared_terminals</span></code> event.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sharedTerminalsDialog">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTerminalsDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsDialog" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sharedTerminalsDialog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sharedTerminalsDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens up a dialog where the user can open terminals that have been shared with them.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.shareInfo">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareInfo</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">shareInfo</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.shareInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a dialog that lists the current viewers (along with their permissions) of a given <em>term</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.shareWidget">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareWidget</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareWidget" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">shareWidget</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.shareWidget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a terminal sharing widget to the given <em>term</em> (number) that provides sharing controls and information (e.g. number of viewers).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.sharedTermObj">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">sharedTermObj</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.sharedTermObj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the object matching the given <em>term</em> from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></tt>.</p>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">sharedTermObj</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.sharedTermObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object matching the given <em>term</em> from <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.sharedTerminals</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.shareID">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareID</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareID" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">shareID</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.shareID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the share ID for the given <em>term</em> (if any).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.shareBroadcastURL">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">shareBroadcastURL</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.shareBroadcastURL" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">shareBroadcastURL</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.shareBroadcastURL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the broadcast URL for the given <em>term</em> (if any).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal._trimmedScreen">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">_trimmedScreen</tt><big>(</big><em>screen</em><big>)</big><a class="headerlink" href="#GateOne.Terminal._trimmedScreen" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">_trimmedScreen</code><span class="sig-paren">(</span><em>screen</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal._trimmedScreen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>screen</em> with all trailing empty lines removed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Terminal.lastLines">
-<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">lastLines</tt><big>(</big><span class="optional">[</span><em>n</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Terminal.lastLines" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">lastLines</code><span class="sig-paren">(</span><span class="optional">[</span><em>n</em><span class="optional">[</span>, <em>term</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.lastLines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the last <em>n</em> non-blank (trimmed) line in the terminal.  Useful for pattern matching.</p>
-<p>If <em>term</em> is not given the <tt class="docutils literal"><span class="pre">localStorage[prefix+'selectedTerminal']</span></tt> will be used.</p>
+<p>If <em>term</em> is not given the <code class="docutils literal"><span class="pre">localStorage[prefix+'selectedTerminal']</span></code> will be used.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.startCapture">
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">startCapture</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.startCapture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts capturing terminal output for the given <em>term</em>.  The <a class="reference internal" href="#GateOne.Terminal.stopCapture" title="GateOne.Terminal.stopCapture"><code class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.stopCapture()</span></code></a> function can be called to stop the capture and send the captured data to the client via the 'terminal:captured_data' WebSocket action.  This WebSocket action gets attached to <a class="reference internal" href="#GateOne.Terminal.capturedData" title="GateOne.Terminal.capturedData"><code class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.capturedData()</span></code></a> which will call the 'terminal:captured_data' event passing the terminal number and the captured data as the only arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.stopCapture">
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">stopCapture</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.stopCapture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops capturing output on the given <em>term</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.capturedData">
+<code class="descclassname">GateOne.Terminal.</code><code class="descname">capturedData</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Terminal.capturedData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the 'terminal:captured_data' WebSocket action; triggers the 'terminal:captured_data' event like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s1">&#39;terminal:captured_data&#39;</span><span class="p">,</span> <span class="nx">term</span><span class="p">,</span> <span class="nx">data</span><span class="p">);</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -820,23 +853,25 @@ the appropriate message to the Gate One server.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../index.html">
               <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="woff_info.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">woff_info.py</span></tt> - Python WOFF Font Inspector</a></p>
+                        title="previous chapter"><code class="docutils literal"><span class="pre">woff_info.py</span></code> - Python WOFF Font Inspector</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_terminal_input.html"
                         title="next chapter">terminal_input.js</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../../_sources/Applications/terminal/js_terminal.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/Applications/terminal/js_terminal.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
@@ -853,7 +888,7 @@ the appropriate message to the Gate One server.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -868,16 +903,16 @@ the appropriate message to the Gate One server.</p>
         <li class="right" >
           <a href="woff_info.html" title="woff_info.py - Python WOFF Font Inspector"
              >previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

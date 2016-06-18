@@ -6,10 +6,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>Index &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/ansi.css" type="text/css" />
     
@@ -28,8 +39,8 @@
     <link rel="shortcut icon" href="_static/favicon.png"/>
     <link rel="top" title="Gate One 1.2.0 documentation" href="index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -38,14 +49,14 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">Gate One Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Gate One Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
 
 <h1 id="index">Index</h1>
@@ -676,18 +687,10 @@
   <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_flat">_retrieve_log_flat() (in module logging_plugin)</a>
   </dt>
 
-      
-  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_playback">_retrieve_log_playback() (in module logging_plugin)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._return_known_hosts">_return_known_hosts() (ssh.KnownHostsHandler method)</a>
-  </dt>
-
-      
-  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler._save_known_hosts">_save_known_hosts() (ssh.KnownHostsHandler method)</a>
+  <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin._retrieve_log_playback">_retrieve_log_playback() (in module logging_plugin)</a>
   </dt>
 
       
@@ -1674,6 +1677,10 @@
   </dt>
 
       
+  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.handleKnownHosts">GateOne.SSH.handleKnownHosts() (GateOne.SSH method)</a>
+  </dt>
+
+      
   <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.handleReconnect">GateOne.SSH.handleReconnect() (GateOne.SSH method)</a>
   </dt>
 
@@ -1706,10 +1713,6 @@
   </dt>
 
       
-  <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.updateKH">GateOne.SSH.updateKH() (GateOne.SSH method)</a>
-  </dt>
-
-      
   <dt><a href="Applications/terminal/plugin_ssh.html#GateOne.SSH.uploadCertificateForm">GateOne.SSH.uploadCertificateForm() (GateOne.SSH method)</a>
   </dt>
 
@@ -1739,6 +1742,10 @@
 
       
   <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.bellAction">GateOne.Terminal.bellAction() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.capturedData">GateOne.Terminal.capturedData() (GateOne.Terminal method)</a>
   </dt>
 
       
@@ -1809,12 +1816,12 @@
   <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.stopGraph">GateOne.Terminal.Example.stopGraph() (GateOne.Terminal.Example method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.toggleLoadGraph">GateOne.Terminal.Example.toggleLoadGraph() (GateOne.Terminal.Example method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Applications/terminal/plugin_example.html#GateOne.Terminal.Example.topTop">GateOne.Terminal.Example.topTop() (GateOne.Terminal.Example method)</a>
   </dt>
@@ -2064,6 +2071,14 @@
   </dt>
 
       
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.startCapture">GateOne.Terminal.startCapture() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.stopCapture">GateOne.Terminal.stopCapture() (GateOne.Terminal method)</a>
+  </dt>
+
+      
   <dt><a href="Applications/terminal/js_terminal.html#GateOne.Terminal.swappedWorkspacesEvent">GateOne.Terminal.swappedWorkspacesEvent() (GateOne.Terminal method)</a>
   </dt>
 
@@ -2264,10 +2279,6 @@
   <dt><a href="Developer/server.html#gateone.core.server.HTTPSRedirectHandler.get">(gateone.core.server.HTTPSRedirectHandler method)</a>
   </dt>
 
-        
-  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.get">(ssh.KnownHostsHandler method)</a>
-  </dt>
-
       </dl></dd>
       
   <dt><a href="Applications/terminal/plugin_logging.html#logging_plugin.get_256_colors">get_256_colors() (in module logging_plugin)</a>
@@ -2357,6 +2368,10 @@
 
       
   <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_key">get_key() (in module ssh)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.get_known_hosts">get_known_hosts() (in module ssh)</a>
   </dt>
 
       
@@ -2567,10 +2582,6 @@
 
       
   <dt><a href="Developer/utils.html#gateone.core.utils.killall_bsd">killall_bsd() (in module gateone.core.utils)</a>
-  </dt>
-
-      
-  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler">KnownHostsHandler (class in ssh)</a>
   </dt>
 
   </dl></td>
@@ -2821,12 +2832,6 @@
   <dt><a href="Applications/terminal/plugin_example.html#example.ExampleHandler.post">post() (example.ExampleHandler method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.KnownHostsHandler.post">(ssh.KnownHostsHandler method)</a>
-  </dt>
-
-      </dl></dd>
       
   <dt><a href="Developer/utils.html#gateone.core.utils.process_opt_esc_sequence">process_opt_esc_sequence() (in module gateone.core.utils)</a>
   </dt>
@@ -2931,6 +2936,10 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Applications/terminal/plugin_bookmarks.html#bookmarks.BookmarksDB.save_bookmarks">save_bookmarks() (bookmarks.BookmarksDB method)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/plugin_ssh.html#ssh.save_known_hosts">save_known_hosts() (in module ssh)</a>
   </dt>
 
       
@@ -3097,6 +3106,10 @@
 
       
   <dt><a href="Developer/server.html#gateone.core.server.StaticHandler">StaticHandler (class in gateone.core.server)</a>
+  </dt>
+
+      
+  <dt><a href="Applications/terminal/app_terminal.html#app_terminal.TerminalApplication.stop_capture">stop_capture() (app_terminal.TerminalApplication method)</a>
   </dt>
 
       
@@ -3289,7 +3302,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
@@ -3297,7 +3310,7 @@
 
    
 
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -3314,7 +3327,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -3323,13 +3336,13 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">Gate One Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Gate One Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>app_terminal.py - Gate One Terminal Application &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="Terminal Configuration" href="configuration.html" />
     <link rel="prev" title="Terminal Developer Documentation" href="developer.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,38 +57,38 @@
         <li class="right" >
           <a href="developer.html" title="Terminal Developer Documentation"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-app_terminal">
-<span id="app-terminal-py-gate-one-terminal-application"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">app_terminal.py</span></tt> - Gate One Terminal Application<a class="headerlink" href="#module-app_terminal" title="Permalink to this headline">¶</a></h1>
-<p>A Gate One Application (<tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt>) that provides a terminal emulator.</p>
+<span id="app-terminal-py-gate-one-terminal-application"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">app_terminal.py</span></code> - Gate One Terminal Application<a class="headerlink" href="#module-app_terminal" title="Permalink to this headline">¶</a></h1>
+<p>A Gate One Application (<code class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></code>) that provides a terminal emulator.</p>
 <dl class="function">
 <dt id="app_terminal.kill_session">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">kill_session</tt><big>(</big><em>session</em>, <em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#kill_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.kill_session" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">app_terminal.</code><code class="descname">kill_session</code><span class="sig-paren">(</span><em>session</em>, <em>kill_dtach=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#kill_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.kill_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminates all the terminal processes associated with <em>session</em>.  If
 <em>kill_dtach</em> is True, the dtach processes associated with the session will
 also be killed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function gets appended to the
-<tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS[session][&quot;kill_session_callbacks&quot;]</span></tt> list inside of
-<a class="reference internal" href="#app_terminal.TerminalApplication.authenticate" title="app_terminal.TerminalApplication.authenticate"><tt class="xref py py-meth docutils literal"><span class="pre">TerminalApplication.authenticate()</span></tt></a>.</p>
+<code class="xref py py-obj docutils literal"><span class="pre">SESSIONS[session][&quot;kill_session_callbacks&quot;]</span></code> list inside of
+<a class="reference internal" href="#app_terminal.TerminalApplication.authenticate" title="app_terminal.TerminalApplication.authenticate"><code class="xref py py-meth docutils literal"><span class="pre">TerminalApplication.authenticate()</span></code></a>.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="app_terminal.timeout_session">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">timeout_session</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#timeout_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.timeout_session" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">app_terminal.</code><code class="descname">timeout_session</code><span class="sig-paren">(</span><em>session</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#timeout_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.timeout_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to Gate One's 'timeout_callbacks'; kills the given session.</p>
 <p>If 'dtach' support is enabled the dtach processes associated with the
 session will also be killed.</p>
@@ -85,82 +96,82 @@ session will also be killed.</p>
 
 <dl class="class">
 <dt id="app_terminal.SharedTermHandler">
-<em class="property">class </em><tt class="descclassname">app_terminal.</tt><tt class="descname">SharedTermHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#SharedTermHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.SharedTermHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">app_terminal.</code><code class="descname">SharedTermHandler</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#SharedTermHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.SharedTermHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders shared.html which allows an anonymous user to view a shared
 terminal.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="app_terminal.TermStaticFiles">
-<em class="property">class </em><tt class="descclassname">app_terminal.</tt><tt class="descname">TermStaticFiles</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TermStaticFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TermStaticFiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Serves static files in the <tt class="xref py py-obj docutils literal"><span class="pre">gateone/applications/terminal/static</span></tt> directory.</p>
+<em class="property">class </em><code class="descclassname">app_terminal.</code><code class="descname">TermStaticFiles</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TermStaticFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TermStaticFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serves static files in the <code class="xref py py-obj docutils literal"><span class="pre">gateone/applications/terminal/static</span></code> directory.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This is configured via the <tt class="xref py py-obj docutils literal"><span class="pre">web_handlers</span></tt> global (a feature inherent to
+<p class="last">This is configured via the <code class="xref py py-obj docutils literal"><span class="pre">web_handlers</span></code> global (a feature inherent to
 Gate One applications).</p>
 </div>
 </dd></dl>
 
 <dl class="class">
 <dt id="app_terminal.TerminalApplication">
-<em class="property">class </em><tt class="descclassname">app_terminal.</tt><tt class="descname">TerminalApplication</tt><big>(</big><em>ws</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Gate One Application (<tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt>) that handles creating and
+<em class="property">class </em><code class="descclassname">app_terminal.</code><code class="descname">TerminalApplication</code><span class="sig-paren">(</span><em>ws</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Gate One Application (<code class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></code>) that handles creating and
 controlling terminal applications running on the Gate One server.</p>
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.initialize">
-<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.initialize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the WebSocket is instantiated, sets up our WebSocket
 actions, security policies, and attaches all of our plugin hooks/events.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.open">
-<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.open" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets called at the end of <tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></tt> when
+<code class="descname">open</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets called at the end of <code class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></code> when
 the WebSocket is opened.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_client_files">
-<tt class="descname">send_client_files</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_client_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_client_files" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_client_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_client_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_client_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the client our standard CSS and JS.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.authenticate">
-<tt class="descname">authenticate</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.authenticate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">authenticate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.authenticate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets called immediately after the user is authenticated
-successfully at the end of <tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.authenticate()</span></tt>.
+successfully at the end of <code class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.authenticate()</span></code>.
 Sends all plugin JavaScript files to the client and triggers the
 'terminal:authenticate' event.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.on_close">
-<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.on_close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes all attached callbacks and triggers the <tt class="xref py py-obj docutils literal"><span class="pre">terminal:on_close</span></tt>
+<code class="descname">on_close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all attached callbacks and triggers the <code class="xref py py-obj docutils literal"><span class="pre">terminal:on_close</span></code>
 event.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.enumerate_fonts">
-<tt class="descname">enumerate_fonts</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.enumerate_fonts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.enumerate_fonts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">enumerate_fonts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.enumerate_fonts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.enumerate_fonts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a JSON-encoded object containing the installed fonts.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.enumerate_colors">
-<tt class="descname">enumerate_colors</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.enumerate_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.enumerate_colors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">enumerate_colors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.enumerate_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.enumerate_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a JSON-encoded object containing the installed text color
 schemes.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.save_term_settings">
-<tt class="descname">save_term_settings</tt><big>(</big><em>term</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.save_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.save_term_settings" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save_term_settings</code><span class="sig-paren">(</span><em>term</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.save_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.save_term_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves whatever <em>settings</em> (must be JSON-encodable) are provided in the
 user's session directory; associated with the given <em>term</em>.</p>
-<p>The <a class="reference internal" href="#app_terminal.TerminalApplication.restore_term_settings" title="app_terminal.TerminalApplication.restore_term_settings"><tt class="xref py py-obj docutils literal"><span class="pre">restore_term_settings</span></tt></a> function can be used to restore the provided
+<p>The <a class="reference internal" href="#app_terminal.TerminalApplication.restore_term_settings" title="app_terminal.TerminalApplication.restore_term_settings"><code class="xref py py-obj docutils literal"><span class="pre">restore_term_settings</span></code></a> function can be used to restore the provided
 settings.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -170,44 +181,44 @@ settings.</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.restore_term_settings">
-<tt class="descname">restore_term_settings</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.restore_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.restore_term_settings" title="Permalink to this definition">¶</a></dt>
+<code class="descname">restore_term_settings</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.restore_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.restore_term_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the settings associated with the given <em>term</em> that are stored in
 the user's session directory and applies them to
-<tt class="docutils literal"><span class="pre">self.loc_terms[term]</span></tt></p>
+<code class="docutils literal"><span class="pre">self.loc_terms[term]</span></code></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.clear_term_settings">
-<tt class="descname">clear_term_settings</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.clear_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.clear_term_settings" title="Permalink to this definition">¶</a></dt>
+<code class="descname">clear_term_settings</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.clear_term_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.clear_term_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes any settings associated with the given <em>term</em> in the user's
 term_settings.json file (in their session directory).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.term_ended">
-<tt class="descname">term_ended</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.term_ended"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.term_ended" title="Permalink to this definition">¶</a></dt>
+<code class="descname">term_ended</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.term_ended"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.term_ended" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the 'term_ended' message to the client letting it know that the
 given <em>term</em> is no more.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.add_terminal_callbacks">
-<tt class="descname">add_terminal_callbacks</tt><big>(</big><em>term</em>, <em>multiplex</em>, <em>callback_id</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.add_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.add_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_terminal_callbacks</code><span class="sig-paren">(</span><em>term</em>, <em>multiplex</em>, <em>callback_id</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.add_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.add_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets up all the callbacks associated with the given <em>term</em>, <em>multiplex</em>
 instance and <em>callback_id</em>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.remove_terminal_callbacks">
-<tt class="descname">remove_terminal_callbacks</tt><big>(</big><em>multiplex</em>, <em>callback_id</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.remove_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.remove_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remove_terminal_callbacks</code><span class="sig-paren">(</span><em>multiplex</em>, <em>callback_id</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.remove_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.remove_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all the Multiplex and terminal emulator callbacks attached to
 the given <em>multiplex</em> instance and <em>callback_id</em>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.new_multiplex">
-<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em>, <em>logging=True</em>, <em>encoding=u'utf-8'</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.new_multiplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new instance of <tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt> with the proper
+<code class="descname">new_multiplex</code><span class="sig-paren">(</span><em>cmd</em>, <em>term_id</em>, <em>logging=True</em>, <em>encoding=u'utf-8'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.new_multiplex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new instance of <code class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></code> with the proper
 global and client-specific settings.</p>
 <blockquote>
 <div><table class="docutils field-list" frame="void" rules="none">
@@ -219,13 +230,13 @@ global and client-specific settings.</p>
 <tr class="field-even field"><th class="field-name">term_id:</th><td class="field-body">The terminal to associate with this Multiplex or a descriptive
 identifier (it's only used for logging purposes).</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">logging:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">False</span></tt>, logging will be disabled for this instance of
+<tr class="field-odd field"><th class="field-name">logging:</th><td class="field-body">If <code class="docutils literal"><span class="pre">False</span></code>, logging will be disabled for this instance of
 Multiplex (even if it would otherwise be enabled).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">encoding:</th><td class="field-body">The default encoding that will be used when reading or writing
 to the Multiplex instance.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">debug:</th><td class="field-body">If <tt class="docutils literal"><span class="pre">True</span></tt>, will enable debugging on the created Multiplex
+<tr class="field-odd field"><th class="field-name">debug:</th><td class="field-body">If <code class="docutils literal"><span class="pre">True</span></code>, will enable debugging on the created Multiplex
 instance.</td>
 </tr>
 </tbody>
@@ -235,56 +246,73 @@ instance.</td>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.highest_term_num">
-<tt class="descname">highest_term_num</tt><big>(</big><em>location=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.highest_term_num"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.highest_term_num" title="Permalink to this definition">¶</a></dt>
+<code class="descname">highest_term_num</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.highest_term_num"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.highest_term_num" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the highest terminal number at the given <em>location</em> (so we can
 figure out what's next).  If <em>location</em> is omitted, uses
-<tt class="xref py py-obj docutils literal"><span class="pre">self.ws.location</span></tt>.</p>
+<code class="xref py py-obj docutils literal"><span class="pre">self.ws.location</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_term_encoding">
-<tt class="descname">send_term_encoding</tt><big>(</big><em>term</em>, <em>encoding</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_term_encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_term_encoding" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_term_encoding</code><span class="sig-paren">(</span><em>term</em>, <em>encoding</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_term_encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_term_encoding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client indicating the <em>encoding</em> of <em>term</em> (in
 the event that a terminal is reattached or when sharing a terminal).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_term_keyboard_mode">
-<tt class="descname">send_term_keyboard_mode</tt><big>(</big><em>term</em>, <em>mode</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_term_keyboard_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_term_keyboard_mode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_term_keyboard_mode</code><span class="sig-paren">(</span><em>term</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_term_keyboard_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_term_keyboard_mode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client indicating the <em>mode</em> of <em>term</em> (in
 the event that a terminal is reattached or when sharing a terminal).</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="app_terminal.TerminalApplication.stop_capture">
+<code class="descname">stop_capture</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.stop_capture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.stop_capture" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Stops capturing output for the given <em>term</em> by closing the open file
+object and deleting the &quot;capture&quot; dict from the current instance of
+<code class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.loc_terms[term]</span></code>.  The captured data will be sent
+to the client via the 'terminal:captured_data' WebSocket action which
+will included a dict like so:</p>
+<div class="highlight-python"><div class="highlight"><pre>{&quot;term&quot;: 1, &quot;data&quot;: &quot;$ ls
+</pre></div>
+</div>
+</div></blockquote>
+<p>file1 file2
+$ &quot; }</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="app_terminal.TerminalApplication.set_terminal">
-<tt class="descname">set_terminal</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">self.current_term</span> <span class="pre">=</span> <span class="pre">*term*</span></tt> so we can determine where to send
+<code class="descname">set_terminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <code class="xref py py-obj docutils literal"><span class="pre">self.current_term</span> <span class="pre">=</span> <span class="pre">*term*</span></code> so we can determine where to send
 keystrokes.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.reset_client_terminal">
-<tt class="descname">reset_client_terminal</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.reset_client_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.reset_client_terminal" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reset_client_terminal</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.reset_client_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.reset_client_terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the client to reset the terminal (clear the screen and remove
 scrollback).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.set_title">
-<tt class="descname">set_title</tt><big>(</big><em>term</em>, <em>force=False</em>, <em>save=True</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_title" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_title</code><span class="sig-paren">(</span><em>term</em>, <em>force=False</em>, <em>save=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.set_title" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client telling it to set the window title of
 <em>term</em> to whatever comes out of:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c"># Whew! Say that three times fast!</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">loc_terms</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="s1">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c1"># Whew! Say that three times fast!</span>
 </pre></div>
 </div>
 <p>Example message:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&quot;user@host&quot;</span><span class="p">}}</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s2">&quot;user@host&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>If <em>force</em> resolves to True the title will be sent to the cleint even if
 it matches the previously-set title.</p>
-<p>if <em>save</em> is <tt class="docutils literal"><span class="pre">True</span></tt> (the default) the title will be saved via the
-<a class="reference internal" href="#app_terminal.TerminalApplication.save_term_settings" title="app_terminal.TerminalApplication.save_term_settings"><tt class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.save_term_settings</span></tt></a> function so that it may be
+<p>if <em>save</em> is <code class="docutils literal"><span class="pre">True</span></code> (the default) the title will be saved via the
+<a class="reference internal" href="#app_terminal.TerminalApplication.save_term_settings" title="app_terminal.TerminalApplication.save_term_settings"><code class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.save_term_settings</span></code></a> function so that it may be
 restored later (in the event of a server restart--if you've got dtach
 support enabled).</p>
 <div class="admonition note">
@@ -295,24 +323,24 @@ support enabled).</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.bell">
-<tt class="descname">bell</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.bell" title="Permalink to this definition">¶</a></dt>
+<code class="descname">bell</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.bell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client indicating that a bell was encountered in
 the given terminal (<em>term</em>).  Example message:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.mode_handler">
-<tt class="descname">mode_handler</tt><big>(</big><em>term</em>, <em>setting</em>, <em>boolean</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.mode_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.mode_handler" title="Permalink to this definition">¶</a></dt>
+<code class="descname">mode_handler</code><span class="sig-paren">(</span><em>term</em>, <em>setting</em>, <em>boolean</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.mode_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.mode_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles mode settings that require an action on the client by pasing it
 a message like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-    <span class="s">&#39;terminal:set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
-        <span class="s">&#39;bool&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
+    <span class="s1">&#39;terminal:set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
+        <span class="s1">&#39;bool&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -321,7 +349,7 @@ a message like:</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.dsr">
-<tt class="descname">dsr</tt><big>(</big><em>term</em>, <em>response</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.dsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.dsr" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dsr</code><span class="sig-paren">(</span><em>term</em>, <em>response</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.dsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.dsr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles Device Status Report (DSR) calls from the underlying program
 that get caught by the terminal emulator.  <em>response</em> is what the
 terminal emulator returns from the CALLBACK_DSR callback.</p>
@@ -333,65 +361,70 @@ terminal emulator returns from the CALLBACK_DSR callback.</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication._send_refresh">
-<tt class="descname">_send_refresh</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._send_refresh" title="Permalink to this definition">¶</a></dt>
+<code class="descname">_send_refresh</code><span class="sig-paren">(</span><em>term</em>, <em>full=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._send_refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a screen update to the client.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.refresh_screen">
-<tt class="descname">refresh_screen</tt><big>(</big><em>term</em>, <em>full=False</em>, <em>stream=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.refresh_screen" title="Permalink to this definition">¶</a></dt>
+<code class="descname">refresh_screen</code><span class="sig-paren">(</span><em>term</em>, <em>full=False</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.refresh_screen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the state of the given terminal's screen and scrollback buffer to
-the client using <a class="reference internal" href="#app_terminal.TerminalApplication._send_refresh" title="app_terminal.TerminalApplication._send_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">_send_refresh()</span></tt></a>.  Also ensures that screen updates
+the client using <a class="reference internal" href="#app_terminal.TerminalApplication._send_refresh" title="app_terminal.TerminalApplication._send_refresh"><code class="xref py py-obj docutils literal"><span class="pre">_send_refresh()</span></code></a>.  Also ensures that screen updates
 don't get sent too fast to the client by instituting a rate limiter that
 also forces a refresh every 150ms.  This keeps things smooth on the
 client side and also reduces the bandwidth used by the application (CPU
 too).</p>
 <p>If <em>full</em>, send the whole screen (not just the difference).</p>
+<p>The <em>stream</em> argument is meant to contain the raw character stream that
+resulted in the terminal screen being updated.  It is only used to pass
+the data through to the 'terminal:refresh_screen' event.  This event is
+and that raw data is used by the <code class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.start_capture</span></code> and
+<a class="reference internal" href="#app_terminal.TerminalApplication.stop_capture" title="app_terminal.TerminalApplication.stop_capture"><code class="xref py py-obj docutils literal"><span class="pre">TerminalApplication.stop_capture</span></code></a> methods.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.full_refresh">
-<tt class="descname">full_refresh</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.full_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.full_refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">self.refresh_screen(*term*,</span> <span class="pre">full=True)</span></tt></p>
+<code class="descname">full_refresh</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.full_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.full_refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <code class="xref py py-obj docutils literal"><span class="pre">self.refresh_screen(*term*,</span> <span class="pre">full=True)</span></code></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.opt_esc_handler">
-<tt class="descname">opt_esc_handler</tt><big>(</big><em>term</em>, <em>multiplex</em>, <em>chars</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<code class="descname">opt_esc_handler</code><span class="sig-paren">(</span><em>term</em>, <em>multiplex</em>, <em>chars</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls whatever function is attached to the
 'terminal:opt_esc_handler:&lt;name&gt;' event; passing it the <em>text</em> (second
 item in the tuple) that is returned by
-<tt class="xref py py-func docutils literal"><span class="pre">utils.process_opt_esc_sequence()</span></tt>.  Such functions are usually
+<code class="xref py py-func docutils literal"><span class="pre">utils.process_opt_esc_sequence()</span></code>.  Such functions are usually
 attached via the 'Escape' plugin hook but may also be registered via
 the usual event method, :meth`self.on`:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&#39;terminal:opt_esc_handler:somename&#39;</span><span class="p">,</span> <span class="n">some_function</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s1">&#39;terminal:opt_esc_handler:somename&#39;</span><span class="p">,</span> <span class="n">some_function</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The above example would result in <tt class="xref py py-func docutils literal"><span class="pre">some_function()</span></tt> being called
+<p>The above example would result in <code class="xref py py-func docutils literal"><span class="pre">some_function()</span></code> being called
 whenever a matching optional escape sequence handler is encountered.
 For example:</p>
 <pre class="ansi-block literal-block">
 $ echo -e &quot;\033]_;somename|Text passed to some_function()\007&quot;
 </pre>
-<p>Which would result in <tt class="xref py py-func docutils literal"><span class="pre">some_function()</span></tt> being called like so:</p>
+<p>Which would result in <code class="xref py py-func docutils literal"><span class="pre">some_function()</span></code> being called like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">some_function</span><span class="p">(</span>
-    <span class="bp">self</span><span class="p">,</span> <span class="s">&quot;Text passed to some_function()&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">multiplex</span><span class="p">)</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Text passed to some_function()&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">multiplex</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the above example, <em>term</em> will be the terminal number that emitted
-the event and <em>multiplex</em> will be the <tt class="xref py py-obj docutils literal"><span class="pre">termio.Multiplex</span></tt> instance that
+the event and <em>multiplex</em> will be the <code class="xref py py-obj docutils literal"><span class="pre">termio.Multiplex</span></code> instance that
 controls the terminal.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.get_bell">
-<tt class="descname">get_bell</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_bell" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_bell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_bell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the bell sound data to the client in in the form of a <a class="reference external" href="data::URI">data::URI</a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.get_webworker">
-<tt class="descname">get_webworker</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_webworker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_webworker" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_webworker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_webworker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_webworker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the text of our term_ww.js to the client in order to get
 around the limitations of loading remote Web Worker URLs (for embedding
 Gate One into other apps).</p>
@@ -399,7 +432,7 @@ Gate One into other apps).</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.get_colors">
-<tt class="descname">get_colors</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_colors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_colors</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.get_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.get_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the text color stylesheet matching the properties specified in
 <em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
 <blockquote>
@@ -416,39 +449,39 @@ Gate One into other apps).</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.remove_viewer">
-<tt class="descname">remove_viewer</tt><big>(</big><em>term</em>, <em>upn=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.remove_viewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.remove_viewer" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remove_viewer</code><span class="sig-paren">(</span><em>term</em>, <em>upn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.remove_viewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.remove_viewer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Disconnects all callbacks attached to the given <em>term</em> for the given
 <em>upn</em> and notifies that user that the terminal is no longer shared (so
 it can be shown to be disconnected at the client).</p>
-<p>If <em>upn</em> is <tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt> all users (broadcast viewers included) will have the
+<p>If <em>upn</em> is <code class="xref py py-obj docutils literal"><span class="pre">None</span></code> all users (broadcast viewers included) will have the
 given <em>term</em> disconnected.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.notify_permissions">
-<tt class="descname">notify_permissions</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.notify_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.notify_permissions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">notify_permissions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.notify_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.notify_permissions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends clients the list of shared terminals if they have been granted
 access to any shared terminal.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Normally this only gets called from
-<tt class="xref py py-obj docutils literal"><span class="pre">permissions</span></tt> after something changed.</p>
+<code class="xref py py-obj docutils literal"><span class="pre">permissions</span></code> after something changed.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication._shared_terminals_dict">
-<tt class="descname">_shared_terminals_dict</tt><big>(</big><em>user=None</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._shared_terminals_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._shared_terminals_dict" title="Permalink to this definition">¶</a></dt>
+<code class="descname">_shared_terminals_dict</code><span class="sig-paren">(</span><em>user=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication._shared_terminals_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication._shared_terminals_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict containing information about all shared terminals that
 the given <em>user</em> has access to.  If no <em>user</em> is given
-<tt class="xref py py-obj docutils literal"><span class="pre">self.current_user</span></tt> will be used.</p>
+<code class="xref py py-obj docutils literal"><span class="pre">self.current_user</span></code> will be used.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.render_256_colors">
-<tt class="descname">render_256_colors</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.render_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.render_256_colors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">render_256_colors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.render_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.render_256_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders the CSS for 256 color support and saves the result as
-'256_colors.css' in Gate One's configured <tt class="xref py py-obj docutils literal"><span class="pre">cache_dir</span></tt>.  If that file
+'256_colors.css' in Gate One's configured <code class="xref py py-obj docutils literal"><span class="pre">cache_dir</span></code>.  If that file
 already exists and has not been modified since the last time it was
 generated rendering will be skipped.</p>
 <p>Returns the path to that file as a string.</p>
@@ -456,15 +489,15 @@ generated rendering will be skipped.</p>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_256_colors">
-<tt class="descname">send_256_colors</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_256_colors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_256_colors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_256_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the client the CSS to handle 256 color support.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="app_terminal.TerminalApplication.send_print_stylesheet">
-<tt class="descname">send_print_stylesheet</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_print_stylesheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_print_stylesheet" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_print_stylesheet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#TerminalApplication.send_print_stylesheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.TerminalApplication.send_print_stylesheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the 'templates/printing/printing.css' stylesheet to the client
-using <tt class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.ws.send_css</span></tt> with the &quot;media&quot; set to
+using <code class="xref py py-obj docutils literal"><span class="pre">ApplicationWebSocket.ws.send_css</span></code> with the &quot;media&quot; set to
 &quot;print&quot;.</p>
 </dd></dl>
 
@@ -472,15 +505,15 @@ using <tt class="xref py py-obj docutils literal"><span class="pre">ApplicationW
 
 <dl class="function">
 <dt id="app_terminal.apply_cli_overrides">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">apply_cli_overrides</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#apply_cli_overrides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.apply_cli_overrides" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">app_terminal.</code><code class="descname">apply_cli_overrides</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#apply_cli_overrides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.apply_cli_overrides" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates <em>settings</em> in-place with values given on the command line and
-updates the <tt class="xref py py-obj docutils literal"><span class="pre">options</span></tt> global with the values from <em>settings</em> if not provided
+updates the <code class="xref py py-obj docutils literal"><span class="pre">options</span></code> global with the values from <em>settings</em> if not provided
 on the command line.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="app_terminal.init">
-<tt class="descclassname">app_terminal.</tt><tt class="descname">init</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../../_modules/app_terminal.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.init" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">app_terminal.</code><code class="descname">init</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/app_terminal.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#app_terminal.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks to make sure 50terminal.conf is created if terminal-specific settings
 are not found in the settings directory.</p>
 <p>Also checks to make sure that the logviewer.py script is executable.</p>
@@ -492,7 +525,7 @@ are not found in the settings directory.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../index.html">
               <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
@@ -503,12 +536,14 @@ are not found in the settings directory.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="configuration.html"
                         title="next chapter">Terminal Configuration</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../../_sources/Applications/terminal/app_terminal.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/Applications/terminal/app_terminal.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
@@ -525,7 +560,7 @@ are not found in the settings directory.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -540,16 +575,16 @@ are not found in the settings directory.</p>
         <li class="right" >
           <a href="developer.html" title="Terminal Developer Documentation"
              >previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

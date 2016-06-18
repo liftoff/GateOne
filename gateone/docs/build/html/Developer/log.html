@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>log.py - Gate One Logging Module &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
     <link rel="prev" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,18 +57,18 @@
         <li class="right" >
           <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-gateone.core.log">
-<span id="log-py-gate-one-logging-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">log.py</span></tt> - Gate One Logging Module<a class="headerlink" href="#module-gateone.core.log" title="Permalink to this headline">¶</a></h1>
+<span id="log-py-gate-one-logging-module"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">log.py</span></code> - Gate One Logging Module<a class="headerlink" href="#module-gateone.core.log" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="logging-module-for-gate-one">
 <span id="log-py"></span><h2>Logging Module for Gate One<a class="headerlink" href="#logging-module-for-gate-one" title="Permalink to this headline">¶</a></h2>
 <p>This module contains a number of pre-defined loggers for use within Gate One:</p>
@@ -88,31 +99,31 @@
 <p>Applications may also use their own loggers for differentiation purposes.  Such
 loggers should be prefixed with 'gateone.app.' like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">logging</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.app.myapp&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;gateone.app.myapp&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Additional loggers may be defined within a <tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt> with additional
+<p>Additional loggers may be defined within a <code class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></code> with additional
 prefixing:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xfer_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.app.myapp.xfer&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lookup_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;gateone.app.myapp.lookup&quot;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xfer_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;gateone.app.myapp.xfer&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lookup_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;gateone.app.myapp.lookup&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This module does not cover session logging within the Terminal application.
-That is a built-in feature of the <a class="reference internal" href="termio.html#module-termio" title="termio"><tt class="xref py py-obj docutils literal"><span class="pre">termio</span></tt></a> module.</p>
+That is a built-in feature of the <a class="reference internal" href="termio.html#module-termio" title="termio"><code class="xref py py-obj docutils literal"><span class="pre">termio</span></code></a> module.</p>
 </div>
 <dl class="exception">
 <dt id="gateone.core.log.UnknownFacility">
-<em class="property">exception </em><tt class="descclassname">gateone.core.log.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/gateone/core/log.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.UnknownFacility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised if <a class="reference internal" href="#gateone.core.log.string_to_syslog_facility" title="gateone.core.log.string_to_syslog_facility"><tt class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></tt></a> is given a string that doesn't match
+<em class="property">exception </em><code class="descclassname">gateone.core.log.</code><code class="descname">UnknownFacility</code><a class="reference internal" href="../_modules/gateone/core/log.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.UnknownFacility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised if <a class="reference internal" href="#gateone.core.log.string_to_syslog_facility" title="gateone.core.log.string_to_syslog_facility"><code class="xref py py-obj docutils literal"><span class="pre">string_to_syslog_facility</span></code></a> is given a string that doesn't match
 a known syslog facility.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="gateone.core.log.JSONAdapter">
-<em class="property">class </em><tt class="descclassname">gateone.core.log.</tt><tt class="descname">JSONAdapter</tt><big>(</big><em>logger</em>, <em>extra</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/log.html#JSONAdapter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.JSONAdapter" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <tt class="xref py py-obj docutils literal"><span class="pre">logging.LoggerAdapter</span></tt> that prepends keyword argument information to log
+<em class="property">class </em><code class="descclassname">gateone.core.log.</code><code class="descname">JSONAdapter</code><span class="sig-paren">(</span><em>logger</em>, <em>extra</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gateone/core/log.html#JSONAdapter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.JSONAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <code class="xref py py-obj docutils literal"><span class="pre">logging.LoggerAdapter</span></code> that prepends keyword argument information to log
 entries.  Expects the passed in dict-like object which will be included.</p>
 <p>Initialize the adapter with a logger and a dict-like object which
 provides contextual information. This constructor signature allows
@@ -124,24 +135,24 @@ following example:</p>
 
 <dl class="function">
 <dt id="gateone.core.log.string_to_syslog_facility">
-<tt class="descclassname">gateone.core.log.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/log.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gateone.core.log.</code><code class="descname">string_to_syslog_facility</code><span class="sig-paren">(</span><em>facility</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gateone/core/log.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a string (<em>facility</em>) such as, &quot;daemon&quot; returns the numeric
 syslog.LOG_* equivalent.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gateone.core.log.go_logger">
-<tt class="descclassname">gateone.core.log.</tt><tt class="descname">go_logger</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone/core/log.html#go_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.go_logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new <tt class="xref py py-obj docutils literal"><span class="pre">logging.Logger</span></tt> instance using the given <em>name</em>
+<code class="descclassname">gateone.core.log.</code><code class="descname">go_logger</code><span class="sig-paren">(</span><em>name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gateone/core/log.html#go_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.core.log.go_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new <code class="xref py py-obj docutils literal"><span class="pre">logging.Logger</span></code> instance using the given <em>name</em>
 pre-configured to match Gate One's usual logging output.  The given <em>name</em>
 will automatically be prefixed with 'gateone.' if it is not already.  So if
-<em>name</em> is 'app.foo' the <tt class="xref py py-obj docutils literal"><span class="pre">Logger</span></tt> would end up named
+<em>name</em> is 'app.foo' the <code class="xref py py-obj docutils literal"><span class="pre">Logger</span></code> would end up named
 'gateone.app.foo'.  If the given <em>name</em> is already prefixed with 'gateone.'
 it will be left as-is.</p>
 <p>The log will be saved in the same location as Gate One's configured
-<tt class="xref py py-obj docutils literal"><span class="pre">log_file_prefix</span></tt> using the given <em>name</em> with the following convention:</p>
+<code class="xref py py-obj docutils literal"><span class="pre">log_file_prefix</span></code> using the given <em>name</em> with the following convention:</p>
 <blockquote>
-<div><tt class="docutils literal"><span class="pre">gateone/logs/&lt;modified</span> <span class="pre">*name*&gt;.log</span></tt></div></blockquote>
+<div><code class="docutils literal"><span class="pre">gateone/logs/&lt;modified</span> <span class="pre">*name*&gt;.log</span></code></div></blockquote>
 <p>The file name will be modified like so:</p>
 <blockquote>
 <div><ul class="simple">
@@ -150,18 +161,18 @@ it will be left as-is.</p>
 </ul>
 </div></blockquote>
 <p>Examples:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.auth.terminal&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">app_logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s">&#39;gateone.app.terminal&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">app_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s1">&#39;gateone.auth.terminal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;test1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app_logger</span> <span class="o">=</span> <span class="n">go_logger</span><span class="p">(</span><span class="s1">&#39;gateone.app.terminal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">lisdir</span><span class="p">(</span><span class="s">&#39;/opt/gateone/logs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">lisdir</span><span class="p">(</span><span class="s1">&#39;/opt/gateone/logs&#39;</span><span class="p">)</span>
 <span class="go">[&#39;auth.log&#39;, &#39;auth-terminal.log&#39;, &#39;app-terminal.log&#39; &#39;webserver.log&#39;]</span>
 </pre></div>
 </div>
 <p>If any <em>kwargs</em> are given they will be JSON-encoded and included in the log
 message after the date/metadata like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="s">&quot;bob&quot;</span><span class="p">,</span> <span class="s">&quot;ip&quot;</span><span class="p">:</span> <span class="s">&quot;10.1.1.100&quot;</span><span class="p">})</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">auth_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;10.1.1.100&quot;</span><span class="p">})</span>
 <span class="go">[I 130828 15:00:56 app.py:10] {&quot;user&quot;: &quot;bob&quot;, &quot;ip&quot;: &quot;10.1.1.100&quot;} test3</span>
 </pre></div>
 </div>
@@ -174,14 +185,14 @@ message after the date/metadata like so:</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">log.py</span></tt> - Gate One Logging Module</a><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">log.py</span></code> - Gate One Logging Module</a><ul>
 <li><a class="reference internal" href="#logging-module-for-gate-one">Logging Module for Gate One</a></li>
 </ul>
 </li>
@@ -189,16 +200,18 @@ message after the date/metadata like so:</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="sso.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+                        title="previous chapter"><code class="docutils literal"><span class="pre">sso.py</span></code> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/log.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+                        title="next chapter"><code class="docutils literal"><span class="pre">logviewer.py</span></code> - Session Log Viewer</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/Developer/log.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -215,7 +228,7 @@ message after the date/metadata like so:</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -230,14 +243,14 @@ message after the date/metadata like so:</p>
         <li class="right" >
           <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
              >previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

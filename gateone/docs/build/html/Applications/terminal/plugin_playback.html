@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>The Playback Plugin &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="The SSH Plugin" href="plugin_ssh.html" />
     <link rel="prev" title="The Notice Plugin" href="plugin_notice.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,17 +57,17 @@
         <li class="right" >
           <a href="plugin_notice.html" title="The Notice Plugin"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" accesskey="U">Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="the-playback-plugin">
 <h1>The Playback Plugin<a class="headerlink" href="#the-playback-plugin" title="Permalink to this headline">¶</a></h1>
@@ -65,8 +76,8 @@
 <p>playback.js - The client-side portion of Gate One's Playback plugin.</p>
 <dl class="function">
 <dt id="GateOne.Playback.addControls">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">addControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.addControls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the session playback controls to Gate One's element (<tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>).</p>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">addControls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.addControls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the session playback controls to Gate One's element (<code class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></code>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Will not add playback controls if they're already present.</p>
@@ -75,13 +86,13 @@
 
 <dl class="function">
 <dt id="GateOne.Playback.hideControls">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">hideControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.hideControls" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">hideControls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.hideControls" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hides the playback controls.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.init">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.init" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the playback controls to Gate One and adds some GUI elements to the Tools &amp; Info panel.  Also attaches the following events/functions:</p>
 <div class="highlight-js"><div class="highlight"><pre><span class="c1">// Add our callback that adds an extra newline to all terminals</span>
 <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;terminal:new_terminal&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">newTerminalCallback</span><span class="p">);</span>
@@ -99,70 +110,70 @@
 
 <dl class="function">
 <dt id="GateOne.Playback.newTerminalCallback">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">newTerminalCallback</tt><big>(</big><em>term</em>, <em>calledTwice</em><big>)</big><a class="headerlink" href="#GateOne.Playback.newTerminalCallback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">newTerminalCallback</code><span class="sig-paren">(</span><em>term</em>, <em>calledTwice</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.newTerminalCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets added to the 'terminal:new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.</p>
-<p>It also calls <a class="reference internal" href="#GateOne.Playback.addControls" title="GateOne.Playback.addControls"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.addControls()</span></tt></a> to make sure they're present only after a new terminal is open.</p>
+<p>It also calls <a class="reference internal" href="#GateOne.Playback.addControls" title="GateOne.Playback.addControls"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.addControls()</span></code></a> to make sure they're present only after a new terminal is open.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.playPauseControl">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">playPauseControl</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Playback.playPauseControl" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">playPauseControl</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.playPauseControl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Toggles play/pause inside the current terminal.  Meant to be attached to the Play/Pause icon's onclick event.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.playbackRealtime">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">playbackRealtime</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.playbackRealtime" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">playbackRealtime</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.playbackRealtime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays back the given terminal's session one frame at a time.  Meant to be used inside of an interval timer.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.pushPlaybackFrame">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">pushPlaybackFrame</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.pushPlaybackFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the current screen of <em>term</em> to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term].playbackFrames</span></tt>.</p>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">pushPlaybackFrame</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.pushPlaybackFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the current screen of <em>term</em> to <code class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term].playbackFrames</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.savePrefsCallback">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">savePrefsCallback</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.savePrefsCallback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">savePrefsCallback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.savePrefsCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the user clicks the &quot;Save&quot; button in the prefs panel.  Makes sure the 'playbackFrames' setting gets updated according to what the user entered into the form.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.saveRecording">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">saveRecording</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.saveRecording" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">saveRecording</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.saveRecording" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the session playback recording by sending the given <em>term</em>'s 'playbackFrames' to the server to have them rendered.</p>
 <p>When the server is done rendering the recording it will be sent back to the client via the 'save_file' WebSocket action.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.selectFrame">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">selectFrame</tt><big>(</big><em>term</em>, <em>ms</em><big>)</big><a class="headerlink" href="#GateOne.Playback.selectFrame" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">selectFrame</code><span class="sig-paren">(</span><em>term</em>, <em>ms</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.selectFrame" title="Permalink to this definition">¶</a></dt>
 <dd><p>For the given <em>term</em>, returns the last frame # with a 'time' less than the first frame's time + <em>ms</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.showsControls">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">showsControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.showsControls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows the playback controls again after they've been hidden via <a class="reference internal" href="#GateOne.Playback.hideControls" title="GateOne.Playback.hideControls"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.hideControls()</span></tt></a>.</p>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">showsControls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.showsControls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows the playback controls again after they've been hidden via <a class="reference internal" href="#GateOne.Playback.hideControls" title="GateOne.Playback.hideControls"><code class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.hideControls()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.startPlayback">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">startPlayback</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.startPlayback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">startPlayback</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.startPlayback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays back the given terminal's session in real-time.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.switchWorkspaceEvent">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">switchWorkspaceEvent</tt><big>(</big><em>workspace</em><big>)</big><a class="headerlink" href="#GateOne.Playback.switchWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">switchWorkspaceEvent</code><span class="sig-paren">(</span><em>workspace</em><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.switchWorkspaceEvent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called whenever Gate One switches to a new workspace; checks whether or not this workspace is home to a terminal and if so, shows the playback controls.</p>
 <p>If no terminal is present in the current workspace the playback controls will be removed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Playback.updateClock">
-<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">updateClock</tt><big>(</big><span class="optional">[</span><em>dateObj</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Playback.updateClock" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GateOne.Playback.</code><code class="descname">updateClock</code><span class="sig-paren">(</span><span class="optional">[</span><em>dateObj</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#GateOne.Playback.updateClock" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the clock with the time in the given <em>dateObj</em>.</p>
 <p>If no <em>dateObj</em> is given, the clock will be updated with the current local time.</p>
 </dd></dl>
@@ -180,8 +191,8 @@ back session recordings.</p>
 <h3>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
 <p>This Python plugin file implements the following hooks:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;playback_save_recording&#39;</span><span class="p">:</span> <span class="n">save_recording</span><span class="p">,</span>
+    <span class="s1">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;playback_save_recording&#39;</span><span class="p">:</span> <span class="n">save_recording</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -191,13 +202,13 @@ back session recordings.</p>
 <h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="playback.get_256_colors">
-<tt class="descclassname">playback.</tt><tt class="descname">get_256_colors</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../../_modules/playback.html#get_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.get_256_colors" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">playback.</code><code class="descname">get_256_colors</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback.html#get_256_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.get_256_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the rendered 256-color CSS.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="playback.save_recording">
-<tt class="descclassname">playback.</tt><tt class="descname">save_recording</tt><big>(</big><em>self</em>, <em>settings</em><big>)</big><a class="reference internal" href="../../_modules/playback.html#save_recording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.save_recording" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">playback.</code><code class="descname">save_recording</code><span class="sig-paren">(</span><em>self</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback.html#save_recording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.save_recording" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles uploads of session recordings and returns them to the client in a
 self-contained HTML file that will auto-start playback.</p>
 <p>..note:: The real crux of the code that handles this is in the template.</p>
@@ -211,7 +222,7 @@ self-contained HTML file that will auto-start playback.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../index.html">
               <img class="logo" src="../../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
@@ -235,12 +246,14 @@ self-contained HTML file that will auto-start playback.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="plugin_ssh.html"
                         title="next chapter">The SSH Plugin</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../../_sources/Applications/terminal/plugin_playback.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/Applications/terminal/plugin_playback.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
@@ -257,7 +270,7 @@ self-contained HTML file that will auto-start playback.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -272,16 +285,16 @@ self-contained HTML file that will auto-start playback.</p>
         <li class="right" >
           <a href="plugin_notice.html" title="The Notice Plugin"
              >previous</a> |</li>
-        <li><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Gate One Applications</a> &raquo;</li>
-          <li><a href="index.html" >Terminal</a> &raquo;</li>
-          <li><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Gate One Applications</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Terminal</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="developer.html" >Terminal Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

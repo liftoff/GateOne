@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20160520192647" # Gets replaced by git (holds the date/time)
+__commit__ = "20160603215357" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -4375,7 +4375,8 @@ def main(installed=True):
                 except OSError as e:
                     logging.error(_(
                         "Gate One could not create {ssl_base} ({e}). "
-                        "Are you using the correct --settings_dir?"))
+                        "Are you using the correct --settings_dir?").format(
+                            ssl_base=ssl_base, e=e))
                     sys.exit(1)
             logging.info(_("No SSL private key found.  One will be generated."))
             gen_self_signed_ssl(path=ssl_base)

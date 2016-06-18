@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>example &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     
@@ -28,8 +39,8 @@
     <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -38,68 +49,68 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <h1>Source code for example</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#</span>
-<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
-<span class="c">#</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c1">#</span>
 
-<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s">example.py - A plugin to demonstrate how to write a Python plugin for Gate One.</span>
-<span class="s">Specifically, how to write your own web handlers, WebSocket actions, and take</span>
-<span class="s">advantage of all the available hooks and built-in functions.</span>
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">example.py - A plugin to demonstrate how to write a Python plugin for Gate One.</span>
+<span class="s2">Specifically, how to write your own web handlers, WebSocket actions, and take</span>
+<span class="s2">advantage of all the available hooks and built-in functions.</span>
 
-<span class="s">.. tip:: This plugin is heavily commented with useful information.  Click on the `[source]` links to the right of any given class or function to see the actual code.</span>
+<span class="s2">.. tip:: This plugin is heavily commented with useful information.  Click on the `[source]` links to the right of any given class or function to see the actual code.</span>
 
-<span class="s">Hooks</span>
-<span class="s">-----</span>
-<span class="s">This Python plugin file implements the following hooks::</span>
+<span class="s2">Hooks</span>
+<span class="s2">-----</span>
+<span class="s2">This Python plugin file implements the following hooks::</span>
 
-<span class="s">    hooks = {</span>
-<span class="s">        &#39;Web&#39;: [(r&quot;/example&quot;, ExampleHandler)],</span>
-<span class="s">        &#39;WebSocket&#39;: {</span>
-<span class="s">            &#39;example_action&#39;: example_websocket_action</span>
-<span class="s">        },</span>
-<span class="s">        &#39;Escape&#39;: example_opt_esc_handler,</span>
-<span class="s">    }</span>
+<span class="s2">    hooks = {</span>
+<span class="s2">        &#39;Web&#39;: [(r&quot;/example&quot;, ExampleHandler)],</span>
+<span class="s2">        &#39;WebSocket&#39;: {</span>
+<span class="s2">            &#39;example_action&#39;: example_websocket_action</span>
+<span class="s2">        },</span>
+<span class="s2">        &#39;Escape&#39;: example_opt_esc_handler,</span>
+<span class="s2">    }</span>
 
-<span class="s">Docstrings</span>
-<span class="s">----------</span>
-<span class="s">&quot;&quot;&quot;</span>
+<span class="s2">Docstrings</span>
+<span class="s2">----------</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-<span class="c"># Meta information about the plugin.  Your plugin doesn&#39;t *have* to have this</span>
-<span class="c"># but it is a good idea.</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
-<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;Apache 2.0&quot;</span> <span class="c"># The &quot;just don&#39;t sue me&quot; license</span>
+<span class="c1"># Meta information about the plugin.  Your plugin doesn&#39;t *have* to have this</span>
+<span class="c1"># but it is a good idea.</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;Apache 2.0&quot;</span> <span class="c1"># The &quot;just don&#39;t sue me&quot; license</span>
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
-<span class="c"># I like to start my files with imports from Python&#39;s standard library...</span>
+<span class="c1"># I like to start my files with imports from Python&#39;s standard library...</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="c"># Then I like to import things from Gate One itself or my own stuff...</span>
+<span class="c1"># Then I like to import things from Gate One itself or my own stuff...</span>
 <span class="kn">from</span> <span class="nn">gateone.core.server</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
-<span class="c">#from gateone import GATEONE_DIR # &lt;--if you need that path it&#39;s here</span>
+<span class="c1">#from gateone import GATEONE_DIR # &lt;--if you need that path it&#39;s here</span>
 
-<span class="c"># This is where I&#39;d typically put 3rd party imports such as Tornado...</span>
+<span class="c1"># This is where I&#39;d typically put 3rd party imports such as Tornado...</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 
-<span class="c"># Globals</span>
-<span class="c"># This is in case we have relative imports, templates, or whatever:</span>
-<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our plugin&#39;s directory</span>
+<span class="c1"># Globals</span>
+<span class="c1"># This is in case we have relative imports, templates, or whatever:</span>
+<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Path to our plugin&#39;s directory</span>
 
-<span class="c"># Traditional web handler</span>
+<span class="c1"># Traditional web handler</span>
 <div class="viewcode-block" id="ExampleHandler"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler">[docs]</a><span class="k">class</span> <span class="nc">ExampleHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is how you add a URL handler to Gate One...  This example attaches</span>
@@ -114,7 +125,7 @@
 
 <span class="sd">    .. note:: The only reason we use :class:`gateone.BaseHandler` instead of a vanilla :class:`tornado.web.RequestHandler` is so we have access to Gate One&#39;s :func:`gateone.BaseHandler.get_current_user` function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@tornado.web.authenticated</span> <span class="c"># Require the user be authenticated</span>
+    <span class="nd">@tornado.web.authenticated</span> <span class="c1"># Require the user be authenticated</span>
 <div class="viewcode-block" id="ExampleHandler.get"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle an HTTP GET request to this :class:`~tornado.web.RequestHandler`.</span>
@@ -124,56 +135,56 @@
 
 <span class="sd">        ...to try it out.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># This is all that&#39;s in example_template.html (so you don&#39;t have to open</span>
-        <span class="c"># it separately):</span>
-        <span class="c">#   &lt;html&gt;&lt;head&gt;&lt;title&gt;{{bygolly}}, it works!&lt;/title&gt;&lt;/head&gt;</span>
-        <span class="c">#   &lt;body&gt;</span>
-        <span class="c">#   &lt;p&gt;You&#39;re logged in as: {{user}}.&lt;/p&gt;</span>
-        <span class="c">#   &lt;p&gt;Your session ID ends with {{session}}.&lt;/p&gt;</span>
-        <span class="c">#   &lt;/body&gt;</span>
-        <span class="c">#   &lt;/html&gt;</span>
-        <span class="c">#</span>
-        <span class="c"># NOTE: I highly recommend using os.path.join() instead of just using</span>
-        <span class="c"># &#39;/&#39; everywhere...  You never know; Gate One might run on Windows one</span>
-        <span class="c"># day!</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
-        <span class="n">example_template</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&quot;example_template.html&quot;</span><span class="p">)</span>
-        <span class="n">bygolly</span> <span class="o">=</span> <span class="s">&quot;By golly&quot;</span>
-        <span class="c"># The get_current_user() function returns a whole dict of information.</span>
-        <span class="c"># What&#39;s available in there is dependent on which authentication type</span>
-        <span class="c"># you&#39;re using but you can be assured that &#39;upn&#39; and &#39;session&#39; will</span>
-        <span class="c"># always be present.</span>
+        <span class="c1"># This is all that&#39;s in example_template.html (so you don&#39;t have to open</span>
+        <span class="c1"># it separately):</span>
+        <span class="c1">#   &lt;html&gt;&lt;head&gt;&lt;title&gt;{{bygolly}}, it works!&lt;/title&gt;&lt;/head&gt;</span>
+        <span class="c1">#   &lt;body&gt;</span>
+        <span class="c1">#   &lt;p&gt;You&#39;re logged in as: {{user}}.&lt;/p&gt;</span>
+        <span class="c1">#   &lt;p&gt;Your session ID ends with {{session}}.&lt;/p&gt;</span>
+        <span class="c1">#   &lt;/body&gt;</span>
+        <span class="c1">#   &lt;/html&gt;</span>
+        <span class="c1">#</span>
+        <span class="c1"># NOTE: I highly recommend using os.path.join() instead of just using</span>
+        <span class="c1"># &#39;/&#39; everywhere...  You never know; Gate One might run on Windows one</span>
+        <span class="c1"># day!</span>
+        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s2">&quot;templates&quot;</span><span class="p">)</span>
+        <span class="n">example_template</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s2">&quot;example_template.html&quot;</span><span class="p">)</span>
+        <span class="n">bygolly</span> <span class="o">=</span> <span class="s2">&quot;By golly&quot;</span>
+        <span class="c1"># The get_current_user() function returns a whole dict of information.</span>
+        <span class="c1"># What&#39;s available in there is dependent on which authentication type</span>
+        <span class="c1"># you&#39;re using but you can be assured that &#39;upn&#39; and &#39;session&#39; will</span>
+        <span class="c1"># always be present.</span>
         <span class="n">user_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
-        <span class="c"># Gate One refers to the username as a userPrincipalName (like Kerberos)</span>
-        <span class="c"># or &#39;upn&#39; for short.  Why?  Because it might actually be a username</span>
-        <span class="c"># plus a realm or domain name.  e.g. user@REALM or user@company.com</span>
-        <span class="n">username</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="c"># Just the last three (for security)</span>
+        <span class="c1"># Gate One refers to the username as a userPrincipalName (like Kerberos)</span>
+        <span class="c1"># or &#39;upn&#39; for short.  Why?  Because it might actually be a username</span>
+        <span class="c1"># plus a realm or domain name.  e.g. user@REALM or user@company.com</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="c1"># Just the last three (for security)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-            <span class="n">example_template</span><span class="p">,</span> <span class="c"># The path to a template file</span>
-            <span class="n">bygolly</span><span class="o">=</span><span class="n">bygolly</span><span class="p">,</span> <span class="c"># Just match up your template&#39;s {{whatever}} with</span>
-            <span class="n">user</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>   <span class="c"># the keyword arguments passed to self.render()</span>
-            <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
-</div>
+            <span class="n">example_template</span><span class="p">,</span> <span class="c1"># The path to a template file</span>
+            <span class="n">bygolly</span><span class="o">=</span><span class="n">bygolly</span><span class="p">,</span> <span class="c1"># Just match up your template&#39;s {{whatever}} with</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>   <span class="c1"># the keyword arguments passed to self.render()</span>
+            <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="ExampleHandler.post"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.ExampleHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example Handler for an `HTTP POST &lt;http://en.wikipedia.org/wiki/POST_(HTTP)&gt;`_</span>
 <span class="sd">        request.  Doesn&#39;t actually do anything.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># If data is POSTed to this handler via an XMLHTTPRequest send() it</span>
-        <span class="c"># will show up like this:</span>
-        <span class="c">#posted_as_a_whole = self.request.body # xhr.send()</span>
-        <span class="c"># If data was POSTed as arguments (i.e. traditional form) it will show</span>
-        <span class="c"># up as individual arguments like this:</span>
-        <span class="c">#posted_as_argument = self.get_argument(&quot;arg&quot;) # Form elem &#39;name=&quot;arg&quot;&#39;</span>
-        <span class="c"># This is how you can parse JSON:</span>
-        <span class="c">#parsed = tornado.escape.json_decode(posted_as_an_argument)</span>
-        <span class="n">json_output</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success!&#39;</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_output</span><span class="p">)</span>
-        <span class="c"># You&#39;d put self.finish() here if post() was wrapped with tornado&#39;s</span>
-        <span class="c"># asynchronous decorator.</span>
+        <span class="c1"># If data is POSTed to this handler via an XMLHTTPRequest send() it</span>
+        <span class="c1"># will show up like this:</span>
+        <span class="c1">#posted_as_a_whole = self.request.body # xhr.send()</span>
+        <span class="c1"># If data was POSTed as arguments (i.e. traditional form) it will show</span>
+        <span class="c1"># up as individual arguments like this:</span>
+        <span class="c1">#posted_as_argument = self.get_argument(&quot;arg&quot;) # Form elem &#39;name=&quot;arg&quot;&#39;</span>
+        <span class="c1"># This is how you can parse JSON:</span>
+        <span class="c1">#parsed = tornado.escape.json_decode(posted_as_an_argument)</span>
+        <span class="n">json_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="s1">&#39;Success!&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_output</span><span class="p">)</span></div></div>
+        <span class="c1"># You&#39;d put self.finish() here if post() was wrapped with tornado&#39;s</span>
+        <span class="c1"># asynchronous decorator.</span>
 
-<span class="c"># WebSocket actions (aka commands or &quot;functions that are exposed&quot;)</span></div></div>
+<span class="c1"># WebSocket actions (aka commands or &quot;functions that are exposed&quot;)</span>
 <div class="viewcode-block" id="example_websocket_action"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_websocket_action">[docs]</a><span class="k">def</span> <span class="nf">example_websocket_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
@@ -216,20 +227,20 @@
 <span class="sd">    called by the client (browser) inside of example.js (which is in this</span>
 <span class="sd">    plugin&#39;s &#39;static&#39; dir).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="s">&quot;just pretend&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:example_pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="s2">&quot;just pretend&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;terminal:example_pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-    <span class="c"># WebSockets are asynchronous so you can send as many messages as you want</span>
-    <span class="n">message2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s">&#39;You just executed the &quot;example_action&quot; action.&#39;</span><span class="p">}</span>
+    <span class="c1"># WebSockets are asynchronous so you can send as many messages as you want</span>
+    <span class="n">message2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s1">&#39;You just executed the &quot;example_action&quot; action.&#39;</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message2</span><span class="p">)</span>
-    <span class="c"># Alternatively, you can combine multiple messages/actions into one message:</span>
+    <span class="c1"># Alternatively, you can combine multiple messages/actions into one message:</span>
     <span class="n">combined</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s">&#39;Hurray!&#39;</span><span class="p">,</span>
-        <span class="s">&#39;terminal:bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
+        <span class="s1">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s1">&#39;Hurray!&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;terminal:bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;term&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
     <span class="p">}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span></div>
 
-<span class="c"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span></div>
+<span class="c1"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span>
 <div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">multiplex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gate One includes a mechanism for plugins to send messages from terminal</span>
@@ -240,10 +251,10 @@
 <span class="sd">    execute whatever callback is registered for SOESH.  Inside of Gate One this</span>
 <span class="sd">    callback will always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span>
-     <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</div>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;go:notice&#39;</span><span class="p">:</span>
+     <span class="s2">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Applications/terminal/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This demonstrates how to modify Gate One&#39;s configured &#39;command&#39; before it is</span>
@@ -252,22 +263,22 @@
 <span class="sd">    transformed to &quot;some_script.sh foo&quot; before being executed when a user opens</span>
 <span class="sd">    a new terminal.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;</span><span class="si">%E</span><span class="s">XAMPLE%&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">r&#39;</span><span class="si">%E</span><span class="s1">XAMPLE%&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">)</span></div>
 
-<span class="c"># SOESH allows plugins to attach actions that will be called whenever a terminal</span>
-<span class="c"># encounters the</span>
+<span class="c1"># SOESH allows plugins to attach actions that will be called whenever a terminal</span>
+<span class="c1"># encounters the</span>
 
-<span class="c"># Without this &#39;hooks&#39; dict your plugin might as well not exist from Gate One&#39;s</span>
-<span class="c"># perspective.</span></div>
+<span class="c1"># Without this &#39;hooks&#39; dict your plugin might as well not exist from Gate One&#39;s</span>
+<span class="c1"># perspective.</span>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">r&quot;/example&quot;</span><span class="p">,</span> <span class="n">ExampleHandler</span><span class="p">)],</span>
-    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;terminal:example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
+    <span class="s1">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">r&quot;/example&quot;</span><span class="p">,</span> <span class="n">ExampleHandler</span><span class="p">)],</span>
+    <span class="s1">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;terminal:example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
     <span class="p">},</span>
-    <span class="s">&#39;Command&#39;</span><span class="p">:</span> <span class="n">example_command_hook</span><span class="p">,</span>
-    <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
-    <span class="s">&#39;Environment&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;EXAMPLE_VAR&#39;</span><span class="p">:</span> <span class="s">&#39;This was set via the Example plugin&#39;</span>
+    <span class="s1">&#39;Command&#39;</span><span class="p">:</span> <span class="n">example_command_hook</span><span class="p">,</span>
+    <span class="s1">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
+    <span class="s1">&#39;Environment&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;EXAMPLE_VAR&#39;</span><span class="p">:</span> <span class="s1">&#39;This was set via the Example plugin&#39;</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -275,12 +286,12 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -297,7 +308,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -306,14 +317,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

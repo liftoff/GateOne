@@ -5,10 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-29645087-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>API Authentication &mdash; Gate One 1.2.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     
@@ -30,8 +41,8 @@
     <link rel="next" title="Release Notes / Changelog" href="../ReleaseNotes/index.html" />
     <link rel="prev" title="How To Embed Gate One - Chapter 1" href="embedding_chapter1.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -46,23 +57,23 @@
         <li class="right" >
           <a href="embedding_chapter1.html" title="How To Embed Gate One - Chapter 1"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Developer Documentation</a> &raquo;</li>
-          <li><a href="embedding.html" accesskey="U">Embedding Gate One Into Other Applications</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="embedding.html" accesskey="U">Embedding Gate One Into Other Applications</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="api-authentication">
 <span id="api-auth"></span><h1>API Authentication<a class="headerlink" href="#api-authentication" title="Permalink to this headline">¶</a></h1>
 <p>Gate One includes an authentication API that can be used when embedded into other applications.  It allows the application embedding Gate One to pre-authenticate users so they won't have to re-authenticate when their browser connects to the Gate One server.  Here's how it works:</p>
 <div class="section" id="enable-api-authentication">
 <h2>Enable API Authentication<a class="headerlink" href="#enable-api-authentication" title="Permalink to this headline">¶</a></h2>
-<p>Set <tt class="docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;api&quot;</span></tt> in your server.conf:</p>
+<p>Set <code class="docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;api&quot;</span></code> in your server.conf:</p>
 <pre class="ansi-block literal-block">
 <span class="ansi-bold ansi-blue">#</span> grep &quot;^auth&quot; server.conf
 auth = &quot;api&quot;
@@ -81,11 +92,11 @@ auth = &quot;api&quot;
 </div>
 <p>API keys and secrets are stored in your 30api_keys.conf like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-    <span class="s">&quot;*&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&quot;gateone&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s">&quot;api_keys&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s">&quot;&lt;API Key&gt;&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;Secret&gt;&quot;</span><span class="p">,</span>
-                <span class="s">&quot;&lt;API Key 2&gt;&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;Secret 2&gt;&quot;</span>
+    <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;gateone&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;api_keys&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;&lt;API Key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;Secret&gt;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&lt;API Key 2&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;Secret 2&gt;&quot;</span>
             <span class="p">}</span>
         <span class="p">}</span>
     <span class="p">}</span>
@@ -105,20 +116,20 @@ auth = &quot;api&quot;
     }
 }
 </pre>
-<p>In the above example our API key would be, <tt class="docutils literal"><span class="pre">&quot;NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM&quot;</span></tt> and our API secret would be, <tt class="docutils literal"><span class="pre">&quot;M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN&quot;</span></tt>.</p>
+<p>In the above example our API key would be, <code class="docutils literal"><span class="pre">&quot;NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM&quot;</span></code> and our API secret would be, <code class="docutils literal"><span class="pre">&quot;M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN&quot;</span></code>.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p>You can set the API Key and secret to whatever you like by editing your 30api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even <a class="reference external" href="http://en.wikipedia.org/wiki/Unicode">Unicode</a>!.  The following is a perfectly valid API key and secret:</p>
-<p class="last"><tt class="docutils literal"><span class="pre">&quot;ʕ•ᴥ•ʔ</span> <span class="pre">／人 ◕</span> <span class="pre">‿‿</span> <span class="pre">◕ 人＼&quot;:</span> <span class="pre">&quot;↑</span> <span class="pre">↑</span> <span class="pre">↓</span> <span class="pre">↓</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">Ⓑ</span> <span class="pre">Ⓐ</span> <span class="pre">♥‿♥&quot;</span></tt></p>
+<p class="last"><code class="docutils literal"><span class="pre">&quot;ʕ•ᴥ•ʔ</span> <span class="pre">／人 ◕</span> <span class="pre">‿‿</span> <span class="pre">◕ 人＼&quot;:</span> <span class="pre">&quot;↑</span> <span class="pre">↑</span> <span class="pre">↓</span> <span class="pre">↓</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">←</span> <span class="pre">→</span> <span class="pre">Ⓑ</span> <span class="pre">Ⓐ</span> <span class="pre">♥‿♥&quot;</span></code></p>
 </div>
 </div>
 <div class="section" id="generate-an-auth-object">
 <h2>Generate An Auth Object<a class="headerlink" href="#generate-an-auth-object" title="Permalink to this headline">¶</a></h2>
-<p>The next step is to generate a <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> object (auth) from your application and pass it to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>.  The 'auth' object must contain the following information:</p>
+<p>The next step is to generate a <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> object (auth) from your application and pass it to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><code class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></code></a>.  The 'auth' object must contain the following information:</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>api_key</dt>
-<dd>The key that was generated when you ran <tt class="docutils literal"><span class="pre">./gateone.py</span> <span class="pre">--new_api_key</span></tt></dd>
+<dd>The key that was generated when you ran <code class="docutils literal"><span class="pre">./gateone.py</span> <span class="pre">--new_api_key</span></code></dd>
 <dt>upn</dt>
 <dd>The username or userPrincipalName (aka UPN) of the user you wish to preauthenticate.</dd>
 <dt>timestamp</dt>
@@ -142,14 +153,14 @@ auth = &quot;api&quot;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This object would then be passed to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> like so:</p>
+<p>This object would then be passed to <a class="reference internal" href="js_gateone.html#GateOne.init" title="GateOne.init"><code class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></code></a> like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">auth</span><span class="o">:</span> <span class="nx">authobj</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>Assuming the signature is valid Gate One would then inherently trust that the user connecting over the WebSocket is <a class="reference external" href="mailto:joe&#37;&#52;&#48;company&#46;com">joe<span>&#64;</span>company<span>&#46;</span>com</a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Authentication objects (aka &quot;authentication tokens&quot;) are only valid within the time frame specified in the <a class="reference internal" href="../About/configuration.html#cmdoption--api_timestamp_window"><em class="xref std std-option">--api_timestamp_window</em></a> setting.  They also can't be used more than once (to negate replay attacks).</p>
+<p class="last">Authentication objects (aka &quot;authentication tokens&quot;) are only valid within the time frame specified in the <a class="reference internal" href="../About/configuration.html#cmdoption--api_timestamp_window"><code class="xref std std-option docutils literal"><span class="pre">--api_timestamp_window</span></code></a> setting.  They also can't be used more than once (to negate replay attacks).</p>
 </div>
 </div>
 </div>
@@ -159,17 +170,17 @@ auth = &quot;api&quot;
 <div class="section" id="python">
 <h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">hmac</span><span class="o">,</span> <span class="nn">hashlib</span><span class="o">,</span> <span class="nn">json</span>
-<span class="n">secret</span> <span class="o">=</span> <span class="s">&quot;secret&quot;</span>
+<span class="n">secret</span> <span class="o">=</span> <span class="s2">&quot;secret&quot;</span>
 <span class="n">authobj</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;api_key&#39;</span><span class="p">:</span> <span class="s">&quot;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&quot;</span><span class="p">,</span>
-    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="s">&quot;joe@company.com&quot;</span><span class="p">,</span>
-    <span class="s">&#39;timestamp&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)),</span>
-    <span class="s">&#39;signature_method&#39;</span><span class="p">:</span> <span class="s">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
-    <span class="s">&#39;api_version&#39;</span><span class="p">:</span> <span class="s">&#39;1.0&#39;</span>
+    <span class="s1">&#39;api_key&#39;</span><span class="p">:</span> <span class="s2">&quot;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;upn&#39;</span><span class="p">:</span> <span class="s2">&quot;joe@company.com&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)),</span>
+    <span class="s1">&#39;signature_method&#39;</span><span class="p">:</span> <span class="s1">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;api_version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span>
 <span class="p">}</span>
 <span class="nb">hash</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">digestmod</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
-<span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">authobj</span><span class="p">[</span><span class="s">&#39;api_key&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="p">[</span><span class="s">&#39;timestamp&#39;</span><span class="p">])</span>
-<span class="n">authobj</span><span class="p">[</span><span class="s">&#39;signature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">authobj</span><span class="p">[</span><span class="s1">&#39;api_key&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">])</span>
+<span class="n">authobj</span><span class="p">[</span><span class="s1">&#39;signature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 <span class="n">valid_json_auth_object</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">authobj</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -216,7 +227,7 @@ auth = &quot;api&quot;
     <span class="s1">&#39;signature_method&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
     <span class="s1">&#39;api_version&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;1.0&#39;</span>
 <span class="p">}</span>
-<span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;signature&#39;</span> <span class="o">=</span> <span class="ss">OpenSSL</span><span class="p">:</span><span class="ss">:HMAC</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;api_key&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;upn&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;timestamp&#39;</span><span class="o">]</span><span class="p">)</span>
+<span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;signature&#39;</span> <span class="o">=</span> <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;api_key&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;upn&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;timestamp&#39;</span><span class="o">]</span><span class="p">)</span>
 <span class="n">valid_json_auth_object</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">authobj</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -227,7 +238,7 @@ auth = &quot;api&quot;
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
@@ -254,12 +265,14 @@ auth = &quot;api&quot;
   <h4>Next topic</h4>
   <p class="topless"><a href="../ReleaseNotes/index.html"
                         title="next chapter">Release Notes / Changelog</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/embedding_api_auth.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/Developer/embedding_api_auth.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -276,7 +289,7 @@ auth = &quot;api&quot;
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -291,15 +304,15 @@ auth = &quot;api&quot;
         <li class="right" >
           <a href="embedding_chapter1.html" title="How To Embed Gate One - Chapter 1"
              >previous</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
-          <li><a href="index.html" >Developer Documentation</a> &raquo;</li>
-          <li><a href="embedding.html" >Embedding Gate One Into Other Applications</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer Documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="embedding.html" >Embedding Gate One Into Other Applications</a> &raquo;</li> 
       </ul>
     </div>
 
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Liftoff Software Corporation.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {
