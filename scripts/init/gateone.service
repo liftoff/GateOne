@@ -1,5 +1,6 @@
 [Unit]
 Description=Web-based terminal
+After=network.target remote-fs.target nss-lookup.target
 
 [Service]
 Type=simple
