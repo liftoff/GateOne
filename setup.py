@@ -16,6 +16,8 @@ version = '1.2.0'
 requires = ["tornado >=4.0", "html5lib >= 0.999"]
 extra = {}
 data_files = []
+package_data = []
+
 major, minor = sys.version_info[:2] # Python version
 if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
@@ -167,12 +169,9 @@ for dirpath, dirnames, filenames in os.walk('gateone'):
     if '__init__.py' in filenames:
         package = '.'.join(fullsplit(dirpath))
         packages.append(package)
-    elif filenames:
-        data_files.append([
-            dirpath, [os.path.join(dirpath, f)
-            for f in filenames
-            if f not in ignore_list]
-        ])
+    else:
+        package_data.extend([os.path.join(*fullsplit(dirpath)[1:] + [fn]) \
+                             for fn in filenames if fn not in ignore_list])
 
 entry_points = {
     'console_scripts': ['gateone = gateone.core.server:main'],
@@ -322,6 +321,7 @@ setup(
     provides = ['gateone', 'termio', 'terminal', 'onoff'],
     packages = packages,
     data_files = data_files,
+    package_data = { 'gateone': package_data },
     **extra
 )
 
