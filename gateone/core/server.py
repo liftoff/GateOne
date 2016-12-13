@@ -1940,7 +1940,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.write_message(json_encode(reauth))
             return False
         try:
-            secret = self.settings['api_keys'][api_key]
+            secret = self.prefs['*']['gateone']['api_keys'][api_key]
         except KeyError:
             self.auth_log.error(_(
                 'API AUTH: API Key not found.'))
