@@ -849,7 +849,7 @@ go.Base.update(GateOne.Terminal, {
         logDebug('loadFont(' + font + ", " + size + ")");
         font = font || go.prefs.terminalFont;
         var settings = {'font_family': font};
-        if (size) {settings['font_size'] = size}
+        settings['font_size'] = size || go.prefs.terminalFontSize;
         go.ws.send(JSON.stringify({'terminal:get_font': settings}));
     },
     loadTextColors: function(colors) {
