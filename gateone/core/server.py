@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20160618135724" # Gets replaced by git (holds the date/time)
+__commit__ = "20170623083757" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -791,7 +791,7 @@ class StaticHandler(tornado.web.StaticFileHandler):
         # must be a classmethod (we need access to self.use_pkg).
         if self.use_pkg:
             if not resource_exists(self.use_pkg, absolute_path):
-                raise HTTPError(404)
+                raise tornado.web.HTTPError(404)
             return resource_filename(self.use_pkg, absolute_path)
         return super(
             StaticHandler, self).validate_absolute_path(root, absolute_path)
@@ -2132,7 +2132,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 #self.close() # Close the WebSocket
         elif auth_method and auth_method == 'api':
             if 'auth' in list(settings.keys()):
-                print("auth settings: %s" % repr(settings['auth']))
                 if not isinstance(settings['auth'], dict):
                     settings['auth'] = json_decode(settings['auth'])
                 user = self.api_auth(settings['auth'])

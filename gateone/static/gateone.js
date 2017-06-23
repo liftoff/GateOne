@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20160618135724";
+GateOne.__commit__ = "20170623083757";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -844,12 +844,12 @@ var go = GateOne.Base.update(GateOne, {
         v.togglePanel(); // Scales them all away
         if (!go.prefs.embedded) {
             E.on("go:connection_established", function() {
-                // This is really for reconnect events
+                // This is really for reconnect events (resume after being disconnected)
                 // If there's no workspaces make the application chooser
                 if (!u.getNodes('.✈workspace').length) {
                     v.appChooser();
                 }
-                v.updateDimensions();
+                v.updateDimensions(); // In case the window size changed while disconnected
             });
             E.on("go:js_loaded", function(apps) {
                 if (!u.getNodes('.✈workspace').length) {
@@ -3459,14 +3459,16 @@ GateOne.Base.update(GateOne.Visual, {
         }
         go.Events.trigger('go:set_title_action', title);
     },
-    updateDimensions: function() {
-        /**:GateOne.Visual.updateDimensions()
+    updateDimensions: function(/*opt*/force) {
+        /**:GateOne.Visual.updateDimensions([force])
 
         Sets :js:attr:`GateOne.Visual.goDimensions` to the current width/height of :js:attr:`GateOne.prefs.goDiv`.  Typically called when the browser window is resized.
 
             >>> GateOne.Visual.updateDimensions();
 
         Also sends the "go:set_dimensions" WebSocket action to the server so that it has a reference of the client's width/height as well as information about the size of the goDiv (usually #gateone) element and the size of workspaces.
+
+        If *force* is `true` then the 'go:set_dimensions' WebSocket action will be sent to the server with the current dimensions and the 'go:update_dimensions' event will be triggered with the current dimensions *even if the dimensions have not changed*.
         */
         logDebug('updateDimensions()');
         var u = go.Utils,
@@ -3499,9 +3501,11 @@ GateOne.Base.update(GateOne.Visual, {
             sidebarWidth = Math.max(sidebarWidth, go.sideinfo.clientHeight);
             // NOTE: We use the clientHeight on the sideinfo because it is rotated sideways 90°
         }
-        if (prevWidth == v.goDimensions.w && prevHeight == v.goDimensions.h) {
-            // Nothing changed so we don't need to proceed further
-            return;
+        if (!force) {
+            if (prevWidth == v.goDimensions.w && prevHeight == v.goDimensions.h) {
+                // Nothing changed so we don't need to proceed further
+                return;
+            }
         }
         if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
             // Update the width of gridwrapper in case #gateone has padding
@@ -3946,11 +3950,12 @@ GateOne.Base.update(GateOne.Visual, {
             go.sideinfo.innerHTML = 'Gate One'; // So we can measure how tall the text is
         }
         sidebarWidth = go.toolbar.clientWidth || go.sideinfo.clientHeight; // clientHeight is used on the sideinfo because it is rotated 90 degrees
+        // Prepare the workspace div for the grid
         if (go.prefs.showTitle || go.prefs.showToolbar) {
-            // Prepare the workspace div for the grid
-            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': (v.goDimensions.w - sidebarWidth)+ 'px', 'height': v.goDimensions.h + 'px'}});
+            // If there's a sidebar of some sort then we need to take that into account when making the workspace:
+            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': (v.goDimensions.w - sidebarWidth) + 'px', 'height': v.goDimensions.h + 'px'}});
         } else {
-            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
+            workspaceNode = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
         }
         workspaceNode.setAttribute('data-workspace', workspaceNum);
         workspaceObj['node'] = workspaceNode;
@@ -4750,7 +4755,6 @@ GateOne.Base.update(GateOne.Visual, {
                         dialogContainer.classList.add('✈dialogactive');
                         if (i != origIndex) {
                             if (options && options.events && options.events.focused) {
-//                                 console.log('calling focus event on ', dialogContainer);
                                 options.events.focused(dialogContainer);
                             }
                         }
@@ -5926,7 +5930,7 @@ GateOne.Base.update(GateOne.User, {
         // NOTE: This will normally get run before Gate One's logger is initialized so uncomment below to debug
 //         console.log("setUsernameAction(" + username + ")");
         go.User.username = username;
-        go.Events.on("go:js_loaded", function() {
+        go.Events.once("go:js_loaded", function() { // Needs to run after everything is loaded; this action should always get called before post-gateone.js JavaScript is loaded
             var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
             if (prefsPanelUserID) {
                 prefsPanelUserID.innerHTML = username + " ";
