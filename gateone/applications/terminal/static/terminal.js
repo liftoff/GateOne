@@ -379,7 +379,7 @@ go.Base.update(GateOne.Terminal, {
             E.on("terminal:keydown:meta-p", function() { GateOne.Terminal.printScreen(); });
             // Helpful message so the user doesn't get confused as to why their terminal stopped working:
             E.on("terminal:keydown:ctrl-s", function() {
-                GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();
+                GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); t.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();
             });
             // Ctrl-Alt-P to open a popup terminal
             E.on("go:keydown:ctrl-alt-p", function() { GateOne.Terminal.popupTerm(null, {"global": false}); });
@@ -496,10 +496,10 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.popupTerm(term, options);
             }, 1150);
         });
-        E.on("terminal:term_closed", function(term) {
-            // Check if the closed terminal belonged to someone else (shared) and tell the server to detach it if necessary
-            logDebug("term_closed: " + term);
-        });
+//         E.on("terminal:term_closed", function(term) {
+//             // Check if the closed terminal belonged to someone else (shared) and tell the server to detach it if necessary
+//             logDebug("term_closed: " + term);
+//         });
         // Open/Create our terminal database
         S.openDB('terminal', go.Terminal.setDBReady, go.Terminal.terminalDBModel, go.Terminal.dbVersion);
         // Cleanup any old-style scrollback buffers that might be hanging around
@@ -1653,7 +1653,7 @@ go.Base.update(GateOne.Terminal, {
             > // Creates a new terminal that spawns whatever command is set as 'login' in Gate One's settings:
             > GateOne.Terminal.newTerminal(null, {'command': 'login'});
 
-        If *where* is provided, the new terminal element will be appended like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
+        If *where* is provided, the new terminal element will be appended like so:  `where.appendChild(<new terminal element>);`  Otherwise the terminal will be added to the grid.
 
         Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         */
