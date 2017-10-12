@@ -1056,7 +1056,7 @@ go.Base.update(GateOne.Terminal, {
     paste: function(e) {
         /**:GateOne.Terminal.paste(e)
 
-        This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting.
+        This gets attached to Shift-Insert (INSERT) as a shortcut in order to support pasting.
         */
         logDebug('paste()');
         var tempPaste = u.createElement('textarea', {'class': '✈temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
@@ -3279,14 +3279,14 @@ go.Base.update(GateOne.Terminal, {
         shareIDInput.addEventListener('keydown', function(e) {
             var key = go.Input.key(e);
             apply.style.display = '';
-            if (key.string == "KEY_ENTER") {
+            if (key.string == "ENTER") {
                 saveFunc();
             }
         }, false);
         password.addEventListener('keydown', function(e) {
             var key = go.Input.key(e);
             apply.style.display = '';
-            if (key.string == "KEY_ENTER") {
+            if (key.string == "ENTER") {
                 saveFunc();
             }
         }, false);

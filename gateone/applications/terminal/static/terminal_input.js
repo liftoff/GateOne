@@ -611,7 +611,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Called when the terminal encounters a `keyup` event; just ensures that `GateOne.Terminal.Input.inputNode` is emptied so we don't accidentally send characters we shouldn't.
         */
-        // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
+        // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using WINDOWS_LEFT and WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
         var key = I.key(e),
             modifiers = I.modifiers(e);
         logDebug('GateOne.Terminal.Input.onKeyUp()', e);
@@ -665,7 +665,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug('GateOne.Terminal.Input.execKeystroke()', e);
         var key = I.key(e),
             modifiers = I.modifiers(e);
-        if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
+        if (key.string == 'WINDOWS_LEFT' || key.string == 'WINDOWS_RIGHT') {
             I.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
         }
@@ -704,7 +704,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.F11 = false;
             clearTimeout(t.Input.F11timer);
             return; // Don't proceed further
-        } else if (key.string == 'KEY_F11' && !skipF11check) { // Start tracking a new F11 event
+        } else if (key.string == 'F11' && !skipF11check) { // Start tracking a new F11 event
             t.Input.F11 = true;
             e.preventDefault();
             clearTimeout(t.Input.F11timer);
@@ -716,13 +716,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             v.displayMessage(gettext("NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode."));
             return;
         }
-        if (key.string == "KEY_UNKNOWN") {
+        if (key.string == "UNKNOWN") {
             return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
         }
         if (!t.terminals[term]) {
             return; // Nothing to do
         }
-        if (key.string != "KEY_SHIFT" && key.string != "KEY_CTRL" && key.string != "KEY_ALT" && key.string != "KEY_META") {
+        if (key.string != "SHIFT" && key.string != "CTRL" && key.string != "ALT" && key.string != "META") {
             // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)
             u.scrollToBottom(t.terminals[term]['node']);
         }
@@ -732,13 +732,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 var mode = t.terminals[term]['mode'], // Controls Application Cursor Keys (DECCKM)
                     keyboard = t.terminals[term]['keyboard']; // Controls most everything else (FKeys, Numpad, etc)
                 if (!modifiers.shift) { // Non-modified keypress
-                    if (key.string == 'KEY_BACKSPACE') {
+                    if (key.string == 'BACKSPACE') {
                         // So we can switch between ^? and ^H
                         q(t.terminals[term]['backspace']);
                         if (t.Input.automaticBackspace) {
                             t.Input.sentBackspace = true;
                         }
-                    } else if (u.startsWith('KEY_ARROW', key.string)) {
+                    } else if (u.startsWith('ARROW', key.string)) {
                         // Handle Application Cursor Keys stuff
                         if (t.Input.keyTable[key.string][mode]) {
                             q(t.Input.keyTable[key.string][mode]);
@@ -753,7 +753,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                             // Fall back to using default
                             q(t.Input.keyTable[key.string]["default"]);
                         }
-                        if (key.string == 'KEY_ENTER') {
+                        if (key.string == 'ENTER') {
                             // Make a note of the text leading up to pressing of the Enter key so we can (do our best to) keep track of commands
                             E.trigger("terminal:enter_key");
                             t.Input.lastCommand = t.Input.commandBuffer;
@@ -761,15 +761,15 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         }
                     }
                 } else { // Shift was held down
-                    if (key.string == 'KEY_INSERT') {
+                    if (key.string == 'INSERT') {
                         t.paste(e);
                     } else if (t.Input.keyTable[key.string]['shift']) {
                         q(t.Input.keyTable[key.string]['shift']);
                     // This allows the browser's native pgup and pgdown to scroll up and down when the shift key is held:
-                    } else if (key.string == 'KEY_PAGE_UP') {
+                    } else if (key.string == 'PAGE_UP') {
                         e.preventDefault();
                         t.scrollPageUp();
-                    } else if (key.string == 'KEY_PAGE_DOWN') {
+                    } else if (key.string == 'PAGE_DOWN') {
                         e.preventDefault();
                         t.scrollPageDown();
                     } else if (t.Input.keyTable[key.string][keyboard]) { // Fall back to the mode's non-shift value
@@ -796,7 +796,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 e.preventDefault();
                 t.Input.queue(c);
             };
-        if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
+        if (key.string == "SHIFT" || key.string == "ALT" || key.string == "CTRL" || key.string == "WINDOWS_LEFT" || key.string == "WINDOWS_RIGHT" || key.string == "UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
         logDebug("GateOne.Terminal.Input.emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
@@ -824,7 +824,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     if (key.code == 76) { // Ctrl-l gets some extra love
                         go.Terminal.fullRefresh(localStorage[go.prefs.prefix+'selectedTerminal']);
                         q(String.fromCharCode(key.code - 64));
-                    } else if (key.string == 'KEY_C') {
+                    } else if (key.string == 'c') {
                         // Check if the user has something highlighted.  If they do, assume they want to copy the text.
                         // NOTE:  This shouldn't be *too* intrusive on regular Ctrl-C behavior since you can just press it twice if something is selected and it will have the normal effect of sending a SIGINT.  I don't know about YOU but when Ctrl-C doesn't work the first time I instinctively just mash that combo a few times :)
                         if (u.getSelText()) {
@@ -887,7 +887,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         }
                     }
                 }
-            } else if (key.string == 'KEY_V') {
+            } else if (key.string == 'v') {
                 // Macs need this to support pasting with ⌘-v (⌘-c doesn't need anything special)
                 term = localStorage[go.prefs.prefix+'selectedTerminal'];
                 pastearea = go.Terminal.terminals[term]['pasteNode'];
@@ -946,91 +946,91 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     keyTable: {
         // Keys that need special handling.  'default' means vt100/vt220 (for the most part).  These can get overridden by plugins or the user (GUI forthcoming)
         // NOTE: If a key is set to null that means it won't send anything to the server onKeyDown (at all).
-        'KEY_1': {'alt': ESC+"1", 'ctrl': "1", 'ctrl-shift': "1"},
-        'KEY_2': {'alt': ESC+"2", 'ctrl': String.fromCharCode(0), 'ctrl-shift': String.fromCharCode(0)},
-        'KEY_3': {'alt': ESC+"3", 'ctrl': ESC, 'ctrl-shift': ESC},
-        'KEY_4': {'alt': ESC+"4", 'ctrl': String.fromCharCode(28), 'ctrl-shift': String.fromCharCode(28)},
-        'KEY_5': {'alt': ESC+"5", 'ctrl': String.fromCharCode(29), 'ctrl-shift': String.fromCharCode(29)},
-        'KEY_6': {'alt': ESC+"6", 'ctrl': String.fromCharCode(30), 'ctrl-shift': String.fromCharCode(30)},
-        'KEY_7': {'alt': ESC+"7", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
-        'KEY_8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32), 'ctrl-shift': String.fromCharCode(32)},
-        'KEY_9': {'alt': ESC+"9", 'ctrl': "9", 'ctrl-shift': "9"},
-        'KEY_0': {'alt': ESC+"0", 'ctrl': "0", 'ctrl-shift': "0"},
-        'KEY_G': {'altgr': "@"},
+        '1': {'alt': ESC+"1", 'ctrl': "1", 'ctrl-shift': "1"},
+        '2': {'alt': ESC+"2", 'ctrl': String.fromCharCode(0), 'ctrl-shift': String.fromCharCode(0)},
+        '3': {'alt': ESC+"3", 'ctrl': ESC, 'ctrl-shift': ESC},
+        '4': {'alt': ESC+"4", 'ctrl': String.fromCharCode(28), 'ctrl-shift': String.fromCharCode(28)},
+        '5': {'alt': ESC+"5", 'ctrl': String.fromCharCode(29), 'ctrl-shift': String.fromCharCode(29)},
+        '6': {'alt': ESC+"6", 'ctrl': String.fromCharCode(30), 'ctrl-shift': String.fromCharCode(30)},
+        '7': {'alt': ESC+"7", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
+        '8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32), 'ctrl-shift': String.fromCharCode(32)},
+        '9': {'alt': ESC+"9", 'ctrl': "9", 'ctrl-shift': "9"},
+        '0': {'alt': ESC+"0", 'ctrl': "0", 'ctrl-shift': "0"},
+        'G': {'altgr': "@"},
         // NOTE to self: xterm/vt100/vt220, for 'linux' (and possibly others) use [[A, [[B, [[C, [[D, and [[E
-        'KEY_F1': {'default': ESC+"OP", 'alt': ESC+"O3P", 'sco': ESC+"[M", 'sco-ctrl': ESC+"[k"},
-        'KEY_F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q", 'sco': ESC+"[N", 'sco-ctrl': ESC+"[l"},
-        'KEY_F3': {'default': ESC+"OR", 'alt': ESC+"O3R", 'sco': ESC+"[O", 'sco-ctrl': ESC+"[m"},
-        'KEY_F4': {'default': ESC+"OS", 'alt': ESC+"O3S", 'sco': ESC+"[P", 'sco-ctrl': ESC+"[n"},
-        'KEY_F5': {'default': ESC+"[15~", 'alt': ESC+"[15;3~", 'sco': ESC+"[Q", 'sco-ctrl': ESC+"[o"},
-        'KEY_F6': {'default': ESC+"[17~", 'alt': ESC+"[17;3~", 'sco': ESC+"[R", 'sco-ctrl': ESC+"[p"},
-        'KEY_F7': {'default': ESC+"[18~", 'alt': ESC+"[18;3~", 'sco': ESC+"[S", 'sco-ctrl': ESC+"[q"},
-        'KEY_F8': {'default': ESC+"[19~", 'alt': ESC+"[19;3~", 'sco': ESC+"[T", 'sco-ctrl': ESC+"[r"},
-        'KEY_F9': {'default': ESC+"[20~", 'alt': ESC+"[20;3~", 'sco': ESC+"[U", 'sco-ctrl': ESC+"[s"},
-        'KEY_F10': {'default': ESC+"[21~", 'alt': ESC+"[21;3~", 'sco': ESC+"[V", 'sco-ctrl': ESC+"[t"},
-        'KEY_F11': {'default': ESC+"[23~", 'alt': ESC+"[23;3~", 'sco': ESC+"[W", 'sco-ctrl': ESC+"[u"},
-        'KEY_F12': {'default': ESC+"[24~", 'alt': ESC+"[24;3~"},
-        'KEY_F13': {'default': ESC+"[25~", 'alt': ESC+"[25;3~", 'sco': ESC+"[X", 'sco-ctrl': ESC+"[v", 'xterm': ESC+"O2P"},
-        'KEY_F14': {'default': ESC+"[26~", 'alt': ESC+"[26;3~", 'xterm': ESC+"O2Q"},
-        'KEY_F15': {'default': ESC+"[28~", 'alt': ESC+"[28;3~", 'xterm': ESC+"O2R"},
-        'KEY_F16': {'default': ESC+"[29~", 'alt': ESC+"[29;3~", 'xterm': ESC+"O2S"},
-        'KEY_F17': {'default': ESC+"[31~", 'alt': ESC+"[31;3~", 'xterm': ESC+"[15;2~"},
-        'KEY_F18': {'default': ESC+"[32~", 'alt': ESC+"[32;3~", 'xterm': ESC+"[17;2~"},
-        'KEY_F19': {'default': ESC+"[33~", 'alt': ESC+"[33;3~", 'xterm': ESC+"[18;2~"},
-        'KEY_F20': {'default': ESC+"[34~", 'alt': ESC+"[34;3~", 'xterm': ESC+"[19;2~"},
-        'KEY_F21': {'default': ESC+"[20;2~"}, // All F-keys beyond this point are xterm-style (vt220 only goes up to F20)
-        'KEY_F22': {'default': ESC+"[21;2~"},
-        'KEY_F23': {'default': ESC+"[23;2~"},
-        'KEY_F24': {'default': ESC+"[24;2~"},
-        'KEY_F25': {'default': ESC+"O5P"},
-        'KEY_F26': {'default': ESC+"O5Q"},
-        'KEY_F27': {'default': ESC+"O5R"},
-        'KEY_F28': {'default': ESC+"O5S"},
-        'KEY_F29': {'default': ESC+"[15;5~"},
-        'KEY_F30': {'default': ESC+"[17;5~"},
-        'KEY_F31': {'default': ESC+"[18;5~"},
-        'KEY_F32': {'default': ESC+"[19;5~"},
-        'KEY_F33': {'default': ESC+"[20;5~"},
-        'KEY_F34': {'default': ESC+"[21;5~"},
-        'KEY_F35': {'default': ESC+"[23;5~"},
-        'KEY_F36': {'default': ESC+"[24;5~"},
-        'KEY_F37': {'default': ESC+"O6P"},
-        'KEY_F38': {'default': ESC+"O6Q"},
-        'KEY_F39': {'default': ESC+"O6R"},
-        'KEY_F40': {'default': ESC+"O6S"},
-        'KEY_F41': {'default': ESC+"[15;6~"},
-        'KEY_F42': {'default': ESC+"[17;6~"},
-        'KEY_F43': {'default': ESC+"[18;6~"},
-        'KEY_F44': {'default': ESC+"[19;6~"},
-        'KEY_F45': {'default': ESC+"[20;6~"},
-        'KEY_F46': {'default': ESC+"[21;6~"},
-        'KEY_F47': {'default': ESC+"[23;6~"},
-        'KEY_F48': {'default': ESC+"[24;6~"},
-        'KEY_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
-        'KEY_NUM_PAD_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
-        'KEY_BACKSPACE': {'default': String.fromCharCode(127), 'alt': ESC+String.fromCharCode(8)}, // Default is ^?. Will be changable to ^H eventually.
-        'KEY_NUM_PAD_CLEAR': String.fromCharCode(12), // Not sure if this will do anything
-        'KEY_SHIFT': null,
-        'KEY_CTRL': null,
-        'KEY_ALT': null,
-        'KEY_PAUSE': {'default': ESC+"[28~", 'xterm': ESC+"O2R"}, // Same as F15
-        'KEY_CAPS_LOCK': null,
-        'KEY_ESCAPE': {'default': ESC},
-        'KEY_TAB': {'default': String.fromCharCode(9), 'shift': ESC+"[Z"},
-        'KEY_SPACEBAR': {'ctrl': String.fromCharCode(0)}, // NOTE: Do we *really* need to have an appmode option for this?
-        'KEY_PAGE_UP': {'default': ESC+"[5~", 'alt': ESC+"[5;3~", 'sco': ESC+"[I"},
-        'KEY_PAGE_DOWN': {'default': ESC+"[6~", 'alt': ESC+"[6;3~", 'sco': ESC+"[G"}, // ^[[6~
-        'KEY_END': {'default': ESC+"[F", 'meta': ESC+"[1;1F", 'shift': ESC+"[1;2F", 'alt': ESC+"[1;3F", 'alt-shift': ESC+"[1;4F", 'ctrl': ESC+"[1;5F", 'ctrl-shift': ESC+"[1;6F", 'appmode': ESC+"OF", 'sco': ESC+"[F"},
-        'KEY_HOME': {'default': ESC+"[H", 'meta': ESC+"[1;1H", 'shift': ESC+"[1;2H", 'alt': ESC+"[1;3H", 'alt-shift': ESC+"[1;4H", 'ctrl': ESC+"[1;5H", 'ctrl-shift': ESC+"[1;6H", 'appmode': ESC+"OH", 'sco': ESC+"[H"},
-        'KEY_ARROW_LEFT': {'default': ESC+"[D", 'alt': ESC+"[1;3D", 'ctrl': ESC+"[1;5D", 'appmode': ESC+"OD"},
-        'KEY_ARROW_UP': {'default': ESC+"[A", 'alt': ESC+"[1;3A", 'ctrl': ESC+"[1;5A", 'appmode': ESC+"OA"},
-        'KEY_ARROW_RIGHT': {'default': ESC+"[C", 'alt': ESC+"[1;3C", 'ctrl': ESC+"[1;5C", 'appmode': ESC+"OC"},
-        'KEY_ARROW_DOWN': {'default': ESC+"[B", 'alt': ESC+"[1;3B", 'ctrl': ESC+"[1;5B", 'appmode': ESC+"OB"},
-        'KEY_PRINT_SCREEN': {'default': ESC+"[25~", 'xterm': ESC+"O2P"}, // Same as F13
-        'KEY_INSERT': {'default': ESC+"[2~", 'meta': ESC+"[2;1~", 'alt': ESC+"[2;3~", 'alt-shift': ESC+"[2;4~", 'sco': ESC+"[L"},
-        'KEY_DELETE': {'default': ESC+"[3~", 'shift': ESC+"[3;2~", 'alt': ESC+"[3;3~", 'alt-shift': ESC+"[3;4~", 'ctrl': ESC+"[3;5~", 'sco': ESC+"?"},
-        'KEY_WINDOWS_LEFT': null,
-        'KEY_WINDOWS_RIGHT': null,
+        'F1': {'default': ESC+"OP", 'alt': ESC+"O3P", 'sco': ESC+"[M", 'sco-ctrl': ESC+"[k"},
+        'F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q", 'sco': ESC+"[N", 'sco-ctrl': ESC+"[l"},
+        'F3': {'default': ESC+"OR", 'alt': ESC+"O3R", 'sco': ESC+"[O", 'sco-ctrl': ESC+"[m"},
+        'F4': {'default': ESC+"OS", 'alt': ESC+"O3S", 'sco': ESC+"[P", 'sco-ctrl': ESC+"[n"},
+        'F5': {'default': ESC+"[15~", 'alt': ESC+"[15;3~", 'sco': ESC+"[Q", 'sco-ctrl': ESC+"[o"},
+        'F6': {'default': ESC+"[17~", 'alt': ESC+"[17;3~", 'sco': ESC+"[R", 'sco-ctrl': ESC+"[p"},
+        'F7': {'default': ESC+"[18~", 'alt': ESC+"[18;3~", 'sco': ESC+"[S", 'sco-ctrl': ESC+"[q"},
+        'F8': {'default': ESC+"[19~", 'alt': ESC+"[19;3~", 'sco': ESC+"[T", 'sco-ctrl': ESC+"[r"},
+        'F9': {'default': ESC+"[20~", 'alt': ESC+"[20;3~", 'sco': ESC+"[U", 'sco-ctrl': ESC+"[s"},
+        'F10': {'default': ESC+"[21~", 'alt': ESC+"[21;3~", 'sco': ESC+"[V", 'sco-ctrl': ESC+"[t"},
+        'F11': {'default': ESC+"[23~", 'alt': ESC+"[23;3~", 'sco': ESC+"[W", 'sco-ctrl': ESC+"[u"},
+        'F12': {'default': ESC+"[24~", 'alt': ESC+"[24;3~"},
+        'F13': {'default': ESC+"[25~", 'alt': ESC+"[25;3~", 'sco': ESC+"[X", 'sco-ctrl': ESC+"[v", 'xterm': ESC+"O2P"},
+        'F14': {'default': ESC+"[26~", 'alt': ESC+"[26;3~", 'xterm': ESC+"O2Q"},
+        'F15': {'default': ESC+"[28~", 'alt': ESC+"[28;3~", 'xterm': ESC+"O2R"},
+        'F16': {'default': ESC+"[29~", 'alt': ESC+"[29;3~", 'xterm': ESC+"O2S"},
+        'F17': {'default': ESC+"[31~", 'alt': ESC+"[31;3~", 'xterm': ESC+"[15;2~"},
+        'F18': {'default': ESC+"[32~", 'alt': ESC+"[32;3~", 'xterm': ESC+"[17;2~"},
+        'F19': {'default': ESC+"[33~", 'alt': ESC+"[33;3~", 'xterm': ESC+"[18;2~"},
+        'F20': {'default': ESC+"[34~", 'alt': ESC+"[34;3~", 'xterm': ESC+"[19;2~"},
+        'F21': {'default': ESC+"[20;2~"}, // All F-keys beyond this point are xterm-style (vt220 only goes up to F20)
+        'F22': {'default': ESC+"[21;2~"},
+        'F23': {'default': ESC+"[23;2~"},
+        'F24': {'default': ESC+"[24;2~"},
+        'F25': {'default': ESC+"O5P"},
+        'F26': {'default': ESC+"O5Q"},
+        'F27': {'default': ESC+"O5R"},
+        'F28': {'default': ESC+"O5S"},
+        'F29': {'default': ESC+"[15;5~"},
+        'F30': {'default': ESC+"[17;5~"},
+        'F31': {'default': ESC+"[18;5~"},
+        'F32': {'default': ESC+"[19;5~"},
+        'F33': {'default': ESC+"[20;5~"},
+        'F34': {'default': ESC+"[21;5~"},
+        'F35': {'default': ESC+"[23;5~"},
+        'F36': {'default': ESC+"[24;5~"},
+        'F37': {'default': ESC+"O6P"},
+        'F38': {'default': ESC+"O6Q"},
+        'F39': {'default': ESC+"O6R"},
+        'F40': {'default': ESC+"O6S"},
+        'F41': {'default': ESC+"[15;6~"},
+        'F42': {'default': ESC+"[17;6~"},
+        'F43': {'default': ESC+"[18;6~"},
+        'F44': {'default': ESC+"[19;6~"},
+        'F45': {'default': ESC+"[20;6~"},
+        'F46': {'default': ESC+"[21;6~"},
+        'F47': {'default': ESC+"[23;6~"},
+        'F48': {'default': ESC+"[24;6~"},
+        'ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
+        'NUM_PAD_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
+        'BACKSPACE': {'default': String.fromCharCode(127), 'alt': ESC+String.fromCharCode(8)}, // Default is ^?. Will be changable to ^H eventually.
+        'NUM_PAD_CLEAR': String.fromCharCode(12), // Not sure if this will do anything
+        'SHIFT': null,
+        'CTRL': null,
+        'ALT': null,
+        'PAUSE': {'default': ESC+"[28~", 'xterm': ESC+"O2R"}, // Same as F15
+        'CAPS_LOCK': null,
+        'ESCAPE': {'default': ESC},
+        'TAB': {'default': String.fromCharCode(9), 'shift': ESC+"[Z"},
+        'SPACEBAR': {'ctrl': String.fromCharCode(0)}, // NOTE: Do we *really* need to have an appmode option for this?
+        'PAGE_UP': {'default': ESC+"[5~", 'alt': ESC+"[5;3~", 'sco': ESC+"[I"},
+        'PAGE_DOWN': {'default': ESC+"[6~", 'alt': ESC+"[6;3~", 'sco': ESC+"[G"}, // ^[[6~
+        'END': {'default': ESC+"[F", 'meta': ESC+"[1;1F", 'shift': ESC+"[1;2F", 'alt': ESC+"[1;3F", 'alt-shift': ESC+"[1;4F", 'ctrl': ESC+"[1;5F", 'ctrl-shift': ESC+"[1;6F", 'appmode': ESC+"OF", 'sco': ESC+"[F"},
+        'HOME': {'default': ESC+"[H", 'meta': ESC+"[1;1H", 'shift': ESC+"[1;2H", 'alt': ESC+"[1;3H", 'alt-shift': ESC+"[1;4H", 'ctrl': ESC+"[1;5H", 'ctrl-shift': ESC+"[1;6H", 'appmode': ESC+"OH", 'sco': ESC+"[H"},
+        'ARROW_LEFT': {'default': ESC+"[D", 'alt': ESC+"[1;3D", 'ctrl': ESC+"[1;5D", 'appmode': ESC+"OD"},
+        'ARROW_UP': {'default': ESC+"[A", 'alt': ESC+"[1;3A", 'ctrl': ESC+"[1;5A", 'appmode': ESC+"OA"},
+        'ARROW_RIGHT': {'default': ESC+"[C", 'alt': ESC+"[1;3C", 'ctrl': ESC+"[1;5C", 'appmode': ESC+"OC"},
+        'ARROW_DOWN': {'default': ESC+"[B", 'alt': ESC+"[1;3B", 'ctrl': ESC+"[1;5B", 'appmode': ESC+"OB"},
+        'PRINT_SCREEN': {'default': ESC+"[25~", 'xterm': ESC+"O2P"}, // Same as F13
+        'INSERT': {'default': ESC+"[2~", 'meta': ESC+"[2;1~", 'alt': ESC+"[2;3~", 'alt-shift': ESC+"[2;4~", 'sco': ESC+"[L"},
+        'DELETE': {'default': ESC+"[3~", 'shift': ESC+"[3;2~", 'alt': ESC+"[3;3~", 'alt-shift': ESC+"[3;4~", 'ctrl': ESC+"[3;5~", 'sco': ESC+"?"},
+        'WINDOWS_LEFT': null,
+        'WINDOWS_RIGHT': null,
 // Keypad Enter        ^[OM
 // Keypad Del          ^[On
 // Keypad Ins          ^[Op
@@ -1043,26 +1043,26 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 // Keypad Center       ^[Ou
 // Keypad Cursor Right ^[Ov
 // Keypad Cursor Up    ^[Ox
-        'KEY_SELECT': String.fromCharCode(93),
-        'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*", 'sco': ESC+"[OR"},
-        'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'sco': ESC+"[Ol"},
+        'SELECT': String.fromCharCode(93),
+        'NUM_PAD_ASTERISK': {'alt': ESC+"*", 'sco': ESC+"[OR"},
+        'NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'sco': ESC+"[Ol"},
 // NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox
-        'KEY_NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_"},
-        'KEY_NUM_PAD_FULL_STOP': {'alt': ESC+"."},
-        'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'sco': ESC+"[OQ"},
-        'KEY_NUM_LOCK': {'sco': ESC+"[OP"}, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
-        'KEY_SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
-        'KEY_SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
-        'KEY_EQUALS_SIGN': {'alt': ESC+"=", 'alt-shift': ESC+"+"},
-        'KEY_COMMA': {'alt': ESC+",", 'alt-shift': ESC+"<"},
-        'KEY_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'sco': ESC+"[OS"},
-        'KEY_FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
-        'KEY_SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
-        'KEY_GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},
-        'KEY_LEFT_SQUARE_BRACKET':  {'altgr': "[", 'alt-shift': ESC+"{", 'ctrl': ESC},
-        'KEY_REVERSE_SOLIDUS':  {'altgr': "|", 'altgr-shift': "\\"},
-        'KEY_RIGHT_SQUARE_BRACKET':  {'altgr': "]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
-        'KEY_APOSTROPHE': {'alt': ESC+"'", 'alt-shift': ESC+'"'}
+        'NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_"},
+        'NUM_PAD_FULL_STOP': {'alt': ESC+"."},
+        'NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'sco': ESC+"[OQ"},
+        'NUM_LOCK': {'sco': ESC+"[OP"}, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
+        'SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
+        'SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
+        'EQUALS_SIGN': {'alt': ESC+"=", 'alt-shift': ESC+"+"},
+        'COMMA': {'alt': ESC+",", 'alt-shift': ESC+"<"},
+        'HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'sco': ESC+"[OS"},
+        'FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
+        'SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
+        'GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},
+        'LEFT_SQUARE_BRACKET':  {'altgr': "[", 'alt-shift': ESC+"{", 'ctrl': ESC},
+        'REVERSE_SOLIDUS':  {'altgr': "|", 'altgr-shift': "\\"},
+        'RIGHT_SQUARE_BRACKET':  {'altgr': "]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
+        'APOSTROPHE': {'alt': ESC+"'", 'alt-shift': ESC+'"'}
     }
 });
 
