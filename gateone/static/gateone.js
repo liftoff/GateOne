@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20170623083842";
+GateOne.__commit__ = "20171012084203";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3048,13 +3048,13 @@ GateOne.Base.update(GateOne.Visual, {
             E = go.Events;
         if (!go.prefs.embedded) {
             go.Base.superSandbox("GateOne.Visual.postInitStuff", ["GateOne.Input"], function(window, undefined) {
-                E.on("go:keydown:ctrl-alt-n", function() { V.appChooser(); });
-                E.on("go:keydown:ctrl-alt-w", function() { V.closeWorkspace(localStorage[go.prefs.prefix+"selectedWorkspace"]); });
-                E.on("go:keydown:ctrl-shift-arrow_left", function() { V.slideLeft(); });
-                E.on("go:keydown:ctrl-shift-arrow_right", function() { V.slideRight(); });
-                E.on("go:keydown:ctrl-shift-arrow_up", function() { V.slideUp(); });
-                E.on("go:keydown:ctrl-shift-arrow_down", function() { V.slideDown(); });
-                E.on("go:keydown:ctrl-alt-g", function() { V.toggleGridView(); });
+                E.on("go:keyup:ctrl-alt-n", function() { V.appChooser(); });
+                E.on("go:keyup:ctrl-alt-w", function() { V.closeWorkspace(localStorage[go.prefs.prefix+"selectedWorkspace"]); });
+                E.on("go:keyup:ctrl-shift-arrow_left", function() { V.slideLeft(); });
+                E.on("go:keyup:ctrl-shift-arrow_right", function() { V.slideRight(); });
+                E.on("go:keyup:ctrl-shift-arrow_up", function() { V.slideUp(); });
+                E.on("go:keyup:ctrl-shift-arrow_down", function() { V.slideDown(); });
+                E.on("go:keyup:ctrl-alt-g", function() { V.toggleGridView(); });
             });
         }
     },
