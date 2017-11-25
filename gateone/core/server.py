@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20170623083842" # Gets replaced by git (holds the date/time)
+__commit__ = "20171125153159" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -4398,20 +4398,35 @@ def main(installed=True):
     else:
         cert_reqs = ssl.CERT_NONE
     # Instantiate our Tornado web server
-    ssl_options = {
-        "certfile": go_settings['certificate'],
-        "keyfile": go_settings['keyfile'],
-        "cert_reqs": cert_reqs
-    }
-    ca_certs = go_settings.get('ca_certs', None)
-    if ca_certs:
-        ssl_options['ca_certs'] = ca_certs
+    proto = "https://"
     disable_ssl = go_settings.get('disable_ssl', False)
+    ca_certs = go_settings.get('ca_certs', None)
+    ssl_options = None
     if disable_ssl:
         proto = "http://"
-        ssl_options = None
-    else:
-        proto = "https://"
+    else: # Use SSL!
+        if hasattr(ssl, 'create_default_context'): # Python 2.7.9+ and 3.4+
+            ssl_options = ssl.create_default_context(
+                ssl.Purpose.CLIENT_AUTH, capath=ca_certs)
+            # SSLv2 and SSLv3 are disabled by default in Python 3.4+ so these
+            # aren't necessary (left them here for reference):
+            #ssl_options.options &= ~ssl.OP_NO_SSLv3 # Disable insecure SSLv3
+            #ssl_options.options &= ~ssl.OP_NO_SSLv2 # Disable insecure SSLv2
+        else: # Python 2.7 and Python 3 versions older than 3.4
+            if sys.version_info[0] == 2: # Python 2.7
+                ssl_options = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+                # PROTOCOL_SSLv23 supports through TLS 1.3
+            else: # Python 3.0 through 3.3
+                ssl_options = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                # PROTOCOL_TLS supports all (current) versions of TLS
+            ssl_options.options |= ssl.OP_NO_SSLv2
+            ssl_options.options |= ssl.OP_NO_SSLv3
+            ssl_options.load_default_certs(ssl.Purpose.CLIENT_AUTH)
+            if ca_certs:
+                ssl_options.load_verify_locations(capath=ca_certs)
+        ssl_options.load_cert_chain(
+            go_settings['certificate'], keyfile=go_settings['keyfile'])
+        ssl_options.verify_mode = cert_reqs
     # Fill out our settings with command line args if any are missing
     for option in list(options):
         if option in non_options:
