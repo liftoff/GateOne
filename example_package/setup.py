@@ -38,7 +38,8 @@ for filename in os.listdir(static_dir):
         static_files.append(os.path.join(static_dir, filename))
 
 setup(
-    name="gateone_example_terminal_plugin_package", # Give your package a name
+    name="gateone_example_terminal_plugin_package", # This is how it will be named in the filesystem
+    # Something like: gateone_example_terminal_plugin_package-1.0-py3.6.egg
     version="1.0",
     description="Example packaged plugin for Gate One",
     author="Dan McDougall",
