@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20171125153159";
+GateOne.__commit__ = "20171125154235";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -2697,7 +2697,8 @@ GateOne.Base.update(GateOne.Net, {
                 'container': go.prefs.goDiv.split('#')[1],
                 'prefix': prefix,
                 'location': go.location,
-                'url': go.prefs.url
+                'url': go.prefs.url, // This is the base URL (e.g. https://somehost/)
+                'href': window.location.href
             };
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);

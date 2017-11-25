@@ -19,7 +19,7 @@ __license_info__ = {
     }
 }
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
-__commit__ = "20171125153159" # Gets replaced by git (holds the date/time)
+__commit__ = "20171125154235" # Gets replaced by git (holds the date/time)
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
 __doc__ = '''\
@@ -2083,8 +2083,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 port=port,
                 url_prefix=parsed.path)
             if orig_base_url != self.base_url:
-                self.logger.info(_(
+                self.auth_log.info(_(
                     "Proxy in use: Client URL differs from server."))
+        self.full_url = settings.get('href', None) # In case we need all of it
+        # NOTE: The full URL is only logged via debug() because it could contain
+        #       sensitive info.
+        self.auth_log.debug(_("Client URL: {}".format(self.full_url)))
         auth_method = self.settings.get('auth', None)
         if auth_method and auth_method != 'api':
             # Regular, non-API authentication
