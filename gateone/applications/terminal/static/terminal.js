@@ -376,13 +376,13 @@ go.Base.update(GateOne.Terminal, {
         // Register our keyboard shortcuts
         if (!go.prefs.embedded) {
             // Pseudo print dialog
-            E.on("terminal:keydown:meta-p", function() { GateOne.Terminal.printScreen(); });
+            E.on("terminal:keyup:meta-p", function() { GateOne.Terminal.printScreen(); });
             // Helpful message so the user doesn't get confused as to why their terminal stopped working:
-            E.on("terminal:keydown:ctrl-s", function() {
+            E.on("terminal:keyup:ctrl-s", function() {
                 GateOne.Visual.displayMessage(GateOne.Terminal.outputSuspended); t.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();
             });
             // Ctrl-Alt-P to open a popup terminal
-            E.on("go:keydown:ctrl-alt-p", function() { GateOne.Terminal.popupTerm(null, {"global": false}); });
+            E.on("go:keyup:ctrl-alt-p", function() { GateOne.Terminal.popupTerm(null, {"global": false}); });
             E.on("terminal:new_terminal", go.Terminal.showIcons);
             E.on("go:ws_transitionend", transitionEndFunc);
         }
@@ -401,7 +401,7 @@ go.Base.update(GateOne.Terminal, {
         logDebug(gettext("Attempting to download our WebWorker..."));
         go.ws.send(JSON.stringify({'terminal:get_webworker': null}));
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
-        E.on("terminal:keydown:shift-insert", go.Terminal.paste);
+        E.on("terminal:keyup:shift-insert", go.Terminal.paste);
         // Register our actions
         go.Net.addAction('terminal:commands_list', go.Terminal.enumerateCommandsAction);
         go.Net.addAction('terminal:fonts_list', go.Terminal.enumerateFontsAction);
