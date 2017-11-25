@@ -720,7 +720,6 @@ GateOne.Base.update(GateOne.Input, {
         out += modifiers.meta ? 'Meta-' : '';
         out += modifiers.shift ? 'Shift-' : '';
         out += name;
-        console.log("humanReadableShortcut() out:", out);
         return out;
     },
     humanReadableShortcutList: function(shortcuts) {
@@ -732,7 +731,6 @@ GateOne.Base.update(GateOne.Input, {
             [['Ctrl-Alt-G', 'Grid View'], ['Ctrl-Alt-N', 'New Workspace']]
         */
         for (var shortcut in I.shortcuts) {
-            console.log('shortcut: ' + shortcut);
             var splitKey = i.split('_'),
                 keyName = '',
                 outStr = '';
