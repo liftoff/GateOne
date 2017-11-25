@@ -82,7 +82,7 @@ The base object for all Gate One modules/plugins.
 */
 GateOne.__name__ = "GateOne";
 GateOne.__version__ = "1.2";
-GateOne.__commit__ = "20171012084203";
+GateOne.__commit__ = "20171117084147";
 GateOne.__repr__ = function () {
     return "[" + this.__name__ + " " + this.__version__ + "]";
 };
@@ -3003,31 +3003,6 @@ GateOne.Base.update(GateOne.Visual, {
             ========    =========     ============================================
             `window`    `resize`      :js:meth:`GateOne.Visual.updateDimensions`
             ========    =========     ============================================
-        */
-//         console.log("GateOne.Visual.init()");
-        var u = go.Utils,
-            v = go.Visual,
-            prefix = go.prefs.prefix,
-            toolbarIconGrid = u.createElement('div', {'id': 'icon_grid', 'class': '✈toolbar_icon ✈icon_grid', 'title': "Grid View"}),
-            debouncedUpdateDimensions = u.debounce(go.Visual.updateDimensions, 250),
-            gridToggle = function() {
-                v.toggleGridView(true);
-            };
-        // Setup our toolbar icons and actions
-        toolbarIconGrid.innerHTML = GateOne.Icons.grid;
-        toolbarIconGrid.onclick = gridToggle;
-        // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
-        go.toolbar.appendChild(toolbarIconGrid);
-        go.Events.on('go:switch_workspace', v.slideToWorkspace);
-        go.Events.on('go:switch_workspace', v.locationsCheck);
-        go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        window.addEventListener('resize', debouncedUpdateDimensions, false);
-        document.addEventListener(visibilityChange, go.Visual.handleVisibility, false);
-    },
-    postInit: function() {
-        /**:GateOne.Visual.postInit()
-
-        Sets up our default keyboard shortcuts and opens the application chooser if no other applications have opened themselves after a short timeout (500ms).
 
         Registers the following keyboard shortcuts:
 
@@ -3043,19 +3018,35 @@ GateOne.Base.update(GateOne.Visual, {
             Switch to the workspace below         :kbd:`Shift-DownArrow`
             ====================================  =======================
         */
-        logDebug("GateOne.Visual.postInit()");
-        var V = go.Visual,
-            E = go.Events;
+//         console.log("GateOne.Visual.init()");
+        var u = go.Utils,
+            v = go.Visual,
+            E = go.Events,
+            prefix = go.prefs.prefix,
+            toolbarIconGrid = u.createElement('div', {'id': 'icon_grid', 'class': '✈toolbar_icon ✈icon_grid', 'title': "Grid View"}),
+            debouncedUpdateDimensions = u.debounce(v.updateDimensions, 250),
+            gridToggle = function() {
+                v.toggleGridView(true);
+            };
+        // Setup our toolbar icons and actions
+        toolbarIconGrid.innerHTML = GateOne.Icons.grid;
+        toolbarIconGrid.onclick = gridToggle;
+        // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
+        go.toolbar.appendChild(toolbarIconGrid);
+        go.Events.on('go:switch_workspace', v.slideToWorkspace);
+        go.Events.on('go:switch_workspace', v.locationsCheck);
+        go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
+        window.addEventListener('resize', debouncedUpdateDimensions, false);
+        document.addEventListener(visibilityChange, v.handleVisibility, false);
         if (!go.prefs.embedded) {
-            go.Base.superSandbox("GateOne.Visual.postInitStuff", ["GateOne.Input"], function(window, undefined) {
-                E.on("go:keyup:ctrl-alt-n", function() { V.appChooser(); });
-                E.on("go:keyup:ctrl-alt-w", function() { V.closeWorkspace(localStorage[go.prefs.prefix+"selectedWorkspace"]); });
-                E.on("go:keyup:ctrl-shift-arrow_left", function() { V.slideLeft(); });
-                E.on("go:keyup:ctrl-shift-arrow_right", function() { V.slideRight(); });
-                E.on("go:keyup:ctrl-shift-arrow_up", function() { V.slideUp(); });
-                E.on("go:keyup:ctrl-shift-arrow_down", function() { V.slideDown(); });
-                E.on("go:keyup:ctrl-alt-g", function() { V.toggleGridView(); });
-            });
+            // Add some default keyboard shortcuts:
+            E.on("go:keyup:ctrl-alt-n", function() { v.appChooser(); });
+            E.on("go:keyup:ctrl-alt-w", function() { v.closeWorkspace(localStorage[prefix+"selectedWorkspace"]); });
+            E.on("go:keyup:ctrl-shift-arrow_left", function() { v.slideLeft(); });
+            E.on("go:keyup:ctrl-shift-arrow_right", function() { v.slideRight(); });
+            E.on("go:keyup:ctrl-shift-arrow_up", function() { v.slideUp(); });
+            E.on("go:keyup:ctrl-shift-arrow_down", function() { v.slideDown(); });
+            E.on("go:keyup:ctrl-alt-g", function() { v.toggleGridView(); });
         }
     },
     // NOTE: Work-in-progress:
