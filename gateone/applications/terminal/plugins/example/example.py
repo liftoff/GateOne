@@ -97,7 +97,7 @@ class ExampleHandler(BaseHandler):
         # or 'upn' for short.  Why?  Because it might actually be a username
         # plus a realm or domain name.  e.g. user@REALM or user@company.com
         username = user_dict['upn']
-        session = user_dict['session'][:3] # Just the last three (for security)
+        session = user_dict['session'][-3:] # Just the last three (for security)
         self.render(
             example_template, # The path to a template file
             bygolly=bygolly, # Just match up your template's {{whatever}} with
