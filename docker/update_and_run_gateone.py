@@ -38,7 +38,6 @@ if __name__ == "__main__":
                 print("Encountered a problem trying to install/upgrade Gate One...")
                 print(output)
                 sys.exit(1)
-        retcode, output = getstatusoutput('pip install --upgrade tornado')
     else:
         go_args.remove('--noupdate')
     os.execvp('/usr/bin/python', [

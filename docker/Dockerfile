@@ -52,7 +52,10 @@ RUN apt-get -y \
     openssh-client && \
     apt-get -y clean && \
     apt-get -q -y autoremove
-RUN pip install --upgrade futures tornado cssmin slimit psutil
+
+RUN pip install --upgrade pip
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 # Create the necessary directories, clone the repo, and install everything
 RUN mkdir -p /gateone/logs && \
@@ -78,4 +81,4 @@ RUN rm -f /etc/gateone/ssl/key.pem && \
 
 EXPOSE 8000
 
-CMD ["/usr/local/bin/update_and_run_gateone", "--log_file_prefix=/gateone/logs/gateone.log"]
+ENTRYPOINT ["/usr/local/bin/update_and_run_gateone", "--log_file_prefix=/gateone/logs/gateone.log"]
