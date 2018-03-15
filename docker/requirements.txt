@@ -1,0 +1,5 @@
+cssmin==0.2.*
+futures==3.2.*
+psutil==5.4.*
+slimit==0.8.*
+tornado==4.5.*

@@ -52,7 +52,10 @@ RUN apt-get -y \
     openssh-client && \
     apt-get -y clean && \
     apt-get -q -y autoremove
-RUN pip install --upgrade futures tornado cssmin slimit psutil
+
+RUN pip install --upgrade pip
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 # Create the necessary directories, clone the repo, and install everything
 RUN mkdir -p /gateone/logs && \
