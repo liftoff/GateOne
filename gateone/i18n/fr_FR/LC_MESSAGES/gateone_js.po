@@ -734,7 +734,7 @@ msgstr "Identifiant"
 #: gateone/tests/hello_embedded/static/gateone.js:3088
 #: gateone/tests/hello_embedded/static/gateone.js:3111
 msgid "Locations"
-msgstr "Emplacement"
+msgstr "Emplacements"
 
 #: gateone/static/gateone.js:3284 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3284
