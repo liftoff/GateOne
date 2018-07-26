@@ -91,7 +91,7 @@ msgstr "La sortie de la console a été suspendu (Ctrl-S). Tapez Ctrl-Q pour rep
 
 #: gateone/applications/terminal/static/terminal.js:125
 msgid "WARNING: Problematic Browser Extension Detected"
-msgstr "AVERTISSEMENT: Problématique avec l'extension du navigateur détecté"
+msgstr "AVERTISSEMENT: Extension du navigateur défectueuse détectée !"
 
 #: gateone/applications/terminal/static/terminal.js:126
 msgid ""
@@ -430,7 +430,7 @@ msgstr "Le texte a été copié dans le presse-papier."
 
 #: gateone/applications/terminal/static/terminal_input.js:713
 msgid "NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode."
-msgstr "REMARQUE: Appuyer deux fois sur F11 rapidement pour activer / désactiver le mode plein écran."
+msgstr "REMARQUE: Appuyez deux fois sur F11 rapidement pour activer / désactiver le mode plein écran."
 
 #: gateone/applications/terminal/static/terminal_input.js:948
 #: gateone/static/gateone.js:3912 gateone/tests/chat/static/gateone.js:3912
@@ -448,7 +448,7 @@ msgstr "Mode Ninja! Gate One est devenu caché."
 msgid ""
 "Browser does not support Web Worker transferable objects.  X11 "
 "performance will be (slightly) reduced."
-msgstr "Le navigateur ne supporte pas les Web Worker transferable. Les performances X11 seront (un peu) réduit."
+msgstr "Le navigateur ne supporte pas les Web Worker transferable. Les performances X11 seront (un peu) réduites."
 
 #: gateone/plugins/editor/static/editor.js:45
 msgid "CodeMirror editor mode could not be found: "
@@ -714,7 +714,7 @@ msgstr "Utilisez GateOne.Terminal.fullRefresh () à la place."
 #: gateone/tests/chat/static/gateone.js:3080
 #: gateone/tests/hello_embedded/static/gateone.js:3080
 msgid "Location"
-msgstr "Emplacement"
+msgstr "Emplacements"
 
 #: gateone/static/gateone.js:3081 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3081
@@ -740,7 +740,7 @@ msgstr "Emplacement"
 #: gateone/tests/chat/static/gateone.js:3284
 #: gateone/tests/hello_embedded/static/gateone.js:3284
 msgid "Skipping adding the icon for "
-msgstr "Passe l'ajout de l'icône pour "
+msgstr "Ignore l'ajout de l'icône pour "
 
 #: gateone/static/gateone.js:3284 gateone/static/gateone.min.js:1
 #: gateone/tests/chat/static/gateone.js:3284
@@ -841,7 +841,7 @@ msgstr "Veuillez fermer les autres onglets connectés à ce serveur et recharger
 msgid ""
 "GateOne.Storage.openDB(): No database upgrade necessary.  Calling "
 "callback..."
-msgstr "GateOne.Storage.openDB (): Pas de base de données mise à jour nécessaire. Exacution du callback ..."
+msgstr "GateOne.Storage.openDB (): Pas de base de données mise à jour nécessaire. Execution du callback ..."
 
 #: gateone/static/gateone.js:5745 gateone/tests/chat/static/gateone.js:5745
 #: gateone/tests/hello_embedded/static/gateone.js:5745
@@ -888,7 +888,7 @@ msgstr "Vous avez été déconnecté. Redirection vers: "
 #: gateone/static/gateone.js:6212 gateone/tests/chat/static/gateone.js:6212
 #: gateone/tests/hello_embedded/static/gateone.js:6212
 msgid "Events now use prefixes such as 'go:' or 'terminal:'."
-msgstr "Les evénements utilisent maintenant les préfixes comme «go:» ou «terminal:» ."
+msgstr "Les événements utilisent maintenant les préfixes comme «go:» ou «terminal:» ."
 
 #: gateone/static/gateone.min.js:1
 msgid "Application, '' could not be found."
