@@ -854,27 +854,27 @@ msgid ""
 "(left, right, top, bottom).  %s is not valid"
 msgstr "frame_extents () prend un tuple (ou une liste) d'entiers sous la forme de: (gauche, droite, haut, bas). %s n'est pas valide"
 
-#: gateone/async/async.py:138
+#: gateone/asynchronous/asynchronous.py:138
 #, python-format
 msgid "Exception in Future: %s (id: %s)"
 msgstr "Exception dans l'avenir: %s (id: %s )"
 
-#: gateone/async/async.py:223
+#: gateone/asynchronous/asynchronous.py:223
 #, python-format
 msgid "Shutting down %s"
 msgstr "Arrêt %s"
 
-#: gateone/async/async.py:429
+#: gateone/asynchronous/asynchronous.py:429
 #, python-format
 msgid "Starting the ThreadedRunner executor with %s worker threads."
 msgstr "Démarrage de l'exécuteur ThreadedRunner avec %s les threads de travail."
 
-#: gateone/async/async.py:480
+#: gateone/asynchronous/asynchronous.py:480
 #, python-format
 msgid "Starting the MultiprocessRunner executor with %s worker processes."
 msgstr "Démarrage de l'exécuteur MultiprocessRunner avec %s des processus de travail."
 
-#: gateone/async/async.py:513
+#: gateone/asynchronous/asynchronous.py:513
 msgid "Shutting down the MultiprocessRunner executor."
 msgstr "Arrêt du exécuteur MultiprocessRunner."
 
