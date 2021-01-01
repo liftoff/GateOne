@@ -308,7 +308,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
 # Exceptions
 class Timeout(Exception):
     """
-    Used by :meth:`BaseMultiplex.expect` and :meth:`BaseMultiplex.await`;
+    Used by :meth:`BaseMultiplex.expect` and :meth:`BaseMultiplex.block_await`;
     called when a timeout is reached.
     """
     pass
@@ -920,7 +920,7 @@ class BaseMultiplex(object):
 
         .. note::  This function is non-blocking!
 
-        .. warning::  The *timeout* value gets compared against the time :meth:`expect` was called to create it.  So don't wait too long if you're planning on using :meth:`await`!
+        .. warning::  The *timeout* value gets compared against the time :meth:`expect` was called to create it.  So don't wait too long if you're planning on using :meth:`block_await`!
 
         Here's a simple example that changes a user's password::
 
@@ -933,14 +933,14 @@ class BaseMultiplex(object):
             >>> print(len(m._patterns)) # To show that there's two in the queue
                 2
             >>> m.spawn() # Execute the command
-            >>> m.await(10) # This will block for up to 10 seconds waiting for self._patterns to be empty (not counting optional patterns)
+            >>> m.block_await(10) # This will block for up to 10 seconds waiting for self._patterns to be empty (not counting optional patterns)
             Sending Password... 1 patterns remaining.
             Sending Password... 0 patterns remaining.
             >>> m.isalive()
             False
             >>> # All done!
 
-        .. tip:: The :meth:`await` method will automatically call :meth:`spawn` if not :meth:`isalive`.
+        .. tip:: The :meth:`block_await` method will automatically call :meth:`spawn` if not :meth:`isalive`.
 
         This would result in the password of 'someuser' being changed to 'somepassword'.  How is the order determined?  Every time :meth:`expect` is called it creates a new :class:`Pattern` using the given parameters and appends it to `self._patterns` (which is a list).  As each :class:`Pattern` is matched its *callback* gets called and the :class:`Pattern` is removed from `self._patterns` (unless *sticky* is `True`).  So even though the patterns and callbacks listed above were identical they will get executed and removed in the order they were created as each respective :class:`Pattern` is matched.
 
@@ -956,7 +956,7 @@ class BaseMultiplex(object):
             ...    m_instance.unexpect(ref1)
             ...    m_instance.writeline('somepassword')
             >>> ref2 = m.expect('(?i)password:', send_password)
-            >>> # spawn() and/or await() and do stuff...
+            >>> # spawn() and/or block_await() and do stuff...
 
         The example above would send 'yes' if asked by the SSH program to accept
         the host's public key (which would result in it being automatically
@@ -1010,11 +1010,11 @@ class BaseMultiplex(object):
             >>> m = Multiplex('echo -e "\\033]0;Some Title\\007"')
             >>> title_seq_regex = re.compile(r'\\x1b\\][0-2]\;(.*?)(\\x07|\\x1b\\\\)')
             >>> m.expect(title_seq_regex, handle_xterm_title, preprocess=True) # <-- 'preprocess=True'
-            >>> m.await()
+            >>> m.block_await()
             Caught title: Some Title
             >>>
 
-        **Notes about debugging:** Instead of using `await` to wait for all of your patterns to be matched at once you can make individual calls to `read` to determine if your patterns are being matched in the way that you want.  For example::
+        **Notes about debugging:** Instead of using `block_await` to wait for all of your patterns to be matched at once you can make individual calls to `read` to determine if your patterns are being matched in the way that you want.  For example::
 
             >>> def do_stuff(m_instance, matched):
             ...     print("Debug: do_stuff() got %s" % repr(matched))
@@ -1023,7 +1023,7 @@ class BaseMultiplex(object):
             >>> m.expect('some pattern', do_stuff)
             >>> m.expect('some other pattern', do_stuff)
             >>> m.spawn()
-            >>> # Instead of calling await() just call one read() at a time...
+            >>> # Instead of calling block_await() just call one read() at a time...
             >>> print(repr(m.read()))
             ''
             >>> print(repr(m.read())) # Oops, called read() too soon.  Try again:
@@ -1043,7 +1043,7 @@ class BaseMultiplex(object):
             'some pattern'
             >>> # As you can see, calling read() at-will in an interactive interpreter can be very handy.
 
-        **About asynchronous use:**  This mechanism is non-blocking (with the exception of `await`) and is meant to be used asynchronously.  This means that if the running program has no output, `read` won't result in any patterns being matched.  So you must be careful about timing *or* you need to ensure that `read` gets called either automatically when there's data to be read (IOLoop, EPoll, select, etc) or at regular intervals via a loop.  Also, if you're not calling `read` at an interval (i.e. you're using a mechanism to detect when there's output to be read before calling it e.g. IOLoop) you need to ensure that `timeout_check` is called regularly anyway or timeouts won't get detected if there's no output from the underlying program.  See the `MultiplexPOSIXIOLoop.read` override for an example of what this means and how to do it.
+        **About asynchronous use:**  This mechanism is non-blocking (with the exception of `block_await`) and is meant to be used asynchronously.  This means that if the running program has no output, `read` won't result in any patterns being matched.  So you must be careful about timing *or* you need to ensure that `read` gets called either automatically when there's data to be read (IOLoop, EPoll, select, etc) or at regular intervals via a loop.  Also, if you're not calling `read` at an interval (i.e. you're using a mechanism to detect when there's output to be read before calling it e.g. IOLoop) you need to ensure that `timeout_check` is called regularly anyway or timeouts won't get detected if there's no output from the underlying program.  See the `MultiplexPOSIXIOLoop.read` override for an example of what this means and how to do it.
         """
         # Create the Pattern object before we do anything else
         if isinstance(patterns, (str, unicode)):
@@ -1093,7 +1093,7 @@ class BaseMultiplex(object):
             if hash(item) == ref:
                 self._patterns.pop(i)
 
-    def await(self, timeout=15, **kwargs):
+    def block_await(self, timeout=15, **kwargs):
         """
         Blocks until all non-optional patterns inside self._patterns have been
         removed *or* if the given *timeout* is reached.  *timeout* may be an
@@ -1102,12 +1102,12 @@ class BaseMultiplex(object):
         Returns True if all non-optional, non-sticky patterns were handled
         successfully.
 
-        .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :meth:`await`!
+        .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :meth:`block_await`!
 
         As a convenience, if :meth:`isalive` resolves to False,
         :meth:`spawn` will be called automatically with *\*\*kwargs*
 
-        await
+        block_await
             To wait with expectation.
         """
         if not self.isalive():
@@ -1124,7 +1124,7 @@ class BaseMultiplex(object):
         # This starts up the scheduler that constantly checks patterns
         output = self.read() # Remember:  read() is non-blocking
         if output and self.debug and EXTRA_DEBUG:
-            print("await: %s" % repr(output))
+            print("block_await: %s" % repr(output))
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
@@ -1145,7 +1145,7 @@ class BaseMultiplex(object):
             # Lastly we perform a read() to ensure the output is processed
             output = self.read() # Remember:  read() is non-blocking
             if output and self.debug and EXTRA_DEBUG:
-                print("await: %s" % repr(output))
+                print("block_await: %s" % repr(output))
             time.sleep(0.01) # So we don't eat up all the CPU
         return True
 
@@ -1810,9 +1810,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 #child.expect('ftp>$', 'cd pub\n')
 #child.expect('ftp>$', 'get ls-lR.gz\n')
 #child.expect('ftp>$', 'bye\n')
-#child.await() # Blocks until all patterns have been matched or a timeout
+#child.block_await() # Blocks until all patterns have been matched or a timeout
 # NOTE: If this code were called inside of an already-started IOLoop there would
-# be no need to call await(). Everything would be asynchronous and non-blocking.
+# be no need to call block_await(). Everything would be asynchronous and non-blocking.
 
 def spawn(cmd, rows=24, cols=80, env=None, em_dimensions=None, *args, **kwargs):
     """

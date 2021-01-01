@@ -1771,7 +1771,7 @@ class Terminal(object):
     RE_SIGINT = re.compile(b'.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
-    linkpath='/tmp', icondir=None, encoding='utf-8', async=None, debug=False,
+    linkpath='/tmp', icondir=None, encoding='utf-8', asynchronous=None, debug=False,
     enabled_filetypes="all"):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
@@ -1857,7 +1857,7 @@ class Terminal(object):
         self.linkpath = linkpath
         self.icondir = icondir
         self.encoding = encoding
-        self.async = async
+        self.asynchronous = asynchronous
         if enabled_filetypes == "all":
             enabled_filetypes = [
                 PDFFile,
@@ -4481,7 +4481,7 @@ class Terminal(object):
             This places <span class="cursor">(current character)</span> around
             the cursor location.
         """
-        if self.async:
+        if self.asynchrnonous:
             state_obj = {
                 'html_cache': HTML_CACHE,
                 'screen': self.screen,
@@ -4492,7 +4492,7 @@ class Terminal(object):
                 'show_cursor': self.expanded_modes['25'],
                 'class_prefix': self.class_prefix
             }
-            self.async.call_singleton(
+            self.asynchrnonous.call_singleton(
                 spanify_screen, identifier, state_obj, callback=callback)
         else:
             scrollback, screen = self.dump_html(renditions=renditions)

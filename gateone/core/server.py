@@ -401,7 +401,7 @@ from gateone.auth.authentication import CASAuthHandler, PAMAuthHandler
 from gateone.auth.authentication import SSLAuthHandler
 from gateone.auth.authorization import require, authenticated, policies
 from gateone.auth.authorization import applicable_policies
-from gateone.async import MultiprocessRunner, ThreadedRunner
+from gateone.asynchronous import MultiprocessRunner, ThreadedRunner
 from .utils import generate_session_id, mkdir_p, touch, noop
 from .utils import gen_self_signed_ssl, entry_point_files
 from .utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
