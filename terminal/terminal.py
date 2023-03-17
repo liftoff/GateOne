@@ -122,7 +122,7 @@ Here's an example with some basic callbacks:
 
 .. note:: In testing Gate One it was determined that it is faster to perform the conversion of a terminal screen to HTML on the server side than it is on the client side (via JavaScript anyway).
 
-About The Scrollback Bufffer
+About The Scrollback Buffer
 ----------------------------
 The Terminal class implements a scrollback buffer.  Here's how it works:
 Whenever a :meth:`Terminal.scroll_up` event occurs, the line (or lines) that
